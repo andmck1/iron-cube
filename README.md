@@ -1,1 +1,1 @@
-# cmp504-project
+# vulkan-renderer
