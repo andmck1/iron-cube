@@ -1,0 +1,21 @@
+\doxysection{src/\+core/\+src/\+service/\+\+Service\+Locator.h File Reference}
+\hypertarget{ServiceLocator_8h}{}\label{ServiceLocator_8h}\index{src/core/src/service/ServiceLocator.h@{src/core/src/service/ServiceLocator.h}}
+
+
+Service locator for dependency injection.  
+
+
+{\ttfamily \+\#include $<$unordered\+\_\+map$>$}\newline
+{\ttfamily \+\#include $<$typeindex$>$}\newline
+{\ttfamily \+\#include $<$typeinfo$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classServiceLocator}{Service\+Locator}}
+\begin{DoxyCompactList}\small\item\em Global service registry. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Service locator for dependency injection. 
+
+Provides a global registry for platform, renderer, and other services, allowing components to resolve dependencies by interface type without compile-\/time coupling. 

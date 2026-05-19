@@ -1,0 +1,22 @@
+\doxysection{src/\+core/\+src/\+platform/\+\+IPlatform.h File Reference}
+\hypertarget{IPlatform_8h}{}\label{IPlatform_8h}\index{src/core/src/platform/IPlatform.h@{src/core/src/platform/IPlatform.h}}
+
+
+Platform abstraction interface for window, input, and lifecycle management.  
+
+
+{\ttfamily \+\#include $<$string$>$}\newline
+{\ttfamily \+\#include $<$cstdint$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structPlatformConfig}{Platform\+Config}}
+\begin{DoxyCompactList}\small\item\em Configuration for window creation. \end{DoxyCompactList}\item 
+class \doxymbox{\hyperlink{classIPlatform}{IPlatform}}
+\begin{DoxyCompactList}\small\item\em Platform service interface. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Platform abstraction interface for window, input, and lifecycle management. 
+
+The platform layer sits between the application and OS-\/specific backends, providing a stable interface for window creation, event polling, and graceful shutdown. 

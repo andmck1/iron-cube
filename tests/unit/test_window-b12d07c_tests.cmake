@@ -1,0 +1,5 @@
+add_test( [==[Window creation: GLFW initializes successfully]==] /home/dtaunt/dev/iron-cube/bin/test_window [==[Window creation: GLFW initializes successfully]==]  )
+set_tests_properties( [==[Window creation: GLFW initializes successfully]==] PROPERTIES WORKING_DIRECTORY /home/dtaunt/dev/iron-cube/tests/unit)
+add_test( [==[Window creation: window can be created and destroyed]==] /home/dtaunt/dev/iron-cube/bin/test_window [==[Window creation: window can be created and destroyed]==]  )
+set_tests_properties( [==[Window creation: window can be created and destroyed]==] PROPERTIES WORKING_DIRECTORY /home/dtaunt/dev/iron-cube/tests/unit)
+set( test_window_TESTS [==[Window creation: GLFW initializes successfully]==] [==[Window creation: window can be created and destroyed]==])

@@ -1,0 +1,5 @@
+if(EXISTS "/home/dtaunt/dev/iron-cube/tests/unit/test_renderer-b12d07c_tests.cmake")
+  include("/home/dtaunt/dev/iron-cube/tests/unit/test_renderer-b12d07c_tests.cmake")
+else()
+  add_test(test_renderer_NOT_BUILT-b12d07c test_renderer_NOT_BUILT-b12d07c)
+endif()

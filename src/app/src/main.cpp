@@ -1,6 +1,7 @@
-#include <iostream>
+#include "Application.h"
 
-int main() {
-    std::cout << "Iron Cube" << std::endl;
-    return 0;
+int main()
+{
+    Application app;
+    return app.run();
 }

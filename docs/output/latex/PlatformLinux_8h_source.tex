@@ -1,0 +1,31 @@
+\doxysection{Platform\+Linux.\+h}
+\hypertarget{PlatformLinux_8h_source}{}\label{PlatformLinux_8h_source}\index{src/core/src/platform/linux/PlatformLinux.h@{src/core/src/platform/linux/PlatformLinux.h}}
+\doxymbox{\hyperlink{PlatformLinux_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{IPlatform_8h}{platform/IPlatform.h}}"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{WindowGLFW_8h}{platform/linux/WindowGLFW.h}}"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{InputGLFW_8h}{platform/linux/InputGLFW.h}}"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <GLFW/glfw3.h>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classPlatformLinux}{PlatformLinux}}\ :\ \textcolor{keyword}{public}\ \doxymbox{\hyperlink{classIPlatform}{IPlatform}}}
+\DoxyCodeLine{00020\ \{}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classPlatformLinux_a902eb5ac1465bfcecf7787e1abcf5405}{initialize}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classPlatformLinux_a8c2cdfa35980b3c910be7006ed4f9601}{createWindow}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{structPlatformConfig}{PlatformConfig}}\ \&config)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classPlatformLinux_ac4e66bb057f659367abafd3e8f163a51}{pollEvents}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classPlatformLinux_ad8a430d8cf6b1c6668f85a3b73d2a552}{shouldExit}}()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classPlatformLinux_a39e5837ea45d5dfcad807010c63e04c7}{shutdown}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00034\ \ \ \ \ GLFWwindow\ *\doxymbox{\hyperlink{classPlatformLinux_a7540985d55dfa98808446cc65e90fca3}{getGLFWWindow}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00037\ \ \ \ \ \doxymbox{\hyperlink{classWindowGLFW}{WindowGLFW}}\ window\_;}
+\DoxyCodeLine{00038\ \ \ \ \ \doxymbox{\hyperlink{classInputGLFW}{InputGLFW}}\ input\_;}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keywordtype}{bool}\ initialized\_;}
+\DoxyCodeLine{00040\ \};}
+
+\end{DoxyCode}

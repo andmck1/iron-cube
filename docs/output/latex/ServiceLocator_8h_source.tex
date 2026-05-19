@@ -1,0 +1,35 @@
+\doxysection{Service\+Locator.\+h}
+\hypertarget{ServiceLocator_8h_source}{}\label{ServiceLocator_8h_source}\index{src/core/src/service/ServiceLocator.h@{src/core/src/service/ServiceLocator.h}}
+\doxymbox{\hyperlink{ServiceLocator_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <unordered\_map>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <typeindex>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <typeinfo>}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classServiceLocator}{ServiceLocator}}}
+\DoxyCodeLine{00035\ \{}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classServiceLocator_ac2c6f260ec37f1b9dc9bbe064aecc70e}{registerService}}(T\ *service)}
+\DoxyCodeLine{00043\ \ \ \ \ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ services\_[std::type\_index(\textcolor{keyword}{typeid}(T))]\ =\ service;}
+\DoxyCodeLine{00045\ \ \ \ \ \}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ T\ *\doxymbox{\hyperlink{classServiceLocator_a28e39863e39513635da39952f436f96d}{get}}()}
+\DoxyCodeLine{00053\ \ \ \ \ \{}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ it\ =\ services\_.find(std::type\_index(\textcolor{keyword}{typeid}(T)));}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (it\ !=\ services\_.end())}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}T\ *\textcolor{keyword}{>}(it-\/>second);}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00058\ \ \ \ \ \}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{static}\ \doxymbox{\hyperlink{classServiceLocator}{ServiceLocator}}\ \&\doxymbox{\hyperlink{classServiceLocator_a31f3258e3767787f0aa2ab410f5d9f2f}{instance}}();}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00067\ \ \ \ \ std::unordered\_map<std::type\_index,\ void\ *>\ services\_;}
+\DoxyCodeLine{00068\ \};}
+
+\end{DoxyCode}

@@ -1,0 +1,108 @@
+\doxysection{IWindow Class Reference}
+\hypertarget{classIWindow}{}\label{classIWindow}\index{IWindow@{IWindow}}
+
+
+Window abstraction interface.  
+
+
+
+
+{\ttfamily \+\#include $<$IWindow.\+h$>$}
+
+Inheritance diagram for IWindow:\+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classIWindow}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual bool \doxymbox{\hyperlink{classIWindow_ad086a809bb8e2a64e696c90eade340a4}{is\+Open}} () const =0
+\begin{DoxyCompactList}\small\item\em Check if the window is currently open. \end{DoxyCompactList}\item 
+virtual bool \doxymbox{\hyperlink{classIWindow_a1e5df6bb9fc154208ad6a38c64c32ae4}{is\+Iconified}} () const =0
+\begin{DoxyCompactList}\small\item\em Check if the window is minimized. \end{DoxyCompactList}\item 
+virtual void \doxymbox{\hyperlink{classIWindow_a4314cb7a37c5e535db07c1b6f14596da}{request\+Close}} ()=0
+\begin{DoxyCompactList}\small\item\em Signal the window to close. \end{DoxyCompactList}\item 
+virtual \doxymbox{\hyperlink{structVec2u}{Vec2u}} \doxymbox{\hyperlink{classIWindow_a56dc6857a4b8c2e8fb13bf4c8e414b8f}{get\+Size}} () const =0
+\begin{DoxyCompactList}\small\item\em Get the current window size. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Window abstraction interface. 
+
+Exposes window state queries and close requests without exposing backend-\/specific handles. 
+
+\label{doc-func-members}
+\Hypertarget{classIWindow_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classIWindow_a56dc6857a4b8c2e8fb13bf4c8e414b8f}\index{IWindow@{IWindow}!getSize@{getSize}}
+\index{getSize@{getSize}!IWindow@{IWindow}}
+\doxysubsubsection{\texorpdfstring{getSize()}{getSize()}}
+{\footnotesize\ttfamily \label{classIWindow_a56dc6857a4b8c2e8fb13bf4c8e414b8f} 
+virtual \doxymbox{\hyperlink{structVec2u}{Vec2u}} IWindow::\+get\+Size (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get the current window size. 
+
+\begin{DoxyReturn}{Returns}
+Width and height in pixels. 
+\end{DoxyReturn}
+
+
+Implemented in \doxymbox{\hyperlink{classWindowGLFW_af61435ef2e620acaa294912717fa6c4f}{Window\+GLFW}}.
+
+\Hypertarget{classIWindow_a1e5df6bb9fc154208ad6a38c64c32ae4}\index{IWindow@{IWindow}!isIconified@{isIconified}}
+\index{isIconified@{isIconified}!IWindow@{IWindow}}
+\doxysubsubsection{\texorpdfstring{isIconified()}{isIconified()}}
+{\footnotesize\ttfamily \label{classIWindow_a1e5df6bb9fc154208ad6a38c64c32ae4} 
+virtual bool IWindow::\+is\+Iconified (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Check if the window is minimized. 
+
+\begin{DoxyReturn}{Returns}
+true if the window is iconified. 
+\end{DoxyReturn}
+
+
+Implemented in \doxymbox{\hyperlink{classWindowGLFW_a7a7287714303e6acc19239b9d5d99425}{Window\+GLFW}}.
+
+\Hypertarget{classIWindow_ad086a809bb8e2a64e696c90eade340a4}\index{IWindow@{IWindow}!isOpen@{isOpen}}
+\index{isOpen@{isOpen}!IWindow@{IWindow}}
+\doxysubsubsection{\texorpdfstring{isOpen()}{isOpen()}}
+{\footnotesize\ttfamily \label{classIWindow_ad086a809bb8e2a64e696c90eade340a4} 
+virtual bool IWindow::\+is\+Open (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Check if the window is currently open. 
+
+\begin{DoxyReturn}{Returns}
+true if the window has been created and not destroyed. 
+\end{DoxyReturn}
+
+
+Implemented in \doxymbox{\hyperlink{classWindowGLFW_a06e28058346d4344253fd7bec5292756}{Window\+GLFW}}.
+
+\Hypertarget{classIWindow_a4314cb7a37c5e535db07c1b6f14596da}\index{IWindow@{IWindow}!requestClose@{requestClose}}
+\index{requestClose@{requestClose}!IWindow@{IWindow}}
+\doxysubsubsection{\texorpdfstring{requestClose()}{requestClose()}}
+{\footnotesize\ttfamily \label{classIWindow_a4314cb7a37c5e535db07c1b6f14596da} 
+virtual void IWindow::\+request\+Close (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Signal the window to close. 
+
+Sets the close flag; the actual destruction happens during the next platform shutdown cycle. 
+
+Implemented in \doxymbox{\hyperlink{classWindowGLFW_af4b670d986779113cba21e56e08c9eed}{Window\+GLFW}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+src/\+platform/\+\doxymbox{\hyperlink{IWindow_8h}{IWindow.\+h}}\end{DoxyCompactItemize}

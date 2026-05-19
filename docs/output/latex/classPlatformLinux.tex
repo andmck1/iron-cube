@@ -1,0 +1,145 @@
+\doxysection{Platform\+Linux Class Reference}
+\hypertarget{classPlatformLinux}{}\label{classPlatformLinux}\index{PlatformLinux@{PlatformLinux}}
+
+
+Linux platform backend.  
+
+
+
+
+{\ttfamily \+\#include $<$Platform\+Linux.\+h$>$}
+
+Inheritance diagram for Platform\+Linux:\+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classPlatformLinux}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{classPlatformLinux_a902eb5ac1465bfcecf7787e1abcf5405}{initialize}} () override
+\begin{DoxyCompactList}\small\item\em Initialize the platform backend. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{classPlatformLinux_a8c2cdfa35980b3c910be7006ed4f9601}{create\+Window}} (const \doxymbox{\hyperlink{structPlatformConfig}{Platform\+Config}} \&config) override
+\begin{DoxyCompactList}\small\item\em Create the application window. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{classPlatformLinux_ac4e66bb057f659367abafd3e8f163a51}{poll\+Events}} () override
+\begin{DoxyCompactList}\small\item\em Process pending OS events (keyboard, window close, etc.). \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{classPlatformLinux_ad8a430d8cf6b1c6668f85a3b73d2a552}{should\+Exit}} () const override
+\begin{DoxyCompactList}\small\item\em Check whether the application should exit. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{classPlatformLinux_a39e5837ea45d5dfcad807010c63e04c7}{shutdown}} () override
+\begin{DoxyCompactList}\small\item\em Release all platform resources. \end{DoxyCompactList}\item 
+GLFWwindow \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{classPlatformLinux_a7540985d55dfa98808446cc65e90fca3}{get\+GLFWWindow}} () const
+\begin{DoxyCompactList}\small\item\em Get the underlying GLFW window handle. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Linux platform backend. 
+
+Wraps GLFW for window management and keyboard input. Exposes the raw GLFW window handle for the renderer layer. 
+
+\label{doc-func-members}
+\Hypertarget{classPlatformLinux_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classPlatformLinux_a8c2cdfa35980b3c910be7006ed4f9601}\index{PlatformLinux@{PlatformLinux}!createWindow@{createWindow}}
+\index{createWindow@{createWindow}!PlatformLinux@{PlatformLinux}}
+\doxysubsubsection{\texorpdfstring{createWindow()}{createWindow()}}
+{\footnotesize\ttfamily \label{classPlatformLinux_a8c2cdfa35980b3c910be7006ed4f9601} 
+bool Platform\+Linux::\+create\+Window (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structPlatformConfig}{Platform\+Config}} \&}]{config}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Create the application window. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em config} & Window size, title, and other properties. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on success, false on failure. 
+\end{DoxyReturn}
+
+
+Implements \doxymbox{\hyperlink{classIPlatform_a8056fabc4a3445fcdd352eafcb101b2c}{IPlatform}}.
+
+\Hypertarget{classPlatformLinux_a7540985d55dfa98808446cc65e90fca3}\index{PlatformLinux@{PlatformLinux}!getGLFWWindow@{getGLFWWindow}}
+\index{getGLFWWindow@{getGLFWWindow}!PlatformLinux@{PlatformLinux}}
+\doxysubsubsection{\texorpdfstring{getGLFWWindow()}{getGLFWWindow()}}
+{\footnotesize\ttfamily \label{classPlatformLinux_a7540985d55dfa98808446cc65e90fca3} 
+GLFWwindow \texorpdfstring{$\ast$}{*} Platform\+Linux::\+get\+GLFWWindow (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Get the underlying GLFW window handle. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to the GLFWwindow, or nullptr if not created.
+\end{DoxyReturn}
+Intended for the rendering layer to set up GL/\+\+VK contexts. \Hypertarget{classPlatformLinux_a902eb5ac1465bfcecf7787e1abcf5405}\index{PlatformLinux@{PlatformLinux}!initialize@{initialize}}
+\index{initialize@{initialize}!PlatformLinux@{PlatformLinux}}
+\doxysubsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily \label{classPlatformLinux_a902eb5ac1465bfcecf7787e1abcf5405} 
+bool Platform\+Linux::\+initialize (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Initialize the platform backend. 
+
+\begin{DoxyReturn}{Returns}
+true on success, false if the backend failed to start. 
+\end{DoxyReturn}
+
+
+Implements \doxymbox{\hyperlink{classIPlatform_a0e5b54ed58e1d11dc8b739ff5e43bd20}{IPlatform}}.
+
+\Hypertarget{classPlatformLinux_ac4e66bb057f659367abafd3e8f163a51}\index{PlatformLinux@{PlatformLinux}!pollEvents@{pollEvents}}
+\index{pollEvents@{pollEvents}!PlatformLinux@{PlatformLinux}}
+\doxysubsubsection{\texorpdfstring{pollEvents()}{pollEvents()}}
+{\footnotesize\ttfamily \label{classPlatformLinux_ac4e66bb057f659367abafd3e8f163a51} 
+void Platform\+Linux::\+poll\+Events (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Process pending OS events (keyboard, window close, etc.). 
+
+Call once per frame. Non-\/blocking. 
+
+Implements \doxymbox{\hyperlink{classIPlatform_a900a125a92056b741b9f0ae25a995cfe}{IPlatform}}.
+
+\Hypertarget{classPlatformLinux_ad8a430d8cf6b1c6668f85a3b73d2a552}\index{PlatformLinux@{PlatformLinux}!shouldExit@{shouldExit}}
+\index{shouldExit@{shouldExit}!PlatformLinux@{PlatformLinux}}
+\doxysubsubsection{\texorpdfstring{shouldExit()}{shouldExit()}}
+{\footnotesize\ttfamily \label{classPlatformLinux_ad8a430d8cf6b1c6668f85a3b73d2a552} 
+bool Platform\+Linux::\+should\+Exit (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Check whether the application should exit. 
+
+\begin{DoxyReturn}{Returns}
+true if the window was closed or Escape was pressed. 
+\end{DoxyReturn}
+
+
+Implements \doxymbox{\hyperlink{classIPlatform_a04f4e3eb6df6e4ad529b73145cfe5081}{IPlatform}}.
+
+\Hypertarget{classPlatformLinux_a39e5837ea45d5dfcad807010c63e04c7}\index{PlatformLinux@{PlatformLinux}!shutdown@{shutdown}}
+\index{shutdown@{shutdown}!PlatformLinux@{PlatformLinux}}
+\doxysubsubsection{\texorpdfstring{shutdown()}{shutdown()}}
+{\footnotesize\ttfamily \label{classPlatformLinux_a39e5837ea45d5dfcad807010c63e04c7} 
+void Platform\+Linux::\+shutdown (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Release all platform resources. 
+
+Destroys the window and terminates the backend. 
+
+Implements \doxymbox{\hyperlink{classIPlatform_ad1721da6e504800ebc2e42eb8759a338}{IPlatform}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+src/\+platform/\+linux/\+\doxymbox{\hyperlink{PlatformLinux_8h}{Platform\+Linux.\+h}}\item 
+src/\+core/\+src/\+platform/\+linux/\+Platform\+Linux.\+cpp\end{DoxyCompactItemize}

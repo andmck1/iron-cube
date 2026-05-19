@@ -1,0 +1,91 @@
+\doxysection{IRenderer Class Reference}
+\hypertarget{classIRenderer}{}\label{classIRenderer}\index{IRenderer@{IRenderer}}
+
+
+Renderer interface.  
+
+
+
+
+{\ttfamily \+\#include $<$IRenderer.\+h$>$}
+
+Inheritance diagram for IRenderer:\+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classIRenderer}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual bool \doxymbox{\hyperlink{classIRenderer_a376599b6107a6b974882ab3c3ac510be}{init}} (GLFWwindow \texorpdfstring{$\ast$}{*}window)=0
+\begin{DoxyCompactList}\small\item\em Initialize the renderer. \end{DoxyCompactList}\item 
+virtual void \doxymbox{\hyperlink{classIRenderer_a8c9290a4e517fd88a3709f489877d783}{swap\+Buffers}} ()=0
+\begin{DoxyCompactList}\small\item\em Present the current frame and swap front/\+back buffers. \end{DoxyCompactList}\item 
+virtual void \doxymbox{\hyperlink{classIRenderer_a47c3a5365f6a92f06f52d4b2b3d1ccba}{shutdown}} ()=0
+\begin{DoxyCompactList}\small\item\em Release all renderer resources. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Renderer interface. 
+
+Abstracts graphics backend initialization, frame presentation, and cleanup. Implementations may use Open\+GL, Vulkan, or other APIs. 
+
+\label{doc-func-members}
+\Hypertarget{classIRenderer_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classIRenderer_a376599b6107a6b974882ab3c3ac510be}\index{IRenderer@{IRenderer}!init@{init}}
+\index{init@{init}!IRenderer@{IRenderer}}
+\doxysubsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily \label{classIRenderer_a376599b6107a6b974882ab3c3ac510be} 
+virtual bool IRenderer::\+init (\begin{DoxyParamCaption}\item[{GLFWwindow \texorpdfstring{$\ast$}{*}}]{window}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Initialize the renderer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em window} & Platform window handle for context creation. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on success. 
+\end{DoxyReturn}
+
+
+Implemented in \doxymbox{\hyperlink{classRendererGLFW_a46feb5c0bafb85fd490820348929a919}{Renderer\+GLFW}}.
+
+\Hypertarget{classIRenderer_a47c3a5365f6a92f06f52d4b2b3d1ccba}\index{IRenderer@{IRenderer}!shutdown@{shutdown}}
+\index{shutdown@{shutdown}!IRenderer@{IRenderer}}
+\doxysubsubsection{\texorpdfstring{shutdown()}{shutdown()}}
+{\footnotesize\ttfamily \label{classIRenderer_a47c3a5365f6a92f06f52d4b2b3d1ccba} 
+virtual void IRenderer::\+shutdown (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Release all renderer resources. 
+
+Destroys the graphics context and frees GPU resources. 
+
+Implemented in \doxymbox{\hyperlink{classRendererGLFW_a6495735e4525944c9d6de2436434ee36}{Renderer\+GLFW}}.
+
+\Hypertarget{classIRenderer_a8c9290a4e517fd88a3709f489877d783}\index{IRenderer@{IRenderer}!swapBuffers@{swapBuffers}}
+\index{swapBuffers@{swapBuffers}!IRenderer@{IRenderer}}
+\doxysubsubsection{\texorpdfstring{swapBuffers()}{swapBuffers()}}
+{\footnotesize\ttfamily \label{classIRenderer_a8c9290a4e517fd88a3709f489877d783} 
+virtual void IRenderer::\+swap\+Buffers (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Present the current frame and swap front/\+back buffers. 
+
+Call once per frame after rendering is complete. 
+
+Implemented in \doxymbox{\hyperlink{classRendererGLFW_a6e5372233d140fffce934f37afcc407b}{Renderer\+GLFW}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+src/\+rendering/\+\doxymbox{\hyperlink{IRenderer_8h}{IRenderer.\+h}}\end{DoxyCompactItemize}

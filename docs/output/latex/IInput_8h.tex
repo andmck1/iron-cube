@@ -1,0 +1,47 @@
+\doxysection{src/\+core/\+src/\+platform/\+\+IInput.h File Reference}
+\hypertarget{IInput_8h}{}\label{IInput_8h}\index{src/core/src/platform/IInput.h@{src/core/src/platform/IInput.h}}
+
+
+Input abstraction interface for keyboard state.  
+
+
+{\ttfamily \+\#include $<$cstdint$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{classIInput}{IInput}}
+\begin{DoxyCompactList}\small\item\em Input abstraction interface. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum class \doxymbox{\hyperlink{IInput_8h_aed180af2eac389df63dd1f7d5e61e62c}{Key\+Code}} :\+ int32\+\_\+t \{ \doxymbox{\hyperlink{IInput_8h_aed180af2eac389df63dd1f7d5e61e62ca013ec032d3460d4be4431c6ab1f8f224}{Escape}} = 256
+ \}
+\begin{DoxyCompactList}\small\item\em Keyboard key codes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Input abstraction interface for keyboard state. 
+
+
+
+\label{doc-enum-members}
+\Hypertarget{IInput_8h_doc-enum-members}
+\doxysubsection{Enumeration Type Documentation}
+\Hypertarget{IInput_8h_aed180af2eac389df63dd1f7d5e61e62c}\index{IInput.h@{IInput.h}!KeyCode@{KeyCode}}
+\index{KeyCode@{KeyCode}!IInput.h@{IInput.h}}
+\doxysubsubsection{\texorpdfstring{KeyCode}{KeyCode}}
+{\footnotesize\ttfamily \label{IInput_8h_aed180af2eac389df63dd1f7d5e61e62c} 
+enum class \doxymbox{\hyperlink{IInput_8h_aed180af2eac389df63dd1f7d5e61e62c}{Key\+Code}} :\+ int32\+\_\+t\hspace{0.3cm}{\ttfamily [strong]}}
+
+
+
+Keyboard key codes. 
+
+Values map to GLFW key constants for the Linux backend. Extend as needed for additional keys. \begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Escape@{Escape}!IInput.h@{IInput.h}}
+\index{IInput.h@{IInput.h}!Escape@{Escape}}
+}\Hypertarget{IInput_8h_aed180af2eac389df63dd1f7d5e61e62ca013ec032d3460d4be4431c6ab1f8f224}\label{IInput_8h_aed180af2eac389df63dd1f7d5e61e62ca013ec032d3460d4be4431c6ab1f8f224} 
+Escape&Escape /\+ Esc key. \\
+\hline
+
+\end{DoxyEnumFields}

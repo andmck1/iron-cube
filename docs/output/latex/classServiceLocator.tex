@@ -1,0 +1,107 @@
+\doxysection{Service\+Locator Class Reference}
+\hypertarget{classServiceLocator}{}\label{classServiceLocator}\index{ServiceLocator@{ServiceLocator}}
+
+
+Global service registry.  
+
+
+
+
+{\ttfamily \+\#include $<$Service\+Locator.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename T$>$ }\\void \doxymbox{\hyperlink{classServiceLocator_ac2c6f260ec37f1b9dc9bbe064aecc70e}{register\+Service}} (T \texorpdfstring{$\ast$}{*}service)
+\begin{DoxyCompactList}\small\item\em Register a service instance. \end{DoxyCompactList}\item 
+{\footnotesize template$<$typename T$>$ }\\T \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{classServiceLocator_a28e39863e39513635da39952f436f96d}{get}} ()
+\begin{DoxyCompactList}\small\item\em Retrieve a registered service. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \doxymbox{\hyperlink{classServiceLocator}{Service\+Locator}} \& \doxymbox{\hyperlink{classServiceLocator_a31f3258e3767787f0aa2ab410f5d9f2f}{instance}} ()
+\begin{DoxyCompactList}\small\item\em Get the singleton instance. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Global service registry. 
+
+Stores service instances keyed by their interface type. Uses a singleton pattern for simple access throughout the application.
+
+\begin{DoxyParagraph}{Thread safety}
+Not thread-\/safe. Intended for single-\/threaded use during application startup and shutdown.
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Example}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ \&locator\ =\ \doxymbox{\hyperlink{classServiceLocator_a31f3258e3767787f0aa2ab410f5d9f2f}{ServiceLocator::instance}}();}
+\DoxyCodeLine{locator.registerService<IPlatform>(\&platform);}
+\DoxyCodeLine{IPlatform\ *p\ =\ locator.get<IPlatform>();}
+
+\end{DoxyCode}
+ 
+\end{DoxyParagraph}
+
+
+\label{doc-func-members}
+\Hypertarget{classServiceLocator_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classServiceLocator_a28e39863e39513635da39952f436f96d}\index{ServiceLocator@{ServiceLocator}!get@{get}}
+\index{get@{get}!ServiceLocator@{ServiceLocator}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}}
+{\footnotesize\ttfamily \label{classServiceLocator_a28e39863e39513635da39952f436f96d} 
+template$<$typename T$>$ \\
+T \texorpdfstring{$\ast$}{*} Service\+Locator::\+get (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Retrieve a registered service. 
+
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em T} & Interface type. \\
+\hline
+\end{DoxyTemplParams}
+\begin{DoxyReturn}{Returns}
+Pointer to the service, or nullptr if not registered. 
+\end{DoxyReturn}
+\Hypertarget{classServiceLocator_a31f3258e3767787f0aa2ab410f5d9f2f}\index{ServiceLocator@{ServiceLocator}!instance@{instance}}
+\index{instance@{instance}!ServiceLocator@{ServiceLocator}}
+\doxysubsubsection{\texorpdfstring{instance()}{instance()}}
+{\footnotesize\ttfamily \label{classServiceLocator_a31f3258e3767787f0aa2ab410f5d9f2f} 
+\doxymbox{\hyperlink{classServiceLocator}{Service\+Locator}} \& Service\+Locator::\+instance (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Get the singleton instance. 
+
+\begin{DoxyReturn}{Returns}
+Reference to the global \doxylink{classServiceLocator}{Service\+Locator}. 
+\end{DoxyReturn}
+\Hypertarget{classServiceLocator_ac2c6f260ec37f1b9dc9bbe064aecc70e}\index{ServiceLocator@{ServiceLocator}!registerService@{registerService}}
+\index{registerService@{registerService}!ServiceLocator@{ServiceLocator}}
+\doxysubsubsection{\texorpdfstring{registerService()}{registerService()}}
+{\footnotesize\ttfamily \label{classServiceLocator_ac2c6f260ec37f1b9dc9bbe064aecc70e} 
+template$<$typename T$>$ \\
+void Service\+Locator::\+register\+Service (\begin{DoxyParamCaption}\item[{T \texorpdfstring{$\ast$}{*}}]{service}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Register a service instance. 
+
+
+\begin{DoxyTemplParams}{Template Parameters}
+{\em T} & Interface type (e.\+g., \doxylink{classIPlatform}{IPlatform}, \doxylink{classIRenderer}{IRenderer}). \\
+\hline
+\end{DoxyTemplParams}
+
+\begin{DoxyParams}{Parameters}
+{\em service} & Pointer to the concrete implementation. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+src/\+service/\+\doxymbox{\hyperlink{ServiceLocator_8h}{Service\+Locator.\+h}}\item 
+src/\+core/\+src/\+service/\+Service\+Locator.\+cpp\end{DoxyCompactItemize}
