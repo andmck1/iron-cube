@@ -1,0 +1,17 @@
+# Interface library for stb (header-only)
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
+
+# Iron core static library
+add_library(iron-core STATIC src/core_stub.cpp)
+
+target_include_directories(iron-core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+target_link_libraries(iron-core PUBLIC
+  glfw
+  spdlog::spdlog
+  glm::glm
+  stb
+  tinyobjloader
+  Vulkan::Headers
+)
