@@ -1,50 +1,138 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+  Version change: none → 1.0.0 (initial ratification)
+  Principles added:
+    - I. Test-Driven Development
+    - II. Documentation First
+    - III. Layered & Component-Based Architecture
+    - IV. Data-Oriented Design
+    - V. Service-Locator Pattern
+    - VI. Incremental Feature Development
+  Sections added:
+    - Technical Constraints
+    - Development Workflow
+  Templates requiring updates:
+    - .specify/templates/plan-template.md: ✅ no changes needed (generic Constitution Check section)
+    - .specify/templates/spec-template.md: ✅ no changes needed (already aligns with TDD and documentation-first)
+    - .specify/templates/tasks-template.md: ✅ no changes needed (already includes TDD task phases)
+  Follow-up TODOs: none
+-->
+
+# Iron Cube Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Test-Driven Development
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+TDD is mandatory for all new functionality. Tests MUST be written before implementation code. The Red-Green-Refactor cycle is strictly enforced:
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- Tests are written first and MUST fail before any implementation begins
+- Implementation is written only to make the failing test pass
+- Refactoring follows only after tests pass
+- No code is merged without corresponding test coverage
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**Rationale**: Writing tests first clarifies requirements, prevents over-engineering, and ensures every line of code serves a verified purpose.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. Documentation First
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Documentation drives development, not the reverse. Feature specifications, API contracts, and design documents MUST exist before implementation begins:
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Feature specs define user stories, acceptance criteria, and success metrics
+- API contracts are written before service implementations
+- Architectural decisions are documented before encoding them in code
+- Documentation is treated as a first-class deliverable, not an afterthought
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Rationale**: Documentation-first prevents scope creep, aligns stakeholders, and provides the specification against which tests are written.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. Layered & Component-Based Architecture
+
+The codebase follows a dual architecture model:
+
+- **High-level**: Layered architecture providing clear abstraction boundaries. Each layer depends only on layers below it.
+- **Low-level**: Component-based architecture where composition is prioritized over inheritance. Components are small, focused, and combinable.
+
+Inheritance chains are discouraged. Complex behavior emerges from composing simple, well-defined components rather than deep class hierarchies.
+
+**Rationale**: Layered abstraction manages complexity at scale; composition over inheritance keeps low-level code flexible and reusable.
+
+### IV. Data-Oriented Design
+
+Scene data is stored for cache efficiency and data locality, not encapsulated within classes:
+
+- Data structures are organized for optimal memory access patterns
+- Classes do not hold scene state — data resides in structured, contiguous storage
+- Components operate on data collections, not on individual object instances
+- Data layout decisions consider CPU cache lines and SIMD-friendly access
+
+**Rationale**: Data-oriented design maximizes hardware utilization and avoids the performance penalty of pointer-chasing through object-oriented hierarchies.
+
+### V. Service-Locator Pattern
+
+Services are derived from common interfaces and consumed by clients via a service locator:
+
+- Services expose well-defined interfaces, not concrete implementations
+- Clients request services from the locator rather than constructing dependencies directly
+- The locator manages service lifecycle and provides single access points
+- New services integrate by registering against an interface — no client code changes required
+
+**Rationale**: Decouples consumers from providers, enables swapping implementations, and simplifies test mocking.
+
+### VI. Incremental Feature Development
+
+Features are delivered in small, progressive increments:
+
+- Each increment MUST be independently testable and demonstrable
+- Work is broken into the smallest viable units that deliver value
+- No feature is so large that it cannot be completed and tested within a single development cycle
+- Progress is measured by working, tested increments — not by lines of code
+
+**Rationale**: Small increments reduce risk, enable early feedback, and ensure constant forward progress.
+
+## Technical Constraints
+
+**Language**: C++20
+**Build System**: CMake (minimum version 4.0.2)
+**Graphics API**: Vulkan
+**Platform**: Linux (primary)
+
+Compile commands are exported (`CMAKE_EXPORT_COMPILE_COMMANDS`) for tooling integration. Debug builds include DWARF-4 debug symbols with no optimization.
+
+## Development Workflow
+
+**Feature Branching**: Each feature develops on a dedicated branch named `[###-feature-name]`.
+
+**Constitution Check**: Before implementation planning, verify the feature plan passes all Constitution Check gates. Re-check after design finalization.
+
+**Quality Gates**:
+- Tests MUST pass before merge
+- Documentation MUST be updated alongside code changes
+- Code MUST adhere to architectural principles (layered, component-based, data-oriented)
+- Service interfaces MUST be stable before client consumption
+
+**Review Process**: All changes require verification that:
+1. Tests were written before implementation (TDD compliance)
+2. Documentation was updated (Documentation First compliance)
+3. No inheritance was introduced where composition suffices
+4. Data structures favor locality over encapsulation
+5. Services use interface-based contracts via the locator
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This Constitution supersedes all other development practices and conventions for this project.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Amendment Process**:
+- Amendments require written documentation of the change
+- Each amendment must include a rationale and migration plan if existing code is affected
+- Backward-incompatible principle changes require review of all active features
+
+**Compliance**:
+- All PRs and code reviews MUST verify compliance with applicable principles
+- Unjustified complexity violations MUST be documented with reasoning
+- Use `AGENTS.md` and project README for runtime development guidance
+
+**Versioning**:
+- MAJOR: Backward-incompatible governance changes, principle removals, or redefinitions
+- MINOR: New principle/section added or materially expanded guidance
+- PATCH: Clarifications, wording fixes, non-semantic refinements
+
+**Version**: 1.0.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-19
