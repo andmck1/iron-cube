@@ -20,8 +20,7 @@ A developer clones the repository, configures the build, and compiles the projec
 
 **Acceptance Scenarios**:
 
-1. **Given** a fresh clone of the repository on Linux, **When** the developer runs the build configuration and compilation commands, **Then** the project compiles without errors and produces an executable
-2. **Given** a fresh clone of the repository on Windows, **When** the developer runs the build configuration and compilation commands, **Then** the project compiles without errors and produces an executable
+1. **Given** a fresh clone of the repository on Linux, **When** the developer runs the build configuration and compilation commands, **Then** all dependencies are fetched via FetchContent and the project compiles without errors producing an executable
 
 ### User Story 2 - Run Application (Priority: P1)
 
@@ -38,20 +37,24 @@ A developer runs the compiled application and sees "hello world" output.
 
 ### Edge Cases
 
-- What happens when required build tools are not installed?
+- What happens when required build tools (GCC, Ninja) are not installed?
+- What happens when FetchContent fails to download a dependency (network issues)?
 - How does the build handle re-compilation after source changes (incremental builds)?
+- What happens when Vulkan headers are present but no Vulkan-capable GPU is available at runtime?
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The project MUST be buildable using standard build commands on Linux
-- **FR-002**: The project MUST be buildable using standard build commands on Windows
+- **FR-001**: The project MUST be buildable using CMake with GCC and Ninja on Linux
+- **FR-002**: All third-party dependencies MUST be fetched automatically via CMake FetchContent
 - **FR-003**: A successful build MUST produce a runnable application binary
 - **FR-004**: Running the application MUST print "hello world" to standard output
 - **FR-005**: The application MUST exit with a success code after printing "hello world"
 - **FR-006**: The build system MUST support incremental rebuilds — modifying source files and rebuilding MUST only recompile changed files
 - **FR-007**: The build system MUST provide clear error messages when compilation fails
+- **FR-008**: Catch2 test infrastructure MUST be set up for TDD-compliant test development
+- **FR-009**: Doxygen configuration MUST be present for API documentation generation
 
 ### Key Entities
 
@@ -62,16 +65,34 @@ A developer runs the compiled application and sees "hello world" output.
 
 ### Measurable Outcomes
 
-- **SC-001**: A developer can build the project from a clean checkout in a single sequence of commands
+- **SC-001**: A developer can build the project from a clean checkout on Linux using CMake, GCC, and Ninja in a single sequence of commands
 - **SC-002**: The application runs and prints "hello world" within 5 seconds of execution on a development machine
-- **SC-003**: The build process completes without errors on both Linux and Windows platforms
+- **SC-003**: All dependencies are fetched automatically via FetchContent without manual installation
 - **SC-004**: Rebuilding after a single file change recompiles only that file (incremental build works)
+- **SC-005**: Catch2 test infrastructure is configured and a build verification test passes
 
 ## Assumptions
 
-- CMake is available as the build system generator (already present in project)
-- A C++20-capable compiler is installed on the target platform
+- CMake 4.0.2+ is available as the build system generator (already present in project)
+- GCC with C++20 support is installed as the compiler
+- Ninja is installed as the build backend
 - Developers are familiar with standard CMake out-of-source build workflows
-- "Relevant tools" refers to the build toolchain (CMake, compiler, linker) — not third-party libraries or frameworks at this stage
-- Graphics API integration (Vulkan) is out of scope for this feature — "hello world" is a console output, not a rendered frame
+- Dependencies are fetched via CMake FetchContent
+- Linux is the primary and currently only target platform
 - Debug and release build configurations are both supported
+
+## Dependencies
+
+The following third-party libraries and tools MUST be available via CMake FetchContent:
+
+| Dependency | Purpose |
+|------------|---------|
+| GLFW | Window creation, input handling, and monitor enumeration |
+| ImGui (Dear ImGui) | Immediate-mode GUI for debugging and tooling interfaces |
+| spdlog | High-performance formatted logging |
+| GLM | OpenGL-style mathematics library (vectors, matrices, transformations) |
+| stb | Single-header image loading, texture, and font utilities |
+| tinyobjloader | Wavefront OBJ model file loading |
+| Vulkan Headers | Vulkan graphics API headers and loader |
+| Catch2 | Unit testing framework (TDD compliance) |
+| Doxygen | API documentation generation |
