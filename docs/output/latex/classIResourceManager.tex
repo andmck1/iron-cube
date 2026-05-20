@@ -1,0 +1,190 @@
+\doxysection{IResource\+Manager Class Reference}
+\hypertarget{classIResourceManager}{}\label{classIResourceManager}\index{IResourceManager@{IResourceManager}}
+
+
+Resource Manager interface.  
+
+
+
+
+{\ttfamily \+\#include $<$IResource\+Manager.\+h$>$}
+
+Inheritance diagram for IResource\+Manager:\+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classIResourceManager}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual bool \doxymbox{\hyperlink{classIResourceManager_aa9423377b0b9b7ca9f8540405cfe6d56}{initialize}} (Vk\+Device device, Vk\+Physical\+Device physical\+Device)=0
+\begin{DoxyCompactList}\small\item\em Initialize resource manager with device handles. \end{DoxyCompactList}\item 
+virtual \doxymbox{\hyperlink{structBufferAllocation}{Buffer\+Allocation}} \doxymbox{\hyperlink{classIResourceManager_ab19d507a9bf2f0fcf83d5dbf53e72981}{allocate\+Buffer}} (Vk\+Device\+Size size, Vk\+Buffer\+Usage\+Flags usage, Vk\+Memory\+Property\+Flags memory\+Props=VK\+\_\+\+MEMORY\+\_\+\+PROPERTY\+\_\+\+DEVICE\+\_\+\+LOCAL\+\_\+\+BIT)=0
+\begin{DoxyCompactList}\small\item\em Allocate a GPU buffer with dedicated memory. \end{DoxyCompactList}\item 
+virtual void \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{classIResourceManager_a3fdddbcb6ed139599a2ef25c55961564}{map\+Memory}} (\doxymbox{\hyperlink{structBufferAllocation}{Buffer\+Allocation}} \&alloc, Vk\+Device\+Size size)=0
+\begin{DoxyCompactList}\small\item\em Map buffer memory for CPU access. \end{DoxyCompactList}\item 
+virtual void \doxymbox{\hyperlink{classIResourceManager_a44baf0fab9fe4cd736aeda2f7dc81bbe}{unmap\+Memory}} (\doxymbox{\hyperlink{structBufferAllocation}{Buffer\+Allocation}} \&alloc)=0
+\begin{DoxyCompactList}\small\item\em Unmap previously mapped buffer memory. \end{DoxyCompactList}\item 
+virtual void \doxymbox{\hyperlink{classIResourceManager_ac45f792582572142b171a4165642ee4d}{free\+Buffer}} (\doxymbox{\hyperlink{structBufferAllocation}{Buffer\+Allocation}} \&alloc)=0
+\begin{DoxyCompactList}\small\item\em Free a single buffer allocation. \end{DoxyCompactList}\item 
+virtual void \doxymbox{\hyperlink{classIResourceManager_a90eb8d2e3e76992e4bcace04cc3c1170}{cleanup}} ()=0
+\begin{DoxyCompactList}\small\item\em Clean up all tracked allocations. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Resource Manager interface. 
+
+Manages GPU buffer allocations and memory, providing centralized resource tracking for proper cleanup.
+
+\begin{DoxyParagraph}{Thread Safety}
+Not thread-\/safe. All calls should be made from the main thread during initialization and shutdown.
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Usage}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{resourceManager-\/>initialize(device,\ physicalDevice);}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ alloc\ =\ resourceManager-\/>allocateBuffer(size,\ usage);}
+\DoxyCodeLine{\textcolor{keywordtype}{void}*\ ptr\ =\ resourceManager-\/>mapMemory(alloc,\ size);}
+\DoxyCodeLine{\textcolor{comment}{//\ ...\ use\ buffer\ ...}}
+\DoxyCodeLine{resourceManager-\/>cleanup();}
+
+\end{DoxyCode}
+ 
+\end{DoxyParagraph}
+
+
+\label{doc-func-members}
+\Hypertarget{classIResourceManager_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classIResourceManager_ab19d507a9bf2f0fcf83d5dbf53e72981}\index{IResourceManager@{IResourceManager}!allocateBuffer@{allocateBuffer}}
+\index{allocateBuffer@{allocateBuffer}!IResourceManager@{IResourceManager}}
+\doxysubsubsection{\texorpdfstring{allocateBuffer()}{allocateBuffer()}}
+{\footnotesize\ttfamily \label{classIResourceManager_ab19d507a9bf2f0fcf83d5dbf53e72981} 
+virtual \doxymbox{\hyperlink{structBufferAllocation}{Buffer\+Allocation}} IResource\+Manager::\+allocate\+Buffer (\begin{DoxyParamCaption}\item[{Vk\+Device\+Size}]{size}{, }\item[{Vk\+Buffer\+Usage\+Flags}]{usage}{, }\item[{Vk\+Memory\+Property\+Flags}]{memory\+Props}{ = {\ttfamily VK\+\_\+MEMORY\+\_\+PROPERTY\+\_\+DEVICE\+\_\+LOCAL\+\_\+BIT}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Allocate a GPU buffer with dedicated memory. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em size} & Buffer size in bytes. \\
+\hline
+{\em usage} & Buffer usage flags. \\
+\hline
+{\em memory\+Props} & Required memory property flags. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\doxylink{structBufferAllocation}{Buffer\+Allocation} handle on success, null handle on failure. 
+\end{DoxyReturn}
+
+
+Implemented in \doxymbox{\hyperlink{classResourceManager_a12de38810518e41409edc823aea12d00}{Resource\+Manager}}.
+
+\Hypertarget{classIResourceManager_a90eb8d2e3e76992e4bcace04cc3c1170}\index{IResourceManager@{IResourceManager}!cleanup@{cleanup}}
+\index{cleanup@{cleanup}!IResourceManager@{IResourceManager}}
+\doxysubsubsection{\texorpdfstring{cleanup()}{cleanup()}}
+{\footnotesize\ttfamily \label{classIResourceManager_a90eb8d2e3e76992e4bcace04cc3c1170} 
+virtual void IResource\+Manager::\+cleanup (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Clean up all tracked allocations. 
+
+
+
+Implemented in \doxymbox{\hyperlink{classResourceManager_aeb0873a424b3d9f98ad640bf344961df}{Resource\+Manager}}.
+
+\Hypertarget{classIResourceManager_ac45f792582572142b171a4165642ee4d}\index{IResourceManager@{IResourceManager}!freeBuffer@{freeBuffer}}
+\index{freeBuffer@{freeBuffer}!IResourceManager@{IResourceManager}}
+\doxysubsubsection{\texorpdfstring{freeBuffer()}{freeBuffer()}}
+{\footnotesize\ttfamily \label{classIResourceManager_ac45f792582572142b171a4165642ee4d} 
+virtual void IResource\+Manager::\+free\+Buffer (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structBufferAllocation}{Buffer\+Allocation}} \&}]{alloc}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Free a single buffer allocation. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em alloc} & Buffer allocation to free. \\
+\hline
+\end{DoxyParams}
+
+
+Implemented in \doxymbox{\hyperlink{classResourceManager_a34478b285c3243ad591ecd3952944818}{Resource\+Manager}}.
+
+\Hypertarget{classIResourceManager_aa9423377b0b9b7ca9f8540405cfe6d56}\index{IResourceManager@{IResourceManager}!initialize@{initialize}}
+\index{initialize@{initialize}!IResourceManager@{IResourceManager}}
+\doxysubsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily \label{classIResourceManager_aa9423377b0b9b7ca9f8540405cfe6d56} 
+virtual bool IResource\+Manager::\+initialize (\begin{DoxyParamCaption}\item[{Vk\+Device}]{device}{, }\item[{Vk\+Physical\+Device}]{physical\+Device}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Initialize resource manager with device handles. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em device} & Logical device handle. \\
+\hline
+{\em physical\+Device} & Physical device handle. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on success, false on failure. 
+\end{DoxyReturn}
+
+
+Implemented in \doxymbox{\hyperlink{classResourceManager_ad9354806a3eaa68b274084d925682fb0}{Resource\+Manager}}.
+
+\Hypertarget{classIResourceManager_a3fdddbcb6ed139599a2ef25c55961564}\index{IResourceManager@{IResourceManager}!mapMemory@{mapMemory}}
+\index{mapMemory@{mapMemory}!IResourceManager@{IResourceManager}}
+\doxysubsubsection{\texorpdfstring{mapMemory()}{mapMemory()}}
+{\footnotesize\ttfamily \label{classIResourceManager_a3fdddbcb6ed139599a2ef25c55961564} 
+virtual void \texorpdfstring{$\ast$}{*} IResource\+Manager::\+map\+Memory (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structBufferAllocation}{Buffer\+Allocation}} \&}]{alloc}{, }\item[{Vk\+Device\+Size}]{size}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Map buffer memory for CPU access. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em alloc} & Buffer allocation to map. \\
+\hline
+{\em size} & Size to map in bytes. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to mapped memory, or nullptr on failure. 
+\end{DoxyReturn}
+
+
+Implemented in \doxymbox{\hyperlink{classResourceManager_a704f12b459de4f8738b7cd8c3d387c90}{Resource\+Manager}}.
+
+\Hypertarget{classIResourceManager_a44baf0fab9fe4cd736aeda2f7dc81bbe}\index{IResourceManager@{IResourceManager}!unmapMemory@{unmapMemory}}
+\index{unmapMemory@{unmapMemory}!IResourceManager@{IResourceManager}}
+\doxysubsubsection{\texorpdfstring{unmapMemory()}{unmapMemory()}}
+{\footnotesize\ttfamily \label{classIResourceManager_a44baf0fab9fe4cd736aeda2f7dc81bbe} 
+virtual void IResource\+Manager::\+unmap\+Memory (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structBufferAllocation}{Buffer\+Allocation}} \&}]{alloc}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Unmap previously mapped buffer memory. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em alloc} & Buffer allocation to unmap. \\
+\hline
+\end{DoxyParams}
+
+
+Implemented in \doxymbox{\hyperlink{classResourceManager_a4c16db069dc6602b9d83ed649148bda2}{Resource\+Manager}}.
+
+
+
+The documentation for this class was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+src/\+resource/\+\doxymbox{\hyperlink{IResourceManager_8h}{IResource\+Manager.\+h}}\end{DoxyCompactItemize}

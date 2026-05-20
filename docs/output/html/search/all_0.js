@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['application_0',['Application',['../classApplication.html',1,'']]],
-  ['application_2eh_1',['Application.h',['../Application_8h.html',1,'']]]
+  ['allocatebuffer_0',['allocateBuffer',['../classIResourceManager.html#ab19d507a9bf2f0fcf83d5dbf53e72981',1,'IResourceManager::allocateBuffer()'],['../classResourceManager.html#a12de38810518e41409edc823aea12d00',1,'ResourceManager::allocateBuffer()']]],
+  ['application_1',['Application',['../classApplication.html',1,'']]],
+  ['application_2eh_2',['Application.h',['../Application_8h.html',1,'']]]
 ];

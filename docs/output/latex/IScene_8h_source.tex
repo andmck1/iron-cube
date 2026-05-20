@@ -1,0 +1,31 @@
+\doxysection{IScene.\+h}
+\hypertarget{IScene_8h_source}{}\label{IScene_8h_source}\index{src/core/src/scene/IScene.h@{src/core/src/scene/IScene.h}}
+\doxymbox{\hyperlink{IScene_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{SceneData_8h}{scene/SceneData.h}}"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classIScene}{IScene}}}
+\DoxyCodeLine{00027\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{virtual}\ \doxymbox{\hyperlink{classIScene}{\string~IScene}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classIScene_ab575bdeabd48b90f25ead06b721a6543}{initialize}}()\ =\ 0;}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ std::vector<Vertex>\&\ \doxymbox{\hyperlink{classIScene_a9b3f39608d61ab42e7887b221c23bb20}{getVertices}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keyword}{virtual}\ uint32\_t\ \doxymbox{\hyperlink{classIScene_a011d1a9743f58011f8045f0269ef8d96}{getVertexCount}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classIScene_a39e5ce457232c3d10f8932cb5df7a054}{isDirty}}()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classIScene_a3a650e3476d05fdbdc8876030024d252}{markClean}}()\ =\ 0;}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classIScene_a1d2911a59a378b2d5f83aa0095e5d989}{shutdown}}()\ =\ 0;}
+\DoxyCodeLine{00064\ \};}
+
+\end{DoxyCode}
