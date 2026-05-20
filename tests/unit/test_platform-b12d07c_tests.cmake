@@ -1,5 +1,0 @@
-add_test( [==[Platform: initialize and shutdown cycle]==] /home/dtaunt/dev/iron-cube/bin/test_platform [==[Platform: initialize and shutdown cycle]==]  )
-set_tests_properties( [==[Platform: initialize and shutdown cycle]==] PROPERTIES WORKING_DIRECTORY /home/dtaunt/dev/iron-cube/tests/unit)
-add_test( [==[Platform: window close callback sets flag]==] /home/dtaunt/dev/iron-cube/bin/test_platform [==[Platform: window close callback sets flag]==]  )
-set_tests_properties( [==[Platform: window close callback sets flag]==] PROPERTIES WORKING_DIRECTORY /home/dtaunt/dev/iron-cube/tests/unit)
-set( test_platform_TESTS [==[Platform: initialize and shutdown cycle]==] [==[Platform: window close callback sets flag]==])

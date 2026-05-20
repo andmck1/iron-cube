@@ -1,0 +1,125 @@
+\doxysection{Vulkan\+Renderer Class Reference}
+\hypertarget{classVulkanRenderer}{}\label{classVulkanRenderer}\index{VulkanRenderer@{VulkanRenderer}}
+
+
+Vulkan renderer backend.  
+
+
+
+
+{\ttfamily \+\#include $<$Vulkan\+Renderer.\+h$>$}
+
+Inheritance diagram for Vulkan\+Renderer:\+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classVulkanRenderer}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{classVulkanRenderer_ab1a74d8b7a1dc5ad20ea29029ee508f5}{init}} (GLFWwindow \texorpdfstring{$\ast$}{*}window) override
+\begin{DoxyCompactList}\small\item\em Initialize the renderer. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{classVulkanRenderer_adabc9cd38f81521e21dc54909b32eb2f}{render}} () override
+\begin{DoxyCompactList}\small\item\em Render the current frame. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{classVulkanRenderer_ae0d97b4143141055e127923971f46686}{swap\+Buffers}} () override
+\begin{DoxyCompactList}\small\item\em Present the current frame and swap front/\+back buffers. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{classVulkanRenderer_a8f1f20449cbd646ff5d677916c516afd}{shutdown}} () override
+\begin{DoxyCompactList}\small\item\em Release all renderer resources. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{classVulkanRenderer_a591499e2eed7e0687ce12ebfd073de0a}{set\+Exit\+Requested\+Callback}} (std::\+function$<$ bool()$>$ callback)
+\begin{DoxyCompactList}\small\item\em Set a callback to check if rendering should stop. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Vulkan renderer backend. 
+
+Manages full Vulkan pipeline:\+ instance creation, surface, GPU selection, swap chain, render pass, graphics pipeline, descriptor sets, command buffers, and frame rendering with validation layer support. 
+
+\label{doc-func-members}
+\Hypertarget{classVulkanRenderer_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classVulkanRenderer_ab1a74d8b7a1dc5ad20ea29029ee508f5}\index{VulkanRenderer@{VulkanRenderer}!init@{init}}
+\index{init@{init}!VulkanRenderer@{VulkanRenderer}}
+\doxysubsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily \label{classVulkanRenderer_ab1a74d8b7a1dc5ad20ea29029ee508f5} 
+bool Vulkan\+Renderer::\+init (\begin{DoxyParamCaption}\item[{GLFWwindow \texorpdfstring{$\ast$}{*}}]{window}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Initialize the renderer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em window} & Platform window handle for context creation. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true on success. 
+\end{DoxyReturn}
+
+
+Implements \doxymbox{\hyperlink{classIRenderer_a376599b6107a6b974882ab3c3ac510be}{IRenderer}}.
+
+\Hypertarget{classVulkanRenderer_adabc9cd38f81521e21dc54909b32eb2f}\index{VulkanRenderer@{VulkanRenderer}!render@{render}}
+\index{render@{render}!VulkanRenderer@{VulkanRenderer}}
+\doxysubsubsection{\texorpdfstring{render()}{render()}}
+{\footnotesize\ttfamily \label{classVulkanRenderer_adabc9cd38f81521e21dc54909b32eb2f} 
+void Vulkan\+Renderer::\+render (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Render the current frame. 
+
+Records and submits draw commands. Reads scene data from \doxylink{classIScene}{IScene} service. Call once per frame before \doxylink{classVulkanRenderer_ae0d97b4143141055e127923971f46686}{swap\+Buffers()}. 
+
+Implements \doxymbox{\hyperlink{classIRenderer_a218212bcf025fe02c9b028baeb42943e}{IRenderer}}.
+
+\Hypertarget{classVulkanRenderer_a591499e2eed7e0687ce12ebfd073de0a}\index{VulkanRenderer@{VulkanRenderer}!setExitRequestedCallback@{setExitRequestedCallback}}
+\index{setExitRequestedCallback@{setExitRequestedCallback}!VulkanRenderer@{VulkanRenderer}}
+\doxysubsubsection{\texorpdfstring{setExitRequestedCallback()}{setExitRequestedCallback()}}
+{\footnotesize\ttfamily \label{classVulkanRenderer_a591499e2eed7e0687ce12ebfd073de0a} 
+void Vulkan\+Renderer::\+set\+Exit\+Requested\+Callback (\begin{DoxyParamCaption}\item[{std::\+function$<$ bool()$>$}]{callback}{}\end{DoxyParamCaption})}
+
+
+
+Set a callback to check if rendering should stop. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em callback} & Function returning true if exit is requested. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{classVulkanRenderer_a8f1f20449cbd646ff5d677916c516afd}\index{VulkanRenderer@{VulkanRenderer}!shutdown@{shutdown}}
+\index{shutdown@{shutdown}!VulkanRenderer@{VulkanRenderer}}
+\doxysubsubsection{\texorpdfstring{shutdown()}{shutdown()}}
+{\footnotesize\ttfamily \label{classVulkanRenderer_a8f1f20449cbd646ff5d677916c516afd} 
+void Vulkan\+Renderer::\+shutdown (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Release all renderer resources. 
+
+Destroys the graphics context and frees GPU resources. 
+
+Implements \doxymbox{\hyperlink{classIRenderer_a47c3a5365f6a92f06f52d4b2b3d1ccba}{IRenderer}}.
+
+\Hypertarget{classVulkanRenderer_ae0d97b4143141055e127923971f46686}\index{VulkanRenderer@{VulkanRenderer}!swapBuffers@{swapBuffers}}
+\index{swapBuffers@{swapBuffers}!VulkanRenderer@{VulkanRenderer}}
+\doxysubsubsection{\texorpdfstring{swapBuffers()}{swapBuffers()}}
+{\footnotesize\ttfamily \label{classVulkanRenderer_ae0d97b4143141055e127923971f46686} 
+void Vulkan\+Renderer::\+swap\+Buffers (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Present the current frame and swap front/\+back buffers. 
+
+Call once per frame after rendering is complete. 
+
+Implements \doxymbox{\hyperlink{classIRenderer_a8c9290a4e517fd88a3709f489877d783}{IRenderer}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+src/\+rendering/\+linux/\+\doxymbox{\hyperlink{VulkanRenderer_8h}{Vulkan\+Renderer.\+h}}\item 
+src/\+core/\+src/\+rendering/\+linux/\+Vulkan\+Renderer.\+cpp\end{DoxyCompactItemize}

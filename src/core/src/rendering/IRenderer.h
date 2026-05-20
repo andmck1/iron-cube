@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
 /**
@@ -28,6 +29,14 @@ class IRenderer
      * @return true on success.
      */
     virtual bool init(GLFWwindow *window) = 0;
+
+    /**
+     * @brief Render the current frame.
+     *
+     * Records and submits draw commands. Reads scene data from IScene service.
+     * Call once per frame before swapBuffers().
+     */
+    virtual void render() = 0;
 
     /**
      * @brief Present the current frame and swap front/back buffers.

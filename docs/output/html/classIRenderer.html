@@ -102,7 +102,7 @@ Inheritance diagram for IRenderer:</div>
  <div class="center">
   <img src="classIRenderer.png" usemap="#IRenderer_map" alt=""/>
   <map id="IRenderer_map" name="IRenderer_map">
-<area href="classRendererGLFW.html" title="GLFW-based renderer backend." alt="RendererGLFW" shape="rect" coords="0,56,100,80"/>
+<area href="classVulkanRenderer.html" title="Vulkan renderer backend." alt="VulkanRenderer" shape="rect" coords="0,56,104,80"/>
   </map>
 </div></div>
 <table class="memberdecls">
@@ -110,6 +110,8 @@ Inheritance diagram for IRenderer:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a376599b6107a6b974882ab3c3ac510be" id="r_a376599b6107a6b974882ab3c3ac510be"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a376599b6107a6b974882ab3c3ac510be">init</a> (GLFWwindow *window)=0</td></tr>
 <tr class="memdesc:a376599b6107a6b974882ab3c3ac510be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the renderer.  <br /></td></tr>
+<tr class="memitem:a218212bcf025fe02c9b028baeb42943e" id="r_a218212bcf025fe02c9b028baeb42943e"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a218212bcf025fe02c9b028baeb42943e">render</a> ()=0</td></tr>
+<tr class="memdesc:a218212bcf025fe02c9b028baeb42943e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render the current frame.  <br /></td></tr>
 <tr class="memitem:a8c9290a4e517fd88a3709f489877d783" id="r_a8c9290a4e517fd88a3709f489877d783"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a8c9290a4e517fd88a3709f489877d783">swapBuffers</a> ()=0</td></tr>
 <tr class="memdesc:a8c9290a4e517fd88a3709f489877d783"><td class="mdescLeft">&#160;</td><td class="mdescRight">Present the current frame and swap front/back buffers.  <br /></td></tr>
 <tr class="memitem:a47c3a5365f6a92f06f52d4b2b3d1ccba" id="r_a47c3a5365f6a92f06f52d4b2b3d1ccba"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a47c3a5365f6a92f06f52d4b2b3d1ccba">shutdown</a> ()=0</td></tr>
@@ -151,7 +153,37 @@ Public Member Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true on success. </dd></dl>
 
-<p>Implemented in <a class="el" href="classRendererGLFW.html#a46feb5c0bafb85fd490820348929a919">RendererGLFW</a>.</p>
+<p>Implemented in <a class="el" href="classVulkanRenderer.html#ab1a74d8b7a1dc5ad20ea29029ee508f5">VulkanRenderer</a>.</p>
+
+</div>
+</div>
+<a id="a218212bcf025fe02c9b028baeb42943e" name="a218212bcf025fe02c9b028baeb42943e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a218212bcf025fe02c9b028baeb42943e">&#9670;&#160;</a></span>render()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void IRenderer::render </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Render the current frame. </p>
+<p>Records and submits draw commands. Reads scene data from <a class="el" href="classIScene.html" title="Scene service interface.">IScene</a> service. Call once per frame before <a class="el" href="#a8c9290a4e517fd88a3709f489877d783" title="Present the current frame and swap front/back buffers.">swapBuffers()</a>. </p>
+
+<p>Implemented in <a class="el" href="classVulkanRenderer.html#adabc9cd38f81521e21dc54909b32eb2f">VulkanRenderer</a>.</p>
 
 </div>
 </div>
@@ -181,7 +213,7 @@ Public Member Functions</h2></td></tr>
 <p>Release all renderer resources. </p>
 <p>Destroys the graphics context and frees GPU resources. </p>
 
-<p>Implemented in <a class="el" href="classRendererGLFW.html#a6495735e4525944c9d6de2436434ee36">RendererGLFW</a>.</p>
+<p>Implemented in <a class="el" href="classVulkanRenderer.html#a8f1f20449cbd646ff5d677916c516afd">VulkanRenderer</a>.</p>
 
 </div>
 </div>
@@ -211,7 +243,7 @@ Public Member Functions</h2></td></tr>
 <p>Present the current frame and swap front/back buffers. </p>
 <p>Call once per frame after rendering is complete. </p>
 
-<p>Implemented in <a class="el" href="classRendererGLFW.html#a6e5372233d140fffce934f37afcc407b">RendererGLFW</a>.</p>
+<p>Implemented in <a class="el" href="classVulkanRenderer.html#ae0d97b4143141055e127923971f46686">VulkanRenderer</a>.</p>
 
 </div>
 </div>

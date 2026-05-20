@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['servicelocator_0',['ServiceLocator',['../classServiceLocator.html',1,'']]]
+  ['resourcemanager_0',['ResourceManager',['../classResourceManager.html',1,'']]]
 ];

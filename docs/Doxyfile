@@ -1,6 +1,6 @@
 PROJECT_NAME         = "Iron Cube"
 PROJECT_NUMBER       = "0.1.0"
-INPUT                = /home/dtaunt/dev/iron-cube/src
+INPUT                = /home/dtaunt/dev/iron-cube/src /home/dtaunt/dev/iron-cube/src/core/src/scene /home/dtaunt/dev/iron-cube/src/core/src/resource
 RECURSIVE            = YES
 OUTPUT_DIRECTORY     = docs/output
 GENERATE_HTML        = YES

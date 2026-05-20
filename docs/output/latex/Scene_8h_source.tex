@@ -1,0 +1,26 @@
+\doxysection{Scene.\+h}
+\hypertarget{Scene_8h_source}{}\label{Scene_8h_source}\index{src/core/src/scene/Scene.h@{src/core/src/scene/Scene.h}}
+\doxymbox{\hyperlink{Scene_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{IScene_8h}{scene/IScene.h}}"{}}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classScene}{Scene}}\ :\ \textcolor{keyword}{public}\ \doxymbox{\hyperlink{classIScene}{IScene}}}
+\DoxyCodeLine{00017\ \{}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classScene_ac59fd8d8634f14c62e20ad76f4eef136}{initialize}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keyword}{const}\ std::vector<Vertex>\&\ \doxymbox{\hyperlink{classScene_aa0c613d85f7500e8de882706344069f6}{getVertices}}()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00021\ \ \ \ \ uint32\_t\ \doxymbox{\hyperlink{classScene_a181216d10587b6e776a7829a324885b6}{getVertexCount}}()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classScene_ac91cceec72acef0436438c37d1cfca57}{isDirty}}()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classScene_a3e2dda05a8e0998f9d3cc0b06bfab3bc}{markClean}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classScene_abfddaf3f7d80822e0e4bf4bfeb2f5750}{shutdown}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00027\ \ \ \ \ \doxymbox{\hyperlink{structSceneData}{SceneData}}\ data\_;}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_dirty\_;}
+\DoxyCodeLine{00029\ \};}
+
+\end{DoxyCode}

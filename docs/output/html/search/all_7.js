@@ -1,7 +1,27 @@
 var searchData=
 [
-  ['platformconfig_0',['PlatformConfig',['../structPlatformConfig.html',1,'']]],
-  ['platformlinux_1',['PlatformLinux',['../classPlatformLinux.html',1,'']]],
-  ['platformlinux_2eh_2',['PlatformLinux.h',['../PlatformLinux_8h.html',1,'']]],
-  ['pollevents_3',['pollEvents',['../classIPlatform.html#a900a125a92056b741b9f0ae25a995cfe',1,'IPlatform::pollEvents()'],['../classPlatformLinux.html#ac4e66bb057f659367abafd3e8f163a51',1,'PlatformLinux::pollEvents()']]]
+  ['iinput_0',['IInput',['../classIInput.html',1,'']]],
+  ['iinput_2eh_1',['IInput.h',['../IInput_8h.html',1,'']]],
+  ['init_2',['init',['../classInputGLFW.html#a09fd323ae407f92c0e1090f39494bf76',1,'InputGLFW::init()'],['../classWindowGLFW.html#a7d9cc3573d82e552a97b782fabb17640',1,'WindowGLFW::init()'],['../classIRenderer.html#a376599b6107a6b974882ab3c3ac510be',1,'IRenderer::init()'],['../classVulkanRenderer.html#ab1a74d8b7a1dc5ad20ea29029ee508f5',1,'VulkanRenderer::init()']]],
+  ['initialize_3',['initialize',['../classIPlatform.html#a0e5b54ed58e1d11dc8b739ff5e43bd20',1,'IPlatform::initialize()'],['../classPlatformLinux.html#a902eb5ac1465bfcecf7787e1abcf5405',1,'PlatformLinux::initialize()'],['../classIResourceManager.html#aa9423377b0b9b7ca9f8540405cfe6d56',1,'IResourceManager::initialize()'],['../classResourceManager.html#ad9354806a3eaa68b274084d925682fb0',1,'ResourceManager::initialize()'],['../classIScene.html#ab575bdeabd48b90f25ead06b721a6543',1,'IScene::initialize()'],['../classScene.html#ac59fd8d8634f14c62e20ad76f4eef136',1,'Scene::initialize()']]],
+  ['inputglfw_4',['InputGLFW',['../classInputGLFW.html',1,'']]],
+  ['inputglfw_2eh_5',['InputGLFW.h',['../InputGLFW_8h.html',1,'']]],
+  ['instance_6',['instance',['../classServiceLocator.html#a31f3258e3767787f0aa2ab410f5d9f2f',1,'ServiceLocator']]],
+  ['iplatform_7',['IPlatform',['../classIPlatform.html',1,'']]],
+  ['iplatform_2eh_8',['IPlatform.h',['../IPlatform_8h.html',1,'']]],
+  ['irenderer_9',['IRenderer',['../classIRenderer.html',1,'']]],
+  ['irenderer_2eh_10',['IRenderer.h',['../IRenderer_8h.html',1,'']]],
+  ['iresourcemanager_11',['IResourceManager',['../classIResourceManager.html',1,'']]],
+  ['iresourcemanager_2eh_12',['IResourceManager.h',['../IResourceManager_8h.html',1,'']]],
+  ['is_5fdirty_13',['is_dirty',['../structSceneData.html#a790d1b569e0ce8ba887378f63ca3afb8',1,'SceneData']]],
+  ['iscene_14',['IScene',['../classIScene.html',1,'']]],
+  ['iscene_2eh_15',['IScene.h',['../IScene_8h.html',1,'']]],
+  ['iscloserequested_16',['isCloseRequested',['../classWindowGLFW.html#a0836524e5c2cd30f09e14607839dd57e',1,'WindowGLFW']]],
+  ['isdirty_17',['isDirty',['../classIScene.html#a39e5ce457232c3d10f8932cb5df7a054',1,'IScene::isDirty()'],['../classScene.html#ac91cceec72acef0436438c37d1cfca57',1,'Scene::isDirty()']]],
+  ['isiconified_18',['isIconified',['../classIWindow.html#a1e5df6bb9fc154208ad6a38c64c32ae4',1,'IWindow::isIconified()'],['../classWindowGLFW.html#a7a7287714303e6acc19239b9d5d99425',1,'WindowGLFW::isIconified()']]],
+  ['iskeypressed_19',['isKeyPressed',['../classIInput.html#ae02309781646b3e3a4ed91276651f1c9',1,'IInput::isKeyPressed()'],['../classInputGLFW.html#a1858e3d3b753002b001f6ab991671c19',1,'InputGLFW::isKeyPressed()']]],
+  ['isopen_20',['isOpen',['../classIWindow.html#ad086a809bb8e2a64e696c90eade340a4',1,'IWindow::isOpen()'],['../classWindowGLFW.html#a06e28058346d4344253fd7bec5292756',1,'WindowGLFW::isOpen()']]],
+  ['isvalid_21',['isValid',['../structSceneData.html#a1e547306a7ae83b9b58d7b0e051fd51e',1,'SceneData']]],
+  ['iwindow_22',['IWindow',['../classIWindow.html',1,'']]],
+  ['iwindow_2eh_23',['IWindow.h',['../IWindow_8h.html',1,'']]]
 ];

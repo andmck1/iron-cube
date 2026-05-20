@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['rendererglfw_0',['RendererGLFW',['../classRendererGLFW.html',1,'']]]
+  ['platformconfig_0',['PlatformConfig',['../structPlatformConfig.html',1,'']]],
+  ['platformlinux_1',['PlatformLinux',['../classPlatformLinux.html',1,'']]]
 ];

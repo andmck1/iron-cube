@@ -1,0 +1,3 @@
+add_executable(test_render_pipeline test_render_pipeline.cpp)
+target_link_libraries(test_render_pipeline PRIVATE Catch2::Catch2WithMain iron-core)
+catch_discover_tests(test_render_pipeline)

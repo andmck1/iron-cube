@@ -1,0 +1,144 @@
+\doxysection{Scene Class Reference}
+\hypertarget{classScene}{}\label{classScene}\index{Scene@{Scene}}
+
+
+\doxylink{classScene}{Scene} implementation that generates a centered, upward-\/pointing triangle.  
+
+
+
+
+{\ttfamily \+\#include $<$Scene.\+h$>$}
+
+Inheritance diagram for Scene:\+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classScene}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{classScene_ac59fd8d8634f14c62e20ad76f4eef136}{initialize}} () override
+\begin{DoxyCompactList}\small\item\em Initialize and generate scene geometry data. \end{DoxyCompactList}\item 
+const std::\+vector$<$ \doxymbox{\hyperlink{structVertex}{Vertex}} $>$ \& \doxymbox{\hyperlink{classScene_aa0c613d85f7500e8de882706344069f6}{get\+Vertices}} () const override
+\begin{DoxyCompactList}\small\item\em Return reference to vertex data array. \end{DoxyCompactList}\item 
+uint32\+\_\+t \doxymbox{\hyperlink{classScene_a181216d10587b6e776a7829a324885b6}{get\+Vertex\+Count}} () const override
+\begin{DoxyCompactList}\small\item\em Return number of vertices in scene. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{classScene_ac91cceec72acef0436438c37d1cfca57}{is\+Dirty}} () const override
+\begin{DoxyCompactList}\small\item\em Check if scene data has changed since last render. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{classScene_a3e2dda05a8e0998f9d3cc0b06bfab3bc}{mark\+Clean}} () override
+\begin{DoxyCompactList}\small\item\em Mark scene data as clean after rendering. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{classScene_abfddaf3f7d80822e0e4bf4bfeb2f5750}{shutdown}} () override
+\begin{DoxyCompactList}\small\item\em Clear all scene data and release resources. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\doxylink{classScene}{Scene} implementation that generates a centered, upward-\/pointing triangle. 
+
+Stores vertex data in \doxylink{structSceneData}{Scene\+Data} struct for cache-\/friendly access. Implements \doxylink{classIScene}{IScene} interface for service locator registration. 
+
+\label{doc-func-members}
+\Hypertarget{classScene_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classScene_a181216d10587b6e776a7829a324885b6}\index{Scene@{Scene}!getVertexCount@{getVertexCount}}
+\index{getVertexCount@{getVertexCount}!Scene@{Scene}}
+\doxysubsubsection{\texorpdfstring{getVertexCount()}{getVertexCount()}}
+{\footnotesize\ttfamily \label{classScene_a181216d10587b6e776a7829a324885b6} 
+uint32\+\_\+t Scene::\+get\+Vertex\+Count (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Return number of vertices in scene. 
+
+\begin{DoxyReturn}{Returns}
+\doxylink{structVertex}{Vertex} count. 
+\end{DoxyReturn}
+
+
+Implements \doxymbox{\hyperlink{classIScene_a011d1a9743f58011f8045f0269ef8d96}{IScene}}.
+
+\Hypertarget{classScene_aa0c613d85f7500e8de882706344069f6}\index{Scene@{Scene}!getVertices@{getVertices}}
+\index{getVertices@{getVertices}!Scene@{Scene}}
+\doxysubsubsection{\texorpdfstring{getVertices()}{getVertices()}}
+{\footnotesize\ttfamily \label{classScene_aa0c613d85f7500e8de882706344069f6} 
+const std::\+vector$<$ \doxymbox{\hyperlink{structVertex}{Vertex}} $>$ \& Scene::\+get\+Vertices (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Return reference to vertex data array. 
+
+\begin{DoxyReturn}{Returns}
+Const reference to the vertex vector. 
+\end{DoxyReturn}
+
+
+Implements \doxymbox{\hyperlink{classIScene_a9b3f39608d61ab42e7887b221c23bb20}{IScene}}.
+
+\Hypertarget{classScene_ac59fd8d8634f14c62e20ad76f4eef136}\index{Scene@{Scene}!initialize@{initialize}}
+\index{initialize@{initialize}!Scene@{Scene}}
+\doxysubsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily \label{classScene_ac59fd8d8634f14c62e20ad76f4eef136} 
+bool Scene::\+initialize (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Initialize and generate scene geometry data. 
+
+\begin{DoxyReturn}{Returns}
+true on success. 
+\end{DoxyReturn}
+
+
+Implements \doxymbox{\hyperlink{classIScene_ab575bdeabd48b90f25ead06b721a6543}{IScene}}.
+
+\Hypertarget{classScene_ac91cceec72acef0436438c37d1cfca57}\index{Scene@{Scene}!isDirty@{isDirty}}
+\index{isDirty@{isDirty}!Scene@{Scene}}
+\doxysubsubsection{\texorpdfstring{isDirty()}{isDirty()}}
+{\footnotesize\ttfamily \label{classScene_ac91cceec72acef0436438c37d1cfca57} 
+bool Scene::\+is\+Dirty (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Check if scene data has changed since last render. 
+
+\begin{DoxyReturn}{Returns}
+true if dirty. 
+\end{DoxyReturn}
+
+
+Implements \doxymbox{\hyperlink{classIScene_a39e5ce457232c3d10f8932cb5df7a054}{IScene}}.
+
+\Hypertarget{classScene_a3e2dda05a8e0998f9d3cc0b06bfab3bc}\index{Scene@{Scene}!markClean@{markClean}}
+\index{markClean@{markClean}!Scene@{Scene}}
+\doxysubsubsection{\texorpdfstring{markClean()}{markClean()}}
+{\footnotesize\ttfamily \label{classScene_a3e2dda05a8e0998f9d3cc0b06bfab3bc} 
+void Scene::\+mark\+Clean (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Mark scene data as clean after rendering. 
+
+
+
+Implements \doxymbox{\hyperlink{classIScene_a3a650e3476d05fdbdc8876030024d252}{IScene}}.
+
+\Hypertarget{classScene_abfddaf3f7d80822e0e4bf4bfeb2f5750}\index{Scene@{Scene}!shutdown@{shutdown}}
+\index{shutdown@{shutdown}!Scene@{Scene}}
+\doxysubsubsection{\texorpdfstring{shutdown()}{shutdown()}}
+{\footnotesize\ttfamily \label{classScene_abfddaf3f7d80822e0e4bf4bfeb2f5750} 
+void Scene::\+shutdown (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Clear all scene data and release resources. 
+
+
+
+Implements \doxymbox{\hyperlink{classIScene_a1d2911a59a378b2d5f83aa0095e5d989}{IScene}}.
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+src/\+scene/\+\doxymbox{\hyperlink{Scene_8h}{Scene.\+h}}\item 
+src/\+core/\+src/\+scene/\+Scene.\+cpp\end{DoxyCompactItemize}

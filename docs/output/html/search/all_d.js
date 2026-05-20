@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['y_0',['y',['../structVec2u.html#a513c6257652544150b31da28127f834c',1,'Vec2u']]]
+  ['unmapmemory_0',['unmapMemory',['../classIResourceManager.html#a44baf0fab9fe4cd736aeda2f7dc81bbe',1,'IResourceManager::unmapMemory()'],['../classResourceManager.html#a4c16db069dc6602b9d83ed649148bda2',1,'ResourceManager::unmapMemory()']]]
 ];

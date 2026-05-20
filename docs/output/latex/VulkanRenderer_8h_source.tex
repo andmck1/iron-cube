@@ -1,0 +1,111 @@
+\doxysection{Vulkan\+Renderer.\+h}
+\hypertarget{VulkanRenderer_8h_source}{}\label{VulkanRenderer_8h_source}\index{src/core/src/rendering/linux/VulkanRenderer.h@{src/core/src/rendering/linux/VulkanRenderer.h}}
+\doxymbox{\hyperlink{VulkanRenderer_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{IRenderer_8h}{rendering/IRenderer.h}}"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{SceneData_8h}{scene/SceneData.h}}"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{IResourceManager_8h}{resource/IResourceManager.h}}"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <vulkan/vulkan.h>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{classVulkanRenderer}{VulkanRenderer}}\ :\ \textcolor{keyword}{public}\ \doxymbox{\hyperlink{classIRenderer}{IRenderer}}}
+\DoxyCodeLine{00025\ \{}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{classVulkanRenderer_ab1a74d8b7a1dc5ad20ea29029ee508f5}{init}}(GLFWwindow\ *window)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classVulkanRenderer_adabc9cd38f81521e21dc54909b32eb2f}{render}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classVulkanRenderer_ae0d97b4143141055e127923971f46686}{swapBuffers}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classVulkanRenderer_a8f1f20449cbd646ff5d677916c516afd}{shutdown}}()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{classVulkanRenderer_a591499e2eed7e0687ce12ebfd073de0a}{setExitRequestedCallback}}(std::function<\textcolor{keywordtype}{bool}()>\ callback);}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00039\ \ \ \ \ GLFWwindow\ *window\_\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00040\ \ \ \ \ std::function<bool()>\ exitRequested\_;}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{comment}{//\ Vulkan\ core\ objects}}
+\DoxyCodeLine{00043\ \ \ \ \ VkQueue\ graphicsQueue\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00044\ \ \ \ \ VkInstance\ instance\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00045\ \ \ \ \ VkDebugUtilsMessengerEXT\ debugMessenger\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00046\ \ \ \ \ VkSurfaceKHR\ surface\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00047\ \ \ \ \ VkPhysicalDevice\ physicalDevice\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00048\ \ \ \ \ VkDevice\ device\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{comment}{//\ Swap\ chain}}
+\DoxyCodeLine{00051\ \ \ \ \ VkSwapchainKHR\ swapchain\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00052\ \ \ \ \ std::vector<VkImage>\ swapchainImages\_;}
+\DoxyCodeLine{00053\ \ \ \ \ std::vector<VkImageView>\ swapchainImageViews\_;}
+\DoxyCodeLine{00054\ \ \ \ \ std::vector<VkFramebuffer>\ framebuffers\_;}
+\DoxyCodeLine{00055\ \ \ \ \ VkFormat\ swapchainImageFormat\_\ =\ VK\_FORMAT\_UNDEFINED;}
+\DoxyCodeLine{00056\ \ \ \ \ VkExtent2D\ swapchainExtent\_\ =\ \{0,\ 0\};}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//\ Render\ pass\ \&\ pipeline}}
+\DoxyCodeLine{00059\ \ \ \ \ VkRenderPass\ renderPass\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00060\ \ \ \ \ VkPipelineLayout\ pipelineLayout\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00061\ \ \ \ \ VkPipeline\ graphicsPipeline\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ Command\ buffers}}
+\DoxyCodeLine{00064\ \ \ \ \ VkCommandPool\ commandPool\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00065\ \ \ \ \ std::vector<VkCommandBuffer>\ commandBuffers\_;}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{comment}{//\ Resources}}
+\DoxyCodeLine{00068\ \ \ \ \ \doxymbox{\hyperlink{structBufferAllocation}{BufferAllocation}}\ vertexAlloc\_\ =\ \{\};}
+\DoxyCodeLine{00069\ \ \ \ \ VkSemaphore\ imageAvailableSemaphore\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00070\ \ \ \ \ VkSemaphore\ renderFinishedSemaphore\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00071\ \ \ \ \ VkFence\ inFlightFence\_\ =\ VK\_NULL\_HANDLE;}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{comment}{//\ Scene\ data}}
+\DoxyCodeLine{00074\ \ \ \ \ std::vector<Vertex>\ sceneVertices\_;}
+\DoxyCodeLine{00075\ \ \ \ \ uint32\_t\ sceneVertexCount\_\ =\ 0;}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordtype}{bool}\ sceneDirty\_\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{comment}{//\ Window\ dimensions}}
+\DoxyCodeLine{00079\ \ \ \ \ uint32\_t\ width\_\ =\ 0;}
+\DoxyCodeLine{00080\ \ \ \ \ uint32\_t\ height\_\ =\ 0;}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{comment}{//\ Instance\ creation}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordtype}{void}\ createInstance();}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{void}\ setupDebugMessenger();}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{void}\ createSurface();}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keywordtype}{void}\ selectGPU();}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{void}\ createLogicalDevice();}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{void}\ createSwapchain();}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordtype}{void}\ createImageViews();}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keywordtype}{void}\ createRenderPass();}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordtype}{void}\ createGraphicsPipeline();}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordtype}{void}\ createFramebuffers();}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordtype}{void}\ createCommandPool();}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordtype}{void}\ createCommandBuffers();}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keywordtype}{void}\ createVertexBuffer();}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{comment}{//\ Shader\ compilation}}
+\DoxyCodeLine{00098\ \ \ \ \ std::vector<char>\ readFile(\textcolor{keyword}{const}\ std::string\ \&filename)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00099\ \ \ \ \ VkShaderModule\ createShaderModule(\textcolor{keyword}{const}\ std::vector<char>\ \&code)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{comment}{//\ Validation}}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordtype}{bool}\ checkValidationLayerSupport()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00103\ \ \ \ \ std::vector<const\ char\ *>\ getRequiredExtensions()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keywordtype}{bool}\ isDeviceSuitable(VkPhysicalDevice\ device)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00105\ \ \ \ \ uint32\_t}
+\DoxyCodeLine{00106\ \ \ \ \ findMemoryType(uint32\_t\ typeFilter,\ VkMemoryPropertyFlags\ properties)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00107\ \ \ \ \ VkSurfaceFormatKHR\ chooseSwapSurfaceFormat(}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::vector<VkSurfaceFormatKHR>\ \&formats}
+\DoxyCodeLine{00109\ \ \ \ \ )\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00110\ \ \ \ \ VkPresentModeKHR}
+\DoxyCodeLine{00111\ \ \ \ \ chooseSwapPresentMode(\textcolor{keyword}{const}\ std::vector<VkPresentModeKHR>\ \&modes)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00112\ \ \ \ \ VkExtent2D}
+\DoxyCodeLine{00113\ \ \ \ \ chooseSwapExtent(\textcolor{keyword}{const}\ VkSurfaceCapabilitiesKHR\ \&capabilities)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00114\ \ \ \ \ uint32\_t\ findQueueFamilyIndex()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{comment}{//\ Cleanup}}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordtype}{void}\ cleanupSwapchain();}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordtype}{void}\ cleanup();}
+\DoxyCodeLine{00119\ \};}
+
+\end{DoxyCode}

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rendererglfw_2eh_0',['RendererGLFW.h',['../RendererGLFW_8h.html',1,'']]]
+  ['resourcemanager_2eh_0',['ResourceManager.h',['../ResourceManager_8h.html',1,'']]]
 ];

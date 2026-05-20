@@ -20,6 +20,8 @@ Inheritance diagram for IRenderer:\+\begin{figure}[H]
 \item 
 virtual bool \doxymbox{\hyperlink{classIRenderer_a376599b6107a6b974882ab3c3ac510be}{init}} (GLFWwindow \texorpdfstring{$\ast$}{*}window)=0
 \begin{DoxyCompactList}\small\item\em Initialize the renderer. \end{DoxyCompactList}\item 
+virtual void \doxymbox{\hyperlink{classIRenderer_a218212bcf025fe02c9b028baeb42943e}{render}} ()=0
+\begin{DoxyCompactList}\small\item\em Render the current frame. \end{DoxyCompactList}\item 
 virtual void \doxymbox{\hyperlink{classIRenderer_a8c9290a4e517fd88a3709f489877d783}{swap\+Buffers}} ()=0
 \begin{DoxyCompactList}\small\item\em Present the current frame and swap front/\+back buffers. \end{DoxyCompactList}\item 
 virtual void \doxymbox{\hyperlink{classIRenderer_a47c3a5365f6a92f06f52d4b2b3d1ccba}{shutdown}} ()=0
@@ -54,7 +56,21 @@ true on success.
 \end{DoxyReturn}
 
 
-Implemented in \doxymbox{\hyperlink{classRendererGLFW_a46feb5c0bafb85fd490820348929a919}{Renderer\+GLFW}}.
+Implemented in \doxymbox{\hyperlink{classVulkanRenderer_ab1a74d8b7a1dc5ad20ea29029ee508f5}{Vulkan\+Renderer}}.
+
+\Hypertarget{classIRenderer_a218212bcf025fe02c9b028baeb42943e}\index{IRenderer@{IRenderer}!render@{render}}
+\index{render@{render}!IRenderer@{IRenderer}}
+\doxysubsubsection{\texorpdfstring{render()}{render()}}
+{\footnotesize\ttfamily \label{classIRenderer_a218212bcf025fe02c9b028baeb42943e} 
+virtual void IRenderer::\+render (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Render the current frame. 
+
+Records and submits draw commands. Reads scene data from \doxylink{classIScene}{IScene} service. Call once per frame before \doxylink{classIRenderer_a8c9290a4e517fd88a3709f489877d783}{swap\+Buffers()}. 
+
+Implemented in \doxymbox{\hyperlink{classVulkanRenderer_adabc9cd38f81521e21dc54909b32eb2f}{Vulkan\+Renderer}}.
 
 \Hypertarget{classIRenderer_a47c3a5365f6a92f06f52d4b2b3d1ccba}\index{IRenderer@{IRenderer}!shutdown@{shutdown}}
 \index{shutdown@{shutdown}!IRenderer@{IRenderer}}
@@ -68,7 +84,7 @@ Release all renderer resources.
 
 Destroys the graphics context and frees GPU resources. 
 
-Implemented in \doxymbox{\hyperlink{classRendererGLFW_a6495735e4525944c9d6de2436434ee36}{Renderer\+GLFW}}.
+Implemented in \doxymbox{\hyperlink{classVulkanRenderer_a8f1f20449cbd646ff5d677916c516afd}{Vulkan\+Renderer}}.
 
 \Hypertarget{classIRenderer_a8c9290a4e517fd88a3709f489877d783}\index{IRenderer@{IRenderer}!swapBuffers@{swapBuffers}}
 \index{swapBuffers@{swapBuffers}!IRenderer@{IRenderer}}
@@ -82,7 +98,7 @@ Present the current frame and swap front/\+back buffers.
 
 Call once per frame after rendering is complete. 
 
-Implemented in \doxymbox{\hyperlink{classRendererGLFW_a6e5372233d140fffce934f37afcc407b}{Renderer\+GLFW}}.
+Implemented in \doxymbox{\hyperlink{classVulkanRenderer_ae0d97b4143141055e127923971f46686}{Vulkan\+Renderer}}.
 
 
 

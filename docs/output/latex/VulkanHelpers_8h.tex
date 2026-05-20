@@ -1,0 +1,99 @@
+\doxysection{src/\+core/\+src/\+rendering/\+linux/\+\+Vulkan\+Helpers.h File Reference}
+\hypertarget{VulkanHelpers_8h}{}\label{VulkanHelpers_8h}\index{src/core/src/rendering/linux/VulkanHelpers.h@{src/core/src/rendering/linux/VulkanHelpers.h}}
+
+
+Vulkan utility functions and validation layer setup.  
+
+
+{\ttfamily \+\#include $<$vulkan/\+vulkan.\+h$>$}\newline
+{\ttfamily \+\#include $<$spdlog/\+spdlog.\+h$>$}\newline
+{\ttfamily \+\#include $<$stdexcept$>$}\newline
+{\ttfamily \+\#include $<$string$>$}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{VulkanHelpers_8h_a50a6509f68822758860b9e9297a6ba96}{vk\+Check}} (Vk\+Result result, const char \texorpdfstring{$\ast$}{*}message)
+\begin{DoxyCompactList}\small\item\em Check a Vk\+Result and throw on failure. \end{DoxyCompactList}\item 
+VKAPI\+\_\+\+ATTR Vk\+Bool32 VKAPI\+\_\+\+CALL \doxymbox{\hyperlink{VulkanHelpers_8h_ac44d4196f0fe76cae596247cd421a35e}{debug\+Utils\+Messenger\+Callback}} (Vk\+Debug\+Utils\+Message\+Severity\+Flag\+Bits\+EXT severity, Vk\+Debug\+Utils\+Message\+Type\+Flags\+EXT types, const Vk\+Debug\+Utils\+Messenger\+Callback\+Data\+EXT \texorpdfstring{$\ast$}{*}callback\+Data, void \texorpdfstring{$\ast$}{*}user\+Data)
+\begin{DoxyCompactList}\small\item\em Debug utils messenger callback for validation layer logging. \end{DoxyCompactList}\item 
+Vk\+Debug\+Utils\+Messenger\+EXT \doxymbox{\hyperlink{VulkanHelpers_8h_a0afdf0d6dc1243e06e83ec9d7665197b}{create\+Debug\+Messenger}} (Vk\+Instance instance)
+\begin{DoxyCompactList}\small\item\em Create a debug utils messenger for validation layer logging. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{VulkanHelpers_8h_a767d4c7089fc6b249266a1fba56f210d}{destroy\+Debug\+Messenger}} (Vk\+Instance instance, Vk\+Debug\+Utils\+Messenger\+EXT messenger)
+\begin{DoxyCompactList}\small\item\em Destroy a debug utils messenger. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Vulkan utility functions and validation layer setup. 
+
+Provides inline helper for Vk\+Result checking and debug utils messenger callback for validation layer logging. 
+
+\label{doc-func-members}
+\Hypertarget{VulkanHelpers_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{VulkanHelpers_8h_a0afdf0d6dc1243e06e83ec9d7665197b}\index{VulkanHelpers.h@{VulkanHelpers.h}!createDebugMessenger@{createDebugMessenger}}
+\index{createDebugMessenger@{createDebugMessenger}!VulkanHelpers.h@{VulkanHelpers.h}}
+\doxysubsubsection{\texorpdfstring{createDebugMessenger()}{createDebugMessenger()}}
+{\footnotesize\ttfamily \label{VulkanHelpers_8h_a0afdf0d6dc1243e06e83ec9d7665197b} 
+Vk\+Debug\+Utils\+Messenger\+EXT create\+Debug\+Messenger (\begin{DoxyParamCaption}\item[{Vk\+Instance}]{instance}{}\end{DoxyParamCaption})}
+
+
+
+Create a debug utils messenger for validation layer logging. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em instance} & Vulkan instance handle. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Messenger handle, or VK\+\_\+\+NULL\+\_\+\+HANDLE if validation layers unavailable. 
+\end{DoxyReturn}
+\Hypertarget{VulkanHelpers_8h_ac44d4196f0fe76cae596247cd421a35e}\index{VulkanHelpers.h@{VulkanHelpers.h}!debugUtilsMessengerCallback@{debugUtilsMessengerCallback}}
+\index{debugUtilsMessengerCallback@{debugUtilsMessengerCallback}!VulkanHelpers.h@{VulkanHelpers.h}}
+\doxysubsubsection{\texorpdfstring{debugUtilsMessengerCallback()}{debugUtilsMessengerCallback()}}
+{\footnotesize\ttfamily \label{VulkanHelpers_8h_ac44d4196f0fe76cae596247cd421a35e} 
+VKAPI\+\_\+\+ATTR Vk\+Bool32 VKAPI\+\_\+\+CALL debug\+Utils\+Messenger\+Callback (\begin{DoxyParamCaption}\item[{Vk\+Debug\+Utils\+Message\+Severity\+Flag\+Bits\+EXT}]{severity}{, }\item[{Vk\+Debug\+Utils\+Message\+Type\+Flags\+EXT}]{types}{, }\item[{const Vk\+Debug\+Utils\+Messenger\+Callback\+Data\+EXT \texorpdfstring{$\ast$}{*}}]{callback\+Data}{, }\item[{void \texorpdfstring{$\ast$}{*}}]{user\+Data}{}\end{DoxyParamCaption})}
+
+
+
+Debug utils messenger callback for validation layer logging. 
+
+Routes validation layer messages through spdlog with appropriate severity levels. \Hypertarget{VulkanHelpers_8h_a767d4c7089fc6b249266a1fba56f210d}\index{VulkanHelpers.h@{VulkanHelpers.h}!destroyDebugMessenger@{destroyDebugMessenger}}
+\index{destroyDebugMessenger@{destroyDebugMessenger}!VulkanHelpers.h@{VulkanHelpers.h}}
+\doxysubsubsection{\texorpdfstring{destroyDebugMessenger()}{destroyDebugMessenger()}}
+{\footnotesize\ttfamily \label{VulkanHelpers_8h_a767d4c7089fc6b249266a1fba56f210d} 
+void destroy\+Debug\+Messenger (\begin{DoxyParamCaption}\item[{Vk\+Instance}]{instance}{, }\item[{Vk\+Debug\+Utils\+Messenger\+EXT}]{messenger}{}\end{DoxyParamCaption})}
+
+
+
+Destroy a debug utils messenger. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em instance} & Vulkan instance handle. \\
+\hline
+{\em messenger} & Messenger handle to destroy. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{VulkanHelpers_8h_a50a6509f68822758860b9e9297a6ba96}\index{VulkanHelpers.h@{VulkanHelpers.h}!vkCheck@{vkCheck}}
+\index{vkCheck@{vkCheck}!VulkanHelpers.h@{VulkanHelpers.h}}
+\doxysubsubsection{\texorpdfstring{vkCheck()}{vkCheck()}}
+{\footnotesize\ttfamily \label{VulkanHelpers_8h_a50a6509f68822758860b9e9297a6ba96} 
+void vk\+Check (\begin{DoxyParamCaption}\item[{Vk\+Result}]{result}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{message}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Check a Vk\+Result and throw on failure. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em result} & Vulkan result code. \\
+\hline
+{\em message} & Error message to include in exception. \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyExceptions}{Exceptions}
+{\em std::\+runtime\+\_\+error} & if result is not VK\+\_\+\+SUCCESS or VK\+\_\+\+SUBOPTIMAL. \\
+\hline
+\end{DoxyExceptions}

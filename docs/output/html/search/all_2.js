@@ -1,4 +1,8 @@
 var searchData=
 [
-  ['destroy_0',['destroy',['../classWindowGLFW.html#acfdbc6d2a014be760744b336fd63568a',1,'WindowGLFW']]]
+  ['cleanup_0',['cleanup',['../classIResourceManager.html#a90eb8d2e3e76992e4bcace04cc3c1170',1,'IResourceManager::cleanup()'],['../classResourceManager.html#aeb0873a424b3d9f98ad640bf344961df',1,'ResourceManager::cleanup()']]],
+  ['clear_1',['clear',['../structSceneData.html#a92a1142fa966a8483f35aeb819c09101',1,'SceneData']]],
+  ['color_2',['color',['../structVertex.html#a1b0993d04d8fa271065e9cec1cf1685e',1,'Vertex']]],
+  ['createdebugmessenger_3',['createDebugMessenger',['../VulkanHelpers_8h.html#a0afdf0d6dc1243e06e83ec9d7665197b',1,'VulkanHelpers.cpp']]],
+  ['createwindow_4',['createWindow',['../classIPlatform.html#a8056fabc4a3445fcdd352eafcb101b2c',1,'IPlatform::createWindow()'],['../classPlatformLinux.html#a8c2cdfa35980b3c910be7006ed4f9601',1,'PlatformLinux::createWindow()']]]
 ];
