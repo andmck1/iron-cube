@@ -30,3 +30,13 @@
 | Shader SPIR-V files missing | `init()` returns false with logged error |
 | Swap chain creation fails | `init()` returns false with logged error |
 | Out of device memory | Exception thrown, caught by Application, clean shutdown |
+
+## Helper Module: VulkanHelpers
+
+**Location**: `src/core/src/rendering/linux/VulkanHelpers.h`
+
+### Scope
+
+- `vkCheck(VkResult, const char*)`: Inline function to check VkResult and throw `std::runtime_error` on failure
+- Debug utils messenger callback: Logs validation layer warnings and errors via spdlog
+- Debug builds enable Vulkan validation layers; release builds disable them

@@ -18,12 +18,13 @@
 - All allocations tracked internally for batch cleanup
 - `cleanup()` must be called before Application exits
 - Memory properties selected automatically: HOST_VISIBLE | HOST_COHERENT for upload buffers, DEVICE_LOCAL for GPU-only buffers
-- Allocation failure returns false (does not throw)
+- Fatal errors (OOM, invalid device) throw `std::runtime_error`
+- Non-fatal query failures return `false` or `nullptr`
 
 ### Error Cases
 
 | Condition | Behavior |
 |-----------|----------|
-| Device is null | `initialize()` returns false |
-| Out of device memory | `allocateBuffer()` returns false |
-| Memory map fails | `mapMemory()` returns nullptr |
+| Device is null | `initialize()` throws `std::runtime_error` |
+| Out of device memory | `allocateBuffer()` throws `std::runtime_error` |
+| Memory map fails | `mapMemory()` returns `nullptr` (non-fatal) |

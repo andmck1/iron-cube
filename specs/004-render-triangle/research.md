@@ -18,7 +18,7 @@
 
 ## Decision: Vulkan Rendering Pipeline Architecture
 
-**Decision**: Implement `RendererVulkan` class owning the full Vulkan pipeline: instance, physical device, logical device, surface, swap chain, render pass, framebuffers, graphics pipeline, command buffers, and synchronization primitives.
+**Decision**: Implement `RendererVulkan` class owning the full Vulkan pipeline: instance, physical device, logical device, surface, swap chain, render pass, framebuffers, render pipeline, command buffers, and synchronization primitives.
 
 **Rationale**: Vulkan requires explicit management of all pipeline components. A single class encapsulating the pipeline keeps related resources together and simplifies initialization order and cleanup. The class implements the existing `IRenderer` interface.
 
@@ -86,3 +86,13 @@
 **Alternatives considered**:
 - RAII wrappers for each Vulkan object — rejected: adds indirection; tracker is simpler for prototype
 - Vulkan allocator library (e.g., VMA) — rejected: overkill for single triangle; adds dependency
+
+## Decision: GLM Mathematics Library
+
+**Decision**: Use GLM (OpenGL Mathematics) for vector/matrix types. Already present as project dependency from Feature 003.
+
+**Rationale**: GLM provides `glm::vec2`, `glm::vec3`, `glm::mat4` types that match Vulkan's expected memory layout. Header-only library with no build integration needed. Widely used in graphics programming with familiar SIMD-friendly layout.
+
+**Alternatives considered**:
+- Custom math types — rejected: unnecessary duplication; GLM is battle-tested
+- Eigen — rejected: heavier dependency; overkill for 2D/3D vector math

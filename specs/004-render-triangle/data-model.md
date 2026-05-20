@@ -25,7 +25,7 @@ Data-oriented container for renderable geometry.
 | Field | Type | Description |
 |-------|------|-------------|
 | vertices | std::vector<Vertex> | Contiguous vertex array |
-| vertex_count | uint32_t | Number of vertices |
+| vertex_count | uint32_t | Number of vertices (cached to avoid `.size()` call in render hot path) |
 
 **Validation**: vertex_count must match vertices.size(). vertex_count must be > 0.
 

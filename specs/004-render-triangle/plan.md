@@ -6,7 +6,7 @@
 
 ## Summary
 
-Extend the rendering layer to use Vulkan with Slang shaders to render a bright red triangle. Replace the placeholder `RendererGLFW` with a full Vulkan renderer (`RendererVulkan`) that initializes the Vulkan instance, device, swap chain, render pass, graphics pipeline, and command buffers. Add a scene management layer with data-oriented triangle geometry storage. Compile Slang shaders to SPIR-V at build time. The rendering loop processes each frame: record draw commands, submit to GPU, present via swap chain, and handle window resize by recreating the swap chain.
+Extend the rendering layer to use Vulkan with Slang shaders to render a bright red triangle. Replace the placeholder `RendererGLFW` with a full Vulkan renderer (`RendererVulkan`) that initializes the Vulkan instance, device, swap chain, render pass, render pipeline, and command buffers. Add a scene management layer with data-oriented triangle geometry storage. Compile Slang shaders to SPIR-V at build time. The rendering loop processes each frame: record draw commands, submit to GPU, present via swap chain, and handle window resize by recreating the swap chain.
 
 ## Technical Context
 
@@ -26,7 +26,7 @@ Extend the rendering layer to use Vulkan with Slang shaders to render a bright r
 
 **Constraints**: Vulkan-capable GPU required; shader compilation at build time; clean resource cleanup on exit
 
-**Scale/Scope**: 1 triangle, 1 render pass, 1 graphics pipeline, 1 command buffer per frame
+**Scale/Scope**: 1 triangle, 1 render pass, 1 render pipeline, 1 command buffer per frame
 
 ## Constitution Check
 
@@ -108,7 +108,7 @@ tests/
     └── test_render_pipeline.cpp     # New: Full pipeline integration test
 ```
 
-**Structure Decision**: Rendering layer extended with `RendererVulkan` implementing `IRenderer`. New `scene/` and `resource/` layers provide data-oriented scene management and GPU resource tracking. Slang shaders live in `src/core/src/shaders/` and compile to SPIR-V at build time. All new layers expose interfaces consumed via the existing service locator.
+**Structure Decision**: Rendering layer extended with `RendererVulkan` implementing `IRenderer`. `RendererGLFW` (placeholder from Feature 003) is removed and replaced by `RendererVulkan`. Application.h is updated to depend on `IRenderer` interface rather than concrete renderer types. New `scene/` and `resource/` layers provide data-oriented scene management and GPU resource tracking. Slang shaders live in `src/core/src/shaders/` and compile to SPIR-V at build time. All new layers expose interfaces consumed via the existing service locator.
 
 ## Phase 0: Research
 

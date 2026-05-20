@@ -72,6 +72,20 @@ As a developer using Iron Cube, I expect the triangle's geometry and appearance 
 - When the window is restored after being minimized, rendering resumes normally
 - When resource allocation fails, the application prints an error to stderr and exits with a non-zero return code
 
+### Error Classification
+
+**Fatal errors** (application exits with non-zero code):
+- Vulkan instance creation failure
+- No Vulkan-capable GPU found
+- Shader compilation failure
+- Swap chain creation failure during initialization
+- Out of device memory
+
+**Recoverable errors** (application continues running):
+- Swap chain recreation failure during resize (retry with different extent)
+- Transient device wait timeout (retry with backoff)
+- Window iconify/deiconify events (pause/resume rendering)
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -85,10 +99,9 @@ As a developer using Iron Cube, I expect the triangle's geometry and appearance 
 - **FR-007**: System MUST handle window resize events by updating the rendering viewport
 - **FR-008**: System MUST pause rendering when the window is minimized
 - **FR-009**: System MUST resume rendering when the window is restored
-- **FR-010**: System MUST clean up all graphics resources when the application exits
+- **FR-010**: System MUST clean up all graphics resources when the application exits, with no memory or GPU resource leaks
 - **FR-011**: System MUST print descriptive error messages when graphics initialization fails
 - **FR-012**: System MUST exit with a non-zero return code when graphics initialization fails
-- **FR-013**: System MUST manage GPU resources (buffers, shaders, pipeline objects) without memory leaks
 
 ### Key Entities
 
@@ -96,6 +109,9 @@ As a developer using Iron Cube, I expect the triangle's geometry and appearance 
 - **Scene Data**: A data structure that holds renderable objects (currently the triangle) and their properties for the rendering system to consume.
 - **Shader Program**: Compiled graphics programs that run on the GPU — vertex shaders transform positions, fragment shaders determine pixel colors.
 - **Render Pipeline**: The sequence of operations that transforms scene data into pixels on screen, including shader execution, buffer binding, and draw commands.
+- **Vulkan Device**: Logical device handle and associated GPU resources (implementation detail of RendererVulkan).
+- **Swap Chain**: Collection of images used for double/triple buffering between GPU and display (implementation detail of RendererVulkan).
+- **Resource Allocation**: Tracked GPU buffer and memory allocations managed by IResourceManager (implementation detail of resource layer).
 
 ## Success Criteria *(mandatory)*
 
@@ -103,9 +119,9 @@ As a developer using Iron Cube, I expect the triangle's geometry and appearance 
 
 - **SC-001**: Triangle is visible on screen within 5 seconds of application launch
 - **SC-002**: Rendering pipeline executes continuously without errors for at least 5 minutes
-- **SC-003**: Application maintains a VSync-matched frame rate (matching display refresh rate) with a minimum of 60 fps and no frame drops during sustained rendering
+- **SC-003**: Application maintains a VSync-matched frame rate (matching display refresh rate) with a minimum of 59 fps average; individual frame times exceeding 17ms occur in less than 1% of frames during sustained rendering
 - **SC-004**: Window resize results in the triangle remaining correctly rendered within 1 frame
-- **SC-005**: Application exits cleanly with all graphics resources freed (no resource leaks)
+- **SC-005**: Application exits with all graphics resources freed — no leaks reported by Vulkan validation layers or AddressSanitizer (when enabled)
 - **SC-006**: Graphics initialization failure produces a descriptive error message and non-zero exit code within 2 seconds
 
 ## Assumptions

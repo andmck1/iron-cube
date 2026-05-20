@@ -30,6 +30,14 @@ class IRenderer
     virtual bool init(GLFWwindow *window) = 0;
 
     /**
+     * @brief Render the current frame.
+     *
+     * Records and submits draw commands. Reads scene data from IScene service.
+     * Call once per frame before swapBuffers().
+     */
+    virtual void render() = 0;
+
+    /**
      * @brief Present the current frame and swap front/back buffers.
      *
      * Call once per frame after rendering is complete.
