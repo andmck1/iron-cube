@@ -1,15 +1,12 @@
 #include "rendering/linux/VulkanRenderer.h"
 #include "rendering/linux/VulkanHelpers.h"
-#include "platform/linux/WindowGLFW.h"
 #include "service/ServiceLocator.h"
 #include "scene/IScene.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <spdlog/spdlog.h>
-#include <algorithm>
 #include <cstring>
 #include <fstream>
-#include <set>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
