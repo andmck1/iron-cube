@@ -37,7 +37,7 @@ Extend the rendering layer to use Vulkan with Slang shaders to render a bright r
 | I. TDD | PASS | Tests for Vulkan initialization, shader loading, scene data, and render pipeline will be written before implementation |
 | II. Documentation First | PASS | spec.md, plan.md, research.md, data-model.md, and contracts exist before implementation |
 | III. Layered & Component-Based | PASS | Rendering layer (Vulkan), resource management layer, scene management layer — each with interfaces consumed via service locator |
-| IV. Data-Oriented Design | PASS | Scene data stored as contiguous arrays (SoA-ready), not encapsulated in scene object classes |
+| IV. Data-Oriented Design | PASS | Scene data in AoS layout (appropriate for small vertex count), contiguous `std::vector` storage, with architectural path to SoA for larger scenes |
 | V. Service-Locator Pattern | PASS | IRenderer, IScene, IResourceManager exposed via interfaces, consumed via service locator |
 | VI. Incremental Feature Development | PASS | Single focused feature: triangle rendering pipeline with supporting layers |
 

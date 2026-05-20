@@ -8,9 +8,12 @@
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
+| ~IScene | `virtual ~IScene() = default` | Virtual destructor for safe polymorphic deletion. |
 | initialize | `bool initialize()` | Procedurally generate triangle geometry data. Returns true on success. |
 | getVertices | `const std::vector<Vertex>& getVertices() const` | Return reference to vertex data array. |
 | getVertexCount | `uint32_t getVertexCount() const` | Return number of vertices in scene. |
+| isDirty | `bool isDirty() const` | Return true if scene data has changed since last render. |
+| markClean | `void markClean()` | Mark scene data as clean (called after each frame). |
 | shutdown | `void shutdown()` | Clear all scene data. |
 
 ### Data Structures

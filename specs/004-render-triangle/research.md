@@ -13,7 +13,7 @@
 
 **Key details**:
 - Command: `slangc shader.slang -profile vulkan1.3 -target spirv -entry main -stage vertex -o output.spv`
-- Entry points use `[shader("vertex")]` and `[shader("fragment")]` attributes
+- Entry points use `[stage("vertex")]` and `[stage("fragment")]` attributes
 - Vulkan 1.3 profile matches project's Vulkan headers v1.4.309
 
 ## Decision: Vulkan Rendering Pipeline Architecture
@@ -34,7 +34,7 @@
 5. Swap chain with B8G8R8A8_SRGB format
 6. Render pass with single color attachment (clear to black)
 7. Framebuffers (one per swap chain image)
-8. Graphics pipeline with hardcoded triangle vertices in vertex shader
+8. Graphics pipeline with vertices loaded from vertex buffer
 9. Command buffer recording: begin render pass → bind pipeline → draw(3) → end render pass
 10. Synchronization: image-available semaphore, render-complete semaphore, fence per frame
 

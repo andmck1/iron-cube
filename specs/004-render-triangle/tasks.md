@@ -48,7 +48,7 @@ slangc <shader>.slang -profile vulkan1.3 -target spirv -entry main -stage vertex
 
 ### T05 [P] Write unit tests for scene data structures
 
-Create test file verifying: `Vertex` struct has correct memory layout (`glm::vec2 pos` + `glm::vec3 color`), `SceneData` default construction yields empty vertex vector with zero count, vertex insertion updates count, and validation rejects vertex count mismatches.
+Create test file verifying: `Vertex` struct has correct memory layout (`glm::vec2 pos` + `glm::vec3 color`), `SceneData` default construction yields empty vertex vector with zero count, vertex insertion updates count, validation rejects vertex count mismatches, `IScene` interface contract (virtual destructor, `isDirty()` returns true after `initialize()`, `markClean()` resets dirty flag), and polymorphic deletion safety.
 
 **Files**: `tests/unit/test_scene_data.cpp`
 
@@ -64,7 +64,7 @@ Create test file verifying: `IResourceManager` interface contract (virtual destr
 
 ### T07 Write unit tests for VulkanHelpers
 
-Create test file verifying: `vkCheck()` throws `std::runtime_error` on non-success `VkResult` codes (`VK_ERROR_OUT_OF_HOST_MEMORY`, `VK_ERROR_DEVICE_LOST`, etc.), `vkCheck()` returns silently on `VK_SUCCESS` and `VK_SUBOPTIMAL`. Test message propagation in thrown exceptions.
+Create test file verifying: `vkCheck()` throws `std::runtime_error` on non-success `VkResult` codes (`VK_ERROR_OUT_OF_HOST_MEMORY`, `VK_ERROR_DEVICE_LOST`, etc.), `vkCheck()` returns silently on `VK_SUCCESS` and `VK_SUBOPTIMAL`. Test message propagation in thrown exceptions. Note: low test ROI as `vkCheck()` is a thin wrapper — primary validation comes from integration coverage (T13, T27).
 
 **Files**: `tests/unit/test_vulkan_helpers.cpp`
 
@@ -82,7 +82,7 @@ Define `struct Vertex { glm::vec2 pos; glm::vec3 color; }` and `struct SceneData
 
 ### T09 [P] Implement IScene interface in IScene.h
 
-Define pure virtual interface with `initialize()`, `getVertices()`, `getVertexCount()`, `shutdown()`. Matches contract in `contracts/scene-contract.md`. Include Doxygen documentation.
+Define pure virtual interface with `virtual ~IScene() = default`, `initialize()`, `getVertices()`, `getVertexCount()`, `shutdown()`, `isDirty()`, `markClean()`. Matches contract in `contracts/scene-contract.md`. Include Doxygen documentation.
 
 **Constitution**: Principle V (Service-Locator Pattern) — interface-based service contract.
 
@@ -102,7 +102,7 @@ Define pure virtual interface with `initialize()`, `allocateBuffer()`, `mapMemor
 
 ### T10 Implement Scene class with triangle generation
 
-Create `class Scene : public IScene` in `Scene.h`/`Scene.cpp`. `initialize()` procedurally generates 3 vertices forming a centered, upward-pointing triangle with bright red color `(1.0, 0.0, 0.0)`. Vertices: `(-0.5, -0.5)`, `(0.5, -0.5)`, `(0.0, 0.5)`. Data stored in `SceneData` struct. `getVertices()` returns const reference. `shutdown()` clears all data.
+Create `class Scene : public IScene` in `Scene.h`/`Scene.cpp`. `initialize()` procedurally generates 3 vertices forming a centered, upward-pointing triangle with bright red color `(1.0, 0.0, 0.0)`, sets `is_dirty = true`. Vertices: `(-0.5, -0.5)`, `(0.5, -0.5)`, `(0.0, 0.5)`. Data stored in `SceneData` struct. `getVertices()` returns const reference. `isDirty()` returns `is_dirty` flag. `markClean()` sets `is_dirty = false`. `shutdown()` clears all data.
 
 **Files**: `src/core/src/scene/Scene.h`, `src/core/src/scene/Scene.cpp`
 
@@ -132,15 +132,15 @@ Header-only module providing: `vkCheck(VkResult result, const char* msg)` inline
 
 ### T12 [P] Write unit tests for RendererVulkan initialization
 
-Create test file verifying: `RendererVulkan` implements `IRenderer` interface (compile-time check via `std::is_base_of`), Vulkan instance creation succeeds when GPU is available, `init()` returns false with logged error when no Vulkan GPU found, and initialization failure triggers clean shutdown without resource leaks.
+Create test file verifying: `RendererVulkan` implements `IRenderer` interface (compile-time check via `std::is_base_of`), Vulkan instance creation succeeds when GPU is available, `init()` returns false with logged error when no Vulkan GPU found, and initialization failure triggers clean shutdown without resource leaks. Use `TEST_CASE_SKIP` with `#ifdef HEADLESS_CI` to gracefully skip GPU-dependent tests in headless CI environments.
 
 **Files**: `tests/unit/test_renderer_vulkan.cpp`
 
 ---
 
-### T13 [P] Write integration test for full render pipeline
+### T13 Write integration test skeleton for full render pipeline
 
-Create integration test verifying: complete pipeline lifecycle (init → render loop for N frames → swap → shutdown), no Vulkan validation layer errors during rendering, renderer reads scene data from `IScene` service via locator, and resource manager properly tracks and cleans up GPU allocations.
+Create integration test file with `TEST_CASE_SKIP` stubs that will verify: complete pipeline lifecycle (init → render loop for N frames → swap → shutdown), no Vulkan validation layer errors during rendering, renderer reads scene data from `IScene` service via locator, and resource manager properly tracks and cleans up GPU allocations. Test compiles but is skipped until T14-T21 are implemented. Full test body is filled in after T21 completes.
 
 **Files**: `tests/integration/test_render_pipeline.cpp`
 
@@ -148,7 +148,7 @@ Create integration test verifying: complete pipeline lifecycle (init → render 
 
 ### T14 Implement RendererVulkan class skeleton and init()
 
-Create `class RendererVulkan : public IRenderer` in `RendererVulkan.h`/`RendererVulkan.cpp`. Implement `init(GLFWwindow*)` method: create `VkInstance` with GLFW surface extensions and validation layers (Debug), select `VkPhysicalDevice` (discrete GPU preferred), create `VkDevice` with graphics queue family and swapchain extension, create `VkSurfaceKHR` from GLFW window. Store handles in `VulkanDevice` struct. Use `vkCheck()` for all Vulkan calls. Return false on any failure.
+Create `class RendererVulkan : public IRenderer` in `RendererVulkan.h`/`RendererVulkan.cpp`. Implement `init(GLFWwindow*)` method: create `VkInstance` with GLFW surface extensions and validation layers (Debug), select `VkPhysicalDevice` (discrete GPU preferred), create `VkDevice` with graphics queue family and swapchain extension, create `VkSurfaceKHR` from GLFW window. Store handles in `VulkanDevice` struct. Use `vkCheck()` for all Vulkan calls. Return false on any failure. Update `IRenderer.h` Doxygen comments to document Vulkan-specific behavior: validation layers in Debug builds, exception semantics via `vkCheck()`, and `IScene` service dependency for `render()`.
 
 **Constitution**: Principle III (Layered Architecture) — rendering layer implementation. Principle V (Service-Locator Pattern) — implements `IRenderer` interface.
 
@@ -184,7 +184,7 @@ During `init()`, query `IResourceManager` from service locator, call `allocateBu
 
 ### T18 Implement command pool and command buffer creation
 
-During `init()`, create `VkCommandPool` for graphics queue family and allocate one `VkCommandBuffer`. Store in `FrameSync` struct alongside semaphore and fence placeholders for per-frame synchronization.
+During `init()`, create `VkCommandPool` for graphics queue family and allocate one `VkCommandBuffer`. Store in `FrameState` struct alongside semaphore and fence placeholders for single-frame-in-flight synchronization.
 
 **Files**: `src/core/src/rendering/linux/RendererVulkan.cpp`
 
@@ -192,7 +192,7 @@ During `init()`, create `VkCommandPool` for graphics queue family and allocate o
 
 ### T19 Implement render() — frame command recording
 
-Implement `RendererVulkan::render()`: reset command buffer, begin render pass with clear color `(0.0, 0.0, 0.0, 1.0)`, bind graphics pipeline, bind vertex buffer, issue `vkCmdDraw(3)`, end render pass, end command buffer. Read vertex data from `IScene` service via locator if scene data has changed.
+Implement `RendererVulkan::render()`: reset command buffer, begin render pass with clear color `(0.0, 0.0, 0.0, 1.0)`, bind graphics pipeline, update vertex buffer from `IScene` service if `scene->isDirty()` is true (then call `scene->markClean()`), bind vertex buffer, issue `vkCmdDraw(3)`, end render pass, end command buffer.
 
 **Files**: `src/core/src/rendering/linux/RendererVulkan.cpp`
 
@@ -236,7 +236,7 @@ In `render()` and `swapBuffers()`, check `glfwGetWindowAttrib(window, GLFW_ICONI
 
 ### T24 Write Slang vertex shader
 
-Create `triangle.vert.slang` with `[stage("vertex")]` entry point `main()`. Output `gl_Position` (vec4) and `color` (vec3). Vertex data comes from vertex buffer input attributes matching `Vertex` struct layout.
+Create `triangle.vert.slang` with `[stage("vertex")]` entry point `main()`. Input `pos` (vec2) via `[[location(0)]]` and `color` (vec3) via `[[location(1)]]`. Output `gl_Position` (vec4) and `color` (vec3) via `[[location(0)]]` and `[[location(1)]]` respectively. Vertex data comes from vertex buffer input attributes matching `Vertex` struct layout.
 
 **Files**: `src/core/src/shaders/triangle.vert.slang`
 
@@ -244,7 +244,7 @@ Create `triangle.vert.slang` with `[stage("vertex")]` entry point `main()`. Outp
 
 ### T25 Write Slang fragment shader
 
-Create `triangle.frag.slang` with `[stage("fragment")]` entry point `main()`. Interpolate `color` from vertex shader output. Return bright red `(1.0, 0.0, 0.0, 1.0)` as fragment color.
+Create `triangle.frag.slang` with `[stage("fragment")]` entry point `main()`. Interpolate `color` from vertex shader output using `[[location(1)]]` attribute. Return interpolated color as `float4` fragment color.
 
 **Files**: `src/core/src/shaders/triangle.frag.slang`
 
@@ -252,7 +252,7 @@ Create `triangle.frag.slang` with `[stage("fragment")]` entry point `main()`. In
 
 ### T26 Update Application to use RendererVulkan and IScene
 
-Replace `RendererGLFW` with `RendererVulkan` in `Application.h`/`Application.cpp`. Register `Scene` as `IScene` service and `ResourceManager` as `IResourceManager` service in service locator. Call `scene->initialize()` after renderer init. Call `renderer->render()` before `renderer->swapBuffers()` each frame. Add `try-catch` block in `run()` to catch `std::runtime_error`, log error via spdlog, call shutdown on all services, and return non-zero exit code. Remove `RendererGLFW` from `iron-core` source list in CMake.
+Replace `RendererGLFW` with `RendererVulkan` in `Application.h`/`Application.cpp`. Register `Scene` as `IScene` service and `ResourceManager` as `IResourceManager` service in service locator. Call `scene->initialize()` after renderer init. Call `renderer->render()` before `renderer->swapBuffers()` each frame. Add `try-catch` block in `run()` to catch `std::runtime_error`, log error via spdlog, call shutdown on all services, and return non-zero exit code. Remove `RendererGLFW` from `iron-core` source list in CMake. Remove `src/core/src/rendering/linux/RendererGLFW.h` and `RendererGLFW.cpp` files.
 
 **Files**: `src/app/src/Application.h`, `src/app/src/Application.cpp`, `src/core/CMakeLists.txt`
 
@@ -280,11 +280,14 @@ Phase 2 (Foundational):
   T11 [parallel with T09-T10b]
 
 Phase 3 (US1 - Rendering Pipeline):
-  T12, T13 [parallel]
+  T12 [parallel with T14]
   T14 → T15 → T16 → T17 → T18 → T19 → T20 → T21
+  T21 → T13 (integration test skeleton written in Phase 3 start, filled in after T21)
 
 Phase 4 (US2 - Triangle Rendering):
-  T22, T23, T24, T25 [parallel]
+  T22, T23 [parallel]
+  T24, T25 [parallel]
+  T24, T25 → T04 (shader source files must exist before CMake compilation rules are added)
   T24, T25 → T26 (shaders must exist before Application integration)
   T21, T23 → T26 (renderer must be complete before Application integration)
   T26 → T27
@@ -292,18 +295,19 @@ Phase 4 (US2 - Triangle Rendering):
 
 ## TDD Compliance Notes
 
-- **Every implementation task is preceded by its test task**: T05→T08/T09, T06→T09b/T10b, T07→T11, T12→T14-T21, T13→full pipeline
+- **Every implementation task is preceded by its test task**: T05→T08/T09, T06→T09b/T10b, T07→T11, T12→T14-T21
 - **Tests must fail before implementation**: Each test file should compile and fail (or be skipped with `TEST_CASE_SKIP`) before the corresponding implementation exists
-- **Integration test (T13)** validates the complete pipeline end-to-end after all components are implemented
-- **Memory leak test (T27)** is the final validation gate before the feature is considered complete
+- **Integration test (T13)**: Skeleton test file created early in Phase 3 with `TEST_CASE_SKIP` stubs. Full test body is filled in after T21 completes, validating the complete pipeline end-to-end
+- **Memory leak test (T27)**: Final validation gate after all implementation is complete. Not a TDD test-first item — validates absence of leaks post-implementation
+- **Headless CI**: T12 and T13 use `TEST_CASE_SKIP` with `#ifdef HEADLESS_CI` to gracefully skip GPU-dependent tests
 
 ## Constitution Compliance
 
 | Principle | Coverage |
 |-----------|----------|
-| I. TDD | Test tasks (T05-T07, T12-T13, T27) precede all implementation tasks |
-| II. Documentation First | Contracts, data-model, research completed; Doxygen comments required on all new headers |
+| I. TDD | Test tasks (T05-T07, T12) precede implementation; T13 skeleton test created early, filled after T21; T27 validates post-implementation |
+| II. Documentation First | Contracts, data-model, research completed; Doxygen comments required on all new headers (T14 updates IRenderer.h) |
 | III. Layered Architecture | Rendering layer (T14-T21), resource layer (T10b), scene layer (T10) — each depends only on layers below |
 | IV. Data-Oriented Design | Scene data in contiguous `std::vector` (T08, T10), no scene object hierarchy, AoS layout for GPU compatibility |
-| V. Service-Locator Pattern | `IScene`, `IResourceManager`, `IRenderer` interfaces consumed via `ServiceLocator` (T09, T09b, T10, T10b, T14, T26) |
+| V. Service-Locator Pattern | `IScene`, `IResourceManager`, `IRenderer` interfaces (virtual destructors) consumed via `ServiceLocator` (T09, T09b, T10, T10b, T14, T26) |
 | VI. Incremental Development | 4 phases, each independently testable; US1 validates pipeline, US2 validates visual output |

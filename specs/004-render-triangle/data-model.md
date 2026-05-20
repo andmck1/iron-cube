@@ -26,6 +26,7 @@ Data-oriented container for renderable geometry.
 |-------|------|-------------|
 | vertices | std::vector<Vertex> | Contiguous vertex array |
 | vertex_count | uint32_t | Number of vertices (cached to avoid `.size()` call in render hot path) |
+| is_dirty | bool | True when data has changed since last render (default: true) |
 
 **Validation**: vertex_count must match vertices.size(). vertex_count must be > 0.
 
@@ -56,9 +57,9 @@ Tracks the current swap chain configuration.
 | extent | VkExtent2D | Swap chain image dimensions |
 | image_count | uint32_t | Number of images in chain |
 
-### FrameSync
+### FrameState
 
-Per-frame synchronization state.
+Single-frame-in-flight synchronization state.
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -90,7 +91,7 @@ SceneData
                         │
                         ├── owns → VulkanDevice
                         ├── owns → SwapChainState
-                        ├── owns → FrameSync
+                         ├── owns → FrameState
                         └── uses → IResourceManager
                                         │
                                         └── tracks → ResourceAllocation[]
