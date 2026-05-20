@@ -21,6 +21,8 @@ bool PlatformLinux::createWindow(const PlatformConfig &config)
     }
 
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     if (!window_.init(
             config.window_width, config.window_height,

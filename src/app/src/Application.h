@@ -6,7 +6,10 @@
 #pragma once
 
 #include "platform/linux/PlatformLinux.h"
-#include "rendering/linux/RendererGLFW.h"
+#include "rendering/linux/VulkanRenderer.h"
+#include "scene/Scene.h"
+#include "resource/ResourceManager.h"
+#include "service/ServiceLocator.h"
 
 /**
  * @brief Top-level application class.
@@ -33,5 +36,7 @@ class Application
 
     private:
     PlatformLinux platform_;
-    RendererGLFW renderer_;
+    VulkanRenderer renderer_;
+    Scene scene_;
+    ResourceManager resourceManager_;
 };

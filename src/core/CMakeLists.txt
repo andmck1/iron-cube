@@ -1,6 +1,24 @@
 # Interface library for stb (header-only)
-add_library(stb INTERFACE)
-target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
+add_library(iron-stb INTERFACE)
+target_include_directories(iron-stb INTERFACE ${stb_SOURCE_DIR})
+
+# Compile GLSL shaders to SPIR-V
+set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders)
+set(SPIRV_DIR ${CMAKE_BINARY_DIR}/shaders)
+
+file(MAKE_DIRECTORY ${SPIRV_DIR})
+
+add_custom_command(
+    OUTPUT ${SPIRV_DIR}/triangle.vert.spv ${SPIRV_DIR}/triangle.frag.spv
+    COMMAND glslc -std=450 -fshader-stage=vert -o ${SPIRV_DIR}/triangle.vert.spv ${SHADER_DIR}/triangle.vert.glsl
+    COMMAND glslc -std=450 -fshader-stage=frag -o ${SPIRV_DIR}/triangle.frag.spv ${SHADER_DIR}/triangle.frag.glsl
+    DEPENDS ${SHADER_DIR}/triangle.vert.glsl ${SHADER_DIR}/triangle.frag.glsl
+    COMMENT "Compiling shaders to SPIR-V"
+)
+
+add_custom_target(compile_shaders ALL
+    DEPENDS ${SPIRV_DIR}/triangle.vert.spv ${SPIRV_DIR}/triangle.frag.spv
+)
 
 # Iron core static library
 add_library(iron-core STATIC
@@ -9,7 +27,10 @@ add_library(iron-core STATIC
     src/platform/linux/WindowGLFW.cpp
     src/platform/linux/InputGLFW.cpp
     src/platform/linux/PlatformLinux.cpp
-    src/rendering/linux/RendererGLFW.cpp
+    src/rendering/linux/VulkanRenderer.cpp
+    src/rendering/linux/VulkanHelpers.cpp
+    src/scene/Scene.cpp
+    src/resource/ResourceManager.cpp
 )
 
 target_include_directories(iron-core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -18,7 +39,7 @@ target_link_libraries(iron-core PUBLIC
   glfw
   spdlog::spdlog
   glm::glm
-  stb
+    iron-stb
   tinyobjloader
-  Vulkan::Headers
+  Vulkan::Vulkan
 )

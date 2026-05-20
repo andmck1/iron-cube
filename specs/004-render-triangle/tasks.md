@@ -146,7 +146,7 @@ Create integration test file with `TEST_CASE_SKIP` stubs that will verify: compl
 
 ---
 
-### T14 Implement RendererVulkan class skeleton and init()
+### [X] T14 Implement RendererVulkan class skeleton and init()
 
 Create `class RendererVulkan : public IRenderer` in `RendererVulkan.h`/`RendererVulkan.cpp`. Implement `init(GLFWwindow*)` method: create `VkInstance` with GLFW surface extensions and validation layers (Debug), select `VkPhysicalDevice` (discrete GPU preferred), create `VkDevice` with graphics queue family and swapchain extension, create `VkSurfaceKHR` from GLFW window. Store handles in `VulkanDevice` struct. Use `vkCheck()` for all Vulkan calls. Return false on any failure. Update `IRenderer.h` Doxygen comments to document Vulkan-specific behavior: validation layers in Debug builds, exception semantics via `vkCheck()`, and `IScene` service dependency for `render()`.
 
@@ -156,7 +156,7 @@ Create `class RendererVulkan : public IRenderer` in `RendererVulkan.h`/`Renderer
 
 ---
 
-### T15 Implement swap chain and render pass setup
+### [X] T15 Implement swap chain and render pass setup
 
 Extend `RendererVulkan::init()` to create swap chain with `B8G8R8A8_SRGB` format, create image views for each swap chain image, create single-color-attachment render pass (clear to black), and create framebuffers (one per swap chain image). Store state in `SwapChainState` struct.
 
@@ -164,7 +164,7 @@ Extend `RendererVulkan::init()` to create swap chain with `B8G8R8A8_SRGB` format
 
 ---
 
-### T16 Implement graphics pipeline and shader loading
+### [X] T16 Implement graphics pipeline and shader loading
 
 Extend `RendererVulkan::init()` to load pre-compiled SPIR-V shaders (`.spv` files from build directory), create vertex input state matching `Vertex` struct layout (`glm::vec2 pos` + `glm::vec3 color`), create graphics pipeline with vertex input, input assembly (triangle list), viewport/state, rasterizer, color blend (clear to black), and depth-stencil (disabled). Verify shader files exist; return false with logged error if missing.
 
@@ -172,7 +172,7 @@ Extend `RendererVulkan::init()` to load pre-compiled SPIR-V shaders (`.spv` file
 
 ---
 
-### T17 Implement vertex buffer creation via resource manager
+### [X] T17 Implement vertex buffer creation via resource manager
 
 During `init()`, query `IResourceManager` from service locator, call `allocateBuffer()` to create vertex buffer with `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`, map memory, copy triangle vertex data from `IScene` service, and unmap. Store buffer handle and device pointer for rendering.
 
@@ -182,7 +182,7 @@ During `init()`, query `IResourceManager` from service locator, call `allocateBu
 
 ---
 
-### T18 Implement command pool and command buffer creation
+### [X] T18 Implement command pool and command buffer creation
 
 During `init()`, create `VkCommandPool` for graphics queue family and allocate one `VkCommandBuffer`. Store in `FrameState` struct alongside semaphore and fence placeholders for single-frame-in-flight synchronization.
 
@@ -190,7 +190,7 @@ During `init()`, create `VkCommandPool` for graphics queue family and allocate o
 
 ---
 
-### T19 Implement render() — frame command recording
+### [X] T19 Implement render() — frame command recording
 
 Implement `RendererVulkan::render()`: reset command buffer, begin render pass with clear color `(0.0, 0.0, 0.0, 1.0)`, bind graphics pipeline, update vertex buffer from `IScene` service if `scene->isDirty()` is true (then call `scene->markClean()`), bind vertex buffer, issue `vkCmdDraw(3)`, end render pass, end command buffer.
 
@@ -198,7 +198,7 @@ Implement `RendererVulkan::render()`: reset command buffer, begin render pass wi
 
 ---
 
-### T20 Implement swapBuffers() — submit and present
+### [X] T20 Implement swapBuffers() — submit and present
 
 Implement `RendererVulkan::swapBuffers()`: acquire next image from swap chain, wait on image-available semaphore, submit command buffer with semaphore dependencies (wait: image-available, signal: render-complete), present image to swap chain with render-complete semaphore, wait on fence. Create per-frame semaphores and fence if not yet created.
 
@@ -206,7 +206,7 @@ Implement `RendererVulkan::swapBuffers()`: acquire next image from swap chain, w
 
 ---
 
-### T21 Implement error handling and graceful shutdown
+### [X] T21 Implement error handling and graceful shutdown
 
 Implement `RendererVulkan::shutdown()`: call `vkDeviceWaitIdle()`, destroy command pool, destroy render pipeline, destroy framebuffers, destroy render pass, destroy swap chain, destroy device, destroy instance. Call `IResourceManager::cleanup()` via locator to free GPU allocations. All destruction in reverse initialization order. No resource leaks.
 
@@ -234,7 +234,7 @@ In `render()` and `swapBuffers()`, check `glfwGetWindowAttrib(window, GLFW_ICONI
 
 ---
 
-### T24 Write Slang vertex shader
+### [X] T24 Write Slang vertex shader
 
 Create `triangle.vert.slang` with `[stage("vertex")]` entry point `main()`. Input `pos` (vec2) via `[[location(0)]]` and `color` (vec3) via `[[location(1)]]`. Output `gl_Position` (vec4) and `color` (vec3) via `[[location(0)]]` and `[[location(1)]]` respectively. Vertex data comes from vertex buffer input attributes matching `Vertex` struct layout.
 
@@ -242,7 +242,7 @@ Create `triangle.vert.slang` with `[stage("vertex")]` entry point `main()`. Inpu
 
 ---
 
-### T25 Write Slang fragment shader
+### [X] T25 Write Slang fragment shader
 
 Create `triangle.frag.slang` with `[stage("fragment")]` entry point `main()`. Interpolate `color` from vertex shader output using `[[location(1)]]` attribute. Return interpolated color as `float4` fragment color.
 
@@ -250,7 +250,7 @@ Create `triangle.frag.slang` with `[stage("fragment")]` entry point `main()`. In
 
 ---
 
-### T26 Update Application to use RendererVulkan and IScene
+### [X] T26 Update Application to use RendererVulkan and IScene
 
 Replace `RendererGLFW` with `RendererVulkan` in `Application.h`/`Application.cpp`. Register `Scene` as `IScene` service and `ResourceManager` as `IResourceManager` service in service locator. Call `scene->initialize()` after renderer init. Call `renderer->render()` before `renderer->swapBuffers()` each frame. Add `try-catch` block in `run()` to catch `std::runtime_error`, log error via spdlog, call shutdown on all services, and return non-zero exit code. Remove `RendererGLFW` from `iron-core` source list in CMake. Remove `src/core/src/rendering/linux/RendererGLFW.h` and `RendererGLFW.cpp` files.
 

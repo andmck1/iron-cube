@@ -3,3 +3,4 @@ include(Catch)
 
 add_subdirectory(build)
 add_subdirectory(unit)
+add_subdirectory(integration)

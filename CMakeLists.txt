@@ -56,12 +56,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyobjloader)
 
-FetchContent_Declare(
-    vulkan_headers
-    GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers.git
-    GIT_TAG v1.4.309
-)
-FetchContent_MakeAvailable(vulkan_headers)
+# Use system Vulkan - slang will also use system Vulkan
+find_package(Vulkan REQUIRED)
+
+# FetchContent_Declare(
+#     slang
+#     GIT_REPOSITORY https://github.com/shader-slang/slang.git
+#     GIT_TAG v2025.5
+# )
+# FetchContent_MakeAvailable(slang)
 
 FetchContent_Declare(
     catch2
