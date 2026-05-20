@@ -8,6 +8,13 @@
 
 **Input**: User description: "In this phase of the graphics renderer project \"Iron Cube\", we will render a triangle to the screen. This feature will be called \"Render Triangle\". The focus of this phase is the rendering pipeline and rendering layer (vertex and pixel shaders, as well as the all the Vulkan rendering code), the resource management layer (for procedurally generating the triangle asset) and the scene management layer (storing scene data for rendering)."
 
+## Clarifications
+
+### Session 2026-05-20
+
+- Q: What should the triangle's fill color be? → A: Fixed bright red color (255,0,0)
+- Q: What minimum frame rate should the rendering pipeline maintain? → A: VSync-matched to display refresh rate, minimum 60 fps floor
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Render a Triangle (Priority: P1)
@@ -74,7 +81,7 @@ As a developer using Iron Cube, I expect the triangle's geometry and appearance 
 - **FR-003**: System MUST compile and load fragment shaders for determining pixel colors
 - **FR-004**: System MUST procedurally generate triangle geometry data (vertex positions) at initialization
 - **FR-005**: System MUST store triangle scene data in a scene management structure
-- **FR-006**: System MUST render the triangle to the visible application window each frame
+- **FR-006**: System MUST render the triangle to the visible application window each frame with a solid bright red fill color (255,0,0)
 - **FR-007**: System MUST handle window resize events by updating the rendering viewport
 - **FR-008**: System MUST pause rendering when the window is minimized
 - **FR-009**: System MUST resume rendering when the window is restored
@@ -85,7 +92,7 @@ As a developer using Iron Cube, I expect the triangle's geometry and appearance 
 
 ### Key Entities
 
-- **Triangle Geometry**: Vertex position data that defines the shape of the triangle. Contains three vertices with 2D screen coordinates.
+- **Triangle Geometry**: Vertex position data that defines the shape of the triangle. Contains three vertices with 2D screen coordinates and a fixed bright red fill color (255,0,0).
 - **Scene Data**: A data structure that holds renderable objects (currently the triangle) and their properties for the rendering system to consume.
 - **Shader Program**: Compiled graphics programs that run on the GPU — vertex shaders transform positions, fragment shaders determine pixel colors.
 - **Render Pipeline**: The sequence of operations that transforms scene data into pixels on screen, including shader execution, buffer binding, and draw commands.
@@ -96,7 +103,7 @@ As a developer using Iron Cube, I expect the triangle's geometry and appearance 
 
 - **SC-001**: Triangle is visible on screen within 5 seconds of application launch
 - **SC-002**: Rendering pipeline executes continuously without errors for at least 5 minutes
-- **SC-003**: Application maintains a stable frame rate with no frame drops during sustained rendering
+- **SC-003**: Application maintains a VSync-matched frame rate (matching display refresh rate) with a minimum of 60 fps and no frame drops during sustained rendering
 - **SC-004**: Window resize results in the triangle remaining correctly rendered within 1 frame
 - **SC-005**: Application exits cleanly with all graphics resources freed (no resource leaks)
 - **SC-006**: Graphics initialization failure produces a descriptive error message and non-zero exit code within 2 seconds
@@ -107,9 +114,10 @@ As a developer using Iron Cube, I expect the triangle's geometry and appearance 
 - The application window from Feature 003 (Linux App Window) is already functional and available
 - The platform layer provides Vulkan surface creation through the existing GLFW integration
 - Triangle geometry is procedurally generated at runtime (no external asset files needed)
-- The triangle uses a solid color fill (no texturing required for this feature)
+- The triangle uses a fixed bright red color (255,0,0) — no texturing required for this feature
 - The rendering pipeline follows a standard forward rendering approach
 - Scene data is simple and in-memory (no persistence or serialization required)
 - The triangle is rendered in 2D screen space (no 3D camera or projection required)
 - Shader code is compiled at application startup (no hot-reloading required)
 - The rendering pipeline is designed to support future complexity (multiple objects, 3D rendering, etc.)
+- The display refresh rate is at least 60 Hz (VSync target)
