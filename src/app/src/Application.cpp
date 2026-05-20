@@ -29,7 +29,6 @@ int Application::run()
         config.window_width = 1280;
         config.window_height = 720;
 
-
         if (!platform_.createWindow(config))
         {
             spdlog::error("Window creation failed");
