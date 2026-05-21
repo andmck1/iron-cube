@@ -9,7 +9,6 @@
 #include "rendering/linux/VulkanRenderer.h"
 #include "scene/Scene.h"
 #include "resource/ResourceManager.h"
-#include "service/ServiceLocator.h"
 #include "debug/ILayer.h"
 #include <memory>
 #include <vector>
@@ -38,9 +37,20 @@ class Application
     int run();
 
     private:
+    int registerServices();
+    int initializePlatform();
+    int initializeScene();
+    int initializeRenderer();
+    int createAndInitializeLayers();
+    void mainLoop();
+    void shutdownLayers();
+    void shutdownServices();
+    void shutdownAll();
+
     PlatformLinux platform_;
     VulkanRenderer renderer_;
     Scene scene_;
     ResourceManager resourceManager_;
     std::vector<std::unique_ptr<ILayer>> layers_;
+
 };
