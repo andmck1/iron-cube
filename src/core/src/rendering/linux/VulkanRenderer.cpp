@@ -51,7 +51,6 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
         createFramebuffers();
         createCommandPool();
         createCommandBuffers();
-        createVertexBuffer();
         createUniformBuffer();
         createDescriptorSet();
 
@@ -550,25 +549,6 @@ void VulkanRenderer::createCommandBuffers()
     vkCheck(result, "Failed to allocate command buffers");
 }
 
-void VulkanRenderer::createVertexBuffer()
-{
-
-    VkDeviceSize bufferSize = sizeof(Vertex) * 3;
-    spdlog::info(
-        "Allocating vertex buffer: {} vertices, {} bytes", 3, bufferSize
-    );
-
-    auto *resourceManager = ServiceLocator::instance().get<IResourceManager>();
-    if (!resourceManager)
-        throw std::runtime_error("IResourceManager service not available");
-
-    vertexAlloc_ = resourceManager->allocateBuffer(
-        bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    );
-}
-
 void VulkanRenderer::createUniformBuffer()
 {
     VkDeviceSize bufferSize = sizeof(UBO);
@@ -580,6 +560,35 @@ void VulkanRenderer::createUniformBuffer()
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     );
+}
+
+void VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
+{
+    auto *resourceManager = ServiceLocator::instance().get<IResourceManager>();
+    if (!resourceManager)
+        return;
+
+    // Free the old buffer if one exists
+    if (vertexAlloc_.buffer != VK_NULL_HANDLE)
+    {
+        vkDeviceWaitIdle(device_);
+        resourceManager->freeBuffer(vertexAlloc_);
+        vertexAlloc_ = BufferAllocation{};
+    }
+
+    VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
+    spdlog::info(
+        "Reallocating vertex buffer: {} vertices, {} bytes", vertexCount,
+        bufferSize
+    );
+
+    vertexAlloc_ = resourceManager->allocateBuffer(
+        bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+
+    allocatedVertexCount_ = vertexCount;
 }
 
 void VulkanRenderer::createDescriptorSet()
@@ -694,74 +703,54 @@ void VulkanRenderer::beginFrame()
     scissor.offset = {0, 0};
     scissor.extent = swapchainExtent_;
     vkCmdSetScissor(commandBuffers_[currentImageIndex_], 0, 1, &scissor);
-
-    VkBuffer vertexBuffers[] = {vertexAlloc_.buffer};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(
-        commandBuffers_[currentImageIndex_], 0, 1, vertexBuffers, offsets
-    );
 }
-
 void VulkanRenderer::renderScene(Scene *scene)
 {
-    std::vector<Vertex> sceneVertices = scene->getVertices();
-    uint32_t sceneVertexCount = scene->getVertexCount();
+    if (!scene)
+        return;
 
-    // -----------------------------
-    // 1. Update vertex buffer if needed
-    // -----------------------------
-    if (scene)
+    std::vector<Vertex> vertices = scene->getVertices();
+    uint32_t vertexCount = scene->getVertexCount();
+
+    // Reallocate if the vertex count has changed (or buffer doesn't exist yet)
+    if (vertexCount != allocatedVertexCount_)
+        allocateVertexBuffer(vertexCount);
+
+    // Upload vertex data if dirty
+    if (vertexCount > 0)
     {
-        std::vector<Vertex> sceneVertices = scene->getVertices();
-        uint32_t sceneVertexCount = scene->getVertexCount();
-
-        VkDeviceSize bufferSize = sizeof(Vertex) * sceneVertexCount;
-
         auto *resourceManager =
             ServiceLocator::instance().get<IResourceManager>();
-
         if (resourceManager)
         {
+            VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
             void *data = resourceManager->mapMemory(vertexAlloc_, bufferSize);
             if (data)
             {
                 std::memcpy(
-                    data, sceneVertices.data(), static_cast<size_t>(bufferSize)
+                    data, vertices.data(), static_cast<size_t>(bufferSize)
                 );
                 resourceManager->unmapMemory(vertexAlloc_);
             }
         }
     }
 
-    // -----------------------------
-    // 2. Update MVP matrix (NEW)
-    // -----------------------------
+    // Update MVP uniform
     if (auto *resourceManager =
             ServiceLocator::instance().get<IResourceManager>())
     {
         UBO ubo{};
-
-        // Model: identity (or replace with per-object transform later)
         ubo.model = glm::mat4(1.0f);
-
-        // View: simple camera back on +Z looking at origin
         ubo.view = glm::lookAt(
             glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(0.0f, 1.0f, 0.0f)
         );
-
-        // Projection
         float aspect = swapchainExtent_.width /
                        static_cast<float>(swapchainExtent_.height);
-
         ubo.proj = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
-
-        // Vulkan coordinate system fix
         ubo.proj[1][1] *= -1.0f;
 
-        // Upload to GPU
         VkDeviceSize uboSize = sizeof(UBO);
-
         void *mapped = resourceManager->mapMemory(uniformAlloc_, uboSize);
         if (mapped)
         {
@@ -770,10 +759,15 @@ void VulkanRenderer::renderScene(Scene *scene)
         }
     }
 
-    // -----------------------------
-    // 3. Draw call
-    // -----------------------------
-    vkCmdDraw(commandBuffers_[currentImageIndex_], sceneVertexCount, 1, 0, 0);
+    if (vertexCount > 0)
+    {
+        VkBuffer vertexBuffers[] = {vertexAlloc_.buffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(
+            commandBuffers_[currentImageIndex_], 0, 1, vertexBuffers, offsets
+        );
+        vkCmdDraw(commandBuffers_[currentImageIndex_], vertexCount, 1, 0, 0);
+    }
 }
 
 void VulkanRenderer::endFrame()

@@ -93,6 +93,7 @@ class VulkanRenderer : public IRenderer
     VkSemaphore imageAvailableSemaphore_ = VK_NULL_HANDLE;
     VkSemaphore renderFinishedSemaphore_ = VK_NULL_HANDLE;
     VkFence inFlightFence_ = VK_NULL_HANDLE;
+    uint32_t allocatedVertexCount_ = 0;
 
     // ImGui
     ImGuiContext *imguiContext_ = nullptr;
@@ -116,9 +117,10 @@ class VulkanRenderer : public IRenderer
     void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
-    void createVertexBuffer();
     void createUniformBuffer();
     void createDescriptorSet();
+
+    void allocateVertexBuffer(uint32_t vertexCount);
 
     // Shader compilation
     std::vector<char> readFile(const std::string &filename) const;
