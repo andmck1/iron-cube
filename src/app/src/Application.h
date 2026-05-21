@@ -1,10 +1,10 @@
 #pragma once
 
-#include "layers/DebugLayerData.h"
+#include "layer/DebugLayerData.h"
 #include "platform/linux/PlatformLinux.h"
 #include "rendering/linux/VulkanRenderer.h"
 #include "resource/ResourceManager.h"
-#include "layers/ILayer.h"
+#include "layer/ILayer.h"
 #include "config/Config.h"
 #include <memory>
 #include <vector>
@@ -21,8 +21,9 @@ class Application
     int registerServices();
     int initialisePlatform();
     int initialiseRenderer();
-    void initialiseDebugLayerData(Scene *scene);
     int createAndInitialiseLayers();
+    void initialiseDebugLayerData(Scene *scene);
+    void initialiseEntities();
     void mainLoop();
     void shutdownLayers();
     void shutdownServices();

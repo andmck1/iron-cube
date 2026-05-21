@@ -2,8 +2,8 @@
 #include <spdlog/spdlog.h>
 #include "service/ServiceLocator.h"
 #include "config/Config.h"
-#include "layers/SceneLayer.h"
-#include "layers/DebugLayer.h"
+#include "layer/SceneLayer.h"
+#include "layer/DebugLayer.h"
 
 Application::Application()
 {
@@ -85,6 +85,11 @@ int Application::createAndInitialiseLayers()
     }
 
     return 0;
+}
+
+void Application::initialiseEntities()
+{
+    spdlog::info("Initialising entities");
 }
 
 void Application::mainLoop()

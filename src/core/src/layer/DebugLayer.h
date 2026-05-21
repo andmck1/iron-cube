@@ -1,7 +1,7 @@
 #pragma once
 
-#include "layers/DebugLayerData.h"
-#include "layers/ILayer.h"
+#include "layer/DebugLayerData.h"
+#include "layer/ILayer.h"
 #include "scene/SceneData.h"
 #include <chrono>
 #include <vector>

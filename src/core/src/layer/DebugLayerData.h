@@ -1,6 +1,6 @@
 #pragma once
 
-#include "layers/IDebugLayerData.h"
+#include "layer/IDebugLayerData.h"
 
 class DebugLayerData : public IDebugLayerData
 {
