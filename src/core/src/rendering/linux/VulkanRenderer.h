@@ -5,14 +5,25 @@
 
 #pragma once
 
+#include "glm/ext/matrix_float4x4.hpp"
 #include "rendering/IRenderer.h"
 #include "scene/SceneData.h"
 #include "resource/IResourceManager.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <string>
 #include <cstdint>
 #include <functional>
+
+struct alignas(16) UBO
+{
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
 
 /**
  * @brief Vulkan renderer backend.
@@ -28,6 +39,15 @@ class VulkanRenderer : public IRenderer
     void render() override;
     void swapBuffers() override;
     void shutdown() override;
+
+    // Frame lifecycle for layer-based rendering
+    void beginFrame();
+    void renderScene();
+    void endFrame();
+    bool initImGui() override;
+    void newFrame() override;
+    void renderImGui() override;
+    void shutdownImGui() override;
 
     /**
      * @brief Set a callback to check if rendering should stop.
@@ -60,11 +80,17 @@ class VulkanRenderer : public IRenderer
     VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;
     VkPipeline graphicsPipeline_ = VK_NULL_HANDLE;
 
+    // Descriptors
+    VkDescriptorSetLayout descriptorSetLayout_{};
+    VkDescriptorSet descriptorSet_{};
+    VkDescriptorPool descriptorPool_{};
+
     // Command buffers
     VkCommandPool commandPool_ = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> commandBuffers_;
 
     // Resources
+    BufferAllocation uniformAlloc_;
     BufferAllocation vertexAlloc_ = {};
     VkSemaphore imageAvailableSemaphore_ = VK_NULL_HANDLE;
     VkSemaphore renderFinishedSemaphore_ = VK_NULL_HANDLE;
@@ -74,6 +100,11 @@ class VulkanRenderer : public IRenderer
     std::vector<Vertex> sceneVertices_;
     uint32_t sceneVertexCount_ = 0;
     bool sceneDirty_ = false;
+
+    // ImGui
+    ImGuiContext *imguiContext_ = nullptr;
+    VkDescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
+    uint32_t currentImageIndex_ = 0;
 
     // Window dimensions
     uint32_t width_ = 0;
@@ -93,6 +124,8 @@ class VulkanRenderer : public IRenderer
     void createCommandPool();
     void createCommandBuffers();
     void createVertexBuffer();
+    void createUniformBuffer();
+    void createDescriptorSet();
 
     // Shader compilation
     std::vector<char> readFile(const std::string &filename) const;

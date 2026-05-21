@@ -10,6 +10,9 @@
 #include "scene/Scene.h"
 #include "resource/ResourceManager.h"
 #include "service/ServiceLocator.h"
+#include "debug/ILayer.h"
+#include <memory>
+#include <vector>
 
 /**
  * @brief Top-level application class.
@@ -39,4 +42,5 @@ class Application
     VulkanRenderer renderer_;
     Scene scene_;
     ResourceManager resourceManager_;
+    std::vector<std::unique_ptr<ILayer>> layers_;
 };

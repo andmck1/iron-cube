@@ -61,4 +61,27 @@ class IScene
      * @brief Clear all scene data and release resources.
      */
     virtual void shutdown() = 0;
+
+    /**
+     * @brief Get current triangle transform.
+     * @return TriangleTransform with position, rotation, scale.
+     */
+    virtual TriangleTransform getTriangleTransform() const = 0;
+
+    /**
+     * @brief Set triangle transform.
+     * @param transform New transform values.
+     */
+    virtual void setTriangleTransform(const TriangleTransform &transform) = 0;
+
+    /**
+     * @brief Check if triangle transform has changed since last render.
+     * @return true if dirty.
+     */
+    virtual bool hasTriangleTransformChanged() const = 0;
+
+    /**
+     * @brief Mark triangle transform as clean after rendering.
+     */
+    virtual void markTransformClean() = 0;
 };

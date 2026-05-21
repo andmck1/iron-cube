@@ -1,6 +1,8 @@
 #include "Application.h"
 #include <spdlog/spdlog.h>
 #include "service/ServiceLocator.h"
+#include "debug/SceneLayer.h"
+#include "debug/DebugLayer.h"
 
 Application::Application()
 {
@@ -49,13 +51,50 @@ int Application::run()
             return platform_.shouldExit();
         });
 
+        // Create layer stack
+        layers_.push_back(std::make_unique<SceneLayer>(&renderer_));
+        layers_.push_back(std::make_unique<DebugLayer>());
+
+        // Initialize layers
+        for (auto& layer : layers_)
+        {
+            if (!layer->initialize())
+            {
+                spdlog::error("Layer initialization failed");
+                renderer_.shutdown();
+                platform_.shutdown();
+                return 1;
+            }
+        }
+
         while (!platform_.shouldExit())
         {
             platform_.pollEvents();
-            renderer_.render();
-            renderer_.swapBuffers();
+
+            // Begin frame
+            renderer_.beginFrame();
+            renderer_.newFrame();
+
+            // Render layers
+            for (auto& layer : layers_)
+            {
+                layer->render();
+            }
+
+            // Render ImGui overlay
+            renderer_.renderImGui();
+
+            // End frame
+            renderer_.endFrame();
         }
-        
+
+        // Shutdown layers
+        for (auto& layer : layers_)
+        {
+            layer->shutdown();
+        }
+        layers_.clear();
+
         scene_.shutdown();
         renderer_.shutdown();
         platform_.shutdown();

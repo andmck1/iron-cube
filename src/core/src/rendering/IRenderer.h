@@ -51,4 +51,38 @@ class IRenderer
      * Destroys the graphics context and frees GPU resources.
      */
     virtual void shutdown() = 0;
+
+    /**
+     * @brief Initialize ImGui context and Vulkan backend.
+     *
+     * Creates ImGui context, initializes Vulkan backend with
+     * device/queue, and creates font texture. Call after
+     * swap chain setup during init().
+     * @return true on success.
+     */
+    virtual bool initImGui() = 0;
+
+    /**
+     * @brief Start a new ImGui frame.
+     *
+     * Calls backend new frame setup and ImGui::NewFrame().
+     * Call at start of each render cycle before scene rendering.
+     */
+    virtual void newFrame() = 0;
+
+    /**
+     * @brief Render ImGui draw data.
+     *
+     * Records ImGui draw commands into current frame's command buffer.
+     * Call after layer render() returns and before swapBuffers().
+     */
+    virtual void renderImGui() = 0;
+
+    /**
+     * @brief Clean up ImGui Vulkan resources.
+     *
+     * Destroys descriptor pool, pipeline, font texture, and ImGui context.
+     * Call before shutdown() during teardown.
+     */
+    virtual void shutdownImGui() = 0;
 };

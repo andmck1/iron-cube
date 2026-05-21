@@ -3,6 +3,7 @@
 
 bool PlatformLinux::initialize()
 {
+    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
     if (glfwInit())
     {
         initialized_ = true;
@@ -19,7 +20,7 @@ bool PlatformLinux::createWindow(const PlatformConfig &config)
         spdlog::error("Platform not initialized");
         return false;
     }
-
+    
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);

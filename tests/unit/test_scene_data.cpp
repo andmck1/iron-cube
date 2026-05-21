@@ -9,8 +9,8 @@
 TEST_CASE("Vertex struct has correct memory layout", "[scene][vertex]")
 {
     STATIC_REQUIRE(std::is_standard_layout_v<Vertex>);
-    STATIC_REQUIRE(sizeof(Vertex::pos) == sizeof(glm::vec2));
-    STATIC_REQUIRE(sizeof(glm::vec2) + sizeof(glm::vec3) == sizeof(Vertex));
+    STATIC_REQUIRE(sizeof(Vertex::pos) == sizeof(glm::vec3));
+    STATIC_REQUIRE(sizeof(glm::vec3) + sizeof(glm::vec3) == sizeof(Vertex));
 }
 
 TEST_CASE("SceneData default construction yields empty state", "[scene][scenedata]")
@@ -23,9 +23,9 @@ TEST_CASE("SceneData default construction yields empty state", "[scene][scenedat
 TEST_CASE("SceneData vertex insertion updates count", "[scene][scenedata]")
 {
     SceneData data;
-    data.vertices.push_back(Vertex{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}});
-    data.vertices.push_back(Vertex{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}});
-    data.vertices.push_back(Vertex{{0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}});
+    data.vertices.push_back(Vertex{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}});
+    data.vertices.push_back(Vertex{{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}});
+    data.vertices.push_back(Vertex{{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}});
     data.vertex_count = static_cast<uint32_t>(data.vertices.size());
 
     CHECK(data.vertices.size() == 3);
@@ -35,7 +35,7 @@ TEST_CASE("SceneData vertex insertion updates count", "[scene][scenedata]")
 TEST_CASE("SceneData validation rejects vertex count mismatches", "[scene][scenedata]")
 {
     SceneData data;
-    data.vertices.push_back(Vertex{{0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}});
+    data.vertices.push_back(Vertex{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}});
     data.vertex_count = 5;
 
     CHECK(!data.isValid());
@@ -44,7 +44,7 @@ TEST_CASE("SceneData validation rejects vertex count mismatches", "[scene][scene
 TEST_CASE("SceneData validation accepts matching counts", "[scene][scenedata]")
 {
     SceneData data;
-    data.vertices.push_back(Vertex{{0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}});
+    data.vertices.push_back(Vertex{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}});
     data.vertex_count = 1;
 
     CHECK(data.isValid());
@@ -64,6 +64,10 @@ TEST_CASE("IScene isDirty returns true after initialize", "[scene][interface]")
         void shutdown() override { vertices_.clear(); dirty_ = false; }
         bool isDirty() const override { return dirty_; }
         void markClean() override { dirty_ = false; }
+        TriangleTransform getTriangleTransform() const override { return {}; }
+        void setTriangleTransform(const TriangleTransform&) override {}
+        bool hasTriangleTransformChanged() const override { return false; }
+        void markTransformClean() override {}
 
         std::vector<Vertex> vertices_;
         bool dirty_ = false;
@@ -84,6 +88,10 @@ TEST_CASE("IScene markClean resets dirty flag", "[scene][interface]")
         void shutdown() override { vertices_.clear(); dirty_ = false; }
         bool isDirty() const override { return dirty_; }
         void markClean() override { dirty_ = false; }
+        TriangleTransform getTriangleTransform() const override { return {}; }
+        void setTriangleTransform(const TriangleTransform&) override {}
+        bool hasTriangleTransformChanged() const override { return false; }
+        void markTransformClean() override {}
 
         std::vector<Vertex> vertices_;
         bool dirty_ = false;
@@ -107,6 +115,10 @@ TEST_CASE("IScene polymorphic deletion safety", "[scene][interface]")
         void shutdown() override {}
         bool isDirty() const override { return false; }
         void markClean() override {}
+        TriangleTransform getTriangleTransform() const override { return {}; }
+        void setTriangleTransform(const TriangleTransform&) override {}
+        bool hasTriangleTransformChanged() const override { return false; }
+        void markTransformClean() override {}
     };
 
     IScene* scene = new TestScene();

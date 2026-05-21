@@ -1,4 +1,6 @@
 #include "rendering/linux/VulkanRenderer.h"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include "rendering/linux/VulkanHelpers.h"
 #include "service/ServiceLocator.h"
 #include "scene/IScene.h"
@@ -51,6 +53,11 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
         createCommandPool();
         createCommandBuffers();
         createVertexBuffer();
+        createUniformBuffer();
+        createDescriptorSet();
+
+        if (!initImGui())
+            throw std::runtime_error("ImGui failed to initialize");
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -374,13 +381,13 @@ void VulkanRenderer::createGraphicsPipeline()
     VkVertexInputAttributeDescription attributeDescriptions[2];
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
     attributeDescriptions[0].offset = 0;
 
     attributeDescriptions[1].binding = 0;
     attributeDescriptions[1].location = 1;
     attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[1].offset = sizeof(glm::vec2);
+    attributeDescriptions[1].offset = sizeof(glm::vec3);
 
     VkPipelineVertexInputStateCreateInfo vertexInput{};
     vertexInput.sType =
@@ -441,6 +448,24 @@ void VulkanRenderer::createGraphicsPipeline()
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
+
+    VkDescriptorSetLayoutBinding uboLayoutBinding{};
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = nullptr;
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    vkCreateDescriptorSetLayout(
+        device_, &layoutInfo, nullptr, &descriptorSetLayout_
+    );
 
     VkResult result = vkCreatePipelineLayout(
         device_, &pipelineLayoutInfo, nullptr, &pipelineLayout_
@@ -539,9 +564,15 @@ void VulkanRenderer::createVertexBuffer()
     else
     {
         spdlog::warn("No IScene service registered, using default triangle");
-        sceneVertices_.push_back(Vertex{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}});
-        sceneVertices_.push_back(Vertex{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}});
-        sceneVertices_.push_back(Vertex{{0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}});
+        sceneVertices_.push_back(
+            Vertex{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}
+        );
+        sceneVertices_.push_back(
+            Vertex{{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}
+        );
+        sceneVertices_.push_back(
+            Vertex{{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}
+        );
         sceneVertexCount_ = 3;
         sceneDirty_ = false;
     }
@@ -577,25 +608,156 @@ void VulkanRenderer::createVertexBuffer()
     }
 }
 
+void VulkanRenderer::createUniformBuffer()
+{
+    VkDeviceSize bufferSize = sizeof(UBO);
+
+    auto *resourceManager = ServiceLocator::instance().get<IResourceManager>();
+
+    uniformAlloc_ = resourceManager->allocateBuffer(
+        bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+}
+
+void VulkanRenderer::createDescriptorSet()
+{
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = 1;
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = 1;
+    poolInfo.flags = 0;
+
+    vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_);
+
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool_;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &descriptorSetLayout_;
+
+    vkAllocateDescriptorSets(device_, &allocInfo, &descriptorSet_);
+
+    VkDescriptorBufferInfo bufferInfo{};
+    bufferInfo.buffer = uniformAlloc_.buffer;
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(UBO);
+
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = descriptorSet_;
+    write.dstBinding = 0;
+    write.dstArrayElement = 0;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    write.descriptorCount = 1;
+    write.pBufferInfo = &bufferInfo;
+
+    vkUpdateDescriptorSets(device_, 1, &write, 0, nullptr);
+}
+
 void VulkanRenderer::setExitRequestedCallback(std::function<bool()> callback)
 {
     exitRequested_ = callback;
 }
 
-void VulkanRenderer::render()
+void VulkanRenderer::beginFrame()
 {
     if (exitRequested_ && exitRequested_())
         return;
 
+    VkResult result = vkAcquireNextImageKHR(
+        device_, swapchain_, UINT64_MAX, imageAvailableSemaphore_,
+        VK_NULL_HANDLE, &currentImageIndex_
+    );
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        vkDestroySemaphore(device_, imageAvailableSemaphore_, nullptr);
+        vkDestroySemaphore(device_, renderFinishedSemaphore_, nullptr);
+        vkDestroyFence(device_, inFlightFence_, nullptr);
+        imageAvailableSemaphore_ = VK_NULL_HANDLE;
+        renderFinishedSemaphore_ = VK_NULL_HANDLE;
+        inFlightFence_ = VK_NULL_HANDLE;
+        return;
+    }
+    vkCheck(result, "Failed to acquire swap chain image");
+
+    vkWaitForFences(device_, 1, &inFlightFence_, VK_TRUE, UINT64_MAX);
+    vkResetFences(device_, 1, &inFlightFence_);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    vkBeginCommandBuffer(commandBuffers_[currentImageIndex_], &beginInfo);
+
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = renderPass_;
+    renderPassInfo.framebuffer = framebuffers_[currentImageIndex_];
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapchainExtent_;
+
+    VkClearValue clearColor{{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
+
+    vkCmdBeginRenderPass(
+        commandBuffers_[currentImageIndex_], &renderPassInfo,
+        VK_SUBPASS_CONTENTS_INLINE
+    );
+    vkCmdBindPipeline(
+        commandBuffers_[currentImageIndex_], VK_PIPELINE_BIND_POINT_GRAPHICS,
+        graphicsPipeline_
+    );
+
+    vkCmdBindDescriptorSets(
+        commandBuffers_[currentImageIndex_], VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipelineLayout_, 0, 1, &descriptorSet_, 0, nullptr
+    );
+
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(swapchainExtent_.width);
+    viewport.height = static_cast<float>(swapchainExtent_.height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffers_[currentImageIndex_], 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = swapchainExtent_;
+    vkCmdSetScissor(commandBuffers_[currentImageIndex_], 0, 1, &scissor);
+
+    VkBuffer vertexBuffers[] = {vertexAlloc_.buffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(
+        commandBuffers_[currentImageIndex_], 0, 1, vertexBuffers, offsets
+    );
+}
+
+void VulkanRenderer::renderScene()
+{
     auto *scene = ServiceLocator::instance().get<IScene>();
+
+    // -----------------------------
+    // 1. Update vertex buffer if needed
+    // -----------------------------
     if (scene && scene->isDirty())
     {
         sceneVertices_ = scene->getVertices();
         sceneVertexCount_ = scene->getVertexCount();
 
         VkDeviceSize bufferSize = sizeof(Vertex) * sceneVertexCount_;
+
         auto *resourceManager =
             ServiceLocator::instance().get<IResourceManager>();
+
         if (resourceManager)
         {
             void *data = resourceManager->mapMemory(vertexAlloc_, bufferSize);
@@ -607,75 +769,60 @@ void VulkanRenderer::render()
                 resourceManager->unmapMemory(vertexAlloc_);
             }
         }
+
         scene->markClean();
     }
 
-    uint32_t imageIndex;
-
-    VkResult result = vkAcquireNextImageKHR(
-        device_, swapchain_, UINT64_MAX, imageAvailableSemaphore_,
-        VK_NULL_HANDLE, &imageIndex
-    );
-    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    // -----------------------------
+    // 2. Update MVP matrix (NEW)
+    // -----------------------------
+    if (auto *resourceManager =
+            ServiceLocator::instance().get<IResourceManager>())
     {
-        vkDestroySemaphore(device_, imageAvailableSemaphore_, nullptr);
-        vkDestroySemaphore(device_, renderFinishedSemaphore_, nullptr);
-        vkDestroyFence(device_, inFlightFence_, nullptr);
-        return;
+        UBO ubo{};
+
+        // Model: identity (or replace with per-object transform later)
+        ubo.model = glm::mat4(1.0f);
+
+        // View: simple camera back on +Z looking at origin
+        ubo.view = glm::lookAt(
+            glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+
+        // Projection
+        float aspect = swapchainExtent_.width /
+                       static_cast<float>(swapchainExtent_.height);
+
+        ubo.proj = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
+
+        // Vulkan coordinate system fix
+        ubo.proj[1][1] *= -1.0f;
+
+        // Upload to GPU
+        VkDeviceSize uboSize = sizeof(UBO);
+
+        void *mapped = resourceManager->mapMemory(uniformAlloc_, uboSize);
+        if (mapped)
+        {
+            std::memcpy(mapped, &ubo, sizeof(UBO));
+            resourceManager->unmapMemory(uniformAlloc_);
+        }
     }
-    vkCheck(result, "Failed to acquire swap chain image");
 
-    vkWaitForFences(device_, 1, &inFlightFence_, VK_TRUE, UINT64_MAX);
-    vkResetFences(device_, 1, &inFlightFence_);
+    // -----------------------------
+    // 3. Draw call
+    // -----------------------------
+    vkCmdDraw(commandBuffers_[currentImageIndex_], sceneVertexCount_, 1, 0, 0);
+}
 
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+void VulkanRenderer::endFrame()
+{
+    if (imageAvailableSemaphore_ == VK_NULL_HANDLE)
+        return;
 
-    vkBeginCommandBuffer(commandBuffers_[imageIndex], &beginInfo);
-
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderPass_;
-    renderPassInfo.framebuffer = framebuffers_[imageIndex];
-    renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = swapchainExtent_;
-
-    VkClearValue clearColor{{{0.0f, 0.0f, 0.0f, 1.0f}}};
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
-
-    vkCmdBeginRenderPass(
-        commandBuffers_[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE
-    );
-    vkCmdBindPipeline(
-        commandBuffers_[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS,
-        graphicsPipeline_
-    );
-
-    VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = static_cast<float>(swapchainExtent_.width);
-    viewport.height = static_cast<float>(swapchainExtent_.height);
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(commandBuffers_[imageIndex], 0, 1, &viewport);
-
-    VkRect2D scissor{};
-    scissor.offset = {0, 0};
-    scissor.extent = swapchainExtent_;
-    vkCmdSetScissor(commandBuffers_[imageIndex], 0, 1, &scissor);
-
-    VkBuffer vertexBuffers[] = {vertexAlloc_.buffer};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(
-        commandBuffers_[imageIndex], 0, 1, vertexBuffers, offsets
-    );
-
-    vkCmdDraw(commandBuffers_[imageIndex], sceneVertexCount_, 1, 0, 0);
-    vkCmdEndRenderPass(commandBuffers_[imageIndex]);
-
-    vkEndCommandBuffer(commandBuffers_[imageIndex]);
+    vkCmdEndRenderPass(commandBuffers_[currentImageIndex_]);
+    vkEndCommandBuffer(commandBuffers_[currentImageIndex_]);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -686,11 +833,12 @@ void VulkanRenderer::render()
     };
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers_[imageIndex];
+    submitInfo.pCommandBuffers = &commandBuffers_[currentImageIndex_];
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = &renderFinishedSemaphore_;
 
-    result = vkQueueSubmit(graphicsQueue_, 1, &submitInfo, inFlightFence_);
+    VkResult result =
+        vkQueueSubmit(graphicsQueue_, 1, &submitInfo, inFlightFence_);
     vkCheck(result, "Failed to submit draw command buffer");
 
     VkPresentInfoKHR presentInfo{};
@@ -699,9 +847,16 @@ void VulkanRenderer::render()
     presentInfo.pWaitSemaphores = &renderFinishedSemaphore_;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &swapchain_;
-    presentInfo.pImageIndices = &imageIndex;
+    presentInfo.pImageIndices = &currentImageIndex_;
 
     vkQueuePresentKHR(graphicsQueue_, &presentInfo);
+}
+
+void VulkanRenderer::render()
+{
+    beginFrame();
+    renderScene();
+    endFrame();
 }
 
 void VulkanRenderer::swapBuffers()
@@ -709,9 +864,132 @@ void VulkanRenderer::swapBuffers()
     // Present is handled in render() for Vulkan
 }
 
+bool VulkanRenderer::initImGui()
+{
+    imguiContext_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(imguiContext_);
+
+    ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+    io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+
+    GLFWwindow *glfwWindow = window_;
+    ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
+
+    // Create descriptor pool for ImGui
+    VkDescriptorPoolSize poolSizes[] = {
+        {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+        {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+        {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}
+    };
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    poolInfo.maxSets = 1000 * sizeof(poolSizes) / sizeof(poolSizes[0]);
+    poolInfo.poolSizeCount =
+        static_cast<uint32_t>(sizeof(poolSizes) / sizeof(poolSizes[0]));
+    poolInfo.pPoolSizes = poolSizes;
+
+    VkResult result = vkCreateDescriptorPool(
+        device_, &poolInfo, nullptr, &imguiDescriptorPool_
+    );
+    if (result != VK_SUCCESS)
+    {
+        spdlog::error(
+            "Failed to create ImGui descriptor pool: {}",
+            static_cast<int>(result)
+        );
+        imguiDescriptorPool_ = VK_NULL_HANDLE;
+        return false;
+    }
+
+    ImGui_ImplVulkan_InitInfo initInfo{};
+    initInfo.Instance = instance_;
+    initInfo.PhysicalDevice = physicalDevice_;
+    initInfo.Device = device_;
+    initInfo.QueueFamily = findQueueFamilyIndex();
+    initInfo.Queue = graphicsQueue_;
+    initInfo.PipelineCache = VK_NULL_HANDLE;
+    initInfo.DescriptorPool = imguiDescriptorPool_;
+    initInfo.Subpass = 0;
+    initInfo.MinImageCount = 2;
+    initInfo.ImageCount = static_cast<uint32_t>(swapchainImages_.size());
+    initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.RenderPass = renderPass_;
+
+    ImGui_ImplVulkan_Init(&initInfo);
+
+    // Upload font texture
+    ImGui_ImplVulkan_CreateFontsTexture();
+
+    spdlog::info("ImGui initialized");
+    return true;
+}
+
+void VulkanRenderer::newFrame()
+{
+    ImGuiIO &io = ImGui::GetIO();
+
+    // Setup display size and framebuffer scale
+    io.DisplaySize = ImVec2(
+        static_cast<float>(swapchainExtent_.width),
+        static_cast<float>(swapchainExtent_.height)
+    );
+    io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+    io.DeltaTime = 1.0f / 60.0f;
+
+    // Platform/Renderer backend new frame
+    ImGui_ImplGlfw_NewFrame();
+    ImGui_ImplVulkan_NewFrame();
+    ImGui::NewFrame();
+}
+
+void VulkanRenderer::renderImGui()
+{
+    ImGui::Render();
+    ImDrawData *drawData = ImGui::GetDrawData();
+    if (drawData->TotalVtxCount > 0)
+    {
+        ImGui_ImplVulkan_RenderDrawData(
+            drawData, commandBuffers_[currentImageIndex_]
+        );
+    }
+}
+
+void VulkanRenderer::shutdownImGui()
+{
+    if (imguiContext_)
+    {
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui_ImplVulkan_DestroyFontsTexture();
+        ImGui::DestroyContext(imguiContext_);
+        imguiContext_ = nullptr;
+
+        if (imguiDescriptorPool_ != VK_NULL_HANDLE)
+        {
+            vkDestroyDescriptorPool(device_, imguiDescriptorPool_, nullptr);
+            imguiDescriptorPool_ = VK_NULL_HANDLE;
+        }
+
+        spdlog::info("ImGui shut down");
+    }
+}
+
 void VulkanRenderer::shutdown()
 {
     spdlog::info("VulkanRenderer shutting down");
+    shutdownImGui();
     cleanup();
 }
 
