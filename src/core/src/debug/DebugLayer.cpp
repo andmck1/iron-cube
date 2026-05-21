@@ -18,7 +18,7 @@ bool DebugLayer::initialise()
     showDemoWindow_ = false;
 
     // Initialise transform from scene
-    auto *scene = ServiceLocator::instance().get<IScene>();
+    IScene *scene = ServiceLocator::instance().get<IScene>();
     if (scene)
     {
         transform_ = scene->getTriangleTransform();
@@ -31,8 +31,9 @@ bool DebugLayer::initialise()
 void DebugLayer::render()
 {
     // Calculate FPS
-    auto currentTime = std::chrono::steady_clock::now();
-    auto delta = std::chrono::duration<double>(currentTime - lastTime_).count();
+    std::chrono::time_point currentTime = std::chrono::steady_clock::now();
+    double delta =
+        std::chrono::duration<double>(currentTime - lastTime_).count();
     lastTime_ = currentTime;
 
     frameTime_ = static_cast<float>(delta * 1000.0f); // ms

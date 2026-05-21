@@ -37,7 +37,7 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
         selectGPU();
         createLogicalDevice();
 
-        auto *resourceManager =
+        IResourceManager *resourceManager =
             ServiceLocator::instance().get<IResourceManager>();
         if (!resourceManager)
             throw std::runtime_error("IResourceManager not registered");
@@ -104,9 +104,9 @@ void VulkanRenderer::createInstance()
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
-    auto extensions = getRequiredExtensions();
+    std::vector<const char *> extensions = getRequiredExtensions();
     spdlog::info("Vulkan instance extensions ({}):", extensions.size());
-    for (const auto &ext : extensions)
+    for (const char *&ext : extensions)
     {
         spdlog::info("  - {}", ext);
     }
@@ -158,7 +158,7 @@ void VulkanRenderer::selectGPU()
     vkEnumeratePhysicalDevices(instance_, &gpuCount, gpus.data());
 
     bool found = false;
-    for (const auto &gpu : gpus)
+    for (VkPhysicalDevice_T *&gpu : gpus)
     {
         if (isDeviceSuitable(gpu))
         {
@@ -553,7 +553,8 @@ void VulkanRenderer::createUniformBuffer()
 {
     VkDeviceSize bufferSize = sizeof(UBO);
 
-    auto *resourceManager = ServiceLocator::instance().get<IResourceManager>();
+    IResourceManager *resourceManager =
+        ServiceLocator::instance().get<IResourceManager>();
 
     uniformAlloc_ = resourceManager->allocateBuffer(
         bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -564,7 +565,8 @@ void VulkanRenderer::createUniformBuffer()
 
 void VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
 {
-    auto *resourceManager = ServiceLocator::instance().get<IResourceManager>();
+    IResourceManager *resourceManager =
+        ServiceLocator::instance().get<IResourceManager>();
     if (!resourceManager)
         return;
 
@@ -719,7 +721,7 @@ void VulkanRenderer::renderScene(Scene *scene)
     // Upload vertex data if dirty
     if (vertexCount > 0)
     {
-        auto *resourceManager =
+        IResourceManager *resourceManager =
             ServiceLocator::instance().get<IResourceManager>();
         if (resourceManager)
         {
@@ -736,7 +738,7 @@ void VulkanRenderer::renderScene(Scene *scene)
     }
 
     // Update MVP uniform
-    if (auto *resourceManager =
+    if (IResourceManager *resourceManager =
             ServiceLocator::instance().get<IResourceManager>())
     {
         UBO ubo{};
@@ -946,14 +948,14 @@ void VulkanRenderer::cleanup()
     {
         vkDeviceWaitIdle(device_);
 
-        for (auto &framebuffer : framebuffers_)
+        for (VkFramebuffer_T *&framebuffer : framebuffers_)
             vkDestroyFramebuffer(device_, framebuffer, nullptr);
 
-        for (auto &imageView : swapchainImageViews_)
+        for (VkImageView_T *&imageView : swapchainImageViews_)
             vkDestroyImageView(device_, imageView, nullptr);
 
         // Cleanup vertex buffer via resource manager
-        auto *resourceManager =
+        IResourceManager *resourceManager =
             ServiceLocator::instance().get<IResourceManager>();
         if (resourceManager && vertexAlloc_.buffer != VK_NULL_HANDLE)
         {
@@ -1029,7 +1031,7 @@ bool VulkanRenderer::checkValidationLayerSupport() const
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const auto &layerProps : availableLayers)
+    for (const VkLayerProperties &layerProps : availableLayers)
     {
         if (std::strcmp("VK_LAYER_KHRONOS_validation", layerProps.layerName) ==
             0)
@@ -1073,7 +1075,7 @@ bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device) const
     );
 
     bool queueFound = false;
-    for (const auto &queue : queueFamilies)
+    for (const VkQueueFamilyProperties &queue : queueFamilies)
     {
         if (queue.queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
@@ -1092,7 +1094,7 @@ bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device) const
     );
 
     bool swapchainFound = false;
-    for (const auto &ext : availableExtensions)
+    for (const VkExtensionProperties &ext : availableExtensions)
     {
         if (std::strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) ==
             0)
@@ -1134,7 +1136,7 @@ VkSurfaceFormatKHR VulkanRenderer::chooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR> &formats
 ) const
 {
-    for (const auto &format : formats)
+    for (const VkSurfaceFormatKHR &format : formats)
     {
         if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
             format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
@@ -1147,7 +1149,7 @@ VkPresentModeKHR VulkanRenderer::chooseSwapPresentMode(
     const std::vector<VkPresentModeKHR> &modes
 ) const
 {
-    for (const auto &mode : modes)
+    for (const VkPresentModeKHR &mode : modes)
     {
         if (mode == VK_PRESENT_MODE_MAILBOX_KHR)
             return mode;

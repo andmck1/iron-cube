@@ -1,8 +1,3 @@
-/**
- * @file
- * @brief Resource Manager implementation for GPU resource tracking.
- */
-
 #include "resource/IResourceManager.h"
 #include <spdlog/spdlog.h>
 #include <stdexcept>

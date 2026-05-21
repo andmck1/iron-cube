@@ -17,9 +17,9 @@ void InputGLFW::shutdown()
 
 bool InputGLFW::isKeyPressed(KeyCode key) const
 {
-    auto it = key_states_.find(static_cast<int32_t>(key));
-    if (it != key_states_.end())
-        return it->second;
+    auto key_state_iterator = key_states_.find(static_cast<int32_t>(key));
+    if (key_state_iterator != key_states_.end())
+        return key_state_iterator->second;
     return false;
 }
 

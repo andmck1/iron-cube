@@ -102,7 +102,7 @@ void ResourceManager::freeBuffer(BufferAllocation &alloc)
 
 void ResourceManager::cleanup()
 {
-    for (auto &alloc : allocations_)
+    for (BufferAllocation &alloc : allocations_)
     {
         if (alloc.buffer != VK_NULL_HANDLE)
         {

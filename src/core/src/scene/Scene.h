@@ -1,19 +1,7 @@
-/**
- * @file
- * @brief Scene implementation with procedural triangle generation.
- */
-
 #pragma once
 
 #include "scene/IScene.h"
 
-/**
- * @brief Scene implementation that generates a centered, upward-pointing
- * triangle.
- *
- * Stores vertex data in SceneData struct for cache-friendly access.
- * Implements IScene interface for service locator registration.
- */
 class Scene : public IScene
 {
     public:

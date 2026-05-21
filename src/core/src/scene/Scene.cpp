@@ -59,7 +59,7 @@ void Scene::regenerateVertices()
     );
     model = glm::scale(model, glm::vec3(transform_.scale));
 
-    for (const auto &base : baseVerts)
+    for (const glm::vec3 &base : baseVerts)
     {
         glm::vec4 transformed = model * glm::vec4(base, 1.0f);
         data_.vertices.push_back(

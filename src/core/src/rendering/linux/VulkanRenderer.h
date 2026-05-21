@@ -1,8 +1,3 @@
-/**
- * @file
- * @brief Vulkan renderer implementation with full pipeline setup.
- */
-
 #pragma once
 
 #include "glm/ext/matrix_float4x4.hpp"
@@ -24,13 +19,6 @@ struct alignas(16) UBO
     glm::mat4 proj;
 };
 
-/**
- * @brief Vulkan renderer backend.
- *
- * Manages full Vulkan pipeline: instance creation, surface, GPU selection,
- * swap chain, render pass, graphics pipeline, descriptor sets, command buffers,
- * and frame rendering with validation layer support.
- */
 class VulkanRenderer : public IRenderer
 {
     public:
@@ -47,10 +35,6 @@ class VulkanRenderer : public IRenderer
     void renderImGui() override;
     void shutdownImGui() override;
 
-    /**
-     * @brief Set a callback to check if rendering should stop.
-     * @param callback Function returning true if exit is requested.
-     */
     void setExitRequestedCallback(std::function<bool()> callback);
 
     private:

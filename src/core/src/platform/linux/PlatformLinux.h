@@ -1,8 +1,3 @@
-/**
- * @file
- * @brief Linux platform implementation using GLFW.
- */
-
 #pragma once
 
 #include "platform/IPlatform.h"
@@ -10,12 +5,6 @@
 #include "platform/linux/InputGLFW.h"
 #include <GLFW/glfw3.h>
 
-/**
- * @brief Linux platform backend.
- *
- * Wraps GLFW for window management and keyboard input.
- * Exposes the raw GLFW window handle for the renderer layer.
- */
 class PlatformLinux : public IPlatform
 {
     public:
@@ -25,12 +14,6 @@ class PlatformLinux : public IPlatform
     bool shouldExit() const override;
     void shutdown() override;
 
-    /**
-     * @brief Get the underlying GLFW window handle.
-     * @return Pointer to the GLFWwindow, or nullptr if not created.
-     *
-     * Intended for the rendering layer to set up GL/VK contexts.
-     */
     GLFWwindow *getGLFWWindow() const;
 
     private:

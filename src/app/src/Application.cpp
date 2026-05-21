@@ -18,7 +18,7 @@ void Application::initConfig()
 
 int Application::registerServices()
 {
-    auto &locator = ServiceLocator::instance();
+    ServiceLocator &locator = ServiceLocator::instance();
     locator.registerService<IPlatform>(&platform_);
     locator.registerService<IRenderer>(&renderer_);
     locator.registerService<IResourceManager>(&resourceManager_);
@@ -61,10 +61,10 @@ int Application::initialiseRenderer()
 int Application::createAndInitialiseLayers()
 {
     layers_.push_back(std::make_unique<SceneLayer>());
-    auto sceneLayer = dynamic_cast<SceneLayer *>(layers_.back().get());
+    SceneLayer *sceneLayer = dynamic_cast<SceneLayer *>(layers_.back().get());
     layers_.push_back(std::make_unique<DebugLayer>(&sceneLayer->scene));
 
-    for (auto &layer : layers_)
+    for (std::unique_ptr<ILayer> &layer : layers_)
     {
         if (!layer->initialise())
         {
@@ -88,7 +88,7 @@ void Application::mainLoop()
         renderer_.beginFrame();
         renderer_.newFrame();
 
-        for (auto &layer : layers_)
+        for (std::unique_ptr<ILayer> &layer : layers_)
         {
             layer->render();
         }
@@ -100,7 +100,7 @@ void Application::mainLoop()
 
 void Application::shutdownLayers()
 {
-    for (auto &layer : layers_)
+    for (std::unique_ptr<ILayer> &layer : layers_)
     {
         layer->shutdown();
     }
