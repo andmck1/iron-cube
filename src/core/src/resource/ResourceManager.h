@@ -1,6 +1,5 @@
 #include "resource/IResourceManager.h"
 #include <spdlog/spdlog.h>
-#include <stdexcept>
 
 class ResourceManager : public IResourceManager
 {

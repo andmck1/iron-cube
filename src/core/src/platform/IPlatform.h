@@ -16,12 +16,8 @@ class IPlatform
     virtual ~IPlatform() = default;
 
     virtual bool initialise() = 0;
-
     virtual bool createWindow(const PlatformConfig &config) = 0;
-
     virtual void pollEvents() = 0;
-
     virtual bool shouldExit() const = 0;
-
     virtual void shutdown() = 0;
 };

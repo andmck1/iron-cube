@@ -1,5 +1,4 @@
 #include "rendering/linux/VulkanHelpers.h"
-#include <functional>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push

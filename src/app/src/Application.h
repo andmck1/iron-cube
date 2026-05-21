@@ -27,8 +27,8 @@ class Application
     void shutdownServices();
     void shutdownAll();
 
-    Config config;
-    PlatformConfig platformConfig;
+    Config config_;
+    PlatformConfig platformConfig_;
     PlatformLinux platform_;
     VulkanRenderer renderer_;
     Scene scene_;

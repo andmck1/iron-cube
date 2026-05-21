@@ -26,7 +26,6 @@ class VulkanRenderer : public IRenderer
     void swapBuffers() override;
     void shutdown() override;
 
-    // Frame lifecycle for layer-based rendering
     void beginFrame();
     void renderScene(Scene *scene) override;
     void endFrame();
@@ -38,57 +37,6 @@ class VulkanRenderer : public IRenderer
     void setExitRequestedCallback(std::function<bool()> callback);
 
     private:
-    GLFWwindow *window_ = nullptr;
-    std::function<bool()> exitRequested_;
-
-    // Vulkan core objects
-    VkQueue graphicsQueue_ = VK_NULL_HANDLE;
-    VkInstance instance_ = VK_NULL_HANDLE;
-    VkDebugUtilsMessengerEXT debugMessenger_ = VK_NULL_HANDLE;
-    VkSurfaceKHR surface_ = VK_NULL_HANDLE;
-    VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
-    VkDevice device_ = VK_NULL_HANDLE;
-
-    // Swap chain
-    VkSwapchainKHR swapchain_ = VK_NULL_HANDLE;
-    std::vector<VkImage> swapchainImages_;
-    std::vector<VkImageView> swapchainImageViews_;
-    std::vector<VkFramebuffer> framebuffers_;
-    VkFormat swapchainImageFormat_ = VK_FORMAT_UNDEFINED;
-    VkExtent2D swapchainExtent_ = {0, 0};
-
-    // Render pass & pipeline
-    VkRenderPass renderPass_ = VK_NULL_HANDLE;
-    VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;
-    VkPipeline graphicsPipeline_ = VK_NULL_HANDLE;
-
-    // Descriptors
-    VkDescriptorSetLayout descriptorSetLayout_{};
-    VkDescriptorSet descriptorSet_{};
-    VkDescriptorPool descriptorPool_{};
-
-    // Command buffers
-    VkCommandPool commandPool_ = VK_NULL_HANDLE;
-    std::vector<VkCommandBuffer> commandBuffers_;
-
-    // Resources
-    BufferAllocation uniformAlloc_;
-    BufferAllocation vertexAlloc_ = {};
-    VkSemaphore imageAvailableSemaphore_ = VK_NULL_HANDLE;
-    VkSemaphore renderFinishedSemaphore_ = VK_NULL_HANDLE;
-    VkFence inFlightFence_ = VK_NULL_HANDLE;
-    uint32_t allocatedVertexCount_ = 0;
-
-    // ImGui
-    ImGuiContext *imguiContext_ = nullptr;
-    VkDescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
-    uint32_t currentImageIndex_ = 0;
-
-    // Window dimensions
-    uint32_t width_ = 0;
-    uint32_t height_ = 0;
-
-    // Instance creation
     void createInstance();
     void setupDebugMessenger();
     void createSurface();
@@ -103,14 +51,12 @@ class VulkanRenderer : public IRenderer
     void createCommandBuffers();
     void createUniformBuffer();
     void createDescriptorSet();
-
     void allocateVertexBuffer(uint32_t vertexCount);
+    void cleanupSwapchain();
+    void cleanup();
 
-    // Shader compilation
     std::vector<char> readFile(const std::string &filename) const;
     VkShaderModule createShaderModule(const std::vector<char> &code) const;
-
-    // Validation
     bool checkValidationLayerSupport() const;
     std::vector<const char *> getRequiredExtensions() const;
     bool isDeviceSuitable(VkPhysicalDevice device) const;
@@ -125,7 +71,45 @@ class VulkanRenderer : public IRenderer
     chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
     uint32_t findQueueFamilyIndex() const;
 
-    // Cleanup
-    void cleanupSwapchain();
-    void cleanup();
+    GLFWwindow *window_ = nullptr;
+    std::function<bool()> exitRequested_;
+
+    VkQueue graphicsQueue_ = VK_NULL_HANDLE;
+    VkInstance instance_ = VK_NULL_HANDLE;
+    VkDebugUtilsMessengerEXT debugMessenger_ = VK_NULL_HANDLE;
+    VkSurfaceKHR surface_ = VK_NULL_HANDLE;
+    VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
+    VkDevice device_ = VK_NULL_HANDLE;
+
+    VkSwapchainKHR swapchain_ = VK_NULL_HANDLE;
+    std::vector<VkImage> swapchainImages_;
+    std::vector<VkImageView> swapchainImageViews_;
+    std::vector<VkFramebuffer> framebuffers_;
+    VkFormat swapchainImageFormat_ = VK_FORMAT_UNDEFINED;
+    VkExtent2D swapchainExtent_ = {0, 0};
+
+    VkRenderPass renderPass_ = VK_NULL_HANDLE;
+    VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;
+    VkPipeline graphicsPipeline_ = VK_NULL_HANDLE;
+
+    VkDescriptorSetLayout descriptorSetLayout_{};
+    VkDescriptorSet descriptorSet_{};
+    VkDescriptorPool descriptorPool_{};
+
+    VkCommandPool commandPool_ = VK_NULL_HANDLE;
+    std::vector<VkCommandBuffer> commandBuffers_;
+
+    BufferAllocation uniformAlloc_;
+    BufferAllocation vertexAlloc_ = {};
+    VkSemaphore imageAvailableSemaphore_ = VK_NULL_HANDLE;
+    VkSemaphore renderFinishedSemaphore_ = VK_NULL_HANDLE;
+    VkFence inFlightFence_ = VK_NULL_HANDLE;
+    uint32_t allocatedVertexCount_ = 0;
+
+    ImGuiContext *imguiContext_ = nullptr;
+    VkDescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
+    uint32_t currentImageIndex_ = 0;
+
+    uint32_t width_ = 0;
+    uint32_t height_ = 0;
 };

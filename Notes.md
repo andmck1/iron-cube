@@ -11,4 +11,4 @@ find src -type f -exec sed -i 's/Initializ/Initialis/g' {} +;
 ```
 
 Neovim:
-- In snacks picker go Tab -> C-a -> C-q (or A-q for all) to move items to quickfix list
+- In snacks picker go Tab -> C-a -> C-q to move items to quickfix list

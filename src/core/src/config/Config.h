@@ -10,9 +10,10 @@ class Config
     Config() = default;
 
     int initConfig();
+
     PlatformConfig getPlatformConfig() const;
 
     private:
     std::string path_ = "";
-    YAML::Node rootConfig;
+    YAML::Node rootConfig_ = {};
 };

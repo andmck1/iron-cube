@@ -11,9 +11,9 @@ Application::Application()
 
 void Application::initConfig()
 {
-    config = Config();
-    config.initConfig();
-    platformConfig = config.getPlatformConfig();
+    config_ = Config();
+    config_.initConfig();
+    platformConfig_ = config_.getPlatformConfig();
 }
 
 int Application::registerServices()
@@ -33,7 +33,7 @@ int Application::initialisePlatform()
         return 1;
     }
 
-    if (!platform_.createWindow(platformConfig))
+    if (!platform_.createWindow(platformConfig_))
     {
         spdlog::error("Window creation failed");
         platform_.shutdown();

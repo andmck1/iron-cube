@@ -39,7 +39,7 @@ void Scene::regenerateVertices()
 {
     data_.clear();
 
-    // Base triangle vertices (centered, upward-pointing)
+    // Base triangle vertices (centred, upward-pointing)
     glm::vec3 baseVerts[3] = {
         glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.5f, -0.5f, 0.0f),
         glm::vec3(0.0f, 0.5f, 0.0f)

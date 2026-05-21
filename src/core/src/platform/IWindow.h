@@ -14,10 +14,7 @@ class IWindow
     virtual ~IWindow() = default;
 
     virtual bool isOpen() const = 0;
-
     virtual bool isIconified() const = 0;
-
     virtual void requestClose() = 0;
-
     virtual Vec2u getSize() const = 0;
 };

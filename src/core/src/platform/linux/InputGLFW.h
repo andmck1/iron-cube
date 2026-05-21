@@ -9,14 +9,11 @@ class InputGLFW
 {
     public:
     void init();
-
     void shutdown();
-
     bool isKeyPressed(KeyCode key) const;
-
     static void keyCallback(GLFWwindow *, int, int, int, int);
 
     private:
     static InputGLFW *instance_;
-    std::unordered_map<int32_t, bool> key_states_;
+    std::unordered_map<int32_t, bool> key_states_ = {};
 };

@@ -16,16 +16,17 @@ class DebugLayer : public ILayer
     void shutdown() override;
 
     private:
-    Scene *scene;
+    Scene *scene_;
 
-    // FPS tracking
     std::chrono::steady_clock::time_point lastTime_;
-    float fps_;
-    float frameTime_;
-    std::vector<float> frameTimes_;
+    float fps_ = 1.f;
+    float frameTime_ = 1.f;
+
+    // TODO - array?
+    std::vector<float> frameTimes_ = {};
     static constexpr size_t MaxFrameTimes = 300;
 
-    // Transform state (mirrors scene transform for UI binding)
+    // TODO - get rid
     TriangleTransform transform_;
-    bool showDemoWindow_;
+    bool showDemoWindow_ = true;
 };

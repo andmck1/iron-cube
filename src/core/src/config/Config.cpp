@@ -6,7 +6,7 @@ int Config::initConfig()
 {
     try
     {
-        rootConfig = YAML::LoadFile(path_);
+        rootConfig_ = YAML::LoadFile(path_);
     }
     catch (const YAML::Exception &e)
     {
@@ -22,7 +22,7 @@ PlatformConfig Config::getPlatformConfig() const
 
     try
     {
-        YAML::Node platform = rootConfig["platform"];
+        YAML::Node platform = rootConfig_["platform"];
 
         if (platform)
         {

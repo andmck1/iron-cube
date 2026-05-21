@@ -4,9 +4,9 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
-DebugLayer::DebugLayer(Scene *scene_)
+DebugLayer::DebugLayer(Scene *scene)
 {
-    scene = scene_;
+    scene_ = scene;
 }
 
 bool DebugLayer::initialise()
@@ -80,9 +80,9 @@ void DebugLayer::render()
     ImGui::Separator();
 
     // Apply transform to scene
-    if (scene)
+    if (scene_)
     {
-        scene->setTriangleTransform(transform_);
+        scene_->setTriangleTransform(transform_);
     }
 
     ImGui::End();
