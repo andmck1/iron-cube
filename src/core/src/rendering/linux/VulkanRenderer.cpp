@@ -567,7 +567,6 @@ void VulkanRenderer::createVertexBuffer()
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     );
-    sceneDirty_ = false;
 }
 
 void VulkanRenderer::createUniformBuffer()
@@ -711,7 +710,7 @@ void VulkanRenderer::renderScene(Scene *scene)
     // -----------------------------
     // 1. Update vertex buffer if needed
     // -----------------------------
-    if (scene && scene->isDirty())
+    if (scene)
     {
         std::vector<Vertex> sceneVertices = scene->getVertices();
         uint32_t sceneVertexCount = scene->getVertexCount();
@@ -732,8 +731,6 @@ void VulkanRenderer::renderScene(Scene *scene)
                 resourceManager->unmapMemory(vertexAlloc_);
             }
         }
-
-        scene->markClean();
     }
 
     // -----------------------------

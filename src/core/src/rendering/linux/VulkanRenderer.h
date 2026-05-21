@@ -94,9 +94,6 @@ class VulkanRenderer : public IRenderer
     VkSemaphore renderFinishedSemaphore_ = VK_NULL_HANDLE;
     VkFence inFlightFence_ = VK_NULL_HANDLE;
 
-    // Scene data
-    bool sceneDirty_ = false;
-
     // ImGui
     ImGuiContext *imguiContext_ = nullptr;
     VkDescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;

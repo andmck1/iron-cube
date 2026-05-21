@@ -47,17 +47,6 @@ class IScene
     virtual uint32_t getVertexCount() const = 0;
 
     /**
-     * @brief Check if scene data has changed since last render.
-     * @return true if dirty.
-     */
-    virtual bool isDirty() const = 0;
-
-    /**
-     * @brief Mark scene data as clean after rendering.
-     */
-    virtual void markClean() = 0;
-
-    /**
      * @brief Clear all scene data and release resources.
      */
     virtual void shutdown() = 0;
@@ -73,15 +62,4 @@ class IScene
      * @param transform New transform values.
      */
     virtual void setTriangleTransform(const TriangleTransform &transform) = 0;
-
-    /**
-     * @brief Check if triangle transform has changed since last render.
-     * @return true if dirty.
-     */
-    virtual bool hasTriangleTransformChanged() const = 0;
-
-    /**
-     * @brief Mark triangle transform as clean after rendering.
-     */
-    virtual void markTransformClean() = 0;
 };

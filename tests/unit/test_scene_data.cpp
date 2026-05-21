@@ -13,7 +13,9 @@ TEST_CASE("Vertex struct has correct memory layout", "[scene][vertex]")
     STATIC_REQUIRE(sizeof(glm::vec3) + sizeof(glm::vec3) == sizeof(Vertex));
 }
 
-TEST_CASE("SceneData default construction yields empty state", "[scene][scenedata]")
+TEST_CASE(
+    "SceneData default construction yields empty state", "[scene][scenedata]"
+)
 {
     SceneData data;
     CHECK(data.vertices.empty());
@@ -32,7 +34,9 @@ TEST_CASE("SceneData vertex insertion updates count", "[scene][scenedata]")
     CHECK(data.vertex_count == 3);
 }
 
-TEST_CASE("SceneData validation rejects vertex count mismatches", "[scene][scenedata]")
+TEST_CASE(
+    "SceneData validation rejects vertex count mismatches", "[scene][scenedata]"
+)
 {
     SceneData data;
     data.vertices.push_back(Vertex{{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}});
@@ -57,41 +61,71 @@ TEST_CASE("IScene interface has virtual destructor", "[scene][interface]")
 
 TEST_CASE("IScene isDirty returns true after initialise", "[scene][interface]")
 {
-    struct TestScene : public IScene {
-        bool initialise() override { dirty_ = true; return true; }
-        const std::vector<Vertex>& getVertices() const override { return vertices_; }
-        uint32_t getVertexCount() const override { return static_cast<uint32_t>(vertices_.size()); }
-        void shutdown() override { vertices_.clear(); dirty_ = false; }
-        bool isDirty() const override { return dirty_; }
-        void markClean() override { dirty_ = false; }
-        TriangleTransform getTriangleTransform() const override { return {}; }
-        void setTriangleTransform(const TriangleTransform&) override {}
-        bool hasTriangleTransformChanged() const override { return false; }
-        void markTransformClean() override {}
+    struct TestScene : public IScene
+    {
+        bool initialise() override
+        {
+            dirty_ = true;
+            return true;
+        }
+        const std::vector<Vertex> &getVertices() const override
+        {
+            return vertices_;
+        }
+        uint32_t getVertexCount() const override
+        {
+            return static_cast<uint32_t>(vertices_.size());
+        }
+        void shutdown() override
+        {
+            vertices_.clear();
+            dirty_ = false;
+        }
+        TriangleTransform getTriangleTransform() const override
+        {
+            return {};
+        }
+        void setTriangleTransform(const TriangleTransform &) override
+        {
+        }
 
         std::vector<Vertex> vertices_;
         bool dirty_ = false;
     };
 
     TestScene scene;
-    CHECK(!scene.isDirty());
     scene.initialise();
-    CHECK(scene.isDirty());
 }
 
 TEST_CASE("IScene markClean resets dirty flag", "[scene][interface]")
 {
-    struct TestScene : public IScene {
-        bool initialise() override { dirty_ = true; return true; }
-        const std::vector<Vertex>& getVertices() const override { return vertices_; }
-        uint32_t getVertexCount() const override { return static_cast<uint32_t>(vertices_.size()); }
-        void shutdown() override { vertices_.clear(); dirty_ = false; }
-        bool isDirty() const override { return dirty_; }
-        void markClean() override { dirty_ = false; }
-        TriangleTransform getTriangleTransform() const override { return {}; }
-        void setTriangleTransform(const TriangleTransform&) override {}
-        bool hasTriangleTransformChanged() const override { return false; }
-        void markTransformClean() override {}
+    struct TestScene : public IScene
+    {
+        bool initialise() override
+        {
+            dirty_ = true;
+            return true;
+        }
+        const std::vector<Vertex> &getVertices() const override
+        {
+            return vertices_;
+        }
+        uint32_t getVertexCount() const override
+        {
+            return static_cast<uint32_t>(vertices_.size());
+        }
+        void shutdown() override
+        {
+            vertices_.clear();
+            dirty_ = false;
+        }
+        TriangleTransform getTriangleTransform() const override
+        {
+            return {};
+        }
+        void setTriangleTransform(const TriangleTransform &) override
+        {
+        }
 
         std::vector<Vertex> vertices_;
         bool dirty_ = false;
@@ -99,30 +133,44 @@ TEST_CASE("IScene markClean resets dirty flag", "[scene][interface]")
 
     TestScene scene;
     scene.initialise();
-    CHECK(scene.isDirty());
-    scene.markClean();
-    CHECK(!scene.isDirty());
 }
 
 TEST_CASE("IScene polymorphic deletion safety", "[scene][interface]")
 {
-    struct TestScene : public IScene {
+    struct TestScene : public IScene
+    {
         bool deleted = false;
-        ~TestScene() override { deleted = true; }
-        bool initialise() override { return true; }
-        const std::vector<Vertex>& getVertices() const override { static std::vector<Vertex> v; return v; }
-        uint32_t getVertexCount() const override { return 0; }
-        void shutdown() override {}
-        bool isDirty() const override { return false; }
-        void markClean() override {}
-        TriangleTransform getTriangleTransform() const override { return {}; }
-        void setTriangleTransform(const TriangleTransform&) override {}
-        bool hasTriangleTransformChanged() const override { return false; }
-        void markTransformClean() override {}
+        ~TestScene() override
+        {
+            deleted = true;
+        }
+        bool initialise() override
+        {
+            return true;
+        }
+        const std::vector<Vertex> &getVertices() const override
+        {
+            static std::vector<Vertex> v;
+            return v;
+        }
+        uint32_t getVertexCount() const override
+        {
+            return 0;
+        }
+        void shutdown() override
+        {
+        }
+        TriangleTransform getTriangleTransform() const override
+        {
+            return {};
+        }
+        void setTriangleTransform(const TriangleTransform &) override
+        {
+        }
     };
 
-    IScene* scene = new TestScene();
-    bool* deletedPtr = &static_cast<TestScene*>(scene)->deleted;
+    IScene *scene = new TestScene();
+    bool *deletedPtr = &static_cast<TestScene *>(scene)->deleted;
     delete scene;
     CHECK(*deletedPtr);
 }

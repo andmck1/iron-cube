@@ -5,7 +5,6 @@
 bool Scene::initialise()
 {
     regenerateVertices();
-    is_dirty_ = true;
 
     return data_.isValid();
 }
@@ -20,43 +19,20 @@ uint32_t Scene::getVertexCount() const
     return data_.vertex_count;
 }
 
-bool Scene::isDirty() const
-{
-    return is_dirty_;
-}
-
-void Scene::markClean()
-{
-    is_dirty_ = false;
-}
-
 void Scene::shutdown()
 {
     data_.clear();
-    is_dirty_ = false;
 }
 
 void Scene::setTriangleTransform(const TriangleTransform &transform)
 {
     transform_ = transform;
-    transformDirty_ = true;
     regenerateVertices();
-    is_dirty_ = true;
 }
 
 TriangleTransform Scene::getTriangleTransform() const
 {
     return transform_;
-}
-
-bool Scene::hasTriangleTransformChanged() const
-{
-    return transformDirty_;
-}
-
-void Scene::markTransformClean()
-{
-    transformDirty_ = false;
 }
 
 void Scene::regenerateVertices()
