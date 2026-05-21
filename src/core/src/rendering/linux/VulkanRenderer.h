@@ -26,12 +26,12 @@ class VulkanRenderer : public IRenderer
     void swapBuffers() override;
     void shutdown() override;
 
-    void beginFrame();
-    void renderScene(Scene *scene) override;
-    void endFrame();
+    bool beginFrame();
+    bool newFrame() override;
+    bool renderScene(Scene *scene) override;
+    bool endFrame();
     bool initImGui() override;
-    void newFrame() override;
-    void renderImGui() override;
+    bool renderImGui() override;
     void shutdownImGui() override;
 
     void setExitRequestedCallback(std::function<bool()> callback);

@@ -638,11 +638,11 @@ void VulkanRenderer::setExitRequestedCallback(std::function<bool()> callback)
     exitRequested_ = callback;
 }
 
-void VulkanRenderer::beginFrame()
+bool VulkanRenderer::beginFrame()
 {
     if (exitRequested_ && exitRequested_())
-        return;
-
+        return false;
+    
     VkResult result = vkAcquireNextImageKHR(
         device_, swapchain_, UINT64_MAX, imageAvailableSemaphore_,
         VK_NULL_HANDLE, &currentImageIndex_
@@ -655,7 +655,7 @@ void VulkanRenderer::beginFrame()
         imageAvailableSemaphore_ = VK_NULL_HANDLE;
         renderFinishedSemaphore_ = VK_NULL_HANDLE;
         inFlightFence_ = VK_NULL_HANDLE;
-        return;
+        return true;
     }
     vkCheck(result, "Failed to acquire swap chain image");
 
@@ -705,11 +705,13 @@ void VulkanRenderer::beginFrame()
     scissor.offset = {0, 0};
     scissor.extent = swapchainExtent_;
     vkCmdSetScissor(commandBuffers_[currentImageIndex_], 0, 1, &scissor);
+    return true;
 }
-void VulkanRenderer::renderScene(Scene *scene)
+
+bool VulkanRenderer::renderScene(Scene *scene)
 {
     if (!scene)
-        return;
+        return false;
 
     std::vector<Vertex> vertices = scene->getVertices();
     uint32_t vertexCount = scene->getVertexCount();
@@ -770,13 +772,17 @@ void VulkanRenderer::renderScene(Scene *scene)
         );
         vkCmdDraw(commandBuffers_[currentImageIndex_], vertexCount, 1, 0, 0);
     }
+
+    return true;
 }
 
-void VulkanRenderer::endFrame()
+bool VulkanRenderer::endFrame()
 {
-    spdlog::info("Ending");
+    if (exitRequested_ && exitRequested_())
+        return false;
+
     if (imageAvailableSemaphore_ == VK_NULL_HANDLE)
-        return;
+        return false;
 
     vkCmdEndRenderPass(commandBuffers_[currentImageIndex_]);
     vkEndCommandBuffer(commandBuffers_[currentImageIndex_]);
@@ -807,7 +813,8 @@ void VulkanRenderer::endFrame()
     presentInfo.pImageIndices = &currentImageIndex_;
 
     vkQueuePresentKHR(graphicsQueue_, &presentInfo);
-    spdlog::info("Ended");
+
+    return true;
 }
 
 void VulkanRenderer::swapBuffers()
@@ -887,8 +894,11 @@ bool VulkanRenderer::initImGui()
     return true;
 }
 
-void VulkanRenderer::newFrame()
+bool VulkanRenderer::newFrame()
 {
+    if (exitRequested_ && exitRequested_())
+        return false;
+
     ImGuiIO &io = ImGui::GetIO();
 
     // Setup display size and framebuffer scale
@@ -903,10 +913,15 @@ void VulkanRenderer::newFrame()
     ImGui_ImplGlfw_NewFrame();
     ImGui_ImplVulkan_NewFrame();
     ImGui::NewFrame();
+
+    return true;
 }
 
-void VulkanRenderer::renderImGui()
+bool VulkanRenderer::renderImGui()
 {
+    if (exitRequested_ && exitRequested_())
+        return false;
+
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();
     if (drawData->TotalVtxCount > 0)
@@ -915,6 +930,8 @@ void VulkanRenderer::renderImGui()
             drawData, commandBuffers_[currentImageIndex_]
         );
     }
+
+    return true;
 }
 
 void VulkanRenderer::shutdownImGui()
@@ -923,7 +940,6 @@ void VulkanRenderer::shutdownImGui()
     {
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
-        ImGui_ImplVulkan_DestroyFontsTexture();
         ImGui::DestroyContext(imguiContext_);
         imguiContext_ = nullptr;
 

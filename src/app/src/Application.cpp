@@ -92,24 +92,24 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
-        spdlog::info("Polling");
         platform_.pollEvents();
 
-        spdlog::info("Begin");
-        renderer_.beginFrame();
-        spdlog::info("New");
-        renderer_.newFrame();
+        if (!renderer_.beginFrame())
+            return;
+
+        if (!renderer_.newFrame())
+            return;
 
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
-        spdlog::info("Render");
             layer->render();
         }
 
-        spdlog::info("RenderImGUI");
-        renderer_.renderImGui();
-        spdlog::info("End");
-        renderer_.endFrame();
+        if (!renderer_.renderImGui())
+            return;
+
+        if (!renderer_.endFrame())
+            return;
     }
 }
 
