@@ -23,7 +23,7 @@ class Application
     int initialiseRenderer();
     int createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
-    void initialiseEntities();
+    void initialiseEntities(Scene *scene);
     void mainLoop();
     void shutdownLayers();
     void shutdownServices();

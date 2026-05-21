@@ -1,21 +1,12 @@
 #pragma once
 
-#include "scene/IScene.h"
+#include "ecs/ecs.h"
 
-class Scene : public IScene
+class Scene
 {
     public:
-    bool initialise() override;
-    const std::vector<Vertex> &getVertices() const override;
-    uint32_t getVertexCount() const override;
-    void shutdown() override;
-
-    void setTriangleTransform(const TriangleTransform &transform) override;
-    TriangleTransform getTriangleTransform() const override;
+    void addEntity(Entity entity);
 
     private:
-    void regenerateVertices();
-
-    SceneData data_;
-    TriangleTransform transform_;
+    std::vector<Entity> entities;
 };

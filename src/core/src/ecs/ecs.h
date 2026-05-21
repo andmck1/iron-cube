@@ -12,7 +12,7 @@ class Component
     public:
     virtual ~Component() = default;
 
-    virtual void initialize()
+    virtual void initialise()
     {
     }
     virtual void update(float deltaTime)
@@ -55,11 +55,11 @@ class Entity
         active_ = isActive;
     }
 
-    void initialize()
+    void initialise()
     {
         for (auto &component : components_)
         {
-            component->initialize();
+            component->initialise();
         }
     }
 

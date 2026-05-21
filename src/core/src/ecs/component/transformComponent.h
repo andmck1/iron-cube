@@ -26,5 +26,4 @@ class TransformComponent : public Component
     glm::vec3 scale_ = glm::vec3(1.0f);
 
     mutable glm::mat4 transformMatrix_ = glm::mat4(1.0f);
-    mutable bool transformDirty_ = true;
 };

@@ -1,6 +1,4 @@
 #include "layer/DebugLayer.h"
-#include "scene/IScene.h"
-#include "service/ServiceLocator.h"
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
@@ -16,13 +14,6 @@ bool DebugLayer::initialise()
     frameTime_ = 0.0f;
     frameTimes_.reserve(MaxFrameTimes);
     showDemoWindow_ = false;
-
-    // Initialise transform from scene
-    IScene *scene = ServiceLocator::instance().get<IScene>();
-    if (scene)
-    {
-        transform_ = scene->getTriangleTransform();
-    }
 
     spdlog::info("DebugLayer initialised");
     return true;
@@ -80,10 +71,10 @@ void DebugLayer::render()
     ImGui::Separator();
 
     // Apply transform to scene
-    if (debugData_->scene)
-    {
-        debugData_->scene->setTriangleTransform(transform_);
-    }
+    // if (debugData_->scene)
+    // {
+    //     debugData_->scene->setTriangleTransform(transform_);
+    // }
 
     ImGui::End();
 

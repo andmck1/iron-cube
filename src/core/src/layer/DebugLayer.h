@@ -2,7 +2,6 @@
 
 #include "layer/DebugLayerData.h"
 #include "layer/ILayer.h"
-#include "scene/SceneData.h"
 #include <chrono>
 #include <vector>
 
@@ -26,7 +25,5 @@ class DebugLayer : public ILayer
     std::vector<float> frameTimes_ = {};
     static constexpr size_t MaxFrameTimes = 300;
 
-    // TODO - get rid
-    TriangleTransform transform_;
     bool showDemoWindow_ = true;
 };

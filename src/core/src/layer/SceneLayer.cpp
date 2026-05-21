@@ -7,7 +7,7 @@ bool SceneLayer::initialise()
 {
     spdlog::info("Initialising scene");
     renderer_ = ServiceLocator::instance().get<IRenderer>();
-    return scene.initialise();
+    return true;
 }
 
 void SceneLayer::render()

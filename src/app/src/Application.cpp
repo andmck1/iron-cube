@@ -1,5 +1,9 @@
 #include "Application.h"
 #include <spdlog/spdlog.h>
+#include "ecs/component/transformComponent.h"
+#include "ecs/component/meshComponent.h"
+#include "glm/ext/vector_float3.hpp"
+#include "mesh/mesh.h"
 #include "service/ServiceLocator.h"
 #include "config/Config.h"
 #include "layer/SceneLayer.h"
@@ -87,9 +91,25 @@ int Application::createAndInitialiseLayers()
     return 0;
 }
 
-void Application::initialiseEntities()
+void Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
+
+    // TODO - this will likely fail as triangle will go out of scope
+    Entity triangle = Entity("triangle");
+
+    TransformComponent *transformComponent =
+        triangle.addComponent<TransformComponent>();
+    transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
+    transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
+    transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
+
+    Mesh triangleMesh = Mesh();
+    Material triangleMaterial = Material();
+
+    MeshComponent *meshComponent =
+        triangle.addComponent<MeshComponent>(&triangleMesh, &triangleMaterial);
+    scene->addEntity(std::move(triangle));
 }
 
 void Application::mainLoop()
