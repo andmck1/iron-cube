@@ -31,9 +31,26 @@ add_library(iron-core STATIC
     src/rendering/linux/VulkanHelpers.cpp
     src/scene/Scene.cpp
     src/resource/ResourceManager.cpp
+    src/debug/DebugLayer.cpp
+    src/debug/SceneLayer.cpp
+    ${imgui_SOURCE_DIR}/imgui.cpp
+
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
 )
 
 target_include_directories(iron-core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(iron-core PUBLIC ${imgui_SOURCE_DIR})
+target_include_directories(iron-core PUBLIC ${imgui_SOURCE_DIR}/backends)
 
 target_link_libraries(iron-core PUBLIC
   glfw

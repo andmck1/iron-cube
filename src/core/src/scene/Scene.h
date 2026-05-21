@@ -23,7 +23,16 @@ class Scene : public IScene
     void markClean() override;
     void shutdown() override;
 
+    void setTriangleTransform(const TriangleTransform& transform) override;
+    TriangleTransform getTriangleTransform() const override;
+    bool hasTriangleTransformChanged() const override;
+    void markTransformClean() override;
+
     private:
+    void regenerateVertices();
+
     SceneData data_;
+    TriangleTransform transform_;
     bool is_dirty_;
+    bool transformDirty_;
 };

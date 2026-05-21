@@ -17,13 +17,31 @@
 /**
  * @brief Vertex with position and color attributes.
  *
- * Uses AoS layout: position (vec2) followed by color (vec3).
- * Total size: 20 bytes (vec2=8 + vec3=12).
+ * Uses AoS layout: position (vec3) followed by color (vec3).
+ * Total size: 24 bytes (vec3=12 + vec3=12).
  */
 struct Vertex
 {
-    glm::vec2 pos;    ///< Normalized device coordinates (-1 to +1)
-    glm::vec3 color;  ///< RGB color values (0.0 to 1.0)
+    glm::vec3 pos;   ///< World space position
+    glm::vec3 color; ///< RGB color values (0.0 to 1.0)
+};
+
+/**
+ * @brief Triangle transform in 3D space.
+ *
+ * Stores position, rotation (per-axis), and scale for the triangle primitive.
+ * Used by both scene layer and debug layer for transform control.
+ */
+struct TriangleTransform
+{
+    glm::vec3 position; ///< World space position
+    glm::vec3 rotation; ///< Rotation angles in degrees (Euler XYZ)
+    float scale;        ///< Uniform scale factor
+
+    TriangleTransform()
+        : position{0.0f, 0.0f, 0.0f}, rotation{0.0f, 0.0f, 0.0f}, scale(1.0f)
+    {
+    }
 };
 
 /**
@@ -35,14 +53,13 @@ struct Vertex
  */
 struct SceneData
 {
-    std::vector<Vertex> vertices;   ///< Contiguous vertex array
-    uint32_t vertex_count;          ///< Cached vertex count
-    bool is_dirty;                  ///< True when data changed since last render
+    std::vector<Vertex> vertices; ///< Contiguous vertex array
+    uint32_t vertex_count;        ///< Cached vertex count
+    bool is_dirty;                ///< True when data changed since last render
 
-    SceneData()
-        : vertex_count(0)
-        , is_dirty(true)
-    {}
+    SceneData() : vertex_count(0), is_dirty(true)
+    {
+    }
 
     /**
      * @brief Validate internal state consistency.
@@ -50,8 +67,8 @@ struct SceneData
      */
     bool isValid() const
     {
-        return vertex_count == static_cast<uint32_t>(vertices.size())
-            && vertex_count > 0;
+        return vertex_count == static_cast<uint32_t>(vertices.size()) &&
+               vertex_count > 0;
     }
 
     /**
