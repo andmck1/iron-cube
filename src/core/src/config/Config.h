@@ -6,13 +6,13 @@
 
 class Config
 {
-public:
+    public:
     Config() = default;
-    
+
     int initConfig();
     PlatformConfig getPlatformConfig() const;
 
-private:
+    private:
     std::string path_ = "";
     YAML::Node rootConfig;
 };

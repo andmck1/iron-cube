@@ -57,7 +57,8 @@ class IResourceManager
      * @param physicalDevice Physical device handle.
      * @return true on success, false on failure.
      */
-    virtual bool initialise(VkDevice device, VkPhysicalDevice physicalDevice) = 0;
+    virtual bool
+    initialise(VkDevice device, VkPhysicalDevice physicalDevice) = 0;
 
     /**
      * @brief Allocate a GPU buffer with dedicated memory.
@@ -67,8 +68,7 @@ class IResourceManager
      * @return BufferAllocation handle on success, null handle on failure.
      */
     virtual BufferAllocation allocateBuffer(
-        VkDeviceSize size,
-        VkBufferUsageFlags usage,
+        VkDeviceSize size, VkBufferUsageFlags usage,
         VkMemoryPropertyFlags memoryProps = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     ) = 0;
 
@@ -78,19 +78,19 @@ class IResourceManager
      * @param size Size to map in bytes.
      * @return Pointer to mapped memory, or nullptr on failure.
      */
-    virtual void* mapMemory(BufferAllocation& alloc, VkDeviceSize size) = 0;
+    virtual void *mapMemory(BufferAllocation &alloc, VkDeviceSize size) = 0;
 
     /**
      * @brief Unmap previously mapped buffer memory.
      * @param alloc Buffer allocation to unmap.
      */
-    virtual void unmapMemory(BufferAllocation& alloc) = 0;
+    virtual void unmapMemory(BufferAllocation &alloc) = 0;
 
     /**
      * @brief Free a single buffer allocation.
      * @param alloc Buffer allocation to free.
      */
-    virtual void freeBuffer(BufferAllocation& alloc) = 0;
+    virtual void freeBuffer(BufferAllocation &alloc) = 0;
 
     /**
      * @brief Clean up all tracked allocations.

@@ -48,7 +48,7 @@ class Application
     void shutdownLayers();
     void shutdownServices();
     void shutdownAll();
-    
+
     Config config;
     PlatformConfig platformConfig;
     PlatformLinux platform_;

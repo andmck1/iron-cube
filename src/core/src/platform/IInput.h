@@ -15,7 +15,7 @@
  */
 enum class KeyCode : int32_t
 {
-    Escape = 256,  ///< Escape / Esc key
+    Escape = 256, ///< Escape / Esc key
 };
 
 /**

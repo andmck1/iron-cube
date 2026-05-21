@@ -15,8 +15,8 @@
  */
 struct Vec2u
 {
-    uint32_t x;  ///< Width or X coordinate
-    uint32_t y;  ///< Height or Y coordinate
+    uint32_t x; ///< Width or X coordinate
+    uint32_t y; ///< Height or Y coordinate
 };
 
 /**

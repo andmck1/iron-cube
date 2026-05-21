@@ -38,7 +38,7 @@ class IScene
      * @brief Return reference to vertex data array.
      * @return Const reference to the vertex vector.
      */
-    virtual const std::vector<Vertex>& getVertices() const = 0;
+    virtual const std::vector<Vertex> &getVertices() const = 0;
 
     /**
      * @brief Return number of vertices in scene.

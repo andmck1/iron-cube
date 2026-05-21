@@ -6,13 +6,14 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 
-VKAPI_ATTR VkBool32 VKAPI_CALL
-debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-                              VkDebugUtilsMessageTypeFlagsEXT /*types*/,
-                              const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-                              void* /*userData*/)
+VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT /*types*/,
+    const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+    void * /*userData*/
+)
 {
-    const char* message = callbackData ? callbackData->pMessage : "unknown";
+    const char *message = callbackData ? callbackData->pMessage : "unknown";
 
     if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
@@ -40,7 +41,8 @@ VkDebugUtilsMessengerEXT createDebugMessenger(VkInstance instance)
 
     PFN_vkCreateDebugUtilsMessengerEXT pfnCreate =
         reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
-            vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+            vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT")
+        );
 
     if (!pfnCreate)
     {
@@ -49,12 +51,13 @@ VkDebugUtilsMessengerEXT createDebugMessenger(VkInstance instance)
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-                                | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
-                                | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
-    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
-                            | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-                            | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.messageSeverity =
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugUtilsMessengerCallback;
 
     if (pfnCreate(instance, &createInfo, nullptr, &messenger) != VK_SUCCESS)
@@ -66,7 +69,9 @@ VkDebugUtilsMessengerEXT createDebugMessenger(VkInstance instance)
     return messenger;
 }
 
-void destroyDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT messenger)
+void destroyDebugMessenger(
+    VkInstance instance, VkDebugUtilsMessengerEXT messenger
+)
 {
     if (messenger == VK_NULL_HANDLE)
     {
@@ -75,7 +80,8 @@ void destroyDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT messeng
 
     PFN_vkDestroyDebugUtilsMessengerEXT pfnDestroy =
         reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
-            vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+            vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT")
+        );
 
     if (pfnDestroy)
     {

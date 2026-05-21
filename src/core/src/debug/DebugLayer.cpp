@@ -38,9 +38,11 @@ void DebugLayer::render()
         frameTimes_.erase(frameTimes_.begin());
 
     // Debug overlay window
-    ImGui::Begin("Debug Overlay", nullptr,
+    ImGui::Begin(
+        "Debug Overlay", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
+            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar
+    );
 
     // FPS display
     ImGui::Text("FPS: %.1f", fps_);
@@ -51,8 +53,9 @@ void DebugLayer::render()
     {
         float maxTime = 16.67f; // 60 fps cap
         ImGui::PlotLines(
-            "##FrameTime", frameTimes_.data(), static_cast<int>(frameTimes_.size()),
-            0, nullptr, 0.0f, maxTime, ImVec2(0.0f, 60.0f)
+            "##FrameTime", frameTimes_.data(),
+            static_cast<int>(frameTimes_.size()), 0, nullptr, 0.0f, maxTime,
+            ImVec2(0.0f, 60.0f)
         );
     }
 
@@ -63,7 +66,9 @@ void DebugLayer::render()
     ImGui::Separator();
 
     ImGui::SliderFloat3("Position", &transform_.position.x, -5.0f, 5.0f);
-    ImGui::SliderFloat3("Rotation (deg)", &transform_.rotation.x, -180.0f, 180.0f);
+    ImGui::SliderFloat3(
+        "Rotation (deg)", &transform_.rotation.x, -180.0f, 180.0f
+    );
     ImGui::SliderFloat("Scale", &transform_.scale, 0.1f, 5.0f, "%.2f");
 
     ImGui::Separator();

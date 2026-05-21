@@ -19,11 +19,13 @@
  * @param message Error message to include in exception.
  * @throws std::runtime_error if result is not VK_SUCCESS or VK_SUBOPTIMAL.
  */
-inline void vkCheck(VkResult result, const char* message)
+inline void vkCheck(VkResult result, const char *message)
 {
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
     {
-        throw std::runtime_error(std::string(message) + " (VkResult: " + std::to_string(result) + ")");
+        throw std::runtime_error(
+            std::string(message) + " (VkResult: " + std::to_string(result) + ")"
+        );
     }
 }
 
@@ -33,11 +35,11 @@ inline void vkCheck(VkResult result, const char* message)
  * Routes validation layer messages through spdlog with appropriate
  * severity levels.
  */
-VKAPI_ATTR VkBool32 VKAPI_CALL
-debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-                              VkDebugUtilsMessageTypeFlagsEXT types,
-                              const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-                              void* userData);
+VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT types,
+    const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData
+);
 
 /**
  * @brief Create a debug utils messenger for validation layer logging.
@@ -51,4 +53,6 @@ VkDebugUtilsMessengerEXT createDebugMessenger(VkInstance instance);
  * @param instance Vulkan instance handle.
  * @param messenger Messenger handle to destroy.
  */
-void destroyDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT messenger);
+void destroyDebugMessenger(
+    VkInstance instance, VkDebugUtilsMessengerEXT messenger
+);

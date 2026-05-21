@@ -2,8 +2,7 @@
 #include "rendering/linux/VulkanRenderer.h"
 #include <spdlog/spdlog.h>
 
-SceneLayer::SceneLayer(VulkanRenderer* renderer)
-    : renderer_(renderer)
+SceneLayer::SceneLayer(VulkanRenderer *renderer) : renderer_(renderer)
 {
 }
 

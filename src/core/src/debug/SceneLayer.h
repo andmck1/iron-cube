@@ -18,12 +18,12 @@ class VulkanRenderer;
 class SceneLayer : public ILayer
 {
     public:
-    explicit SceneLayer(VulkanRenderer* renderer);
+    explicit SceneLayer(VulkanRenderer *renderer);
 
     bool initialise() override;
     void render() override;
     void shutdown() override;
 
     private:
-    VulkanRenderer* renderer_;
+    VulkanRenderer *renderer_;
 };
