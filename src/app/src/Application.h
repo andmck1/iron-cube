@@ -1,10 +1,10 @@
 #pragma once
 
+#include "layers/DebugLayerData.h"
 #include "platform/linux/PlatformLinux.h"
 #include "rendering/linux/VulkanRenderer.h"
-#include "scene/Scene.h"
 #include "resource/ResourceManager.h"
-#include "debug/ILayer.h"
+#include "layers/ILayer.h"
 #include "config/Config.h"
 #include <memory>
 #include <vector>
@@ -21,6 +21,7 @@ class Application
     int registerServices();
     int initialisePlatform();
     int initialiseRenderer();
+    void initialiseDebugLayerData(Scene *scene);
     int createAndInitialiseLayers();
     void mainLoop();
     void shutdownLayers();
@@ -31,7 +32,7 @@ class Application
     PlatformConfig platformConfig_;
     PlatformLinux platform_;
     VulkanRenderer renderer_;
-    Scene scene_;
     ResourceManager resourceManager_;
+    DebugLayerData debugLayerData_;
     std::vector<std::unique_ptr<ILayer>> layers_;
 };

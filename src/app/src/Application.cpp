@@ -2,8 +2,8 @@
 #include <spdlog/spdlog.h>
 #include "service/ServiceLocator.h"
 #include "config/Config.h"
-#include "debug/SceneLayer.h"
-#include "debug/DebugLayer.h"
+#include "layers/SceneLayer.h"
+#include "layers/DebugLayer.h"
 
 Application::Application()
 {
@@ -58,11 +58,20 @@ int Application::initialiseRenderer()
     return 0;
 }
 
+void Application::initialiseDebugLayerData(Scene *scene)
+{
+    debugLayerData_.scene = scene;
+}
+
 int Application::createAndInitialiseLayers()
 {
     layers_.push_back(std::make_unique<SceneLayer>());
     SceneLayer *sceneLayer = dynamic_cast<SceneLayer *>(layers_.back().get());
-    layers_.push_back(std::make_unique<DebugLayer>(&sceneLayer->scene));
+
+    initialiseDebugLayerData(&sceneLayer->scene);
+    layers_.push_back(std::make_unique<DebugLayer>());
+    DebugLayer *debugLayer = dynamic_cast<DebugLayer *>(layers_.back().get());
+    debugLayer->setDebugData(&debugLayerData_);
 
     for (std::unique_ptr<ILayer> &layer : layers_)
     {
@@ -83,17 +92,23 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
+        spdlog::info("Polling");
         platform_.pollEvents();
 
+        spdlog::info("Begin");
         renderer_.beginFrame();
+        spdlog::info("New");
         renderer_.newFrame();
 
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
+        spdlog::info("Render");
             layer->render();
         }
 
+        spdlog::info("RenderImGUI");
         renderer_.renderImGui();
+        spdlog::info("End");
         renderer_.endFrame();
     }
 }
@@ -109,7 +124,6 @@ void Application::shutdownLayers()
 
 void Application::shutdownServices()
 {
-    scene_.shutdown();
     renderer_.shutdown();
     platform_.shutdown();
 }

@@ -774,6 +774,7 @@ void VulkanRenderer::renderScene(Scene *scene)
 
 void VulkanRenderer::endFrame()
 {
+    spdlog::info("Ending");
     if (imageAvailableSemaphore_ == VK_NULL_HANDLE)
         return;
 
@@ -806,6 +807,7 @@ void VulkanRenderer::endFrame()
     presentInfo.pImageIndices = &currentImageIndex_;
 
     vkQueuePresentKHR(graphicsQueue_, &presentInfo);
+    spdlog::info("Ended");
 }
 
 void VulkanRenderer::swapBuffers()

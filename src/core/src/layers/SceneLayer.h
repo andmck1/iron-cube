@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debug/ILayer.h"
+#include "layers/ILayer.h"
 #include "rendering/IRenderer.h"
 #include "scene/Scene.h"
 

@@ -1,12 +1,12 @@
-#include "debug/DebugLayer.h"
+#include "layers/DebugLayer.h"
 #include "scene/IScene.h"
 #include "service/ServiceLocator.h"
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
-DebugLayer::DebugLayer(Scene *scene)
+void DebugLayer::setDebugData(DebugLayerData *debugData)
 {
-    scene_ = scene;
+    debugData_ = debugData;
 }
 
 bool DebugLayer::initialise()
@@ -80,9 +80,9 @@ void DebugLayer::render()
     ImGui::Separator();
 
     // Apply transform to scene
-    if (scene_)
+    if (debugData_->scene)
     {
-        scene_->setTriangleTransform(transform_);
+        debugData_->scene->setTriangleTransform(transform_);
     }
 
     ImGui::End();

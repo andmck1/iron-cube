@@ -32,8 +32,8 @@ add_library(iron-core STATIC
     src/rendering/linux/VulkanHelpers.cpp
     src/scene/Scene.cpp
     src/resource/ResourceManager.cpp
-    src/debug/DebugLayer.cpp
-    src/debug/SceneLayer.cpp
+    src/layers/DebugLayer.cpp
+    src/layers/SceneLayer.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
 
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
