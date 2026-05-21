@@ -55,10 +55,10 @@ TEST_CASE("IScene interface has virtual destructor", "[scene][interface]")
     STATIC_REQUIRE(std::has_virtual_destructor_v<IScene>);
 }
 
-TEST_CASE("IScene isDirty returns true after initialize", "[scene][interface]")
+TEST_CASE("IScene isDirty returns true after initialise", "[scene][interface]")
 {
     struct TestScene : public IScene {
-        bool initialize() override { dirty_ = true; return true; }
+        bool initialise() override { dirty_ = true; return true; }
         const std::vector<Vertex>& getVertices() const override { return vertices_; }
         uint32_t getVertexCount() const override { return static_cast<uint32_t>(vertices_.size()); }
         void shutdown() override { vertices_.clear(); dirty_ = false; }
@@ -75,14 +75,14 @@ TEST_CASE("IScene isDirty returns true after initialize", "[scene][interface]")
 
     TestScene scene;
     CHECK(!scene.isDirty());
-    scene.initialize();
+    scene.initialise();
     CHECK(scene.isDirty());
 }
 
 TEST_CASE("IScene markClean resets dirty flag", "[scene][interface]")
 {
     struct TestScene : public IScene {
-        bool initialize() override { dirty_ = true; return true; }
+        bool initialise() override { dirty_ = true; return true; }
         const std::vector<Vertex>& getVertices() const override { return vertices_; }
         uint32_t getVertexCount() const override { return static_cast<uint32_t>(vertices_.size()); }
         void shutdown() override { vertices_.clear(); dirty_ = false; }
@@ -98,7 +98,7 @@ TEST_CASE("IScene markClean resets dirty flag", "[scene][interface]")
     };
 
     TestScene scene;
-    scene.initialize();
+    scene.initialise();
     CHECK(scene.isDirty());
     scene.markClean();
     CHECK(!scene.isDirty());
@@ -109,7 +109,7 @@ TEST_CASE("IScene polymorphic deletion safety", "[scene][interface]")
     struct TestScene : public IScene {
         bool deleted = false;
         ~TestScene() override { deleted = true; }
-        bool initialize() override { return true; }
+        bool initialise() override { return true; }
         const std::vector<Vertex>& getVertices() const override { static std::vector<Vertex> v; return v; }
         uint32_t getVertexCount() const override { return 0; }
         void shutdown() override {}

@@ -1,23 +1,23 @@
 #include "platform/linux/PlatformLinux.h"
 #include <spdlog/spdlog.h>
 
-bool PlatformLinux::initialize()
+bool PlatformLinux::initialise()
 {
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
     if (glfwInit())
     {
-        initialized_ = true;
+        initialised_ = true;
         return true;
     }
-    spdlog::error("Failed to initialize GLFW");
+    spdlog::error("Failed to initialise GLFW");
     return false;
 }
 
 bool PlatformLinux::createWindow(const PlatformConfig &config)
 {
-    if (!initialized_)
+    if (!initialised_)
     {
-        spdlog::error("Platform not initialized");
+        spdlog::error("Platform not initialised");
         return false;
     }
 
@@ -60,7 +60,7 @@ void PlatformLinux::shutdown()
 {
     window_.destroy();
     glfwTerminate();
-    initialized_ = false;
+    initialised_ = false;
 }
 
 GLFWwindow *PlatformLinux::getGLFWWindow() const

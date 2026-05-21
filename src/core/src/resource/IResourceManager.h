@@ -34,12 +34,12 @@ struct BufferAllocation
  *
  * @par Thread Safety
  * Not thread-safe. All calls should be made
- * from the main thread during initialization
+ * from the main thread during initialisation
  * and shutdown.
  *
  * @par Usage
  * @code
- * resourceManager->initialize(device, physicalDevice);
+ * resourceManager->initialise(device, physicalDevice);
  * auto alloc = resourceManager->allocateBuffer(size, usage);
  * void* ptr = resourceManager->mapMemory(alloc, size);
  * // ... use buffer ...
@@ -52,12 +52,12 @@ class IResourceManager
     virtual ~IResourceManager() = default;
 
     /**
-     * @brief Initialize resource manager with device handles.
+     * @brief Initialise resource manager with device handles.
      * @param device Logical device handle.
      * @param physicalDevice Physical device handle.
      * @return true on success, false on failure.
      */
-    virtual bool initialize(VkDevice device, VkPhysicalDevice physicalDevice) = 0;
+    virtual bool initialise(VkDevice device, VkPhysicalDevice physicalDevice) = 0;
 
     /**
      * @brief Allocate a GPU buffer with dedicated memory.

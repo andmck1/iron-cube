@@ -2,13 +2,13 @@
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
-bool ResourceManager::initialize(
+bool ResourceManager::initialise(
     VkDevice device, VkPhysicalDevice physicalDevice
 )
 {
     device_ = device;
     physicalDevice_ = physicalDevice;
-    spdlog::info("ResourceManager initialized");
+    spdlog::info("ResourceManager initialised");
     return true;
 }
 

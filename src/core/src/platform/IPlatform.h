@@ -42,7 +42,7 @@ class IPlatform
     virtual ~IPlatform() = default;
 
     /**
-     * @brief Initialize the platform backend.
+     * @brief Initialise the platform backend.
      * @return true on success, false if the backend failed to start.
      */
     virtual bool initialise() = 0;

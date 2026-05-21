@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <GLFW/glfw3.h>
 
-TEST_CASE("Platform: initialize and shutdown cycle", "[platform]")
+TEST_CASE("Platform: initialise and shutdown cycle", "[platform]")
 {
     bool init_ok = glfwInit();
     REQUIRE(init_ok);

@@ -4,7 +4,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
-bool DebugLayer::initialize()
+bool DebugLayer::initialise()
 {
     lastTime_ = std::chrono::steady_clock::now();
     fps_ = 0.0f;
@@ -12,14 +12,14 @@ bool DebugLayer::initialize()
     frameTimes_.reserve(MaxFrameTimes);
     showDemoWindow_ = false;
 
-    // Initialize transform from scene
+    // Initialise transform from scene
     auto *scene = ServiceLocator::instance().get<IScene>();
     if (scene)
     {
         transform_ = scene->getTriangleTransform();
     }
 
-    spdlog::info("DebugLayer initialized");
+    spdlog::info("DebugLayer initialised");
     return true;
 }
 

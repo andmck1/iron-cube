@@ -42,8 +42,8 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
             ServiceLocator::instance().get<IResourceManager>();
         if (!resourceManager)
             throw std::runtime_error("IResourceManager not registered");
-        if (!resourceManager->initialize(device_, physicalDevice_))
-            throw std::runtime_error("ResourceManager failed to initialize");
+        if (!resourceManager->initialise(device_, physicalDevice_))
+            throw std::runtime_error("ResourceManager failed to initialise");
 
         createSwapchain();
         createImageViews();
@@ -57,7 +57,7 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
         createDescriptorSet();
 
         if (!initImGui())
-            throw std::runtime_error("ImGui failed to initialize");
+            throw std::runtime_error("ImGui failed to initialise");
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -74,7 +74,7 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
         );
         vkCreateFence(device_, &fenceInfo, nullptr, &inFlightFence_);
 
-        spdlog::info("VulkanRenderer initialized successfully");
+        spdlog::info("VulkanRenderer initialised successfully");
         return true;
     }
     catch (const std::exception &e)
@@ -932,7 +932,7 @@ bool VulkanRenderer::initImGui()
     // Upload font texture
     ImGui_ImplVulkan_CreateFontsTexture();
 
-    spdlog::info("ImGui initialized");
+    spdlog::info("ImGui initialised");
     return true;
 }
 

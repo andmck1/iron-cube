@@ -8,7 +8,7 @@
 TEST_CASE("Vulkan render pipeline end-to-end", "[integration][render][!mayfail]")
 {
     // This test validates the full rendering pipeline:
-    // 1. Renderer initialization with Vulkan
+    // 1. Renderer initialisation with Vulkan
     // 2. Scene data population
     // 3. Resource manager buffer allocation
     // 4. Frame rendering

@@ -21,7 +21,7 @@ class InputGLFW
 {
     public:
     /**
-     * @brief Initialize input tracking.
+     * @brief Initialise input tracking.
      *
      * Registers the global key callback and resets key state.
      */

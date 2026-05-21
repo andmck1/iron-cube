@@ -29,7 +29,7 @@ class IScene
     virtual ~IScene() = default;
 
     /**
-     * @brief Initialize and generate scene geometry data.
+     * @brief Initialise and generate scene geometry data.
      * @return true on success.
      */
     virtual bool initialise() = 0;

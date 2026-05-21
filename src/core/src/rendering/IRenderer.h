@@ -15,7 +15,7 @@
 /**
  * @brief Renderer interface.
  *
- * Abstracts graphics backend initialization, frame presentation,
+ * Abstracts graphics backend initialisation, frame presentation,
  * and cleanup. Implementations may use OpenGL, Vulkan, or other APIs.
  */
 class IRenderer
@@ -24,7 +24,7 @@ class IRenderer
     virtual ~IRenderer() = default;
 
     /**
-     * @brief Initialize the renderer.
+     * @brief Initialise the renderer.
      * @param window Platform window handle for context creation.
      * @return true on success.
      */
@@ -53,9 +53,9 @@ class IRenderer
     virtual void shutdown() = 0;
 
     /**
-     * @brief Initialize ImGui context and Vulkan backend.
+     * @brief Initialise ImGui context and Vulkan backend.
      *
-     * Creates ImGui context, initializes Vulkan backend with
+     * Creates ImGui context, initialises Vulkan backend with
      * device/queue, and creates font texture. Call after
      * swap chain setup during init().
      * @return true on success.

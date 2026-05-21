@@ -10,7 +10,7 @@
 class ResourceManager : public IResourceManager
 {
     public:
-    bool initialize(VkDevice device, VkPhysicalDevice physicalDevice) override;
+    bool initialise(VkDevice device, VkPhysicalDevice physicalDevice) override;
     BufferAllocation allocateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
                                     VkMemoryPropertyFlags memoryProps) override;
     void* mapMemory(BufferAllocation& alloc, VkDeviceSize size) override;

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <GLFW/glfw3.h>
 
-TEST_CASE("Window creation: GLFW initializes successfully", "[window]")
+TEST_CASE("Window creation: GLFW initialises successfully", "[window]")
 {
     REQUIRE(glfwInit());
     glfwTerminate();

@@ -7,9 +7,9 @@ SceneLayer::SceneLayer(VulkanRenderer* renderer)
 {
 }
 
-bool SceneLayer::initialize()
+bool SceneLayer::initialise()
 {
-    spdlog::info("SceneLayer initialized");
+    spdlog::info("SceneLayer initialised");
     return true;
 }
 

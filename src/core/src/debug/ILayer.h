@@ -22,7 +22,7 @@ class ILayer
     virtual ~ILayer() = default;
 
     /**
-     * @brief Initialize the layer.
+     * @brief Initialise the layer.
      * @return true on success.
      */
     virtual bool initialise() = 0;
