@@ -3,7 +3,7 @@
  * @brief Common layer interface for stack-based rendering.
  *
  * Defines the contract for renderable components in the layer
- * stack. Each layer implements initialize(), render(), and
+ * stack. Each layer implements initialise(), render(), and
  * shutdown() for lifecycle management.
  */
 
@@ -14,7 +14,7 @@
  *
  * Abstract base for components that participate in the render
  * layer stack. The Application manages layer lifecycle, calling
- * initialize() once, render() each frame, and shutdown() on exit.
+ * initialise() once, render() each frame, and shutdown() on exit.
  */
 class ILayer
 {
@@ -25,7 +25,7 @@ class ILayer
      * @brief Initialize the layer.
      * @return true on success.
      */
-    virtual bool initialize() = 0;
+    virtual bool initialise() = 0;
 
     /**
      * @brief Render the layer for the current frame.

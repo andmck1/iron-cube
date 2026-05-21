@@ -1,6 +1,7 @@
 /**
  * @file
- * @brief Platform abstraction interface for window, input, and lifecycle management.
+ * @brief Platform abstraction interface for window, input, and lifecycle
+ * management.
  *
  * The platform layer sits between the application and OS-specific backends,
  * providing a stable interface for window creation, event polling, and
@@ -20,16 +21,16 @@
  */
 struct PlatformConfig
 {
-    std::string window_title = "Iron Cube";  ///< Window title bar text
-    uint32_t window_width = 1280;             ///< Window width in pixels
-    uint32_t window_height = 720;             ///< Window height in pixels
+    std::string window_title = "Iron Cube"; ///< Window title bar text
+    uint32_t window_width = 1280;           ///< Window width in pixels
+    uint32_t window_height = 720;           ///< Window height in pixels
 };
 
 /**
  * @brief Platform service interface.
  *
  * Abstracts OS-specific window management and event handling.
- * Implementations handle GLFW/SDL/etc. initialization, window
+ * Implementations handle GLFW/SDL/etc. initialisation, window
  * lifecycle, and input routing.
  *
  * @par Thread safety
@@ -44,7 +45,7 @@ class IPlatform
      * @brief Initialize the platform backend.
      * @return true on success, false if the backend failed to start.
      */
-    virtual bool initialize() = 0;
+    virtual bool initialise() = 0;
 
     /**
      * @brief Create the application window.

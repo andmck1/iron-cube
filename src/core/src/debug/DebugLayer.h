@@ -21,7 +21,7 @@
 class DebugLayer : public ILayer
 {
     public:
-    bool initialize() override;
+    bool initialise() override;
     void render() override;
     void shutdown() override;
 

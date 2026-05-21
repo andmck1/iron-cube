@@ -24,6 +24,7 @@ add_custom_target(compile_shaders ALL
 add_library(iron-core STATIC
     src/core_stub.cpp
     src/service/ServiceLocator.cpp
+    src/config/Config.cpp
     src/platform/linux/WindowGLFW.cpp
     src/platform/linux/InputGLFW.cpp
     src/platform/linux/PlatformLinux.cpp
@@ -59,4 +60,5 @@ target_link_libraries(iron-core PUBLIC
     iron-stb
   tinyobjloader
   Vulkan::Vulkan
+  yaml-cpp
 )

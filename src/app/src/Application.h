@@ -10,13 +10,14 @@
 #include "scene/Scene.h"
 #include "resource/ResourceManager.h"
 #include "debug/ILayer.h"
+#include "config/Config.h"
 #include <memory>
 #include <vector>
 
 /**
  * @brief Top-level application class.
  *
- * Orchestrates platform initialization, renderer setup,
+ * Orchestrates platform initialisation, renderer setup,
  * the main event/render loop, and clean shutdown.
  *
  * @par Usage
@@ -37,20 +38,22 @@ class Application
     int run();
 
     private:
+    void initConfig();
     int registerServices();
-    int initializePlatform();
-    int initializeScene();
-    int initializeRenderer();
-    int createAndInitializeLayers();
+    int initialisePlatform();
+    int initialiseScene();
+    int initialiseRenderer();
+    int createAndInitialiseLayers();
     void mainLoop();
     void shutdownLayers();
     void shutdownServices();
     void shutdownAll();
-
+    
+    Config config;
+    PlatformConfig platformConfig;
     PlatformLinux platform_;
     VulkanRenderer renderer_;
     Scene scene_;
     ResourceManager resourceManager_;
     std::vector<std::unique_ptr<ILayer>> layers_;
-
 };

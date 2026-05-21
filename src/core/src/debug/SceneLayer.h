@@ -20,7 +20,7 @@ class SceneLayer : public ILayer
     public:
     explicit SceneLayer(VulkanRenderer* renderer);
 
-    bool initialize() override;
+    bool initialise() override;
     void render() override;
     void shutdown() override;
 

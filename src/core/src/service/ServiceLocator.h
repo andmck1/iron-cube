@@ -11,7 +11,6 @@
 
 #include <unordered_map>
 #include <typeindex>
-#include <typeinfo>
 
 /**
  * @brief Global service registry.

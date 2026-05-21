@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-bool Scene::initialize()
+bool Scene::initialise()
 {
     regenerateVertices();
     is_dirty_ = true;

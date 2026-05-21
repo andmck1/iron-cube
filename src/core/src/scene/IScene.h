@@ -32,7 +32,7 @@ class IScene
      * @brief Initialize and generate scene geometry data.
      * @return true on success.
      */
-    virtual bool initialize() = 0;
+    virtual bool initialise() = 0;
 
     /**
      * @brief Return reference to vertex data array.

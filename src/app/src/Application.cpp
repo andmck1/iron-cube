@@ -1,11 +1,19 @@
 #include "Application.h"
 #include <spdlog/spdlog.h>
 #include "service/ServiceLocator.h"
+#include "config/Config.h"
 #include "debug/SceneLayer.h"
 #include "debug/DebugLayer.h"
 
 Application::Application()
 {
+}
+
+void Application::initConfig()
+{
+    config = Config();
+    config.initConfig();
+    platformConfig = config.getPlatformConfig();
 }
 
 int Application::registerServices()
@@ -18,20 +26,15 @@ int Application::registerServices()
     return 0;
 }
 
-int Application::initializePlatform()
+int Application::initialisePlatform()
 {
-    if (!platform_.initialize())
+    if (!platform_.initialise())
     {
-        spdlog::error("Platform initialization failed");
+        spdlog::error("Platform initialisation failed");
         return 1;
     }
 
-    PlatformConfig config;
-    config.window_title = "Iron Cube";
-    config.window_width = 1280;
-    config.window_height = 720;
-
-    if (!platform_.createWindow(config))
+    if (!platform_.createWindow(platformConfig))
     {
         spdlog::error("Window creation failed");
         platform_.shutdown();
@@ -41,17 +44,17 @@ int Application::initializePlatform()
     return 0;
 }
 
-int Application::initializeScene()
+int Application::initialiseScene()
 {
-    scene_.initialize();
+    scene_.initialise();
     return 0;
 }
 
-int Application::initializeRenderer()
+int Application::initialiseRenderer()
 {
     if (!renderer_.init(platform_.getGLFWWindow()))
     {
-        spdlog::error("Renderer initialization failed");
+        spdlog::error("Renderer initialisation failed");
         platform_.shutdown();
         return 1;
     }
@@ -62,16 +65,16 @@ int Application::initializeRenderer()
     return 0;
 }
 
-int Application::createAndInitializeLayers()
+int Application::createAndInitialiseLayers()
 {
     layers_.push_back(std::make_unique<SceneLayer>(&renderer_));
     layers_.push_back(std::make_unique<DebugLayer>());
 
     for (auto &layer : layers_)
     {
-        if (!layer->initialize())
+        if (!layer->initialise())
         {
-            spdlog::error("Layer initialization failed");
+            spdlog::error("Layer initialisation failed");
             renderer_.shutdown();
             platform_.shutdown();
             return 1;
@@ -130,13 +133,13 @@ int Application::run()
     {
         if (registerServices() != 0)
             return 1;
-        if (initializePlatform() != 0)
+        if (initialisePlatform() != 0)
             return 1;
-        if (initializeScene() != 0)
+        if (initialiseScene() != 0)
             return 1;
-        if (initializeRenderer() != 0)
+        if (initialiseRenderer() != 0)
             return 1;
-        if (createAndInitializeLayers() != 0)
+        if (createAndInitialiseLayers() != 0)
             return 1;
 
         mainLoop();

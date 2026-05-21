@@ -16,7 +16,7 @@
 class Scene : public IScene
 {
     public:
-    bool initialize() override;
+    bool initialise() override;
     const std::vector<Vertex>& getVertices() const override;
     uint32_t getVertexCount() const override;
     bool isDirty() const override;
