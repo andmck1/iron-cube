@@ -3,7 +3,6 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "rendering/linux/VulkanHelpers.h"
 #include "service/ServiceLocator.h"
-#include "scene/IScene.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <spdlog/spdlog.h>
@@ -554,58 +553,21 @@ void VulkanRenderer::createCommandBuffers()
 void VulkanRenderer::createVertexBuffer()
 {
 
-    auto *scene = ServiceLocator::instance().get<IScene>();
-    if (scene)
-    {
-        sceneVertices_ = scene->getVertices();
-        sceneVertexCount_ = scene->getVertexCount();
-        sceneDirty_ = false;
-    }
-    else
-    {
-        spdlog::warn("No IScene service registered, using default triangle");
-        sceneVertices_.push_back(
-            Vertex{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}
-        );
-        sceneVertices_.push_back(
-            Vertex{{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}
-        );
-        sceneVertices_.push_back(
-            Vertex{{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}
-        );
-        sceneVertexCount_ = 3;
-        sceneDirty_ = false;
-    }
-
-    VkDeviceSize bufferSize = sizeof(Vertex) * sceneVertexCount_;
+    VkDeviceSize bufferSize = sizeof(Vertex) * 3;
     spdlog::info(
-        "Allocating vertex buffer: {} vertices, {} bytes", sceneVertexCount_,
-        bufferSize
+        "Allocating vertex buffer: {} vertices, {} bytes", 3, bufferSize
     );
 
     auto *resourceManager = ServiceLocator::instance().get<IResourceManager>();
-    if (resourceManager)
-    {
-        vertexAlloc_ = resourceManager->allocateBuffer(
-            bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        );
-
-        void *data = resourceManager->mapMemory(vertexAlloc_, bufferSize);
-        if (data)
-        {
-            std::memcpy(
-                data, sceneVertices_.data(), static_cast<size_t>(bufferSize)
-            );
-            resourceManager->unmapMemory(vertexAlloc_);
-        }
-    }
-    else
-    {
-        spdlog::error("IResourceManager service not available");
+    if (!resourceManager)
         throw std::runtime_error("IResourceManager service not available");
-    }
+
+    vertexAlloc_ = resourceManager->allocateBuffer(
+        bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+    sceneDirty_ = false;
 }
 
 void VulkanRenderer::createUniformBuffer()
@@ -741,19 +703,20 @@ void VulkanRenderer::beginFrame()
     );
 }
 
-void VulkanRenderer::renderScene()
+void VulkanRenderer::renderScene(Scene *scene)
 {
-    auto *scene = ServiceLocator::instance().get<IScene>();
+    std::vector<Vertex> sceneVertices = scene->getVertices();
+    uint32_t sceneVertexCount = scene->getVertexCount();
 
     // -----------------------------
     // 1. Update vertex buffer if needed
     // -----------------------------
     if (scene && scene->isDirty())
     {
-        sceneVertices_ = scene->getVertices();
-        sceneVertexCount_ = scene->getVertexCount();
+        std::vector<Vertex> sceneVertices = scene->getVertices();
+        uint32_t sceneVertexCount = scene->getVertexCount();
 
-        VkDeviceSize bufferSize = sizeof(Vertex) * sceneVertexCount_;
+        VkDeviceSize bufferSize = sizeof(Vertex) * sceneVertexCount;
 
         auto *resourceManager =
             ServiceLocator::instance().get<IResourceManager>();
@@ -764,7 +727,7 @@ void VulkanRenderer::renderScene()
             if (data)
             {
                 std::memcpy(
-                    data, sceneVertices_.data(), static_cast<size_t>(bufferSize)
+                    data, sceneVertices.data(), static_cast<size_t>(bufferSize)
                 );
                 resourceManager->unmapMemory(vertexAlloc_);
             }
@@ -813,7 +776,7 @@ void VulkanRenderer::renderScene()
     // -----------------------------
     // 3. Draw call
     // -----------------------------
-    vkCmdDraw(commandBuffers_[currentImageIndex_], sceneVertexCount_, 1, 0, 0);
+    vkCmdDraw(commandBuffers_[currentImageIndex_], sceneVertexCount, 1, 0, 0);
 }
 
 void VulkanRenderer::endFrame()
@@ -850,13 +813,6 @@ void VulkanRenderer::endFrame()
     presentInfo.pImageIndices = &currentImageIndex_;
 
     vkQueuePresentKHR(graphicsQueue_, &presentInfo);
-}
-
-void VulkanRenderer::render()
-{
-    beginFrame();
-    renderScene();
-    endFrame();
 }
 
 void VulkanRenderer::swapBuffers()
@@ -1070,9 +1026,6 @@ void VulkanRenderer::cleanup()
         vkDestroyInstance(instance_, nullptr);
         instance_ = VK_NULL_HANDLE;
     }
-
-    sceneVertices_.clear();
-    sceneVertexCount_ = 0;
 }
 
 // --- Helpers ---

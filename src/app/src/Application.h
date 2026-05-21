@@ -41,7 +41,6 @@ class Application
     void initConfig();
     int registerServices();
     int initialisePlatform();
-    int initialiseScene();
     int initialiseRenderer();
     int createAndInitialiseLayers();
     void mainLoop();

@@ -21,7 +21,6 @@ int Application::registerServices()
     auto &locator = ServiceLocator::instance();
     locator.registerService<IPlatform>(&platform_);
     locator.registerService<IRenderer>(&renderer_);
-    locator.registerService<IScene>(&scene_);
     locator.registerService<IResourceManager>(&resourceManager_);
     return 0;
 }
@@ -44,12 +43,6 @@ int Application::initialisePlatform()
     return 0;
 }
 
-int Application::initialiseScene()
-{
-    scene_.initialise();
-    return 0;
-}
-
 int Application::initialiseRenderer()
 {
     if (!renderer_.init(platform_.getGLFWWindow()))
@@ -67,8 +60,9 @@ int Application::initialiseRenderer()
 
 int Application::createAndInitialiseLayers()
 {
-    layers_.push_back(std::make_unique<SceneLayer>(&renderer_));
-    layers_.push_back(std::make_unique<DebugLayer>());
+    layers_.push_back(std::make_unique<SceneLayer>());
+    auto sceneLayer = dynamic_cast<SceneLayer *>(layers_.back().get());
+    layers_.push_back(std::make_unique<DebugLayer>(&sceneLayer->scene));
 
     for (auto &layer : layers_)
     {
@@ -86,6 +80,7 @@ int Application::createAndInitialiseLayers()
 
 void Application::mainLoop()
 {
+    spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
         platform_.pollEvents();
@@ -134,8 +129,6 @@ int Application::run()
         if (registerServices() != 0)
             return 1;
         if (initialisePlatform() != 0)
-            return 1;
-        if (initialiseScene() != 0)
             return 1;
         if (initialiseRenderer() != 0)
             return 1;

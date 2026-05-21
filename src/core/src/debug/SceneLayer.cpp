@@ -1,22 +1,20 @@
 #include "debug/SceneLayer.h"
-#include "rendering/linux/VulkanRenderer.h"
+#include "rendering/IRenderer.h"
+#include "service/ServiceLocator.h"
 #include <spdlog/spdlog.h>
-
-SceneLayer::SceneLayer(VulkanRenderer *renderer) : renderer_(renderer)
-{
-}
 
 bool SceneLayer::initialise()
 {
-    spdlog::info("SceneLayer initialised");
-    return true;
+    spdlog::info("Initialising scene");
+    renderer_ = ServiceLocator::instance().get<IRenderer>();
+    return scene.initialise();
 }
 
 void SceneLayer::render()
 {
     if (renderer_)
     {
-        renderer_->renderScene();
+        renderer_->renderScene(&scene);
     }
 }
 

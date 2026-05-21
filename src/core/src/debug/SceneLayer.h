@@ -6,8 +6,8 @@
 #pragma once
 
 #include "debug/ILayer.h"
-
-class VulkanRenderer;
+#include "rendering/IRenderer.h"
+#include "scene/Scene.h"
 
 /**
  * @brief Scene layer that renders the 3D scene.
@@ -18,12 +18,12 @@ class VulkanRenderer;
 class SceneLayer : public ILayer
 {
     public:
-    explicit SceneLayer(VulkanRenderer *renderer);
+    Scene scene = Scene();
 
     bool initialise() override;
     void render() override;
     void shutdown() override;
 
     private:
-    VulkanRenderer *renderer_;
+    IRenderer *renderer_;
 };

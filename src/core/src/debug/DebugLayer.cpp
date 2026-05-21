@@ -4,6 +4,11 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
+DebugLayer::DebugLayer(Scene *scene_)
+{
+    scene = scene_;
+}
+
 bool DebugLayer::initialise()
 {
     lastTime_ = std::chrono::steady_clock::now();
@@ -74,7 +79,6 @@ void DebugLayer::render()
     ImGui::Separator();
 
     // Apply transform to scene
-    auto *scene = ServiceLocator::instance().get<IScene>();
     if (scene)
     {
         scene->setTriangleTransform(transform_);

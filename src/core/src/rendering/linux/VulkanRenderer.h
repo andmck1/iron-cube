@@ -7,7 +7,6 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 #include "rendering/IRenderer.h"
-#include "scene/SceneData.h"
 #include "resource/IResourceManager.h"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -36,13 +35,12 @@ class VulkanRenderer : public IRenderer
 {
     public:
     bool init(GLFWwindow *window) override;
-    void render() override;
     void swapBuffers() override;
     void shutdown() override;
 
     // Frame lifecycle for layer-based rendering
     void beginFrame();
-    void renderScene();
+    void renderScene(Scene *scene) override;
     void endFrame();
     bool initImGui() override;
     void newFrame() override;
@@ -97,8 +95,6 @@ class VulkanRenderer : public IRenderer
     VkFence inFlightFence_ = VK_NULL_HANDLE;
 
     // Scene data
-    std::vector<Vertex> sceneVertices_;
-    uint32_t sceneVertexCount_ = 0;
     bool sceneDirty_ = false;
 
     // ImGui

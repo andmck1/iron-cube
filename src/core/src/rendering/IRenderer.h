@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "scene/Scene.h"
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
@@ -36,7 +37,7 @@ class IRenderer
      * Records and submits draw commands. Reads scene data from IScene service.
      * Call once per frame before swapBuffers().
      */
-    virtual void render() = 0;
+    virtual void renderScene(Scene *scene) = 0;
 
     /**
      * @brief Present the current frame and swap front/back buffers.
