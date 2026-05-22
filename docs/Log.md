@@ -15,3 +15,13 @@
     expected when using certain methods and use heatmaps using eg NVIDIA flip.
   - Noted the scene can evolve and isn't set to what was dictated in my research
     proposal.
+- Laith confirmed that as long as it's only for the renderer and I reference it
+  then it's fine
+- Remaining work for renderer:
+  - Better logging. I need to add debug lines, pass debug as a command argument
+    and output to a .log file per run.
+  - Remove constructor for mesh component
+  - Review pointer safety
+  - Review lack of consts
+  - Review graphics code
+  - Review all code and de-AIify it
