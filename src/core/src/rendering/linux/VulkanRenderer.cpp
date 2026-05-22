@@ -1,10 +1,12 @@
 #include "rendering/linux/VulkanRenderer.h"
+#include "ecs/component/meshComponent.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "rendering/linux/VulkanHelpers.h"
 #include "service/ServiceLocator.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+#include <algorithm>
 #include <spdlog/spdlog.h>
 #include <cstring>
 #include <fstream>
@@ -642,7 +644,7 @@ bool VulkanRenderer::beginFrame()
 {
     if (exitRequested_ && exitRequested_())
         return false;
-    
+
     VkResult result = vkAcquireNextImageKHR(
         device_, swapchain_, UINT64_MAX, imageAvailableSemaphore_,
         VK_NULL_HANDLE, &currentImageIndex_
@@ -712,6 +714,15 @@ bool VulkanRenderer::renderScene(Scene *scene)
 {
     if (!scene)
         return false;
+
+    for (Entity entity : scene->getEntities())
+    {
+        MeshComponent *meshComponent = entity.getComponent<MeshComponent>();
+        if (meshComponent)
+        {
+            meshComponent->render();
+        }
+    }
 
     std::vector<Vertex> vertices = scene->getVertices();
     uint32_t vertexCount = scene->getVertexCount();

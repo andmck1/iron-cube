@@ -6,7 +6,8 @@ class Scene
 {
     public:
     void addEntity(Entity entity);
+    std::vector<Entity> getEntities();
 
     private:
-    std::vector<Entity> entities;
+    std::vector<Entity> entities_;
 };
