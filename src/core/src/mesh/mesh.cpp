@@ -1,5 +1,5 @@
 #include "mesh/mesh.h"
-#include "rendering/IRenderer.h"
+#include "render/IRenderer.h"
 #include "service/ServiceLocator.h"
 
 void Mesh::setVertices(const std::vector<Vertex> &vertices)

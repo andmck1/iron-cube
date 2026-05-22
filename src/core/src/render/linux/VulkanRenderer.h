@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glm/ext/matrix_float4x4.hpp"
-#include "rendering/IRenderer.h"
+#include "render/IRenderer.h"
 #include "resource/IResourceManager.h"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>

@@ -1,7 +1,8 @@
 #include "material/MaterialsService.h"
 #include <spdlog/spdlog.h>
 
-Material *MaterialsService::registerMaterial(const std::string &name, Material material)
+Material *
+MaterialsService::registerMaterial(const std::string &name, Material material)
 {
     auto materialPtr = std::make_unique<Material>(std::move(material));
     Material *rawPtr = materialPtr.get();

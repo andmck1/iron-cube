@@ -121,7 +121,7 @@ int Application::initialiseEntities(Scene *scene)
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
     transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
 
-    MeshComponent *meshComponent = triangle->addComponent<MeshComponent>(
+    auto _ = triangle->addComponent<MeshComponent>(
         registeredMesh, registeredMaterial
     );
     scene->addEntity(std::move(triangle));
@@ -134,6 +134,7 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
+        debugLayerData_.timer.tick();
         platform_.pollEvents();
 
         if (!renderer_.beginFrame())

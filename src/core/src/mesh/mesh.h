@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rendering/IRenderer.h"
+#include "render/IRenderer.h"
 #include <vector>
 
 class Mesh

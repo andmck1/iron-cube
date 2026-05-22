@@ -1,5 +1,6 @@
 #pragma once
 
+#include "helpers/timer.h"
 #include "scene/Scene.h"
 class IDebugLayerData
 {
@@ -7,4 +8,5 @@ class IDebugLayerData
     virtual ~IDebugLayerData() = default;
 
     Scene *scene;
+    Timer timer;
 };

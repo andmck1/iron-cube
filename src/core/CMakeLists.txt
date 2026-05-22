@@ -35,8 +35,8 @@ add_library(
     src/platform/linux/WindowGLFW.cpp
     src/platform/linux/InputGLFW.cpp
     src/platform/linux/PlatformLinux.cpp
-    src/rendering/linux/VulkanRenderer.cpp
-    src/rendering/linux/VulkanHelpers.cpp
+    src/render/linux/VulkanRenderer.cpp
+    src/render/linux/VulkanHelpers.cpp
     src/scene/Scene.cpp
     src/resource/ResourceManager.cpp
     src/layer/DebugLayer.cpp
@@ -48,6 +48,8 @@ add_library(
     src/ecs/ecs.cpp
     src/ecs/component/transformComponent.cpp
     src/ecs/component/meshComponent.cpp
+    src/helpers/data.cpp
+    src/helpers/timer.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_demo.cpp

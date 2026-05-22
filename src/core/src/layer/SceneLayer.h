@@ -1,7 +1,7 @@
 #pragma once
 
 #include "layer/ILayer.h"
-#include "rendering/IRenderer.h"
+#include "render/IRenderer.h"
 #include "scene/Scene.h"
 
 class SceneLayer : public ILayer

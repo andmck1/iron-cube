@@ -3,39 +3,62 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/gtc/quaternion.hpp"
 
-void TransformComponent::setPosition(const glm::vec3 &pos)
+void TransformComponent::setTransform(const Transform &transform)
 {
-    position_ = pos;
+    transform_ = transform;
 }
 
-void TransformComponent::setRotation(const glm::quat &rot)
+void TransformComponent::setPosition(const glm::vec3 &position)
 {
-    rotation_ = rot;
+    transform_.position = position;
 }
 
-void TransformComponent::setScale(const glm::vec3 &s)
+void TransformComponent::setRotation(const glm::vec3 &rotation)
 {
-    scale_ = s;
+    transform_.rotation = rotation;
 }
 
+void TransformComponent::setScale(const glm::vec3 &scale)
+{
+    transform_.scale = scale;
+}
+
+const Transform &TransformComponent::getTransform() const
+{
+    return transform_;
+}
 const glm::vec3 &TransformComponent::getPosition() const
 {
-    return position_;
+    return transform_.position;
 }
-const glm::quat &TransformComponent::getRotation() const
+const glm::vec3 &TransformComponent::getRotation() const
 {
-    return rotation_;
+    return transform_.rotation;
 }
 const glm::vec3 &TransformComponent::getScale() const
 {
-    return scale_;
+    return transform_.scale;
 }
 
 glm::mat4 TransformComponent::getTransformMatrix() const
 {
-    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position_);
-    glm::mat4 rotationMatrix = glm::mat4_cast(rotation_);
-    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale_);
+    glm::mat4 translationMatrix =
+        glm::translate(glm::mat4(1.0f), transform_.position);
+
+    glm::mat4 rotationMatrix = glm::mat4(1.0f);
+    rotationMatrix = glm::rotate(
+        rotationMatrix, transform_.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)
+    );
+
+    rotationMatrix = glm::rotate(
+        rotationMatrix, transform_.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)
+    );
+
+    rotationMatrix = glm::rotate(
+        rotationMatrix, transform_.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)
+    );
+
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), transform_.scale);
 
     transformMatrix_ = translationMatrix * rotationMatrix * scaleMatrix;
     return transformMatrix_;
