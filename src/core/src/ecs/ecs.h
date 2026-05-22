@@ -12,16 +12,6 @@ class Component
     public:
     virtual ~Component() = default;
 
-    virtual void initialise()
-    {
-    }
-    virtual void update(float deltaTime)
-    {
-    }
-    virtual void render()
-    {
-    }
-
     void setOwner(Entity *entity)
     {
         owner_ = entity;
@@ -42,6 +32,11 @@ class Entity
     {
     }
 
+    Entity(Entity &&) = default;
+    Entity &operator=(Entity &&) = default;
+    Entity(const Entity &) = delete;
+    Entity &operator=(const Entity &) = delete;
+
     const std::string &getName() const
     {
         return name_;
@@ -53,36 +48,6 @@ class Entity
     void setActive(bool isActive)
     {
         active_ = isActive;
-    }
-
-    void initialise()
-    {
-        for (auto &component : components_)
-        {
-            component->initialise();
-        }
-    }
-
-    void update(float deltaTime)
-    {
-        if (!active_)
-            return;
-
-        for (auto &component : components_)
-        {
-            component->update(deltaTime);
-        }
-    }
-
-    void render()
-    {
-        if (!active_)
-            return;
-
-        for (auto &component : components_)
-        {
-            component->render();
-        }
     }
 
     template <typename T, typename... Args> T *addComponent(Args &&...args)
@@ -98,7 +63,7 @@ class Entity
         return componentPtr;
     }
 
-    template <typename T> T *getComponent()
+    template <typename T> T *getComponent() const
     {
         for (auto &component : components_)
         {

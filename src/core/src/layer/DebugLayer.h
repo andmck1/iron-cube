@@ -1,9 +1,17 @@
 #pragma once
 
+#include "glm/ext/vector_float3.hpp"
 #include "layer/DebugLayerData.h"
 #include "layer/ILayer.h"
 #include <chrono>
 #include <vector>
+
+struct TransformData
+{
+    glm::vec3 position = {0.0f, 0.0f, 0.0f};
+    glm::vec3 rotation = {0.0f, 0.0f, 0.0f};
+    float scale = 1.0f;
+};
 
 class DebugLayer : public ILayer
 {
@@ -26,4 +34,6 @@ class DebugLayer : public ILayer
     static constexpr size_t MaxFrameTimes = 300;
 
     bool showDemoWindow_ = true;
+
+    TransformData transform_;
 };

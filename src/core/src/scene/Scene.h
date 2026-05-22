@@ -1,13 +1,14 @@
 #pragma once
 
 #include "ecs/ecs.h"
+#include <vector>
 
 class Scene
 {
     public:
-    void addEntity(Entity entity);
-    std::vector<Entity> getEntities();
+    void addEntity(std::unique_ptr<Entity> entity);
+    const std::vector<std::unique_ptr<Entity>> &getEntities();
 
     private:
-    std::vector<Entity> entities_;
+    std::vector<std::unique_ptr<Entity>> entities_;
 };

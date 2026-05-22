@@ -6,7 +6,6 @@
 #include "service/ServiceLocator.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
-#include <algorithm>
 #include <spdlog/spdlog.h>
 #include <cstring>
 #include <fstream>
@@ -565,12 +564,12 @@ void VulkanRenderer::createUniformBuffer()
     );
 }
 
-void VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
+bool VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
 {
     IResourceManager *resourceManager =
         ServiceLocator::instance().get<IResourceManager>();
     if (!resourceManager)
-        return;
+        return false;
 
     // Free the old buffer if one exists
     if (vertexAlloc_.buffer != VK_NULL_HANDLE)
@@ -581,6 +580,8 @@ void VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
     }
 
     VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
+    if ((int) bufferSize > 10000)
+        return false;
     spdlog::info(
         "Reallocating vertex buffer: {} vertices, {} bytes", vertexCount,
         bufferSize
@@ -593,6 +594,8 @@ void VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
     );
 
     allocatedVertexCount_ = vertexCount;
+
+    return true;
 }
 
 void VulkanRenderer::createDescriptorSet()
@@ -715,73 +718,13 @@ bool VulkanRenderer::renderScene(Scene *scene)
     if (!scene)
         return false;
 
-    for (Entity entity : scene->getEntities())
+    for (const std::unique_ptr<Entity> &entity : scene->getEntities())
     {
-        MeshComponent *meshComponent = entity.getComponent<MeshComponent>();
+        MeshComponent *meshComponent = entity->getComponent<MeshComponent>();
         if (meshComponent)
         {
             meshComponent->render();
         }
-    }
-
-    std::vector<Vertex> vertices = scene->getVertices();
-    uint32_t vertexCount = scene->getVertexCount();
-
-    // Reallocate if the vertex count has changed (or buffer doesn't exist yet)
-    if (vertexCount != allocatedVertexCount_)
-        allocateVertexBuffer(vertexCount);
-
-    // Upload vertex data if dirty
-    if (vertexCount > 0)
-    {
-        IResourceManager *resourceManager =
-            ServiceLocator::instance().get<IResourceManager>();
-        if (resourceManager)
-        {
-            VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
-            void *data = resourceManager->mapMemory(vertexAlloc_, bufferSize);
-            if (data)
-            {
-                std::memcpy(
-                    data, vertices.data(), static_cast<size_t>(bufferSize)
-                );
-                resourceManager->unmapMemory(vertexAlloc_);
-            }
-        }
-    }
-
-    // Update MVP uniform
-    if (IResourceManager *resourceManager =
-            ServiceLocator::instance().get<IResourceManager>())
-    {
-        UBO ubo{};
-        ubo.model = glm::mat4(1.0f);
-        ubo.view = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        );
-        float aspect = swapchainExtent_.width /
-                       static_cast<float>(swapchainExtent_.height);
-        ubo.proj = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
-        ubo.proj[1][1] *= -1.0f;
-
-        VkDeviceSize uboSize = sizeof(UBO);
-        void *mapped = resourceManager->mapMemory(uniformAlloc_, uboSize);
-        if (mapped)
-        {
-            std::memcpy(mapped, &ubo, sizeof(UBO));
-            resourceManager->unmapMemory(uniformAlloc_);
-        }
-    }
-
-    if (vertexCount > 0)
-    {
-        VkBuffer vertexBuffers[] = {vertexAlloc_.buffer};
-        VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(
-            commandBuffers_[currentImageIndex_], 0, 1, vertexBuffers, offsets
-        );
-        vkCmdDraw(commandBuffers_[currentImageIndex_], vertexCount, 1, 0, 0);
     }
 
     return true;
@@ -826,6 +769,79 @@ bool VulkanRenderer::endFrame()
     vkQueuePresentKHR(graphicsQueue_, &presentInfo);
 
     return true;
+}
+
+bool VulkanRenderer::uploadVertices(const void *data, uint32_t count)
+{
+    if (count == 0)
+        return false;
+
+    if (count != allocatedVertexCount_)
+        if (!allocateVertexBuffer(count))
+            return false;
+
+    IResourceManager *resourceManager =
+        ServiceLocator::instance().get<IResourceManager>();
+    if (!resourceManager)
+        return false;
+
+    VkDeviceSize bufferSize = sizeof(Vertex) * count;
+    void *mapped = resourceManager->mapMemory(vertexAlloc_, bufferSize);
+    if (mapped)
+    {
+        std::memcpy(mapped, data, static_cast<size_t>(bufferSize));
+        resourceManager->unmapMemory(vertexAlloc_);
+    }
+
+    return true;
+}
+
+void VulkanRenderer::setUniformModelMatrix(glm::mat4 model)
+{
+    currentModelMatrix_ = model;
+    uniformDirty_ = true;
+}
+
+void VulkanRenderer::submitDraw(uint32_t vertexCount)
+{
+    if (vertexCount == 0)
+        return;
+
+    if (uniformDirty_)
+    {
+        IResourceManager *resourceManager =
+            ServiceLocator::instance().get<IResourceManager>();
+        if (resourceManager)
+        {
+            UBO ubo{};
+            ubo.model = currentModelMatrix_;
+            ubo.view = glm::lookAt(
+                glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+                glm::vec3(0.0f, 1.0f, 0.0f)
+            );
+            float aspect = swapchainExtent_.width /
+                           static_cast<float>(swapchainExtent_.height);
+            ubo.proj =
+                glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
+            ubo.proj[1][1] *= -1.0f;
+
+            VkDeviceSize uboSize = sizeof(UBO);
+            void *mapped = resourceManager->mapMemory(uniformAlloc_, uboSize);
+            if (mapped)
+            {
+                std::memcpy(mapped, &ubo, sizeof(UBO));
+                resourceManager->unmapMemory(uniformAlloc_);
+            }
+        }
+        uniformDirty_ = false;
+    }
+
+    VkBuffer vertexBuffers[] = {vertexAlloc_.buffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(
+        commandBuffers_[currentImageIndex_], 0, 1, vertexBuffers, offsets
+    );
+    vkCmdDraw(commandBuffers_[currentImageIndex_], vertexCount, 1, 0, 0);
 }
 
 void VulkanRenderer::swapBuffers()

@@ -26,6 +26,8 @@ int Application::registerServices()
     locator.registerService<IPlatform>(&platform_);
     locator.registerService<IRenderer>(&renderer_);
     locator.registerService<IResourceManager>(&resourceManager_);
+    locator.registerService<IMaterialsService>(&materialsService_);
+    locator.registerService<IMeshesService>(&meshesService_);
     return 0;
 }
 
@@ -87,29 +89,44 @@ int Application::createAndInitialiseLayers()
             return 1;
         }
     }
+    if (initialiseEntities(&sceneLayer->scene) != 0)
+        return 1;
 
     return 0;
 }
 
-void Application::initialiseEntities(Scene *scene)
+int Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
 
-    // TODO - this will likely fail as triangle will go out of scope
-    Entity triangle = Entity("triangle");
+    Mesh triangleMesh = Mesh();
+    triangleMesh.setVertices({
+        {{0.f, 1.f, 0.f}, {1.f, 0.f, 0.f}},
+        {{-0.866f, -0.5f, 0.f}, {0.f, 1.f, 0.f}},
+        {{0.866f, -0.5f, 0.f}, {0.f, 0.f, 1.f}},
+    });
+    Mesh *registeredMesh =
+        meshesService_.registerMesh("triangle", std::move(triangleMesh));
+
+    Material triangleMaterial = Material();
+    Material *registeredMaterial = materialsService_.registerMaterial(
+        "triangle", std::move(triangleMaterial)
+    );
+
+    std::unique_ptr<Entity> triangle = std::make_unique<Entity>("triangle");
 
     TransformComponent *transformComponent =
-        triangle.addComponent<TransformComponent>();
+        triangle->addComponent<TransformComponent>();
     transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
     transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
 
-    Mesh triangleMesh = Mesh();
-    Material triangleMaterial = Material();
-
-    MeshComponent *meshComponent =
-        triangle.addComponent<MeshComponent>(&triangleMesh, &triangleMaterial);
+    MeshComponent *meshComponent = triangle->addComponent<MeshComponent>(
+        registeredMesh, registeredMaterial
+    );
     scene->addEntity(std::move(triangle));
+
+    return 0;
 }
 
 void Application::mainLoop()

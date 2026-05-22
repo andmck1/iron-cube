@@ -36,6 +36,10 @@ class VulkanRenderer : public IRenderer
 
     void setExitRequestedCallback(std::function<bool()> callback);
 
+    bool uploadVertices(const void *data, uint32_t count) override;
+    void setUniformModelMatrix(glm::mat4 model) override;
+    void submitDraw(uint32_t vertexCount) override;
+
     private:
     void createInstance();
     void setupDebugMessenger();
@@ -51,7 +55,7 @@ class VulkanRenderer : public IRenderer
     void createCommandBuffers();
     void createUniformBuffer();
     void createDescriptorSet();
-    void allocateVertexBuffer(uint32_t vertexCount);
+    bool allocateVertexBuffer(uint32_t vertexCount);
     void cleanupSwapchain();
     void cleanup();
 
@@ -112,4 +116,7 @@ class VulkanRenderer : public IRenderer
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;
+
+    glm::mat4 currentModelMatrix_ = glm::mat4(1.0f);
+    bool uniformDirty_ = false;
 };

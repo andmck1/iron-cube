@@ -42,7 +42,9 @@ add_library(
     src/layer/DebugLayer.cpp
     src/layer/SceneLayer.cpp
     src/material/material.cpp
+    src/material/MaterialsService.cpp
     src/mesh/mesh.cpp
+    src/mesh/MeshesService.cpp
     src/ecs/ecs.cpp
     src/ecs/component/transformComponent.cpp
     src/ecs/component/meshComponent.cpp
