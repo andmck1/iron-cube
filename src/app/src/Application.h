@@ -16,16 +16,16 @@ class Application
     public:
     Application();
 
-    int run();
+    bool run();
 
     private:
     void initConfig();
-    int registerServices();
-    int initialisePlatform();
-    int initialiseRenderer();
-    int createAndInitialiseLayers();
+    bool registerServices();
+    bool initialisePlatform();
+    bool initialiseRenderer();
+    bool createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
-    int initialiseEntities(Scene *scene);
+    bool initialiseEntities(Scene *scene);
     void mainLoop();
     void shutdownLayers();
     void shutdownServices();

@@ -9,7 +9,7 @@ class Config
     public:
     Config() = default;
 
-    int initConfig();
+    bool initConfig();
 
     PlatformConfig getPlatformConfig() const;
 

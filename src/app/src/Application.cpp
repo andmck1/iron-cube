@@ -20,7 +20,7 @@ void Application::initConfig()
     platformConfig_ = config_.getPlatformConfig();
 }
 
-int Application::registerServices()
+bool Application::registerServices()
 {
     ServiceLocator &locator = ServiceLocator::instance();
     locator.registerService<IPlatform>(&platform_);
@@ -28,40 +28,40 @@ int Application::registerServices()
     locator.registerService<IResourceManager>(&resourceManager_);
     locator.registerService<IMaterialsService>(&materialsService_);
     locator.registerService<IMeshesService>(&meshesService_);
-    return 0;
+    return true;
 }
 
-int Application::initialisePlatform()
+bool Application::initialisePlatform()
 {
     if (!platform_.initialise())
     {
         spdlog::error("Platform initialisation failed");
-        return 1;
+        return false;
     }
 
     if (!platform_.createWindow(platformConfig_))
     {
         spdlog::error("Window creation failed");
         platform_.shutdown();
-        return 1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
-int Application::initialiseRenderer()
+bool Application::initialiseRenderer()
 {
     if (!renderer_.init(platform_.getGLFWWindow()))
     {
         spdlog::error("Renderer initialisation failed");
         platform_.shutdown();
-        return 1;
+        return false;
     }
 
     renderer_.setExitRequestedCallback([&]()
                                        { return platform_.shouldExit(); });
 
-    return 0;
+    return true;
 }
 
 void Application::initialiseDebugLayerData(Scene *scene)
@@ -69,7 +69,7 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.scene = scene;
 }
 
-int Application::createAndInitialiseLayers()
+bool Application::createAndInitialiseLayers()
 {
     layers_.push_back(std::make_unique<SceneLayer>());
     SceneLayer *sceneLayer = dynamic_cast<SceneLayer *>(layers_.back().get());
@@ -86,16 +86,16 @@ int Application::createAndInitialiseLayers()
             spdlog::error("Layer initialisation failed");
             renderer_.shutdown();
             platform_.shutdown();
-            return 1;
+            return false;
         }
     }
-    if (initialiseEntities(&sceneLayer->scene) != 0)
-        return 1;
+    if (!initialiseEntities(&sceneLayer->scene))
+        return false;
 
-    return 0;
+    return true;
 }
 
-int Application::initialiseEntities(Scene *scene)
+bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
 
@@ -126,7 +126,7 @@ int Application::initialiseEntities(Scene *scene)
     );
     scene->addEntity(std::move(triangle));
 
-    return 0;
+    return true;
 }
 
 void Application::mainLoop()
@@ -177,29 +177,29 @@ void Application::shutdownAll()
     shutdownServices();
 }
 
-int Application::run()
+bool Application::run()
 {
     spdlog::info("Iron Cube starting");
 
     try
     {
-        if (registerServices() != 0)
-            return 1;
-        if (initialisePlatform() != 0)
-            return 1;
-        if (initialiseRenderer() != 0)
-            return 1;
-        if (createAndInitialiseLayers() != 0)
-            return 1;
+        if (!registerServices())
+            return false;
+        if (!initialisePlatform())
+            return false;
+        if (!initialiseRenderer())
+            return false;
+        if (!createAndInitialiseLayers())
+            return false;
 
         mainLoop();
         shutdownAll();
-        return 0;
+        return true;
     }
     catch (const std::runtime_error &e)
     {
         spdlog::error("Fatal error: {}", e.what());
         shutdownAll();
-        return 1;
+        return false;
     }
 }

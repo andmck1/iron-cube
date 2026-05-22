@@ -2,7 +2,7 @@
 #include <yaml-cpp/yaml.h>
 #include <spdlog/spdlog.h>
 
-int Config::initConfig()
+bool Config::initConfig()
 {
     try
     {
@@ -11,9 +11,9 @@ int Config::initConfig()
     catch (const YAML::Exception &e)
     {
         spdlog::error("Failed to parse config file {}: {}", path_, e.what());
-        return 1;
+        return false;
     }
-    return 0;
+    return true;
 }
 
 PlatformConfig Config::getPlatformConfig() const
