@@ -1,14 +1,14 @@
 #pragma once
 
 #include "render/IRenderer.h"
-#include <vector>
+#include <string>
 
 class Mesh
 {
     public:
-    void setVertices(const std::vector<Vertex> &vertices);
+    void setGeometry(const std::string &geometryName);
     bool render();
 
     private:
-    std::vector<Vertex> vertices_ = {};
+    std::string geometryName_;
 };

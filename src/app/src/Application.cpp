@@ -99,12 +99,15 @@ bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
 
+    // Register procedural triangle geometry
+    auto triangleVertices = ResourceManager::generateProceduralTriangle();
+    resourceManager_.loadGeometry(
+        "triangle", triangleVertices,
+        static_cast<uint32_t>(triangleVertices->size())
+    );
+
     Mesh triangleMesh = Mesh();
-    triangleMesh.setVertices({
-        {{0.f, 1.f, 0.f}, {1.f, 0.f, 0.f}},
-        {{-0.866f, -0.5f, 0.f}, {0.f, 1.f, 0.f}},
-        {{0.866f, -0.5f, 0.f}, {0.f, 0.f, 1.f}},
-    });
+    triangleMesh.setGeometry("triangle");
     Mesh *registeredMesh =
         meshesService_.registerMesh("triangle", std::move(triangleMesh));
 

@@ -8,8 +8,7 @@
 VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT /*types*/,
-    const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
-    void * /*userData*/
+    const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *
 )
 {
     const char *message = callbackData ? callbackData->pMessage : "unknown";

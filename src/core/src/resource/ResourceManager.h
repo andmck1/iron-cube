@@ -1,24 +1,20 @@
+#pragma once
+
 #include "resource/IResourceManager.h"
 #include <spdlog/spdlog.h>
 
 class ResourceManager : public IResourceManager
 {
     public:
-    bool initialise(VkDevice device, VkPhysicalDevice physicalDevice) override;
-    BufferAllocation allocateBuffer(
-        VkDeviceSize size, VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags memoryProps
+    bool loadGeometry(
+        const std::string &name, std::shared_ptr<std::vector<Vertex>> verts,
+        uint32_t vertexCount
     ) override;
-    void *mapMemory(BufferAllocation &alloc, VkDeviceSize size) override;
-    void unmapMemory(BufferAllocation &alloc) override;
-    void freeBuffer(BufferAllocation &alloc) override;
-    void cleanup() override;
+    Geometry *getGeometry(const std::string &name) override;
+    bool unloadGeometry(const std::string &name) override;
+
+    static std::shared_ptr<std::vector<Vertex>> generateProceduralTriangle();
 
     private:
-    uint32_t
-    findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
-    VkDevice device_{VK_NULL_HANDLE};
-    VkPhysicalDevice physicalDevice_{VK_NULL_HANDLE};
-    std::vector<BufferAllocation> allocations_;
+    std::unordered_map<std::string, Geometry> geometries_;
 };

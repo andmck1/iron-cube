@@ -3,7 +3,6 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "render/linux/VulkanHelpers.h"
-#include "service/ServiceLocator.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <spdlog/spdlog.h>
@@ -37,13 +36,6 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
         createSurface();
         selectGPU();
         createLogicalDevice();
-
-        IResourceManager *resourceManager =
-            ServiceLocator::instance().get<IResourceManager>();
-        if (!resourceManager)
-            throw std::runtime_error("IResourceManager not registered");
-        if (!resourceManager->initialise(device_, physicalDevice_))
-            throw std::runtime_error("ResourceManager failed to initialise");
 
         createSwapchain();
         createImageViews();
@@ -557,12 +549,7 @@ void VulkanRenderer::createUniformBuffer()
 {
     VkDeviceSize bufferSize = sizeof(UBO);
 
-    IResourceManager *resourceManager =
-        ServiceLocator::instance().get<IResourceManager>();
-    if (!resourceManager)
-        throw std::runtime_error("Failed to get resource manager");
-
-    uniformAlloc_ = resourceManager->allocateBuffer(
+    uniformAlloc_ = allocateBuffer(
         bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -571,30 +558,93 @@ void VulkanRenderer::createUniformBuffer()
         throw std::runtime_error("Failed to allocate uniform buffer");
 }
 
+BufferAllocation VulkanRenderer::allocateBuffer(
+    VkDeviceSize size, VkBufferUsageFlags usage,
+    VkMemoryPropertyFlags properties
+)
+{
+    BufferAllocation alloc{};
+
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VkResult result =
+        vkCreateBuffer(device_, &bufferInfo, nullptr, &alloc.buffer);
+    vkCheck(result, "Failed to create buffer");
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device_, alloc.buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex =
+        findMemoryType(memRequirements.memoryTypeBits, properties);
+
+    result = vkAllocateMemory(device_, &allocInfo, nullptr, &alloc.memory);
+    vkCheck(result, "Failed to allocate buffer memory");
+
+    vkBindBufferMemory(device_, alloc.buffer, alloc.memory, 0);
+    return alloc;
+}
+
+void *VulkanRenderer::mapMemory(BufferAllocation &alloc, VkDeviceSize size)
+{
+    void *data;
+    VkResult result = vkMapMemory(device_, alloc.memory, 0, size, 0, &data);
+    if (result != VK_SUCCESS)
+    {
+        spdlog::error("Failed to map memory");
+        return nullptr;
+    }
+    return data;
+}
+
+void VulkanRenderer::unmapMemory(BufferAllocation &alloc)
+{
+    vkUnmapMemory(device_, alloc.memory);
+}
+
+void VulkanRenderer::freeBuffer(BufferAllocation &alloc)
+{
+    if (alloc.buffer != VK_NULL_HANDLE)
+    {
+        vkDestroyBuffer(device_, alloc.buffer, nullptr);
+        alloc.buffer = VK_NULL_HANDLE;
+    }
+    if (alloc.memory != VK_NULL_HANDLE)
+    {
+        vkFreeMemory(device_, alloc.memory, nullptr);
+        alloc.memory = VK_NULL_HANDLE;
+    }
+}
+
 bool VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
 {
-    IResourceManager *resourceManager =
-        ServiceLocator::instance().get<IResourceManager>();
-    if (!resourceManager)
-        return false;
-
-    // Free the old buffer if one exists
     if (vertexAlloc_.buffer != VK_NULL_HANDLE)
     {
-        vkCheck(vkDeviceWaitIdle(device_), "Device wait idle failed");
-        resourceManager->freeBuffer(vertexAlloc_);
+        VkResult waitResult = vkDeviceWaitIdle(device_);
+        if (waitResult != VK_SUCCESS && waitResult != VK_ERROR_DEVICE_LOST)
+            throw std::runtime_error(
+                std::string("Device wait idle failed") +
+                " (VkResult: " + std::to_string(waitResult) + ")"
+            );
+        freeBuffer(vertexAlloc_);
         vertexAlloc_ = BufferAllocation{};
     }
 
     VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
-    if ((int) bufferSize > 10000)
+    if (bufferSize > 10000)
         return false;
     spdlog::info(
         "Reallocating vertex buffer: {} vertices, {} bytes", vertexCount,
         bufferSize
     );
 
-    vertexAlloc_ = resourceManager->allocateBuffer(
+    vertexAlloc_ = allocateBuffer(
         bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -802,82 +852,74 @@ bool VulkanRenderer::endFrame()
     return true;
 }
 
-bool VulkanRenderer::uploadVertices(const void *data, uint32_t count)
-{
-    if (count == 0)
-        return false;
-
-    if (count != allocatedVertexCount_)
-        if (!allocateVertexBuffer(count))
-            return false;
-
-    IResourceManager *resourceManager =
-        ServiceLocator::instance().get<IResourceManager>();
-    if (!resourceManager)
-        return false;
-
-    VkDeviceSize bufferSize = sizeof(Vertex) * count;
-    void *mapped = resourceManager->mapMemory(vertexAlloc_, bufferSize);
-    if (mapped)
-    {
-        std::memcpy(mapped, data, static_cast<size_t>(bufferSize));
-        resourceManager->unmapMemory(vertexAlloc_);
-    }
-
-    return true;
-}
-
 void VulkanRenderer::setUniformModelMatrix(glm::mat4 model)
 {
     currentModelMatrix_ = model;
     uniformDirty_ = true;
 }
 
-void VulkanRenderer::submitDraw(uint32_t vertexCount)
+bool VulkanRenderer::drawGeometry(Geometry *geometry)
 {
-    if (vertexCount == 0)
-        return;
+    if (!geometry || !geometry->vertices || geometry->vertexCount == 0)
+        return false;
 
+    // Allocate or reallocate vertex buffer if needed
+    if (geometry->vertexCount != allocatedVertexCount_)
+    {
+        if (!allocateVertexBuffer(geometry->vertexCount))
+            return false;
+    }
+
+    // Upload vertex data
+    VkDeviceSize bufferSize = sizeof(Vertex) * geometry->vertexCount;
+    void *mapped = mapMemory(vertexAlloc_, bufferSize);
+    if (mapped)
+    {
+        std::memcpy(
+            mapped, geometry->vertices->data(), static_cast<size_t>(bufferSize)
+        );
+        unmapMemory(vertexAlloc_);
+    }
+
+    // Update uniform buffer if dirty
     if (uniformDirty_)
     {
-        IResourceManager *resourceManager =
-            ServiceLocator::instance().get<IResourceManager>();
-        if (resourceManager)
-        {
-            UBO ubo{};
-            ubo.model = currentModelMatrix_;
-            ubo.view = glm::lookAt(
-                glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-                glm::vec3(0.0f, 1.0f, 0.0f)
-            );
-            float aspect = swapchainExtent_.width /
-                           static_cast<float>(swapchainExtent_.height);
-            ubo.proj =
-                glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
-            ubo.proj[1][1] *= -1.0f;
+        UBO ubo{};
+        ubo.model = currentModelMatrix_;
+        ubo.view = glm::lookAt(
+            glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+        float aspect = swapchainExtent_.width /
+                       static_cast<float>(swapchainExtent_.height);
+        ubo.proj = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
+        ubo.proj[1][1] *= -1.0f;
 
-            VkDeviceSize uboSize = sizeof(UBO);
-            void *mapped = resourceManager->mapMemory(uniformAlloc_, uboSize);
-            if (mapped)
-            {
-                std::memcpy(mapped, &ubo, sizeof(UBO));
-                resourceManager->unmapMemory(uniformAlloc_);
-            }
+        VkDeviceSize uboSize = sizeof(UBO);
+        void *uboMapped = mapMemory(uniformAlloc_, uboSize);
+        if (uboMapped)
+        {
+            std::memcpy(uboMapped, &ubo, sizeof(UBO));
+            unmapMemory(uniformAlloc_);
         }
         uniformDirty_ = false;
     }
 
+    // Bind vertex buffer and draw
     VkBuffer vertexBuffers[] = {vertexAlloc_.buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(
         commandBuffers_[currentImageIndex_], 0, 1, vertexBuffers, offsets
     );
-    vkCmdDraw(commandBuffers_[currentImageIndex_], vertexCount, 1, 0, 0);
+    vkCmdDraw(
+        commandBuffers_[currentImageIndex_], geometry->vertexCount, 1, 0, 0
+    );
+
+    return true;
 }
 
 void VulkanRenderer::swapBuffers()
 {
-    // Present is handled in render() for Vulkan
 }
 
 bool VulkanRenderer::initImGui()
@@ -893,7 +935,6 @@ bool VulkanRenderer::initImGui()
     GLFWwindow *glfwWindow = window_;
     ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
 
-    // Create descriptor pool for ImGui
     VkDescriptorPoolSize poolSizes[] = {
         {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
@@ -1022,7 +1063,12 @@ void VulkanRenderer::cleanup()
 {
     if (device_ != VK_NULL_HANDLE)
     {
-        vkCheck(vkDeviceWaitIdle(device_), "Device wait idle failed");
+        VkResult waitResult = vkDeviceWaitIdle(device_);
+        if (waitResult != VK_SUCCESS && waitResult != VK_ERROR_DEVICE_LOST)
+            throw std::runtime_error(
+                std::string("Device wait idle failed") +
+                " (VkResult: " + std::to_string(waitResult) + ")"
+            );
 
         for (VkFramebuffer_T *&framebuffer : framebuffers_)
             vkDestroyFramebuffer(device_, framebuffer, nullptr);
@@ -1030,13 +1076,17 @@ void VulkanRenderer::cleanup()
         for (VkImageView_T *&imageView : swapchainImageViews_)
             vkDestroyImageView(device_, imageView, nullptr);
 
-        // Cleanup vertex buffer via resource manager
-        IResourceManager *resourceManager =
-            ServiceLocator::instance().get<IResourceManager>();
-        if (resourceManager && vertexAlloc_.buffer != VK_NULL_HANDLE)
+        // Cleanup vertex buffer
+        if (vertexAlloc_.buffer != VK_NULL_HANDLE)
         {
-            resourceManager->cleanup();
+            freeBuffer(vertexAlloc_);
             vertexAlloc_ = BufferAllocation{};
+        }
+        // Cleanup uniform buffer
+        if (uniformAlloc_.buffer != VK_NULL_HANDLE)
+        {
+            freeBuffer(uniformAlloc_);
+            uniformAlloc_ = BufferAllocation{};
         }
         if (graphicsPipeline_ != VK_NULL_HANDLE)
         {
@@ -1096,8 +1146,6 @@ void VulkanRenderer::cleanup()
         instance_ = VK_NULL_HANDLE;
     }
 }
-
-// --- Helpers ---
 
 bool VulkanRenderer::checkValidationLayerSupport() const
 {

@@ -1,25 +1,32 @@
 #include "mesh/mesh.h"
 #include "render/IRenderer.h"
+#include "resource/IResourceManager.h"
 #include "service/ServiceLocator.h"
 
-void Mesh::setVertices(const std::vector<Vertex> &vertices)
+void Mesh::setGeometry(const std::string &geometryName)
 {
-    vertices_ = vertices;
+    geometryName_ = geometryName;
 }
 
 bool Mesh::render()
 {
-    if (vertices_.empty())
+    if (geometryName_.empty())
+        return false;
+
+    IResourceManager *resourceManager =
+        ServiceLocator::instance().get<IResourceManager>();
+    if (!resourceManager)
+        return false;
+
+    Geometry *geometry = resourceManager->getGeometry(geometryName_);
+    if (!geometry)
         return false;
 
     IRenderer *renderer = ServiceLocator::instance().get<IRenderer>();
     if (!renderer)
         return false;
 
-    renderer->uploadVertices(
-        vertices_.data(), static_cast<uint32_t>(vertices_.size())
-    );
-    renderer->submitDraw(static_cast<uint32_t>(vertices_.size()));
+    renderer->drawGeometry(geometry);
 
     return true;
 }

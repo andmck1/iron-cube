@@ -2,7 +2,6 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 #include "render/IRenderer.h"
-#include "resource/IResourceManager.h"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
@@ -19,6 +18,13 @@ struct alignas(16) UBO
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 proj;
+};
+
+struct BufferAllocation
+{
+    VkBuffer buffer{VK_NULL_HANDLE};
+    VkDeviceMemory memory{VK_NULL_HANDLE};
+    VkDeviceSize size{0};
 };
 
 class VulkanRenderer : public IRenderer
@@ -38,9 +44,8 @@ class VulkanRenderer : public IRenderer
 
     void setExitRequestedCallback(std::function<bool()> callback);
 
-    bool uploadVertices(const void *data, uint32_t count) override;
     void setUniformModelMatrix(glm::mat4 model) override;
-    void submitDraw(uint32_t vertexCount) override;
+    bool drawGeometry(Geometry *geometry) override;
     void setDeltaTime(float deltaSeconds) override;
 
     private:
@@ -58,9 +63,17 @@ class VulkanRenderer : public IRenderer
     void createCommandBuffers();
     void createUniformBuffer();
     void createDescriptorSet();
-    bool allocateVertexBuffer(uint32_t vertexCount);
     void cleanupSwapchain();
     void cleanup();
+
+    BufferAllocation allocateBuffer(
+        VkDeviceSize size, VkBufferUsageFlags usage,
+        VkMemoryPropertyFlags properties
+    );
+    void *mapMemory(BufferAllocation &alloc, VkDeviceSize size);
+    void unmapMemory(BufferAllocation &alloc);
+    void freeBuffer(BufferAllocation &alloc);
+    bool allocateVertexBuffer(uint32_t vertexCount);
 
     std::vector<char> readFile(const std::string &filename) const;
     VkShaderModule createShaderModule(const std::vector<char> &code) const;

@@ -1,28 +1,18 @@
 #pragma once
-#include <vulkan/vulkan.h>
 
-struct BufferAllocation
-{
-    VkBuffer buffer{VK_NULL_HANDLE};
-    VkDeviceMemory memory{VK_NULL_HANDLE};
-    VkDeviceSize size{0};
-};
+#include "common/types.h"
+#include <string>
 
 class IResourceManager
 {
     public:
     virtual ~IResourceManager() = default;
 
-    virtual bool
-    initialise(VkDevice device, VkPhysicalDevice physicalDevice) = 0;
-
-    virtual BufferAllocation allocateBuffer(
-        VkDeviceSize size, VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags memoryProps = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    virtual bool loadGeometry(
+        const std::string &name, std::shared_ptr<std::vector<Vertex>> verts,
+        uint32_t vertexCount
     ) = 0;
 
-    virtual void *mapMemory(BufferAllocation &alloc, VkDeviceSize size) = 0;
-    virtual void unmapMemory(BufferAllocation &alloc) = 0;
-    virtual void freeBuffer(BufferAllocation &alloc) = 0;
-    virtual void cleanup() = 0;
+    virtual Geometry *getGeometry(const std::string &name) = 0;
+    virtual bool unloadGeometry(const std::string &name) = 0;
 };
