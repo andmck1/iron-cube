@@ -658,6 +658,11 @@ void VulkanRenderer::setExitRequestedCallback(std::function<bool()> callback)
     exitRequested_ = callback;
 }
 
+void VulkanRenderer::setDeltaTime(float deltaSeconds)
+{
+    deltaTime_ = deltaSeconds;
+}
+
 bool VulkanRenderer::beginFrame()
 {
     if (exitRequested_ && exitRequested_())
@@ -960,7 +965,7 @@ bool VulkanRenderer::newFrame()
         static_cast<float>(swapchainExtent_.height)
     );
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-    io.DeltaTime = 1.0f / 60.0f;
+    io.DeltaTime = deltaTime_;
 
     // Platform/Renderer backend new frame
     ImGui_ImplGlfw_NewFrame();

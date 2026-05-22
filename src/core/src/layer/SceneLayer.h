@@ -1,7 +1,6 @@
 #pragma once
 
 #include "layer/ILayer.h"
-#include "render/IRenderer.h"
 #include "scene/Scene.h"
 
 class SceneLayer : public ILayer
@@ -10,9 +9,7 @@ class SceneLayer : public ILayer
     Scene scene = Scene();
 
     bool initialise() override;
-    void render() override;
+    bool render() override;
     void shutdown() override;
 
-    private:
-    IRenderer *renderer_;
 };

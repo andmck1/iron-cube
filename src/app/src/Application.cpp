@@ -135,6 +135,7 @@ void Application::mainLoop()
     while (!platform_.shouldExit())
     {
         debugLayerData_.timer.tick();
+        renderer_.setDeltaTime(debugLayerData_.timer.getDeltaSeconds());
         platform_.pollEvents();
 
         if (!renderer_.beginFrame())
@@ -147,9 +148,6 @@ void Application::mainLoop()
         {
             layer->render();
         }
-
-        if (!renderer_.renderImGui())
-            return;
 
         if (!renderer_.endFrame())
             return;

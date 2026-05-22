@@ -29,4 +29,5 @@ class IRenderer
     virtual bool uploadVertices(const void *data, uint32_t count) = 0;
     virtual void setUniformModelMatrix(glm::mat4 model) = 0;
     virtual void submitDraw(uint32_t vertexCount) = 0;
+    virtual void setDeltaTime(float deltaSeconds) = 0;
 };

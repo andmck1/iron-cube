@@ -8,15 +8,13 @@ class DebugLayer : public ILayer
 {
     public:
     bool initialise() override;
-    void render() override;
+    bool render() override;
     void shutdown() override;
 
     void setDebugData(DebugLayerData *debugData);
 
     private:
     DebugLayerData *debugData_;
-
-    bool showDemoWindow_ = true;
 
     Transform triangleTransform_;
 };

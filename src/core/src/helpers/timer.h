@@ -13,6 +13,7 @@ class Timer
 
     float getFps() const;
     float getFrameTime() const;
+    float getDeltaSeconds() const;
     const std::vector<float> &getFrameTimes() const;
 
     private:

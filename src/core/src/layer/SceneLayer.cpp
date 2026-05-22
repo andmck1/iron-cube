@@ -1,5 +1,4 @@
 #include "layer/SceneLayer.h"
-#include "render/IRenderer.h"
 #include "service/ServiceLocator.h"
 #include <spdlog/spdlog.h>
 
@@ -10,12 +9,12 @@ bool SceneLayer::initialise()
     return true;
 }
 
-void SceneLayer::render()
+bool SceneLayer::render()
 {
-    if (renderer_)
-    {
-        renderer_->renderScene(&scene);
-    }
+    if (!renderer_)
+        return false;
+    renderer_->renderScene(&scene);
+    return true;
 }
 
 void SceneLayer::shutdown()

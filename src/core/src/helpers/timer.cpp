@@ -38,6 +38,11 @@ float Timer::getFrameTime() const
     return frameTime_;
 }
 
+float Timer::getDeltaSeconds() const
+{
+    return frameTime_ / 1000.0f;
+}
+
 const std::vector<float> &Timer::getFrameTimes() const
 {
     return frameTimes_;

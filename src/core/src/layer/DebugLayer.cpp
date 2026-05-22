@@ -1,5 +1,6 @@
 #include "layer/DebugLayer.h"
 #include "ecs/component/transformComponent.h"
+#include "service/ServiceLocator.h"
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
@@ -10,13 +11,12 @@ void DebugLayer::setDebugData(DebugLayerData *debugData)
 
 bool DebugLayer::initialise()
 {
-    showDemoWindow_ = false;
-
     spdlog::info("DebugLayer initialised");
+    renderer_ = ServiceLocator::instance().get<IRenderer>();
     return true;
 }
 
-void DebugLayer::render()
+bool DebugLayer::render()
 {
     // Debug overlay window
     ImGui::Begin(
@@ -33,7 +33,7 @@ void DebugLayer::render()
     const auto &frameTimes = debugData_->timer.getFrameTimes();
     if (!frameTimes.empty())
     {
-        float maxTime = 16.67f;
+        float maxTime = 33.33f;
         ImGui::PlotLines(
             "##FrameTime", frameTimes.data(),
             static_cast<int>(frameTimes.size()), 0, nullptr, 0.0f, maxTime,
@@ -68,9 +68,10 @@ void DebugLayer::render()
 
     ImGui::End();
 
-    // Optional ImGui demo window
-    if (showDemoWindow_)
-        ImGui::ShowDemoWindow(&showDemoWindow_);
+    if (!renderer_->renderImGui())
+        return false;
+
+    return true;
 }
 
 void DebugLayer::shutdown()
