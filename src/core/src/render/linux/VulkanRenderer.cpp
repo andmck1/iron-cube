@@ -462,8 +462,11 @@ void VulkanRenderer::createGraphicsPipeline()
     layoutInfo.bindingCount = 1;
     layoutInfo.pBindings = &uboLayoutBinding;
 
-    vkCreateDescriptorSetLayout(
-        device_, &layoutInfo, nullptr, &descriptorSetLayout_
+    vkCheck(
+        vkCreateDescriptorSetLayout(
+            device_, &layoutInfo, nullptr, &descriptorSetLayout_
+        ),
+        "Failed to create descriptor set layout"
     );
 
     VkResult result = vkCreatePipelineLayout(
@@ -556,12 +559,16 @@ void VulkanRenderer::createUniformBuffer()
 
     IResourceManager *resourceManager =
         ServiceLocator::instance().get<IResourceManager>();
+    if (!resourceManager)
+        throw std::runtime_error("Failed to get resource manager");
 
     uniformAlloc_ = resourceManager->allocateBuffer(
         bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     );
+    if (uniformAlloc_.buffer == VK_NULL_HANDLE)
+        throw std::runtime_error("Failed to allocate uniform buffer");
 }
 
 bool VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
@@ -574,7 +581,7 @@ bool VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
     // Free the old buffer if one exists
     if (vertexAlloc_.buffer != VK_NULL_HANDLE)
     {
-        vkDeviceWaitIdle(device_);
+        vkCheck(vkDeviceWaitIdle(device_), "Device wait idle failed");
         resourceManager->freeBuffer(vertexAlloc_);
         vertexAlloc_ = BufferAllocation{};
     }
@@ -592,6 +599,8 @@ bool VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     );
+    if (vertexAlloc_.buffer == VK_NULL_HANDLE)
+        return false;
 
     allocatedVertexCount_ = vertexCount;
 
@@ -611,7 +620,10 @@ void VulkanRenderer::createDescriptorSet()
     poolInfo.maxSets = 1;
     poolInfo.flags = 0;
 
-    vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_);
+    vkCheck(
+        vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_),
+        "Failed to create descriptor pool"
+    );
 
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -619,7 +631,10 @@ void VulkanRenderer::createDescriptorSet()
     allocInfo.descriptorSetCount = 1;
     allocInfo.pSetLayouts = &descriptorSetLayout_;
 
-    vkAllocateDescriptorSets(device_, &allocInfo, &descriptorSet_);
+    vkCheck(
+        vkAllocateDescriptorSets(device_, &allocInfo, &descriptorSet_),
+        "Failed to allocate descriptor sets"
+    );
 
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = uniformAlloc_.buffer;
@@ -649,7 +664,7 @@ bool VulkanRenderer::beginFrame()
         return false;
 
     VkResult result = vkAcquireNextImageKHR(
-        device_, swapchain_, UINT64_MAX, imageAvailableSemaphore_,
+        device_, swapchain_, kGpuOperationTimeoutNs, imageAvailableSemaphore_,
         VK_NULL_HANDLE, &currentImageIndex_
     );
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -664,13 +679,18 @@ bool VulkanRenderer::beginFrame()
     }
     vkCheck(result, "Failed to acquire swap chain image");
 
-    vkWaitForFences(device_, 1, &inFlightFence_, VK_TRUE, UINT64_MAX);
+    vkWaitForFences(
+        device_, 1, &inFlightFence_, VK_TRUE, kGpuOperationTimeoutNs
+    );
     vkResetFences(device_, 1, &inFlightFence_);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-    vkBeginCommandBuffer(commandBuffers_[currentImageIndex_], &beginInfo);
+    vkCheck(
+        vkBeginCommandBuffer(commandBuffers_[currentImageIndex_], &beginInfo),
+        "Failed to begin command buffer"
+    );
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -739,7 +759,10 @@ bool VulkanRenderer::endFrame()
         return false;
 
     vkCmdEndRenderPass(commandBuffers_[currentImageIndex_]);
-    vkEndCommandBuffer(commandBuffers_[currentImageIndex_]);
+    vkCheck(
+        vkEndCommandBuffer(commandBuffers_[currentImageIndex_]),
+        "Failed to end command buffer"
+    );
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -766,7 +789,10 @@ bool VulkanRenderer::endFrame()
     presentInfo.pSwapchains = &swapchain_;
     presentInfo.pImageIndices = &currentImageIndex_;
 
-    vkQueuePresentKHR(graphicsQueue_, &presentInfo);
+    vkCheck(
+        vkQueuePresentKHR(graphicsQueue_, &presentInfo),
+        "Failed to present frame"
+    );
 
     return true;
 }
@@ -991,7 +1017,7 @@ void VulkanRenderer::cleanup()
 {
     if (device_ != VK_NULL_HANDLE)
     {
-        vkDeviceWaitIdle(device_);
+        vkCheck(vkDeviceWaitIdle(device_), "Device wait idle failed");
 
         for (VkFramebuffer_T *&framebuffer : framebuffers_)
             vkDestroyFramebuffer(device_, framebuffer, nullptr);

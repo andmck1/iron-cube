@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <functional>
 
+static constexpr uint64_t kGpuOperationTimeoutNs = 100'000'000;
+
 struct alignas(16) UBO
 {
     glm::mat4 model;

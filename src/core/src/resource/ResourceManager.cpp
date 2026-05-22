@@ -36,11 +36,24 @@ BufferAllocation ResourceManager::allocateBuffer(
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(device_, alloc.buffer, &memRequirements);
 
+    uint32_t memoryTypeIndex;
+    try
+    {
+        memoryTypeIndex =
+            findMemoryType(memRequirements.memoryTypeBits, memoryProps);
+    }
+    catch (const std::runtime_error &e)
+    {
+        spdlog::error("Failed to find memory type: {}", e.what());
+        vkDestroyBuffer(device_, alloc.buffer, nullptr);
+        alloc.buffer = VK_NULL_HANDLE;
+        return alloc;
+    }
+
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex =
-        findMemoryType(memRequirements.memoryTypeBits, memoryProps);
+    allocInfo.memoryTypeIndex = memoryTypeIndex;
 
     result = vkAllocateMemory(device_, &allocInfo, nullptr, &alloc.memory);
     if (result != VK_SUCCESS)
