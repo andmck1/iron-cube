@@ -338,28 +338,18 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipelineConfig &config)
     spdlog::debug("Creating graphics pipeline");
     currentPipelineConfig_ = config;
 
-    ShaderPipeline shaderPipeline(
-        device_, config.vertexShaderPath, config.fragmentShaderPath
-    );
-
-    VkShaderModule vertShaderModule = shaderPipeline.getVertexModule();
-    VkShaderModule fragShaderModule = shaderPipeline.getFragmentModule();
-
-    VkPipelineShaderStageCreateInfo vertShaderStage{};
-    vertShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertShaderStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertShaderStage.module = vertShaderModule;
-    vertShaderStage.pName = "main";
-
-    VkPipelineShaderStageCreateInfo fragShaderStage{};
-    fragShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragShaderStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragShaderStage.module = fragShaderModule;
-    fragShaderStage.pName = "main";
-
-    VkPipelineShaderStageCreateInfo shaderStages[] = {
-        vertShaderStage, fragShaderStage
-    };
+    // Create shader instances from definitions
+    shaders_.clear();
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    for (const auto &shaderDef : config.shaders)
+    {
+        shaders_.push_back(
+            std::make_unique<Shader>(
+                device_, shaderDef.path, shaderDef.stage, shaderDef.entryPoint
+            )
+        );
+        shaderStages.push_back(shaders_.back()->getShaderStageInfo());
+    }
 
     std::vector<VkVertexInputBindingDescription> bindingDescriptions;
     for (const auto &vb : config.vertexBindings)
@@ -475,8 +465,8 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipelineConfig &config)
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = 2;
-    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+    pipelineInfo.pStages = shaderStages.data();
     pipelineInfo.pVertexInputState = &vertexInput;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
     pipelineInfo.pViewportState = &viewportState;
@@ -493,10 +483,6 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipelineConfig &config)
         device_, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline_
     );
     vkCheck(result, "Failed to create graphics pipeline");
-
-    // ShaderPipeline destructor cleans up shader modules via RAII.
-    // Vulkan copies shader code into the pipeline, so modules are
-    // safe to destroy after pipeline creation.
 }
 
 void VulkanRenderer::createFramebuffers()

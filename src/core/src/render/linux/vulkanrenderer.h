@@ -1,8 +1,9 @@
 #pragma once
 
 #include "material/material.h"
-#include "shader/shaderpipeline.h"
+#include "shader/shader.h"
 #include "glm/ext/matrix_float4x4.hpp"
+#include <memory>
 #include "render/irenderer.h"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -132,4 +133,5 @@ class VulkanRenderer : public IRenderer
     bool uniformDirty_ = false;
     float deltaTime_ = 1.0f / 60.0f;
     ShaderPipelineConfig currentPipelineConfig_;
+    std::vector<std::unique_ptr<IShader>> shaders_;
 };

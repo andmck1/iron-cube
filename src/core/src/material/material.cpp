@@ -6,8 +6,15 @@
 Material::Material()
 {
     // TODO - default should be empty and I should check for empty
-    config_.vertexShaderPath = "build/shaders/triangle.vert.spv";
-    config_.fragmentShaderPath = "build/shaders/triangle.frag.spv";
+    ShaderDefinition vertShader;
+    vertShader.path = "build/shaders/triangle.vert.spv";
+    vertShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    config_.shaders.push_back(vertShader);
+
+    ShaderDefinition fragShader;
+    fragShader.path = "build/shaders/triangle.frag.spv";
+    fragShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    config_.shaders.push_back(fragShader);
 
     VertexBinding binding;
     binding.binding = 0;

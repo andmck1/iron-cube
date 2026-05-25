@@ -32,10 +32,16 @@ struct DynamicState
     VkDynamicState state;
 };
 
+struct ShaderDefinition
+{
+    std::string path;
+    VkShaderStageFlagBits stage = VK_SHADER_STAGE_VERTEX_BIT;
+    const char *entryPoint = "main";
+};
+
 struct ShaderPipelineConfig
 {
-    std::string vertexShaderPath;
-    std::string fragmentShaderPath;
+    std::vector<ShaderDefinition> shaders;
 
     std::vector<VertexBinding> vertexBindings;
     std::vector<VertexAttribute> vertexAttributes;
