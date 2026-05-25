@@ -44,32 +44,10 @@ bool VulkanRenderer::init(IPlatform *platform)
         createImageViews();
         createRenderPass();
 
-        // Build default triangle material pipeline
-        Material defaultMaterial;
-        createGraphicsPipeline(defaultMaterial.getPipeline());
-        createFramebuffers();
-        createCommandPool();
-        createCommandBuffers();
-        createUniformBuffer();
-        createDescriptorSet();
-
         if (!initImGui())
             throw std::runtime_error("ImGui failed to initialise");
 
-        VkSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-        VkFenceCreateInfo fenceInfo{};
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-        vkCreateSemaphore(
-            device_, &semaphoreInfo, nullptr, &imageAvailableSemaphore_
-        );
-        vkCreateSemaphore(
-            device_, &semaphoreInfo, nullptr, &renderFinishedSemaphore_
-        );
-        vkCreateFence(device_, &fenceInfo, nullptr, &inFlightFence_);
+        createSynchronizationPrimitives();
 
         spdlog::info("VulkanRenderer initialised successfully");
         return true;
@@ -736,6 +714,27 @@ void VulkanRenderer::createDescriptorSet()
     vkUpdateDescriptorSets(device_, 1, &write, 0, nullptr);
 }
 
+void VulkanRenderer::createSynchronizationPrimitives()
+{
+    spdlog::debug("Creating synchronization primitives");
+
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    vkCreateSemaphore(
+        device_, &semaphoreInfo, nullptr, &imageAvailableSemaphore_
+    );
+    vkCreateSemaphore(
+        device_, &semaphoreInfo, nullptr, &renderFinishedSemaphore_
+    );
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    vkCreateFence(device_, &fenceInfo, nullptr, &inFlightFence_);
+}
+
 void VulkanRenderer::setExitRequestedCallback(std::function<bool()> callback)
 {
     exitRequested_ = callback;
@@ -750,6 +749,19 @@ bool VulkanRenderer::beginFrame()
 {
     if (exitRequested_ && exitRequested_())
         return false;
+
+    // Lazy-initialise pipeline and related resources on first frame
+    if (!pipelineInitialised_)
+    {
+        Material defaultMaterial;
+        createGraphicsPipeline(defaultMaterial.getPipeline());
+        createFramebuffers();
+        createCommandPool();
+        createCommandBuffers();
+        createUniformBuffer();
+        createDescriptorSet();
+        pipelineInitialised_ = true;
+    }
 
     VkResult result = vkAcquireNextImageKHR(
         device_, swapchain_, kGpuOperationTimeoutNs, imageAvailableSemaphore_,
@@ -1128,6 +1140,18 @@ void VulkanRenderer::cleanup()
         {
             freeBuffer(uniformAlloc_);
             uniformAlloc_ = BufferAllocation{};
+        }
+        if (descriptorPool_ != VK_NULL_HANDLE)
+        {
+            vkDestroyDescriptorPool(device_, descriptorPool_, nullptr);
+            descriptorPool_ = VK_NULL_HANDLE;
+        }
+        if (descriptorSetLayout_ != VK_NULL_HANDLE)
+        {
+            vkDestroyDescriptorSetLayout(
+                device_, descriptorSetLayout_, nullptr
+            );
+            descriptorSetLayout_ = VK_NULL_HANDLE;
         }
         if (graphicsPipeline_ != VK_NULL_HANDLE)
         {

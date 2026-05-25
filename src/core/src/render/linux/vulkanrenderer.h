@@ -57,6 +57,7 @@ class VulkanRenderer : public IRenderer
     void createCommandBuffers();
     void createUniformBuffer();
     void createDescriptorSet();
+    void createSynchronizationPrimitives();
     void cleanupSwapchain();
     void cleanup();
 
@@ -130,6 +131,7 @@ class VulkanRenderer : public IRenderer
     glm::mat4 currentModelMatrix_ = glm::mat4(1.0f);
     bool uniformDirty_ = false;
     float deltaTime_ = 1.0f / 60.0f;
+    bool pipelineInitialised_ = false;
 
     ShaderPipeline currentPipeline_;
 };
