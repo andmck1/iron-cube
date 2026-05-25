@@ -381,7 +381,6 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
         vertShaderStage, fragShaderStage
     };
 
-    // Convert VertexBinding descriptions from material config
     std::vector<VkVertexInputBindingDescription> bindingDescriptions;
     for (const auto &vb : pipeline.vertexBindings)
     {
@@ -392,7 +391,6 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
         bindingDescriptions.push_back(desc);
     }
 
-    // Convert VertexAttribute descriptions from material config
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
     for (const auto &va : pipeline.vertexAttributes)
     {
@@ -466,7 +464,6 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
 
-    // Build descriptor set layout from material config
     std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
     for (const auto &db : pipeline.descriptorBindings)
     {
