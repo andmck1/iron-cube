@@ -72,6 +72,12 @@ class Material
 
     ShaderPipelineConfig getConfig() const;
 
-    private:
+    protected:
     ShaderPipelineConfig config_;
+};
+
+class DefaultMaterial : public Material
+{
+    public:
+    DefaultMaterial();
 };

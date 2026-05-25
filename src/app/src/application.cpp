@@ -158,7 +158,7 @@ bool Application::initialiseEntities(Scene *scene)
     Mesh *registeredMesh =
         meshesService_.registerMesh("triangle", std::move(triangleMesh));
 
-    Material triangleMaterial = Material();
+    DefaultMaterial triangleMaterial = DefaultMaterial();
     Material *registeredMaterial = materialsService_.registerMaterial(
         "triangle", std::move(triangleMaterial)
     );

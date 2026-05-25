@@ -5,7 +5,10 @@
 
 Material::Material()
 {
-    // TODO - default should be empty and I should check for empty
+}
+
+DefaultMaterial::DefaultMaterial()
+{
     ShaderDefinition vertShader;
     vertShader.path = "build/shaders/triangle.vert.spv";
     vertShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
