@@ -1137,6 +1137,11 @@ void VulkanRenderer::shutdown()
 
 void VulkanRenderer::cleanup()
 {
+    // Destroy shader modules before the device is destroyed.
+    // Shader::~Shader calls vkDestroyShaderModule(device_) so device_ must
+    // still be valid.
+    shaders_.clear();
+
     if (device_ != VK_NULL_HANDLE)
     {
         for (VkFramebuffer_T *&framebuffer : framebuffers_)
