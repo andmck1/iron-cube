@@ -10,12 +10,12 @@ Material::Material()
 DefaultMaterial::DefaultMaterial()
 {
     ShaderDefinition vertShader;
-    vertShader.path = "build/shaders/triangle.vert.spv";
+    vertShader.path = "build/shader/triangle.vert.spv";
     vertShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
     config_.shaders.push_back(vertShader);
 
     ShaderDefinition fragShader;
-    fragShader.path = "build/shaders/triangle.frag.spv";
+    fragShader.path = "build/shader/triangle.frag.spv";
     fragShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     config_.shaders.push_back(fragShader);
 
@@ -48,12 +48,12 @@ DefaultMaterial::DefaultMaterial()
 CubeMaterial::CubeMaterial()
 {
     ShaderDefinition vertShader;
-    vertShader.path = "build/shaders/triangle.vert.spv";
+    vertShader.path = "build/shader/triangle.vert.spv";
     vertShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
     config_.shaders.push_back(vertShader);
 
     ShaderDefinition fragShader;
-    fragShader.path = "build/shaders/triangle.frag.spv";
+    fragShader.path = "build/shader/triangle.frag.spv";
     fragShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     config_.shaders.push_back(fragShader);
 

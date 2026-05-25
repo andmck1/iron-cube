@@ -15,9 +15,13 @@
 
 struct UBO
 {
-    float4x4 model;
     float4x4 view;
     float4x4 proj;
+};
+
+struct PushConstantData
+{
+    float4x4 model;
 };
 
 #else
@@ -26,9 +30,13 @@ struct UBO
 
 struct alignas(16) UBO
 {
-    float model[16];
     float view[16];
     float proj[16];
+};
+
+struct alignas(16) PushConstantData
+{
+    float model[16];
 };
 
 #endif // __SLANG__

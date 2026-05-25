@@ -428,10 +428,19 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipelineConfig &config)
         static_cast<uint32_t>(config.dynamicStates.size());
     dynamicState.pDynamicStates = config.dynamicStates.data();
 
+    // Push constant range for per-draw model matrix (64 bytes =
+    // sizeof(glm::mat4))
+    VkPushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = sizeof(glm::mat4);
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
     std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
     for (const auto &db : config.descriptorBindings)
@@ -840,6 +849,30 @@ bool VulkanRenderer::beginFrame()
     scissor.offset = {0, 0};
     scissor.extent = swapchainExtent_;
     vkCmdSetScissor(commandBuffers_[currentImageIndex_], 0, 1, &scissor);
+
+    // Upload view/projection matrices to UBO once per frame
+    {
+        UBO ubo{};
+        glm::mat4 view = glm::lookAt(
+            glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+        std::memcpy(ubo.view, glm::value_ptr(view), 16 * sizeof(float));
+
+        float aspect = swapchainExtent_.width /
+                       static_cast<float>(swapchainExtent_.height);
+        glm::mat4 proj =
+            glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
+        proj[1][1] *= -1.0f;
+        std::memcpy(ubo.proj, glm::value_ptr(proj), 16 * sizeof(float));
+
+        void *uboMapped = mapMemory(uniformAlloc_, sizeof(UBO));
+        if (uboMapped)
+        {
+            std::memcpy(uboMapped, &ubo, sizeof(UBO));
+            unmapMemory(uniformAlloc_);
+        }
+    }
     return true;
 }
 
@@ -935,36 +968,13 @@ bool VulkanRenderer::drawGeometry(Geometry *geometry)
         unmapMemory(*vertAlloc);
     }
 
-    // Update uniform buffer if dirty
-    if (uniformDirty_)
-    {
-        UBO ubo{};
-        std::memcpy(
-            ubo.model, glm::value_ptr(currentModelMatrix_), 16 * sizeof(float)
-        );
-
-        glm::mat4 view = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        );
-        std::memcpy(ubo.view, glm::value_ptr(view), 16 * sizeof(float));
-
-        float aspect = swapchainExtent_.width /
-                       static_cast<float>(swapchainExtent_.height);
-        glm::mat4 proj =
-            glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
-        proj[1][1] *= -1.0f;
-        std::memcpy(ubo.proj, glm::value_ptr(proj), 16 * sizeof(float));
-
-        VkDeviceSize uboSize = sizeof(UBO);
-        void *uboMapped = mapMemory(uniformAlloc_, uboSize);
-        if (uboMapped)
-        {
-            std::memcpy(uboMapped, &ubo, sizeof(UBO));
-            unmapMemory(uniformAlloc_);
-        }
-        uniformDirty_ = false;
-    }
+    // Push the model matrix directly into the command buffer — isolated per
+    // draw
+    vkCmdPushConstants(
+        commandBuffers_[currentImageIndex_], pipelineLayout_,
+        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
+        glm::value_ptr(currentModelMatrix_)
+    );
 
     // Bind vertex buffer and draw
     VkBuffer vertexBuffers[] = {vertAlloc->buffer};
