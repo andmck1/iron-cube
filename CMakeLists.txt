@@ -57,15 +57,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyobjloader)
 
-# Use system Vulkan - slang will also use system Vulkan
+# Use system Vulkan
 find_package(Vulkan REQUIRED)
 
-# FetchContent_Declare(
-#     slang
-#     GIT_REPOSITORY https://github.com/shader-slang/slang.git
-#     GIT_TAG v2025.5
-# )
-# FetchContent_MakeAvailable(slang)
+# Use system slangc for shader compilation
+find_program(SLANGC_EXECUTABLE slangc REQUIRED)
 
 FetchContent_Declare(
     yaml-cpp

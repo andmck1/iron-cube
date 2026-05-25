@@ -32,7 +32,7 @@ class Application
     void shutdownServices();
     void shutdownAll();
 
-    int debugMode_;
+    bool debugMode_ = false;
     LoggerService logger_;
     Config config_;
     PlatformConfig platformConfig_;

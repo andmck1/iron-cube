@@ -2,6 +2,7 @@
 #include "ecs/component/meshcomponent.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include "platform/linux/platformlinux.h"
 #include "render/linux/vulkanhelpers.h"
 #include <GLFW/glfw3.h>
@@ -41,7 +42,10 @@ bool VulkanRenderer::init(IPlatform *platform)
         createSwapchain();
         createImageViews();
         createRenderPass();
-        createGraphicsPipeline();
+
+        // Build default triangle material pipeline
+        Material defaultMaterial;
+        createGraphicsPipeline(defaultMaterial.getPipeline());
         createFramebuffers();
         createCommandPool();
         createCommandBuffers();
@@ -350,11 +354,13 @@ void VulkanRenderer::createRenderPass()
     vkCheck(result, "Failed to create render pass");
 }
 
-void VulkanRenderer::createGraphicsPipeline()
+void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
 {
     spdlog::debug("Creating graphics pipeline");
-    std::vector<char> vertCode = readFile("build/shaders/triangle.vert.spv");
-    std::vector<char> fragCode = readFile("build/shaders/triangle.frag.spv");
+    currentPipeline_ = pipeline;
+
+    std::vector<char> vertCode = readFile(pipeline.vertexShaderPath);
+    std::vector<char> fragCode = readFile(pipeline.fragmentShaderPath);
 
     VkShaderModule vertShaderModule = createShaderModule(vertCode);
     VkShaderModule fragShaderModule = createShaderModule(fragCode);
@@ -375,34 +381,43 @@ void VulkanRenderer::createGraphicsPipeline()
         vertShaderStage, fragShaderStage
     };
 
-    VkVertexInputBindingDescription bindingDescription{};
-    bindingDescription.binding = 0;
-    bindingDescription.stride = sizeof(Vertex);
-    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    // Convert VertexBinding descriptions from material config
+    std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+    for (const auto &vb : pipeline.vertexBindings)
+    {
+        VkVertexInputBindingDescription desc{};
+        desc.binding = vb.binding;
+        desc.stride = vb.stride;
+        desc.inputRate = vb.inputRate;
+        bindingDescriptions.push_back(desc);
+    }
 
-    VkVertexInputAttributeDescription attributeDescriptions[2];
-    attributeDescriptions[0].binding = 0;
-    attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[0].offset = 0;
-
-    attributeDescriptions[1].binding = 0;
-    attributeDescriptions[1].location = 1;
-    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[1].offset = sizeof(glm::vec3);
+    // Convert VertexAttribute descriptions from material config
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+    for (const auto &va : pipeline.vertexAttributes)
+    {
+        VkVertexInputAttributeDescription desc{};
+        desc.binding = 0;
+        desc.location = va.location;
+        desc.format = va.format;
+        desc.offset = va.offset;
+        attributeDescriptions.push_back(desc);
+    }
 
     VkPipelineVertexInputStateCreateInfo vertexInput{};
     vertexInput.sType =
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInput.vertexBindingDescriptionCount = 1;
-    vertexInput.pVertexBindingDescriptions = &bindingDescription;
-    vertexInput.vertexAttributeDescriptionCount = 2;
-    vertexInput.pVertexAttributeDescriptions = attributeDescriptions;
+    vertexInput.vertexBindingDescriptionCount =
+        static_cast<uint32_t>(bindingDescriptions.size());
+    vertexInput.pVertexBindingDescriptions = bindingDescriptions.data();
+    vertexInput.vertexAttributeDescriptionCount =
+        static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInput.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssembly.topology = pipeline.topology;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
     VkPipelineViewportStateCreateInfo viewportState{};
@@ -415,17 +430,17 @@ void VulkanRenderer::createGraphicsPipeline()
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
-    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizer.polygonMode = pipeline.polygonMode;
     rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = VK_CULL_MODE_NONE;
-    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizer.cullMode = pipeline.cullMode;
+    rasterizer.frontFace = pipeline.frontFace;
     rasterizer.depthBiasEnable = VK_FALSE;
 
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType =
         VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
-    multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampling.rasterizationSamples = pipeline.samples;
 
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.colorWriteMask =
@@ -442,28 +457,32 @@ void VulkanRenderer::createGraphicsPipeline()
 
     VkPipelineDynamicStateCreateInfo dynamicState{};
     dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dynamicState.dynamicStateCount = 2;
-    VkDynamicState dynamicStates[] = {
-        VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
-    };
-    dynamicState.pDynamicStates = dynamicStates;
+    dynamicState.dynamicStateCount =
+        static_cast<uint32_t>(pipeline.dynamicStates.size());
+    dynamicState.pDynamicStates = pipeline.dynamicStates.data();
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
 
-    VkDescriptorSetLayoutBinding uboLayoutBinding{};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    uboLayoutBinding.pImmutableSamplers = nullptr;
+    // Build descriptor set layout from material config
+    std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+    for (const auto &db : pipeline.descriptorBindings)
+    {
+        VkDescriptorSetLayoutBinding binding{};
+        binding.binding = db.binding;
+        binding.descriptorType = db.descriptorType;
+        binding.descriptorCount = db.descriptorCount;
+        binding.stageFlags = db.stageFlags;
+        binding.pImmutableSamplers = nullptr;
+        layoutBindings.push_back(binding);
+    }
 
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &uboLayoutBinding;
+    layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
+    layoutInfo.pBindings = layoutBindings.data();
 
     vkCheck(
         vkCreateDescriptorSetLayout(
@@ -901,15 +920,22 @@ bool VulkanRenderer::drawGeometry(Geometry *geometry)
     if (uniformDirty_)
     {
         UBO ubo{};
-        ubo.model = currentModelMatrix_;
-        ubo.view = glm::lookAt(
+        std::memcpy(
+            ubo.model, glm::value_ptr(currentModelMatrix_), 16 * sizeof(float)
+        );
+
+        glm::mat4 view = glm::lookAt(
             glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(0.0f, 1.0f, 0.0f)
         );
+        std::memcpy(ubo.view, glm::value_ptr(view), 16 * sizeof(float));
+
         float aspect = swapchainExtent_.width /
                        static_cast<float>(swapchainExtent_.height);
-        ubo.proj = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
-        ubo.proj[1][1] *= -1.0f;
+        glm::mat4 proj =
+            glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
+        proj[1][1] *= -1.0f;
+        std::memcpy(ubo.proj, glm::value_ptr(proj), 16 * sizeof(float));
 
         VkDeviceSize uboSize = sizeof(UBO);
         void *uboMapped = mapMemory(uniformAlloc_, uboSize);

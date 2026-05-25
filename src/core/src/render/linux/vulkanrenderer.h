@@ -1,5 +1,7 @@
 #pragma once
 
+#include "buffers/ubuffer.h"
+#include "material/material.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "render/irenderer.h"
 #include <imgui.h>
@@ -12,13 +14,6 @@
 #include <functional>
 
 static constexpr uint64_t kGpuOperationTimeoutNs = 100'000'000;
-
-struct alignas(16) UBO
-{
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
-};
 
 struct BufferAllocation
 {
@@ -57,7 +52,7 @@ class VulkanRenderer : public IRenderer
     void createSwapchain();
     void createImageViews();
     void createRenderPass();
-    void createGraphicsPipeline();
+    void createGraphicsPipeline(const ShaderPipeline &pipeline);
     void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
@@ -136,4 +131,6 @@ class VulkanRenderer : public IRenderer
     glm::mat4 currentModelMatrix_ = glm::mat4(1.0f);
     bool uniformDirty_ = false;
     float deltaTime_ = 1.0f / 60.0f;
+
+    ShaderPipeline currentPipeline_;
 };

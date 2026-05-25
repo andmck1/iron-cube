@@ -2,22 +2,33 @@
 add_library(iron-stb INTERFACE)
 target_include_directories(iron-stb INTERFACE ${stb_SOURCE_DIR})
 
-# Compile GLSL shaders to SPIR-V
+# Compile Slang shaders to SPIR-V
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders)
 set(SPIRV_DIR ${CMAKE_BINARY_DIR}/shaders)
 
 file(MAKE_DIRECTORY ${SPIRV_DIR})
 
 add_custom_command(
-    OUTPUT ${SPIRV_DIR}/triangle.vert.spv ${SPIRV_DIR}/triangle.frag.spv
+    OUTPUT ${SPIRV_DIR}/triangle.vert.spv
     COMMAND
-        glslc -std=450 -fshader-stage=vert -o ${SPIRV_DIR}/triangle.vert.spv
-        ${SHADER_DIR}/triangle.vert.glsl
+        ${SLANGC_EXECUTABLE} -target spirv -entry main -stage vertex
+        -I ${CMAKE_CURRENT_SOURCE_DIR}/src
+        -o ${SPIRV_DIR}/triangle.vert.spv ${SHADER_DIR}/triangle.vert.slang
+    DEPENDS
+        ${SHADER_DIR}/triangle.vert.slang
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/buffers/ubuffer.h
+    COMMENT "Compiling triangle.vert.slang -> SPIR-V"
+)
+
+add_custom_command(
+    OUTPUT ${SPIRV_DIR}/triangle.frag.spv
     COMMAND
-        glslc -std=450 -fshader-stage=frag -o ${SPIRV_DIR}/triangle.frag.spv
-        ${SHADER_DIR}/triangle.frag.glsl
-    DEPENDS ${SHADER_DIR}/triangle.vert.glsl ${SHADER_DIR}/triangle.frag.glsl
-    COMMENT "Compiling shaders to SPIR-V"
+        ${SLANGC_EXECUTABLE} -target spirv -entry main -stage fragment
+        -I ${CMAKE_CURRENT_SOURCE_DIR}/src
+        -o ${SPIRV_DIR}/triangle.frag.spv ${SHADER_DIR}/triangle.frag.slang
+    DEPENDS
+        ${SHADER_DIR}/triangle.frag.slang
+    COMMENT "Compiling triangle.frag.slang -> SPIR-V"
 )
 
 add_custom_target(
