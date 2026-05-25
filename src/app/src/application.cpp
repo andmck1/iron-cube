@@ -9,6 +9,16 @@
 #include "layer/debuglayer.h"
 #include "common/helpers.h"
 
+#include <csignal>
+#include <atomic>
+
+static std::atomic<bool> gSignalReceived{false};
+
+static void signalHandler(int)
+{
+    gSignalReceived.store(true);
+}
+
 #include <iostream>
 #include <spdlog/spdlog.h>
 
@@ -147,6 +157,7 @@ bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
 
+    // --- Triangle ---
     auto triangleVertices = ResourceManager::generateProceduralTriangle();
     resourceManager_.loadGeometry(
         "triangle", triangleVertices,
@@ -176,13 +187,41 @@ bool Application::initialiseEntities(Scene *scene)
     meshComponent->setMesh(registeredMesh);
     scene->addEntity(std::move(triangle));
 
+    // --- Cube ---
+    auto cubeVertices = ResourceManager::generateProceduralCube();
+    resourceManager_.loadGeometry(
+        "cube", cubeVertices, static_cast<uint32_t>(cubeVertices->size())
+    );
+
+    Mesh cubeMesh = Mesh();
+    cubeMesh.setGeometry("cube");
+    Mesh *registeredCubeMesh =
+        meshesService_.registerMesh("cube", std::move(cubeMesh));
+
+    CubeMaterial cubeMaterial = CubeMaterial();
+    Material *registeredCubeMaterial =
+        materialsService_.registerMaterial("cube", std::move(cubeMaterial));
+
+    std::unique_ptr<Entity> cube = std::make_unique<Entity>("cube");
+
+    TransformComponent *cubeTransformComponent =
+        cube->addComponent<TransformComponent>();
+    cubeTransformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
+    cubeTransformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
+    cubeTransformComponent->setPosition(glm::vec3(-1.f, 0.f, 0.f));
+
+    MeshComponent *cubeMeshComponent = cube->addComponent<MeshComponent>();
+    cubeMeshComponent->setMaterial(registeredCubeMaterial);
+    cubeMeshComponent->setMesh(registeredCubeMesh);
+    scene->addEntity(std::move(cube));
+
     return true;
 }
 
 void Application::mainLoop()
 {
     spdlog::info("Starting main loop");
-    while (!platform_.shouldExit())
+    while (!platform_.shouldExit() && !gSignalReceived.load())
     {
         debugLayerData_.timer.tick();
         renderer_.setDeltaTime(debugLayerData_.timer.getDeltaSeconds());
@@ -228,6 +267,9 @@ void Application::shutdownAll()
 bool Application::run()
 {
     spdlog::info("Iron Cube starting");
+
+    signal(SIGTERM, signalHandler);
+    signal(SIGINT, signalHandler);
 
     initLogging();
     initConfig();

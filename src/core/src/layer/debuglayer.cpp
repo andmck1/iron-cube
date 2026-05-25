@@ -1,5 +1,7 @@
 #include "layer/debuglayer.h"
 #include "ecs/component/transformcomponent.h"
+#include "ecs/component/meshcomponent.h"
+#include "resource/iresourcemanager.h"
 #include "service/servicelocator.h"
 #include <imgui.h>
 #include <spdlog/spdlog.h>
@@ -45,27 +47,80 @@ bool DebugLayer::render()
 
     ImGui::Separator();
 
-    // Transform controls
-    ImGui::Text("Triangle Transform");
-    ImGui::Separator();
-
-    ImGui::SliderFloat3(
-        "Position", &triangleTransform_.position.x, -5.0f, 5.0f
-    );
-    ImGui::SliderFloat3(
-        "Rotation (deg)", &triangleTransform_.rotation.x, -180.0f, 180.0f
-    );
-    ImGui::SliderFloat3(
-        "Scale", &triangleTransform_.scale.x, 0.1f, 5.0f, "%.2f"
-    );
-    ImGui::Separator();
-
+    // Iterate all entities with TransformComponent + MeshComponent
     if (debugData_->scene)
     {
-        debugData_->scene->getEntities()
-            .back()
-            ->getComponent<TransformComponent>()
-            ->setTransform(triangleTransform_);
+        const auto &entities = debugData_->scene->getEntities();
+        for (const auto &entity : entities)
+        {
+            TransformComponent *transformComp =
+                entity->getComponent<TransformComponent>();
+            MeshComponent *meshComp = entity->getComponent<MeshComponent>();
+
+            if (!transformComp || !meshComp)
+                continue;
+
+            const std::string &entityName = entity->getName();
+
+            // Sync current transform from component into our local storage
+            auto it = entityTransforms_.find(entityName);
+            if (it == entityTransforms_.end())
+            {
+                entityTransforms_[entityName] = transformComp->getTransform();
+            }
+            Transform &localTransform = entityTransforms_[entityName];
+
+            // Entity header
+            ImGui::Text("%s Transform", entityName.c_str());
+            ImGui::Separator();
+
+            std::string posId = "Position##" + entityName;
+            std::string rotId = "Rotation##" + entityName;
+            std::string scaleId = "Scale##" + entityName;
+
+            ImGui::SliderFloat3(
+                posId.c_str(), &localTransform.position.x, -5.0f, 5.0f
+            );
+            ImGui::SliderFloat3(
+                rotId.c_str(), &localTransform.rotation.x, -180.0f, 180.0f
+            );
+            ImGui::SliderFloat3(
+                scaleId.c_str(), &localTransform.scale.x, 0.1f, 5.0f, "%.2f"
+            );
+
+            // Write transform back to component
+            transformComp->setTransform(localTransform);
+
+            // Cube-specific: color picker
+            if (entityName == "cube")
+            {
+                ImGui::Separator();
+                ImGui::Text("Cube Colour");
+                if (ImGui::ColorPicker3(
+                        "##CubeColor", &cubeColor_.x,
+                        ImGuiColorEditFlags_NoOptions
+                    ))
+                {
+                    // Update vertex colours in the cube geometry
+                    IResourceManager *resourceManager =
+                        ServiceLocator::instance().get<IResourceManager>();
+                    if (resourceManager)
+                    {
+                        Geometry *cubeGeom =
+                            resourceManager->getGeometry("cube");
+                        if (cubeGeom && cubeGeom->vertices)
+                        {
+                            for (auto &vertex : *cubeGeom->vertices)
+                            {
+                                vertex.color = cubeColor_;
+                            }
+                        }
+                    }
+                }
+            }
+
+            ImGui::Separator();
+        }
     }
 
     ImGui::End();

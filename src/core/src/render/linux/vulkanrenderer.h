@@ -13,6 +13,7 @@
 #include <string>
 #include <cstdint>
 #include <functional>
+#include <unordered_map>
 
 static constexpr uint64_t kGpuOperationTimeoutNs = 100'000'000;
 
@@ -71,7 +72,8 @@ class VulkanRenderer : public IRenderer
     void *mapMemory(BufferAllocation &alloc, VkDeviceSize size);
     void unmapMemory(BufferAllocation &alloc);
     void freeBuffer(BufferAllocation &alloc);
-    bool allocateVertexBuffer(uint32_t vertexCount);
+    BufferAllocation *
+    allocateVertexBufferForGeometry(Geometry *geometry, uint32_t vertexCount);
 
     bool checkValidationLayerSupport() const;
     std::vector<const char *> getRequiredExtensions() const;
@@ -116,12 +118,10 @@ class VulkanRenderer : public IRenderer
     std::vector<VkCommandBuffer> commandBuffers_;
 
     BufferAllocation uniformAlloc_;
-    BufferAllocation vertexAlloc_ = {};
+    std::unordered_map<Geometry *, BufferAllocation> vertexAllocs_;
     VkSemaphore imageAvailableSemaphore_ = VK_NULL_HANDLE;
     VkSemaphore renderFinishedSemaphore_ = VK_NULL_HANDLE;
     VkFence inFlightFence_ = VK_NULL_HANDLE;
-    uint32_t allocatedVertexCount_ = 0;
-
     ImGuiContext *imguiContext_ = nullptr;
     VkDescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
     uint32_t currentImageIndex_ = 0;

@@ -81,3 +81,9 @@ class DefaultMaterial : public Material
     public:
     DefaultMaterial();
 };
+
+class CubeMaterial : public Material
+{
+    public:
+    CubeMaterial();
+};

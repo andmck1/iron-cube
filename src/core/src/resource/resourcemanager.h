@@ -14,6 +14,7 @@ class ResourceManager : public IResourceManager
     bool unloadGeometry(const std::string &name) override;
 
     static std::shared_ptr<std::vector<Vertex>> generateProceduralTriangle();
+    static std::shared_ptr<std::vector<Vertex>> generateProceduralCube();
 
     private:
     std::unordered_map<std::string, Geometry> geometries_;

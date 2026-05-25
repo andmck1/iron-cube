@@ -66,3 +66,61 @@ ResourceManager::generateProceduralTriangle()
     spdlog::info("Generated procedural triangle geometry");
     return vertices;
 }
+
+std::shared_ptr<std::vector<Vertex>> ResourceManager::generateProceduralCube()
+{
+    auto vertices = std::make_shared<std::vector<Vertex>>();
+    vertices->reserve(36);
+    glm::vec3 defaultColor(1.0f, 0.5f, 0.2f);
+
+    // Front face (z = +0.5)
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, -0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, 0.5f), defaultColor});
+
+    // Back face (z = -0.5)
+    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, -0.5f), defaultColor});
+
+    // Top face (y = +0.5)
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, -0.5f), defaultColor});
+
+    // Bottom face (y = -0.5)
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, -0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, -0.5f), defaultColor});
+
+    // Right face (x = +0.5)
+    vertices->push_back({glm::vec3(0.5f, -0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, -0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, 0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColor});
+
+    // Left face (x = -0.5)
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, -0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, 0.5f, 0.5f), defaultColor});
+    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColor});
+
+    spdlog::info("Generated procedural cube geometry");
+    return vertices;
+}

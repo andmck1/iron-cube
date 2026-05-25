@@ -10,7 +10,6 @@
 #include <GLFW/glfw3native.h>
 #include <spdlog/spdlog.h>
 #include <cstring>
-#include <fstream>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -586,6 +585,7 @@ BufferAllocation VulkanRenderer::allocateBuffer(
     vkCheck(result, "Failed to allocate buffer memory");
 
     vkBindBufferMemory(device_, alloc.buffer, alloc.memory, 0);
+    alloc.size = size;
     return alloc;
 }
 
@@ -620,39 +620,52 @@ void VulkanRenderer::freeBuffer(BufferAllocation &alloc)
     }
 }
 
-bool VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
+BufferAllocation *VulkanRenderer::allocateVertexBufferForGeometry(
+    Geometry *geometry, uint32_t vertexCount
+)
 {
-    if (vertexAlloc_.buffer != VK_NULL_HANDLE)
+    // Check if we already have a buffer for this geometry
+    auto it = vertexAllocs_.find(geometry);
+    if (it != vertexAllocs_.end())
     {
+        // Reuse existing buffer if size matches
+        VkDeviceSize currentSize = it->second.size;
+        VkDeviceSize neededSize = sizeof(Vertex) * vertexCount;
+        if (currentSize >= neededSize)
+        {
+            return &it->second;
+        }
+
+        // Need to resize - wait for GPU, free old, allocate new
         VkResult waitResult = vkDeviceWaitIdle(device_);
         if (waitResult != VK_SUCCESS && waitResult != VK_ERROR_DEVICE_LOST)
+        {
             throw std::runtime_error(
                 std::string("Device wait idle failed") +
                 " (VkResult: " + std::to_string(waitResult) + ")"
             );
-        freeBuffer(vertexAlloc_);
-        vertexAlloc_ = BufferAllocation{};
+        }
+        freeBuffer(it->second);
     }
 
     VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
     if (bufferSize > 10000)
-        return false;
+        return nullptr;
     spdlog::info(
-        "Reallocating vertex buffer: {} vertices, {} bytes", vertexCount,
+        "Allocating vertex buffer: {} vertices, {} bytes", vertexCount,
         bufferSize
     );
 
-    vertexAlloc_ = allocateBuffer(
+    BufferAllocation alloc = allocateBuffer(
         bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     );
-    if (vertexAlloc_.buffer == VK_NULL_HANDLE)
-        return false;
+    if (alloc.buffer == VK_NULL_HANDLE)
+        return nullptr;
 
-    allocatedVertexCount_ = vertexCount;
-
-    return true;
+    vertexAllocs_[geometry] = alloc;
+    return &vertexAllocs_[geometry];
 }
 
 void VulkanRenderer::createDescriptorSet()
@@ -905,22 +918,21 @@ bool VulkanRenderer::drawGeometry(Geometry *geometry)
     if (!geometry || !geometry->vertices || geometry->vertexCount == 0)
         return false;
 
-    // Allocate or reallocate vertex buffer if needed
-    if (geometry->vertexCount != allocatedVertexCount_)
-    {
-        if (!allocateVertexBuffer(geometry->vertexCount))
-            return false;
-    }
+    // Allocate or reuse vertex buffer for this geometry
+    BufferAllocation *vertAlloc =
+        allocateVertexBufferForGeometry(geometry, geometry->vertexCount);
+    if (!vertAlloc)
+        return false;
 
     // Upload vertex data
     VkDeviceSize bufferSize = sizeof(Vertex) * geometry->vertexCount;
-    void *mapped = mapMemory(vertexAlloc_, bufferSize);
+    void *mapped = mapMemory(*vertAlloc, bufferSize);
     if (mapped)
     {
         std::memcpy(
             mapped, geometry->vertices->data(), static_cast<size_t>(bufferSize)
         );
-        unmapMemory(vertexAlloc_);
+        unmapMemory(*vertAlloc);
     }
 
     // Update uniform buffer if dirty
@@ -955,7 +967,7 @@ bool VulkanRenderer::drawGeometry(Geometry *geometry)
     }
 
     // Bind vertex buffer and draw
-    VkBuffer vertexBuffers[] = {vertexAlloc_.buffer};
+    VkBuffer vertexBuffers[] = {vertAlloc->buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(
         commandBuffers_[currentImageIndex_], 0, 1, vertexBuffers, offsets
@@ -1105,6 +1117,20 @@ void VulkanRenderer::shutdownImGui()
 void VulkanRenderer::shutdown()
 {
     spdlog::info("VulkanRenderer shutting down");
+
+    // Wait for GPU to finish all work BEFORE destroying any resources
+    if (device_ != VK_NULL_HANDLE)
+    {
+        VkResult waitResult = vkDeviceWaitIdle(device_);
+        if (waitResult != VK_SUCCESS && waitResult != VK_ERROR_DEVICE_LOST)
+        {
+            spdlog::error(
+                "Device wait idle failed (VkResult: {})",
+                static_cast<int>(waitResult)
+            );
+        }
+    }
+
     shutdownImGui();
     cleanup();
 }
@@ -1113,25 +1139,21 @@ void VulkanRenderer::cleanup()
 {
     if (device_ != VK_NULL_HANDLE)
     {
-        VkResult waitResult = vkDeviceWaitIdle(device_);
-        if (waitResult != VK_SUCCESS && waitResult != VK_ERROR_DEVICE_LOST)
-            throw std::runtime_error(
-                std::string("Device wait idle failed") +
-                " (VkResult: " + std::to_string(waitResult) + ")"
-            );
-
         for (VkFramebuffer_T *&framebuffer : framebuffers_)
             vkDestroyFramebuffer(device_, framebuffer, nullptr);
 
         for (VkImageView_T *&imageView : swapchainImageViews_)
             vkDestroyImageView(device_, imageView, nullptr);
 
-        // Cleanup vertex buffer
-        if (vertexAlloc_.buffer != VK_NULL_HANDLE)
+        // Cleanup vertex buffers
+        for (auto &[geom, alloc] : vertexAllocs_)
         {
-            freeBuffer(vertexAlloc_);
-            vertexAlloc_ = BufferAllocation{};
+            if (alloc.buffer != VK_NULL_HANDLE)
+            {
+                freeBuffer(alloc);
+            }
         }
+        vertexAllocs_.clear();
         // Cleanup uniform buffer
         if (uniformAlloc_.buffer != VK_NULL_HANDLE)
         {
