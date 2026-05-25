@@ -1,7 +1,7 @@
 #include "mesh/mesh.h"
-#include "render/IRenderer.h"
-#include "resource/IResourceManager.h"
-#include "service/ServiceLocator.h"
+#include "render/irenderer.h"
+#include "resource/iresourcemanager.h"
+#include "service/servicelocator.h"
 
 void Mesh::setGeometry(const std::string &geometryName)
 {

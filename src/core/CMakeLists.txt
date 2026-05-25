@@ -30,24 +30,24 @@ add_custom_target(
 add_library(
     iron-core
     STATIC
-    src/service/ServiceLocator.cpp
-    src/config/Config.cpp
-    src/platform/linux/WindowGLFW.cpp
-    src/platform/linux/InputGLFW.cpp
-    src/platform/linux/PlatformLinux.cpp
-    src/render/linux/VulkanRenderer.cpp
-    src/render/linux/VulkanHelpers.cpp
-    src/scene/Scene.cpp
-    src/resource/ResourceManager.cpp
-    src/layer/DebugLayer.cpp
-    src/layer/SceneLayer.cpp
+    src/service/servicelocator.cpp
+    src/config/config.cpp
+    src/platform/linux/windowglfw.cpp
+    src/platform/linux/inputglfw.cpp
+    src/platform/linux/platformlinux.cpp
+    src/render/linux/vulkanrenderer.cpp
+    src/render/linux/vulkanhelpers.cpp
+    src/scene/scene.cpp
+    src/resource/resourcemanager.cpp
+    src/layer/debuglayer.cpp
+    src/layer/scenelayer.cpp
     src/material/material.cpp
-    src/material/MaterialsService.cpp
+    src/material/materialsservice.cpp
     src/mesh/mesh.cpp
-    src/mesh/MeshesService.cpp
+    src/mesh/meshesservice.cpp
     src/ecs/ecs.cpp
-    src/ecs/component/transformComponent.cpp
-    src/ecs/component/meshComponent.cpp
+    src/ecs/component/transformcomponent.cpp
+    src/ecs/component/meshcomponent.cpp
     src/common/timer.cpp
     src/common/types.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp

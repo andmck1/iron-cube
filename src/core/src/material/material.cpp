@@ -1,6 +1,6 @@
 #include "material/material.h"
-#include "render/IRenderer.h"
-#include "service/ServiceLocator.h"
+#include "render/irenderer.h"
+#include "service/servicelocator.h"
 
 void Material::bind()
 {
