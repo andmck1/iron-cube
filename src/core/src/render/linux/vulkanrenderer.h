@@ -25,6 +25,7 @@ class VulkanRenderer : public IRenderer
 {
     public:
     bool init(IPlatform *platform) override;
+    bool initialisePipelines(const ShaderPipeline &pipeline) override;
     void swapBuffers() override;
     void shutdown() override;
 
@@ -131,7 +132,5 @@ class VulkanRenderer : public IRenderer
     glm::mat4 currentModelMatrix_ = glm::mat4(1.0f);
     bool uniformDirty_ = false;
     float deltaTime_ = 1.0f / 60.0f;
-    bool pipelineInitialised_ = false;
-
     ShaderPipeline currentPipeline_;
 };

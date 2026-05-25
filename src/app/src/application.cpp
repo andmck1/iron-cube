@@ -123,6 +123,19 @@ bool Application::createAndInitialiseLayers()
     if (!initialiseEntities(&sceneLayer->scene))
         return false;
 
+    // Initialise renderer pipelines now that materials are registered
+    Material *triangleMaterial = materialsService_.getMaterial("triangle");
+    if (triangleMaterial)
+    {
+        if (!renderer_.initialisePipelines(triangleMaterial->getPipeline()))
+        {
+            spdlog::error("Renderer pipeline initialisation failed");
+            renderer_.shutdown();
+            platform_.shutdown();
+            return false;
+        }
+    }
+
     return true;
 }
 

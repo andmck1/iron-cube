@@ -2,6 +2,7 @@
 
 #include "common/types.h"
 #include "glm/ext/matrix_float4x4.hpp"
+#include "material/material.h"
 #include "platform/iplatform.h"
 #include "scene/scene.h"
 #include <vulkan/vulkan.h>
@@ -13,6 +14,7 @@ class IRenderer
     virtual ~IRenderer() = default;
 
     virtual bool init(IPlatform *platform) = 0;
+    virtual bool initialisePipelines(const ShaderPipeline &pipeline) = 0;
     virtual bool renderScene(Scene *scene) = 0;
     virtual void swapBuffers() = 0;
     virtual void shutdown() = 0;

@@ -735,6 +735,28 @@ void VulkanRenderer::createSynchronizationPrimitives()
     vkCreateFence(device_, &fenceInfo, nullptr, &inFlightFence_);
 }
 
+bool VulkanRenderer::initialisePipelines(const ShaderPipeline &pipeline)
+{
+    spdlog::debug("Initialising graphics pipelines");
+    try
+    {
+        createGraphicsPipeline(pipeline);
+        createFramebuffers();
+        createCommandPool();
+        createCommandBuffers();
+        createUniformBuffer();
+        createDescriptorSet();
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::error("Pipeline initialisation failed: {}", e.what());
+        return false;
+    }
+
+    spdlog::info("Graphics pipelines initialised");
+    return true;
+}
+
 void VulkanRenderer::setExitRequestedCallback(std::function<bool()> callback)
 {
     exitRequested_ = callback;
@@ -749,19 +771,6 @@ bool VulkanRenderer::beginFrame()
 {
     if (exitRequested_ && exitRequested_())
         return false;
-
-    // Lazy-initialise pipeline and related resources on first frame
-    if (!pipelineInitialised_)
-    {
-        Material defaultMaterial;
-        createGraphicsPipeline(defaultMaterial.getPipeline());
-        createFramebuffers();
-        createCommandPool();
-        createCommandBuffers();
-        createUniformBuffer();
-        createDescriptorSet();
-        pipelineInitialised_ = true;
-    }
 
     VkResult result = vkAcquireNextImageKHR(
         device_, swapchain_, kGpuOperationTimeoutNs, imageAvailableSemaphore_,
