@@ -54,6 +54,7 @@ add_library(
     src/layer/scenelayer.cpp
     src/material/material.cpp
     src/material/materialsservice.cpp
+    src/shader/shaderpipeline.cpp
     src/mesh/mesh.cpp
     src/mesh/meshesservice.cpp
     src/ecs/ecs.cpp

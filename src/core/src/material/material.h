@@ -32,7 +32,7 @@ struct DynamicState
     VkDynamicState state;
 };
 
-struct ShaderPipeline
+struct ShaderPipelineConfig
 {
     std::string vertexShaderPath;
     std::string fragmentShaderPath;
@@ -59,13 +59,13 @@ class Material
 {
     public:
     Material();
-    explicit Material(ShaderPipeline pipeline);
+    explicit Material(ShaderPipelineConfig config);
 
     void bind();
     void setUniform(std::string matrixName, glm::mat4 matrix);
 
-    ShaderPipeline getPipeline() const;
+    ShaderPipelineConfig getConfig() const;
 
     private:
-    ShaderPipeline pipeline_;
+    ShaderPipelineConfig config_;
 };

@@ -20,3 +20,13 @@ Material *MaterialsService::getMaterial(const std::string &name)
     spdlog::error("Material not found: {}", name);
     return nullptr;
 }
+
+std::vector<Material *> MaterialsService::getAllMaterials()
+{
+    std::vector<Material *> result;
+    for (auto &pair : materials_)
+    {
+        result.push_back(pair.second.get());
+    }
+    return result;
+}

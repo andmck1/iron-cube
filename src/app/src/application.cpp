@@ -123,11 +123,15 @@ bool Application::createAndInitialiseLayers()
     if (!initialiseEntities(&sceneLayer->scene))
         return false;
 
-    // Initialise renderer pipelines now that materials are registered
-    Material *triangleMaterial = materialsService_.getMaterial("triangle");
-    if (triangleMaterial)
+    // TODO - this doesn't feel right. A material is too loosely defined here
+    // And I don't know if each object has it's own graphics pipeline like this?
+    // Maybe it does because each one is a unique shader pipeline and then you
+    // apply that to a list of objects
+    // Initialise renderer pipelines for all registered materials
+    std::vector<Material *> allMaterials = materialsService_.getAllMaterials();
+    for (Material *material : allMaterials)
     {
-        if (!renderer_.initialisePipelines(triangleMaterial->getPipeline()))
+        if (!renderer_.initialisePipeline(material->getConfig()))
         {
             spdlog::error("Renderer pipeline initialisation failed");
             renderer_.shutdown();
@@ -143,7 +147,6 @@ bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
 
-    // Register procedural triangle geometry
     auto triangleVertices = ResourceManager::generateProceduralTriangle();
     resourceManager_.loadGeometry(
         "triangle", triangleVertices,

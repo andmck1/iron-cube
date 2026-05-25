@@ -14,7 +14,7 @@ class IRenderer
     virtual ~IRenderer() = default;
 
     virtual bool init(IPlatform *platform) = 0;
-    virtual bool initialisePipelines(const ShaderPipeline &pipeline) = 0;
+    virtual bool initialisePipeline(const ShaderPipelineConfig &config) = 0;
     virtual bool renderScene(Scene *scene) = 0;
     virtual void swapBuffers() = 0;
     virtual void shutdown() = 0;

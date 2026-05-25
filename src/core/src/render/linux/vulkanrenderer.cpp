@@ -333,16 +333,17 @@ void VulkanRenderer::createRenderPass()
     vkCheck(result, "Failed to create render pass");
 }
 
-void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
+void VulkanRenderer::createGraphicsPipeline(const ShaderPipelineConfig &config)
 {
     spdlog::debug("Creating graphics pipeline");
-    currentPipeline_ = pipeline;
+    currentPipelineConfig_ = config;
 
-    std::vector<char> vertCode = readFile(pipeline.vertexShaderPath);
-    std::vector<char> fragCode = readFile(pipeline.fragmentShaderPath);
+    ShaderPipeline shaderPipeline(
+        device_, config.vertexShaderPath, config.fragmentShaderPath
+    );
 
-    VkShaderModule vertShaderModule = createShaderModule(vertCode);
-    VkShaderModule fragShaderModule = createShaderModule(fragCode);
+    VkShaderModule vertShaderModule = shaderPipeline.getVertexModule();
+    VkShaderModule fragShaderModule = shaderPipeline.getFragmentModule();
 
     VkPipelineShaderStageCreateInfo vertShaderStage{};
     vertShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -361,7 +362,7 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
     };
 
     std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-    for (const auto &vb : pipeline.vertexBindings)
+    for (const auto &vb : config.vertexBindings)
     {
         VkVertexInputBindingDescription desc{};
         desc.binding = vb.binding;
@@ -371,7 +372,7 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
     }
 
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-    for (const auto &va : pipeline.vertexAttributes)
+    for (const auto &va : config.vertexAttributes)
     {
         VkVertexInputAttributeDescription desc{};
         desc.binding = 0;
@@ -394,7 +395,7 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology = pipeline.topology;
+    inputAssembly.topology = config.topology;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
     VkPipelineViewportStateCreateInfo viewportState{};
@@ -407,17 +408,17 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
-    rasterizer.polygonMode = pipeline.polygonMode;
+    rasterizer.polygonMode = config.polygonMode;
     rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = pipeline.cullMode;
-    rasterizer.frontFace = pipeline.frontFace;
+    rasterizer.cullMode = config.cullMode;
+    rasterizer.frontFace = config.frontFace;
     rasterizer.depthBiasEnable = VK_FALSE;
 
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType =
         VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
-    multisampling.rasterizationSamples = pipeline.samples;
+    multisampling.rasterizationSamples = config.samples;
 
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.colorWriteMask =
@@ -435,8 +436,8 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
     VkPipelineDynamicStateCreateInfo dynamicState{};
     dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dynamicState.dynamicStateCount =
-        static_cast<uint32_t>(pipeline.dynamicStates.size());
-    dynamicState.pDynamicStates = pipeline.dynamicStates.data();
+        static_cast<uint32_t>(config.dynamicStates.size());
+    dynamicState.pDynamicStates = config.dynamicStates.data();
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -444,7 +445,7 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
 
     std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-    for (const auto &db : pipeline.descriptorBindings)
+    for (const auto &db : config.descriptorBindings)
     {
         VkDescriptorSetLayoutBinding binding{};
         binding.binding = db.binding;
@@ -493,8 +494,9 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipeline &pipeline)
     );
     vkCheck(result, "Failed to create graphics pipeline");
 
-    vkDestroyShaderModule(device_, fragShaderModule, nullptr);
-    vkDestroyShaderModule(device_, vertShaderModule, nullptr);
+    // ShaderPipeline destructor cleans up shader modules via RAII.
+    // Vulkan copies shader code into the pipeline, so modules are
+    // safe to destroy after pipeline creation.
 }
 
 void VulkanRenderer::createFramebuffers()
@@ -735,12 +737,12 @@ void VulkanRenderer::createSynchronizationPrimitives()
     vkCreateFence(device_, &fenceInfo, nullptr, &inFlightFence_);
 }
 
-bool VulkanRenderer::initialisePipelines(const ShaderPipeline &pipeline)
+bool VulkanRenderer::initialisePipeline(const ShaderPipelineConfig &config)
 {
     spdlog::debug("Initialising graphics pipelines");
     try
     {
-        createGraphicsPipeline(pipeline);
+        createGraphicsPipeline(config);
         createFramebuffers();
         createCommandPool();
         createCommandBuffers();
@@ -1382,38 +1384,6 @@ uint32_t VulkanRenderer::findQueueFamilyIndex() const
             return i;
     }
     throw std::runtime_error("Failed to find graphics queue family");
-}
-
-std::vector<char> VulkanRenderer::readFile(const std::string &filename) const
-{
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-    if (!file.is_open())
-    {
-        throw std::runtime_error("Failed to open shader file: " + filename);
-    }
-
-    size_t fileSize = static_cast<size_t>(file.tellg());
-    std::vector<char> buffer(fileSize);
-    file.seekg(0);
-    file.read(buffer.data(), fileSize);
-    file.close();
-
-    return buffer;
-}
-
-VkShaderModule
-VulkanRenderer::createShaderModule(const std::vector<char> &code) const
-{
-    VkShaderModuleCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = code.size(); // in bytes
-    createInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
-
-    VkShaderModule shaderModule;
-    VkResult result =
-        vkCreateShaderModule(device_, &createInfo, nullptr, &shaderModule);
-    vkCheck(result, "Failed to create shader module");
-    return shaderModule;
 }
 
 #ifdef __GNUC__

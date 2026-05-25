@@ -1,6 +1,7 @@
 #pragma once
 
 #include "material/material.h"
+#include "shader/shaderpipeline.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "render/irenderer.h"
 #include <imgui.h>
@@ -25,7 +26,7 @@ class VulkanRenderer : public IRenderer
 {
     public:
     bool init(IPlatform *platform) override;
-    bool initialisePipelines(const ShaderPipeline &pipeline) override;
+    bool initialisePipeline(const ShaderPipelineConfig &config) override;
     void swapBuffers() override;
     void shutdown() override;
 
@@ -52,7 +53,7 @@ class VulkanRenderer : public IRenderer
     void createSwapchain();
     void createImageViews();
     void createRenderPass();
-    void createGraphicsPipeline(const ShaderPipeline &pipeline);
+    void createGraphicsPipeline(const ShaderPipelineConfig &config);
     void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
@@ -71,8 +72,6 @@ class VulkanRenderer : public IRenderer
     void freeBuffer(BufferAllocation &alloc);
     bool allocateVertexBuffer(uint32_t vertexCount);
 
-    std::vector<char> readFile(const std::string &filename) const;
-    VkShaderModule createShaderModule(const std::vector<char> &code) const;
     bool checkValidationLayerSupport() const;
     std::vector<const char *> getRequiredExtensions() const;
     bool isDeviceSuitable(VkPhysicalDevice device) const;
@@ -132,5 +131,5 @@ class VulkanRenderer : public IRenderer
     glm::mat4 currentModelMatrix_ = glm::mat4(1.0f);
     bool uniformDirty_ = false;
     float deltaTime_ = 1.0f / 60.0f;
-    ShaderPipeline currentPipeline_;
+    ShaderPipelineConfig currentPipelineConfig_;
 };
