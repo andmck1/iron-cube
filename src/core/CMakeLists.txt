@@ -3,8 +3,8 @@ add_library(iron-stb INTERFACE)
 target_include_directories(iron-stb INTERFACE ${stb_SOURCE_DIR})
 
 # Compile Slang shaders to SPIR-V
-set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders)
-set(SPIRV_DIR ${CMAKE_BINARY_DIR}/shaders)
+set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shader)
+set(SPIRV_DIR ${CMAKE_BINARY_DIR}/shader)
 
 file(MAKE_DIRECTORY ${SPIRV_DIR})
 
@@ -16,7 +16,7 @@ add_custom_command(
         -o ${SPIRV_DIR}/triangle.vert.spv ${SHADER_DIR}/triangle.vert.slang
     DEPENDS
         ${SHADER_DIR}/triangle.vert.slang
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/buffers/ubuffer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/buffer/ubuffer.h
     COMMENT "Compiling triangle.vert.slang -> SPIR-V"
 )
 

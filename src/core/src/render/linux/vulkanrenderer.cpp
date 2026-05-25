@@ -5,6 +5,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "platform/linux/platformlinux.h"
 #include "render/linux/vulkanhelpers.h"
+#include "buffer/ubuffer.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <spdlog/spdlog.h>

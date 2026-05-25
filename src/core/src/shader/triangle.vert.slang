@@ -1,4 +1,4 @@
-#include "../buffers/ubuffer.h"
+#include "../buffer/ubuffer.h"
 
 [[vk::binding(0, 0)]]
 ConstantBuffer<UBO> ubo;
