@@ -1,5 +1,6 @@
 #include "platform/linux/inputglfw.h"
 #include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h>
 #include <unordered_map>
 
 InputGLFW *InputGLFW::instance_ = nullptr;
@@ -8,6 +9,7 @@ void InputGLFW::init()
 {
     instance_ = this;
     key_states_.clear();
+    spdlog::debug("Input system initialised");
 }
 
 void InputGLFW::shutdown()

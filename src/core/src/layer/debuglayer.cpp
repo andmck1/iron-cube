@@ -11,6 +11,7 @@ void DebugLayer::setDebugData(DebugLayerData *debugData)
 
 bool DebugLayer::initialise()
 {
+    spdlog::debug("Initialising DebugLayer");
     spdlog::info("DebugLayer initialised");
     renderer_ = ServiceLocator::instance().get<IRenderer>();
     return true;
@@ -18,6 +19,7 @@ bool DebugLayer::initialise()
 
 bool DebugLayer::render()
 {
+    spdlog::debug("DebugLayer rendering");
     // Debug overlay window
     ImGui::Begin(
         "Debug Overlay", nullptr,
@@ -76,5 +78,6 @@ bool DebugLayer::render()
 
 void DebugLayer::shutdown()
 {
+    spdlog::debug("DebugLayer shutting down");
     spdlog::info("DebugLayer shut down");
 }

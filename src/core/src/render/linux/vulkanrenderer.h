@@ -30,7 +30,7 @@ struct BufferAllocation
 class VulkanRenderer : public IRenderer
 {
     public:
-    bool init(GLFWwindow *window) override;
+    bool init(IPlatform *platform) override;
     void swapBuffers() override;
     void shutdown() override;
 
@@ -91,7 +91,7 @@ class VulkanRenderer : public IRenderer
     chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
     uint32_t findQueueFamilyIndex() const;
 
-    GLFWwindow *window_ = nullptr;
+    IPlatform *platform_ = nullptr;
     std::function<bool()> exitRequested_;
 
     VkQueue graphicsQueue_ = VK_NULL_HANDLE;

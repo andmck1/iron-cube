@@ -8,6 +8,7 @@ GLFWwindow *WindowGLFW::getGLFWWindow() const
 
 bool WindowGLFW::init(uint32_t width, uint32_t height, const char *title)
 {
+    spdlog::debug("Creating GLFW window: {}x{} '{}'", width, height, title);
     window_ = glfwCreateWindow(
         static_cast<int>(width), static_cast<int>(height), title, nullptr,
         nullptr
@@ -18,6 +19,7 @@ bool WindowGLFW::init(uint32_t width, uint32_t height, const char *title)
         return false;
     }
 
+    spdlog::debug("GLFW window created");
     glfwSetWindowCloseCallback(window_, closeCallback);
     glfwMakeContextCurrent(window_);
 
@@ -28,6 +30,7 @@ void WindowGLFW::destroy()
 {
     if (window_)
     {
+        spdlog::debug("Destroying GLFW window");
         glfwDestroyWindow(window_);
         window_ = nullptr;
     }

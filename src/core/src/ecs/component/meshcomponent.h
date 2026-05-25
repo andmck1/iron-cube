@@ -9,8 +9,6 @@ class MeshComponent : public Component
 {
 
     public:
-    MeshComponent(Mesh *m, Material *mat);
-
     void setMesh(Mesh *m);
     void setMaterial(Material *mat);
 

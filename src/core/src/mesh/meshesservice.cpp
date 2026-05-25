@@ -3,9 +3,11 @@
 
 Mesh *MeshesService::registerMesh(const std::string &name, Mesh mesh)
 {
+    spdlog::debug("Registering mesh: {}", name);
     auto meshPtr = std::make_unique<Mesh>(std::move(mesh));
     Mesh *rawPtr = meshPtr.get();
     meshes_[name] = std::move(meshPtr);
+    spdlog::debug("Mesh registered: {}", name);
     return rawPtr;
 }
 

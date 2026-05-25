@@ -2,6 +2,7 @@
 #include "ecs/component/meshcomponent.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "platform/linux/platformlinux.h"
 #include "render/linux/vulkanhelpers.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -23,11 +24,12 @@ static bool enableValidationLayers()
 #endif
 }
 
-bool VulkanRenderer::init(GLFWwindow *glfwWindow)
+bool VulkanRenderer::init(IPlatform *platform)
 {
-    window_ = glfwWindow;
-    width_ = 1280;
-    height_ = 720;
+    spdlog::debug("Initialising Vulkan renderer");
+    platform_ = platform;
+    width_ = platform->getConfig().window_width;
+    height_ = platform->getConfig().window_height;
 
     try
     {
@@ -36,7 +38,6 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
         createSurface();
         selectGPU();
         createLogicalDevice();
-
         createSwapchain();
         createImageViews();
         createRenderPass();
@@ -78,6 +79,7 @@ bool VulkanRenderer::init(GLFWwindow *glfwWindow)
 
 void VulkanRenderer::createInstance()
 {
+    spdlog::debug("Creating Vulkan instance");
     if (enableValidationLayers() && !checkValidationLayerSupport())
     {
         throw std::runtime_error(
@@ -125,6 +127,7 @@ void VulkanRenderer::createInstance()
 
 void VulkanRenderer::setupDebugMessenger()
 {
+    spdlog::debug("Setting up debug messenger");
     if (!enableValidationLayers())
         return;
     debugMessenger_ = createDebugMessenger(instance_);
@@ -132,13 +135,16 @@ void VulkanRenderer::setupDebugMessenger()
 
 void VulkanRenderer::createSurface()
 {
+    spdlog::debug("Creating surface");
+    auto *glfwWindow = static_cast<PlatformLinux *>(platform_)->getGLFWWindow();
     VkResult result =
-        glfwCreateWindowSurface(instance_, window_, nullptr, &surface_);
+        glfwCreateWindowSurface(instance_, glfwWindow, nullptr, &surface_);
     vkCheck(result, "Failed to create window surface");
 }
 
 void VulkanRenderer::selectGPU()
 {
+    spdlog::debug("Selecting GPU");
     uint32_t gpuCount = 0;
     vkEnumeratePhysicalDevices(instance_, &gpuCount, nullptr);
 
@@ -173,6 +179,7 @@ void VulkanRenderer::selectGPU()
 
 void VulkanRenderer::createLogicalDevice()
 {
+    spdlog::debug("Creating logical device");
     uint32_t queueIndex = findQueueFamilyIndex();
 
     VkDeviceQueueCreateInfo queueCreateInfo{};
@@ -202,6 +209,7 @@ void VulkanRenderer::createLogicalDevice()
 
 void VulkanRenderer::createSwapchain()
 {
+    spdlog::debug("Creating swap chain");
     VkSurfaceCapabilitiesKHR capabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
         physicalDevice_, surface_, &capabilities
@@ -271,6 +279,7 @@ void VulkanRenderer::createSwapchain()
 
 void VulkanRenderer::createImageViews()
 {
+    spdlog::debug("Creating image views");
     swapchainImageViews_.resize(swapchainImages_.size());
 
     for (size_t i = 0; i < swapchainImages_.size(); i++)
@@ -299,6 +308,7 @@ void VulkanRenderer::createImageViews()
 
 void VulkanRenderer::createRenderPass()
 {
+    spdlog::debug("Creating render pass");
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = swapchainImageFormat_;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -342,6 +352,7 @@ void VulkanRenderer::createRenderPass()
 
 void VulkanRenderer::createGraphicsPipeline()
 {
+    spdlog::debug("Creating graphics pipeline");
     std::vector<char> vertCode = readFile("build/shaders/triangle.vert.spv");
     std::vector<char> fragCode = readFile("build/shaders/triangle.frag.spv");
 
@@ -493,6 +504,7 @@ void VulkanRenderer::createGraphicsPipeline()
 
 void VulkanRenderer::createFramebuffers()
 {
+    spdlog::debug("Creating framebuffers");
     framebuffers_.resize(swapchainImageViews_.size());
 
     for (size_t i = 0; i < swapchainImageViews_.size(); i++)
@@ -517,6 +529,7 @@ void VulkanRenderer::createFramebuffers()
 
 void VulkanRenderer::createCommandPool()
 {
+    spdlog::debug("Creating command pool");
     uint32_t queueIndex = findQueueFamilyIndex();
 
     VkCommandPoolCreateInfo poolInfo{};
@@ -531,6 +544,7 @@ void VulkanRenderer::createCommandPool()
 
 void VulkanRenderer::createCommandBuffers()
 {
+    spdlog::debug("Creating command buffers");
     commandBuffers_.resize(framebuffers_.size());
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -547,6 +561,7 @@ void VulkanRenderer::createCommandBuffers()
 
 void VulkanRenderer::createUniformBuffer()
 {
+    spdlog::debug("Creating uniform buffer");
     VkDeviceSize bufferSize = sizeof(UBO);
 
     uniformAlloc_ = allocateBuffer(
@@ -659,6 +674,7 @@ bool VulkanRenderer::allocateVertexBuffer(uint32_t vertexCount)
 
 void VulkanRenderer::createDescriptorSet()
 {
+    spdlog::debug("Creating descriptor set");
     VkDescriptorPoolSize poolSize{};
     poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSize.descriptorCount = 1;
@@ -932,7 +948,8 @@ bool VulkanRenderer::initImGui()
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
 
-    GLFWwindow *glfwWindow = window_;
+    GLFWwindow *glfwWindow =
+        static_cast<PlatformLinux *>(platform_)->getGLFWWindow();
     ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
 
     VkDescriptorPoolSize poolSizes[] = {

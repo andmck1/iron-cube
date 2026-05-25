@@ -20,4 +20,5 @@ class IPlatform
     virtual void pollEvents() = 0;
     virtual bool shouldExit() const = 0;
     virtual void shutdown() = 0;
+    virtual const PlatformConfig &getConfig() const = 0;
 };

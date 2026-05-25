@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/loggerservice.h"
 #include "layer/debuglayerdata.h"
 #include "platform/linux/platformlinux.h"
 #include "render/linux/vulkanrenderer.h"
@@ -14,11 +15,11 @@
 class Application
 {
     public:
-    Application();
-
+    bool init(int argc, char *argv[]);
     bool run();
 
     private:
+    void initLogging();
     void initConfig();
     bool registerServices();
     bool initialisePlatform();
@@ -31,6 +32,8 @@ class Application
     void shutdownServices();
     void shutdownAll();
 
+    int debugMode_;
+    LoggerService logger_;
     Config config_;
     PlatformConfig platformConfig_;
     PlatformLinux platform_;

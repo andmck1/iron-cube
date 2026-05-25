@@ -3,10 +3,12 @@
 
 bool PlatformLinux::initialise()
 {
+    spdlog::debug("Initialising platform (GLFW)");
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
     if (glfwInit())
     {
         initialised_ = true;
+        spdlog::debug("GLFW initialised successfully");
         return true;
     }
     spdlog::error("Failed to initialise GLFW");
@@ -21,15 +23,22 @@ bool PlatformLinux::createWindow(const PlatformConfig &config)
         return false;
     }
 
+    spdlog::debug(
+        "Creating window: {}x{} titled '{}'", config.window_width,
+        config.window_height, config.window_title
+    );
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    config_ = config;
 
     if (!window_.init(
             config.window_width, config.window_height,
             config.window_title.c_str()
         ))
     {
+        spdlog::error("Window creation failed");
         return false;
     }
 
@@ -37,6 +46,7 @@ bool PlatformLinux::createWindow(const PlatformConfig &config)
     glfwSetKeyCallback(window_.getGLFWWindow(), InputGLFW::keyCallback);
 
     glfwShowWindow(window_.getGLFWWindow());
+    spdlog::debug("Window created and shown");
     return true;
 }
 
@@ -58,12 +68,19 @@ bool PlatformLinux::shouldExit() const
 
 void PlatformLinux::shutdown()
 {
+    spdlog::debug("Platform shutting down");
     window_.destroy();
     glfwTerminate();
     initialised_ = false;
+    spdlog::debug("Platform shut down complete");
 }
 
 GLFWwindow *PlatformLinux::getGLFWWindow() const
 {
     return window_.getGLFWWindow();
+}
+
+const PlatformConfig &PlatformLinux::getConfig() const
+{
+    return config_;
 }

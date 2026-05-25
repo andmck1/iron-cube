@@ -13,6 +13,7 @@ class PlatformLinux : public IPlatform
     void pollEvents() override;
     bool shouldExit() const override;
     void shutdown() override;
+    const PlatformConfig &getConfig() const override;
 
     GLFWwindow *getGLFWWindow() const;
 
@@ -20,4 +21,5 @@ class PlatformLinux : public IPlatform
     WindowGLFW window_;
     InputGLFW input_;
     bool initialised_;
+    PlatformConfig config_;
 };

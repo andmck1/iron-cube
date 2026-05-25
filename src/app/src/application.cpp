@@ -1,5 +1,4 @@
 #include "application.h"
-#include <spdlog/spdlog.h>
 #include "ecs/component/transformcomponent.h"
 #include "ecs/component/meshcomponent.h"
 #include "glm/ext/vector_float3.hpp"
@@ -8,21 +7,53 @@
 #include "config/config.h"
 #include "layer/scenelayer.h"
 #include "layer/debuglayer.h"
+#include "common/helpers.h"
 
-Application::Application()
+#include <iostream>
+#include <spdlog/spdlog.h>
+
+bool Application::init(int argc, char *argv[])
 {
+    for (int i = 1; i < argc; ++i)
+    {
+        std::string arg = argv[i];
+        if (arg == "--debug")
+        {
+            debugMode_ = true;
+        }
+        else if (arg == "--help")
+        {
+            printUsage(argv[0]);
+            return false;
+        }
+        else
+        {
+            std::cerr << "Unknown option: " << arg << "\n";
+            printUsage(argv[0]);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void Application::initLogging()
+{
+    logger_ = LoggerService();
+    logger_.init(debugMode_);
 }
 
 void Application::initConfig()
 {
     config_ = Config();
-    config_.initConfig();
+    config_.initConfig("config/config.yaml");
     platformConfig_ = config_.getPlatformConfig();
 }
 
 bool Application::registerServices()
 {
     ServiceLocator &locator = ServiceLocator::instance();
+    locator.registerService<ILogger>(&logger_);
     locator.registerService<IPlatform>(&platform_);
     locator.registerService<IRenderer>(&renderer_);
     locator.registerService<IResourceManager>(&resourceManager_);
@@ -51,7 +82,7 @@ bool Application::initialisePlatform()
 
 bool Application::initialiseRenderer()
 {
-    if (!renderer_.init(platform_.getGLFWWindow()))
+    if (!renderer_.init(&platform_))
     {
         spdlog::error("Renderer initialisation failed");
         platform_.shutdown();
@@ -124,9 +155,9 @@ bool Application::initialiseEntities(Scene *scene)
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
     transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
 
-    auto _ = triangle->addComponent<MeshComponent>(
-        registeredMesh, registeredMaterial
-    );
+    MeshComponent *meshComponent = triangle->addComponent<MeshComponent>();
+    meshComponent->setMaterial(registeredMaterial);
+    meshComponent->setMesh(registeredMesh);
     scene->addEntity(std::move(triangle));
 
     return true;
@@ -182,6 +213,9 @@ bool Application::run()
 {
     spdlog::info("Iron Cube starting");
 
+    initLogging();
+    initConfig();
+
     try
     {
         if (!registerServices())
@@ -195,6 +229,7 @@ bool Application::run()
 
         mainLoop();
         shutdownAll();
+        spdlog::info("Iron Cube shut down cleanly");
         return true;
     }
     catch (const std::runtime_error &e)

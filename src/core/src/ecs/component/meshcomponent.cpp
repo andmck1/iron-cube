@@ -1,9 +1,6 @@
 #include "ecs/component/meshcomponent.h"
 #include "ecs/component/transformcomponent.h"
-
-MeshComponent::MeshComponent(Mesh *m, Material *mat) : mesh(m), material(mat)
-{
-}
+#include <spdlog/spdlog.h>
 
 void MeshComponent::setMesh(Mesh *m)
 {
@@ -25,6 +22,9 @@ Material *MeshComponent::getMaterial() const
 
 void MeshComponent::render()
 {
+    spdlog::debug(
+        "Rendering MeshComponent for entity: {}", getOwner()->getName()
+    );
     if (!mesh || !material)
         return;
 

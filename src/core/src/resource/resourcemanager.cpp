@@ -6,6 +6,7 @@ bool ResourceManager::loadGeometry(
     uint32_t vertexCount
 )
 {
+    spdlog::debug("Loading geometry '{}': {} vertices", name, vertexCount);
     if (!verts || vertexCount == 0)
     {
         spdlog::error("Failed to load geometry '{}': invalid data", name);
@@ -22,9 +23,13 @@ bool ResourceManager::loadGeometry(
 
 Geometry *ResourceManager::getGeometry(const std::string &name)
 {
+    spdlog::debug("Requesting geometry: {}", name);
     auto it = geometries_.find(name);
     if (it != geometries_.end())
+    {
+        spdlog::debug("Found geometry: {}", name);
         return &(it->second);
+    }
     spdlog::error("Geometry not found: {}", name);
     return nullptr;
 }

@@ -4,6 +4,7 @@
 
 bool SceneLayer::initialise()
 {
+    spdlog::debug("Initialising SceneLayer");
     spdlog::info("Initialising scene");
     renderer_ = ServiceLocator::instance().get<IRenderer>();
     return true;
@@ -11,6 +12,7 @@ bool SceneLayer::initialise()
 
 bool SceneLayer::render()
 {
+    spdlog::debug("SceneLayer rendering");
     if (!renderer_)
         return false;
     renderer_->renderScene(&scene);
@@ -19,5 +21,6 @@ bool SceneLayer::render()
 
 void SceneLayer::shutdown()
 {
+    spdlog::debug("SceneLayer shutting down");
     spdlog::info("SceneLayer shut down");
 }

@@ -2,9 +2,17 @@
 
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include <spdlog/spdlog.h>
 
 void TransformComponent::setTransform(const Transform &transform)
 {
+    spdlog::debug(
+        "Transform updated: pos=({}, {}, {}), rot=({}, {}, {}), scale=({}, {}, "
+        "{})",
+        transform.position.x, transform.position.y, transform.position.z,
+        transform.rotation.x, transform.rotation.y, transform.rotation.z,
+        transform.scale.x, transform.scale.y, transform.scale.z
+    );
     transform_ = transform;
 }
 

@@ -50,6 +50,8 @@ add_library(
     src/ecs/component/meshcomponent.cpp
     src/common/timer.cpp
     src/common/types.cpp
+    src/common/loggerservice.cpp
+    src/common/helpers.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_demo.cpp

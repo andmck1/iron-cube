@@ -2,6 +2,7 @@
 
 #include "common/types.h"
 #include "glm/ext/matrix_float4x4.hpp"
+#include "platform/iplatform.h"
 #include "scene/scene.h"
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -11,7 +12,7 @@ class IRenderer
     public:
     virtual ~IRenderer() = default;
 
-    virtual bool init(GLFWwindow *window) = 0;
+    virtual bool init(IPlatform *platform) = 0;
     virtual bool renderScene(Scene *scene) = 0;
     virtual void swapBuffers() = 0;
     virtual void shutdown() = 0;
