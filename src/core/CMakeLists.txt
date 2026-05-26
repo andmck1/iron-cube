@@ -4,7 +4,7 @@ target_include_directories(iron-stb INTERFACE ${stb_SOURCE_DIR})
 
 # Compile Slang shaders to SPIR-V
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shader)
-set(SPIRV_DIR ${CMAKE_BINARY_DIR}/shader)
+set(SPIRV_DIR ${CMAKE_BINARY_DIR}/shader/slang)
 
 file(MAKE_DIRECTORY ${SPIRV_DIR})
 
