@@ -3,39 +3,54 @@ add_library(iron-stb INTERFACE)
 target_include_directories(iron-stb INTERFACE ${stb_SOURCE_DIR})
 
 # Compile Slang shaders to SPIR-V
-set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shader)
-set(SPIRV_DIR ${CMAKE_BINARY_DIR}/shader/slang)
+set(SHADER_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shader/slang)
+set(SPIRV_BASE_DIR ${CMAKE_BINARY_DIR}/shader/slang)
 
-file(MAKE_DIRECTORY ${SPIRV_DIR})
+file(MAKE_DIRECTORY ${SPIRV_BASE_DIR})
 
-add_custom_command(
-    OUTPUT ${SPIRV_DIR}/triangle.vert.spv
-    COMMAND
-        ${SLANGC_EXECUTABLE} -target spirv -entry main -stage vertex
-        -I ${CMAKE_CURRENT_SOURCE_DIR}/src
-        -o ${SPIRV_DIR}/triangle.vert.spv ${SHADER_DIR}/triangle.vert.slang
-    DEPENDS
-        ${SHADER_DIR}/triangle.vert.slang
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/buffer/ubuffer.h
-    COMMENT "Compiling triangle.vert.slang -> SPIR-V"
-)
+file(GLOB_RECURSE ALL_SHADERS "${SHADER_BASE_DIR}/*.slang")
 
-add_custom_command(
-    OUTPUT ${SPIRV_DIR}/triangle.frag.spv
-    COMMAND
-        ${SLANGC_EXECUTABLE} -target spirv -entry main -stage fragment
-        -I ${CMAKE_CURRENT_SOURCE_DIR}/src
-        -o ${SPIRV_DIR}/triangle.frag.spv ${SHADER_DIR}/triangle.frag.slang
-    DEPENDS
-        ${SHADER_DIR}/triangle.frag.slang
-    COMMENT "Compiling triangle.frag.slang -> SPIR-V"
-)
+set(ALL_SPIRV_FILES "")
 
-add_custom_target(
-    compile_shaders
-    ALL
-    DEPENDS ${SPIRV_DIR}/triangle.vert.spv ${SPIRV_DIR}/triangle.frag.spv
-)
+foreach(SHADER_FILE ${ALL_SHADERS})
+    get_filename_component(SHADER_NAME ${SHADER_FILE} NAME)
+    
+    if(SHADER_NAME MATCHES ".vert.slang")
+        set(STAGE "vertex")
+    elseif(SHADER_NAME MATCHES ".frag.slang")
+        set(STAGE "fragment")
+    else()
+        continue()
+    endif()
+
+    file(RELATIVE_PATH REL_PATH ${SHADER_BASE_DIR} ${SHADER_FILE})
+    string(REPLACE ".slang" ".spv" SPIRV_FILE_REL_PATH ${REL_PATH})
+    set(SPIRV_FILE "${SPIRV_BASE_DIR}/${SPIRV_FILE_REL_PATH}")
+
+    set(SHADER_DEPENDENCIES ${SHADER_FILE})
+    if(STAGE STREQUAL "vertex")
+        list(APPEND SHADER_DEPENDENCIES ${CMAKE_CURRENT_SOURCE_DIR}/src/buffer/ubuffer.h)
+    endif()
+
+    add_custom_command(
+        OUTPUT ${SPIRV_FILE}
+        COMMAND
+            ${SLANGC_EXECUTABLE} -target spirv -entry main -stage ${STAGE}
+            -I ${CMAKE_CURRENT_SOURCE_DIR}/src
+            -o ${SPIRV_FILE} ${SHADER_FILE}
+        DEPENDS ${SHADER_DEPENDENCIES}
+        COMMENT "Compiling ${SHADER_FILE} -> ${SPIRV_FILE}"
+    )
+    list(APPEND ALL_SPIRV_FILES ${SPIRV_FILE})
+endforeach()
+
+if(ALL_SPIRV_FILES)
+    add_custom_target(
+        compile_shaders
+        ALL
+        DEPENDS ${ALL_SPIRV_FILES}
+    )
+endif()
 
 # Iron core static library
 add_library(

@@ -1,12 +1,15 @@
 #include "common/timer.h"
+#include <spdlog/spdlog.h>
 
 Timer::Timer() : lastTime_(std::chrono::steady_clock::now())
 {
+    spdlog::debug("Timer initialized");
     frameTimes_.reserve(MAX_N_FRAMES);
 }
 
 void Timer::reset()
 {
+    spdlog::debug("Timer reset");
     lastTime_ = std::chrono::steady_clock::now();
     fps_ = 0.0f;
     frameTime_ = 0.0f;
@@ -26,6 +29,14 @@ void Timer::tick()
     frameTimes_.push_back(frameTime_);
     if (frameTimes_.size() > MAX_N_FRAMES)
         frameTimes_.erase(frameTimes_.begin());
+
+    static int tickCount = 0;
+    if (++tickCount % 100 == 0)
+    {
+        spdlog::debug(
+            "Timer tick - FPS: {:.2f}, Frame Time: {:.2f}ms", fps_, frameTime_
+        );
+    }
 }
 
 float Timer::getFps() const
