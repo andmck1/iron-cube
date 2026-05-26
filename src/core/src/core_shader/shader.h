@@ -4,17 +4,24 @@
 #include <string>
 #include <vulkan/vulkan.h>
 
-class Shader : public IShader
+struct VulkanShaderConfig : public BaseShaderConfig
+{
+    VkDevice device = nullptr;
+    std::string path;
+    VkShaderStageFlagBits stage = VK_SHADER_STAGE_VERTEX_BIT;
+    const char *entryPoint = "main";
+};
+
+class VulkanShader : public IShader
 {
     public:
-    Shader(
-        VkDevice device, const std::string &path, VkShaderStageFlagBits stage,
-        const char *entryPoint = "main"
-    );
-    ~Shader() override;
+    VulkanShader();
+    ~VulkanShader() override;
 
-    Shader(const Shader &) = delete;
-    Shader &operator=(const Shader &) = delete;
+    VulkanShader(const VulkanShader &) = delete;
+    VulkanShader &operator=(const VulkanShader &) = delete;
+
+    void init(const BaseShaderConfig &shaderConfig) override;
 
     VkPipelineShaderStageCreateInfo getShaderStageInfo() const override;
 

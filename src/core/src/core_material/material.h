@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core_shader/ishader.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include <string>
 #include <vector>
@@ -32,16 +33,9 @@ struct DynamicState
     VkDynamicState state;
 };
 
-struct ShaderDefinition
-{
-    std::string path;
-    VkShaderStageFlagBits stage = VK_SHADER_STAGE_VERTEX_BIT;
-    const char *entryPoint = "main";
-};
-
 struct ShaderPipelineConfig
 {
-    std::vector<ShaderDefinition> shaders;
+    std::vector<BaseShaderConfig> shaders;
 
     std::vector<VertexBinding> vertexBindings;
     std::vector<VertexAttribute> vertexAttributes;

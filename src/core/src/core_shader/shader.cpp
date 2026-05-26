@@ -3,20 +3,26 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 
-Shader::Shader(
-    VkDevice device, const std::string &path, VkShaderStageFlagBits stage,
-    const char *entryPoint
-)
-    : device_(device), stage_(stage), entryPoint_(entryPoint)
+VulkanShader::VulkanShader()
 {
+}
+
+void VulkanShader::init(const BaseShaderConfig &baseShaderConfig)
+{
+    const VulkanShaderConfig &shaderConfig =
+        dynamic_cast<const VulkanShaderConfig &>(baseShaderConfig);
+
     spdlog::debug(
-        "Loading shader: {} (stage: {})", path, static_cast<uint32_t>(stage)
+        "Loading shader: {} (stage: {})", shaderConfig.path,
+        static_cast<uint32_t>(shaderConfig.stage)
     );
 
-    std::ifstream file(path, std::ios::ate | std::ios::binary);
+    std::ifstream file(shaderConfig.path, std::ios::ate | std::ios::binary);
     if (!file.is_open())
     {
-        throw std::runtime_error("Failed to open shader file: " + path);
+        throw std::runtime_error(
+            "Failed to open shader file: " + shaderConfig.path
+        );
     }
 
     size_t fileSize = static_cast<size_t>(file.tellg());
@@ -35,7 +41,7 @@ Shader::Shader(
     vkCheck(result, "Failed to create shader module");
 }
 
-Shader::~Shader()
+VulkanShader::~VulkanShader()
 {
     if (module_ != VK_NULL_HANDLE)
     {
@@ -44,7 +50,7 @@ Shader::~Shader()
     }
 }
 
-VkPipelineShaderStageCreateInfo Shader::getShaderStageInfo() const
+VkPipelineShaderStageCreateInfo VulkanShader::getShaderStageInfo() const
 {
     VkPipelineShaderStageCreateInfo stageInfo{};
     stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

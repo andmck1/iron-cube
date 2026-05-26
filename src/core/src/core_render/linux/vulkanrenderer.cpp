@@ -340,13 +340,13 @@ void VulkanRenderer::createGraphicsPipeline(const ShaderPipelineConfig &config)
     // Create shader instances from definitions
     shaders_.clear();
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-    for (const ShaderDefinition &shaderDef : config.shaders)
+    for (const BaseShaderConfig &baseShaderConfig : config.shaders)
     {
-        shaders_.push_back(
-            std::make_unique<Shader>(
-                device_, shaderDef.path, shaderDef.stage, shaderDef.entryPoint
-            )
-        );
+        const VulkanShaderConfig &shaderConfig =
+            dynamic_cast<const VulkanShaderConfig &>(baseShaderConfig);
+        shaders_.push_back(std::make_unique<VulkanShader>());
+        IShader *shader = shaders_.back().get();
+        shader->init(shaderConfig);
         shaderStages.push_back(shaders_.back()->getShaderStageInfo());
     }
 
