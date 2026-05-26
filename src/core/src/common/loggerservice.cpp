@@ -15,23 +15,3 @@ void LoggerService::init(bool debugMode)
     logger_->flush_on(spdlog::level::debug);
     spdlog::set_default_logger(logger_);
 }
-
-void LoggerService::info(const std::string &message)
-{
-    logger_->info(message);
-}
-
-void LoggerService::debug(const std::string &message)
-{
-    logger_->debug(message);
-}
-
-void LoggerService::warn(const std::string &message)
-{
-    logger_->warn(message);
-}
-
-void LoggerService::error(const std::string &message)
-{
-    logger_->error(message);
-}

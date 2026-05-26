@@ -49,7 +49,7 @@ bool Application::init(int argc, char *argv[])
 
 void Application::initLogging()
 {
-    logger_ = LoggerService();
+    LoggerService logger_ = LoggerService();
     logger_.init(debugMode_);
 }
 
@@ -157,8 +157,9 @@ bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
 
-    // --- Triangle ---
-    auto triangleVertices = ResourceManager::generateProceduralTriangle();
+    // triangle
+    std::shared_ptr<std::vector<Vertex>> triangleVertices =
+        ResourceManager::generateProceduralTriangle();
     resourceManager_.loadGeometry(
         "triangle", triangleVertices,
         static_cast<uint32_t>(triangleVertices->size())
@@ -188,7 +189,8 @@ bool Application::initialiseEntities(Scene *scene)
     scene->addEntity(std::move(triangle));
 
     // --- Cube ---
-    auto cubeVertices = ResourceManager::generateProceduralCube();
+    std::shared_ptr<std::vector<Vertex>> cubeVertices =
+        ResourceManager::generateProceduralCube();
     resourceManager_.loadGeometry(
         "cube", cubeVertices, static_cast<uint32_t>(cubeVertices->size())
     );

@@ -5,7 +5,8 @@ Material *
 MaterialsService::registerMaterial(const std::string &name, Material material)
 {
     spdlog::debug("Registering material: {}", name);
-    auto materialPtr = std::make_unique<Material>(std::move(material));
+    std::unique_ptr<Material> materialPtr =
+        std::make_unique<Material>(std::move(material));
     Material *rawPtr = materialPtr.get();
     materials_[name] = std::move(materialPtr);
     spdlog::debug("Material registered: {}", name);

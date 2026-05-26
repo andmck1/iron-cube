@@ -65,7 +65,7 @@ class Entity
 
     template <typename T> T *getComponent() const
     {
-        for (auto &component : components_)
+        for (const std::unique_ptr<Component> &component : components_)
         {
             if (T *result = dynamic_cast<T *>(component.get()))
             {

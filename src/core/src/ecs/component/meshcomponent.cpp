@@ -28,7 +28,8 @@ void MeshComponent::render()
     if (!mesh || !material)
         return;
 
-    auto transform = getOwner()->getComponent<TransformComponent>();
+    TransformComponent *transform =
+        getOwner()->getComponent<TransformComponent>();
     if (!transform)
         return;
 

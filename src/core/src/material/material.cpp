@@ -21,7 +21,7 @@ DefaultMaterial::DefaultMaterial()
 
     VertexBinding binding;
     binding.binding = 0;
-    binding.stride = 24; // 2 x vec3 (position + color)
+    binding.stride = 24; // 2 x vec3 (position + colour)
     binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
     config_.vertexBindings.push_back(binding);
 
@@ -31,11 +31,11 @@ DefaultMaterial::DefaultMaterial()
     attrPos.offset = 0;
     config_.vertexAttributes.push_back(attrPos);
 
-    VertexAttribute attrColor;
-    attrColor.location = 1;
-    attrColor.format = VK_FORMAT_R32G32B32_SFLOAT;
-    attrColor.offset = 12; // sizeof(glm::vec3)
-    config_.vertexAttributes.push_back(attrColor);
+    VertexAttribute attrColour;
+    attrColour.location = 1;
+    attrColour.format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrColour.offset = 12; // sizeof(glm::vec3)
+    config_.vertexAttributes.push_back(attrColour);
 
     DescriptorBinding uboBinding;
     uboBinding.binding = 0;
@@ -59,7 +59,7 @@ CubeMaterial::CubeMaterial()
 
     VertexBinding binding;
     binding.binding = 0;
-    binding.stride = 24; // 2 x vec3 (position + color)
+    binding.stride = 24; // 2 x vec3 (position + colour)
     binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
     config_.vertexBindings.push_back(binding);
 
@@ -69,11 +69,11 @@ CubeMaterial::CubeMaterial()
     attrPos.offset = 0;
     config_.vertexAttributes.push_back(attrPos);
 
-    VertexAttribute attrColor;
-    attrColor.location = 1;
-    attrColor.format = VK_FORMAT_R32G32B32_SFLOAT;
-    attrColor.offset = 12; // sizeof(glm::vec3)
-    config_.vertexAttributes.push_back(attrColor);
+    VertexAttribute attrColour;
+    attrColour.location = 1;
+    attrColour.format = VK_FORMAT_R32G32B32_SFLOAT;
+    attrColour.offset = 12; // sizeof(glm::vec3)
+    config_.vertexAttributes.push_back(attrColour);
 
     DescriptorBinding uboBinding;
     uboBinding.binding = 0;

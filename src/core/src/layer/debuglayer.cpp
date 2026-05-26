@@ -34,7 +34,7 @@ bool DebugLayer::render()
     ImGui::Text("Frame Time: %.2f ms", debugData_->timer.getFrameTime());
 
     // Frame time mini graph
-    const auto &frameTimes = debugData_->timer.getFrameTimes();
+    const std::vector<float> &frameTimes = debugData_->timer.getFrameTimes();
     if (!frameTimes.empty())
     {
         float maxTime = 33.33f;
@@ -50,8 +50,9 @@ bool DebugLayer::render()
     // Iterate all entities with TransformComponent + MeshComponent
     if (debugData_->scene)
     {
-        const auto &entities = debugData_->scene->getEntities();
-        for (const auto &entity : entities)
+        const std::vector<std::unique_ptr<Entity>> &entities =
+            debugData_->scene->getEntities();
+        for (const std::unique_ptr<Entity> &entity : entities)
         {
             TransformComponent *transformComp =
                 entity->getComponent<TransformComponent>();
@@ -91,13 +92,13 @@ bool DebugLayer::render()
             // Write transform back to component
             transformComp->setTransform(localTransform);
 
-            // Cube-specific: color picker
+            // Cube-specific: colour picker
             if (entityName == "cube")
             {
                 ImGui::Separator();
                 ImGui::Text("Cube Colour");
                 if (ImGui::ColorPicker3(
-                        "##CubeColor", &cubeColor_.x,
+                        "##CubeColour", &cubeColor_.x,
                         ImGuiColorEditFlags_NoOptions
                     ))
                 {
@@ -110,9 +111,9 @@ bool DebugLayer::render()
                             resourceManager->getGeometry("cube");
                         if (cubeGeom && cubeGeom->vertices)
                         {
-                            for (auto &vertex : *cubeGeom->vertices)
+                            for (Vertex &vertex : *cubeGeom->vertices)
                             {
-                                vertex.color = cubeColor_;
+                                vertex.colour = cubeColor_;
                             }
                         }
                     }
