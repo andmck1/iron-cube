@@ -1,6 +1,6 @@
 # Compile Slang shaders to SPIR-V
 set(SHADER_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shader)
-set(SPIRV_BASE_DIR ${CMAKE_BINARY_DIR}/shader/slang)
+set(SPIRV_BASE_DIR ${CMAKE_BINARY_DIR}/shader)
 
 file(MAKE_DIRECTORY ${SPIRV_BASE_DIR})
 
@@ -22,12 +22,12 @@ foreach(SHADER_FILE ${ALL_SHADERS})
     file(RELATIVE_PATH REL_PATH ${SHADER_BASE_DIR} ${SHADER_FILE})
     string(REPLACE ".slang" ".spv" SPIRV_FILE_REL_PATH ${REL_PATH})
     set(SPIRV_FILE "${SPIRV_BASE_DIR}/${SPIRV_FILE_REL_PATH}")
-
+    
     set(SHADER_DEPENDENCIES ${SHADER_FILE})
     if(STAGE STREQUAL "vertex")
         list(
             APPEND SHADER_DEPENDENCIES
-            ${CMAKE_CURRENT_SOURCE_DIR}/../core/src/buffer/ubuffer.h
+            ${SHADER_BASE_DIR}/buffer/ubuffer.h
         )
     endif()
 

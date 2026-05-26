@@ -1,13 +1,13 @@
 #include "application.h"
-#include "ecs/component/transformcomponent.h"
-#include "ecs/component/meshcomponent.h"
+#include "core_ecs/component/transformcomponent.h"
+#include "core_ecs/component/meshcomponent.h"
 #include "glm/ext/vector_float3.hpp"
-#include "mesh/mesh.h"
-#include "service/servicelocator.h"
-#include "config/config.h"
-#include "layer/scenelayer.h"
-#include "layer/debuglayer.h"
-#include "common/helpers.h"
+#include "core_mesh/mesh.h"
+#include "core_service/servicelocator.h"
+#include "core_config/config.h"
+#include "core_layer/scenelayer.h"
+#include "core_layer/debuglayer.h"
+#include "core_common/helpers.h"
 
 #include <csignal>
 #include <atomic>
@@ -67,8 +67,8 @@ bool Application::registerServices()
     locator.registerService<IPlatform>(&platform_);
     locator.registerService<IRenderer>(&renderer_);
     locator.registerService<IResourceManager>(&resourceManager_);
-    locator.registerService<IMaterialsService>(&materialsService_);
-    locator.registerService<IMeshesService>(&meshesService_);
+    locator.registerService<IMaterialService>(&materialService_);
+    locator.registerService<IMeshService>(&meshService_);
     return true;
 }
 
@@ -138,7 +138,7 @@ bool Application::createAndInitialiseLayers()
     // Maybe it does because each one is a unique shader pipeline and then you
     // apply that to a list of objects
     // Initialise renderer pipelines for all registered materials
-    std::vector<Material *> allMaterials = materialsService_.getAllMaterials();
+    std::vector<Material *> allMaterials = materialService_.getAllMaterials();
     for (Material *material : allMaterials)
     {
         if (!renderer_.initialisePipeline(material->getConfig()))
@@ -168,10 +168,10 @@ bool Application::initialiseEntities(Scene *scene)
     Mesh triangleMesh = Mesh();
     triangleMesh.setGeometry("triangle");
     Mesh *registeredMesh =
-        meshesService_.registerMesh("triangle", std::move(triangleMesh));
+        meshService_.registerMesh("triangle", std::move(triangleMesh));
 
     DefaultMaterial triangleMaterial = DefaultMaterial();
-    Material *registeredMaterial = materialsService_.registerMaterial(
+    Material *registeredMaterial = materialService_.registerMaterial(
         "triangle", std::move(triangleMaterial)
     );
 
@@ -198,11 +198,11 @@ bool Application::initialiseEntities(Scene *scene)
     Mesh cubeMesh = Mesh();
     cubeMesh.setGeometry("cube");
     Mesh *registeredCubeMesh =
-        meshesService_.registerMesh("cube", std::move(cubeMesh));
+        meshService_.registerMesh("cube", std::move(cubeMesh));
 
     CubeMaterial cubeMaterial = CubeMaterial();
     Material *registeredCubeMaterial =
-        materialsService_.registerMaterial("cube", std::move(cubeMaterial));
+        materialService_.registerMaterial("cube", std::move(cubeMaterial));
 
     std::unique_ptr<Entity> cube = std::make_unique<Entity>("cube");
 

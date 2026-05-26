@@ -1,14 +1,14 @@
 #pragma once
 
-#include "common/loggerservice.h"
-#include "layer/debuglayerdata.h"
-#include "platform/linux/platformlinux.h"
-#include "render/linux/vulkanrenderer.h"
-#include "resource/resourcemanager.h"
-#include "material/materialsservice.h"
-#include "mesh/meshesservice.h"
-#include "layer/ilayer.h"
-#include "config/config.h"
+#include "core_common/loggerservice.h"
+#include "core_layer/debuglayerdata.h"
+#include "core_platform/linux/platformlinux.h"
+#include "core_render/linux/vulkanrenderer.h"
+#include "core_resource/resourcemanager.h"
+#include "core_material/materialservice.h"
+#include "core_mesh/meshservice.h"
+#include "core_layer/ilayer.h"
+#include "core_config/config.h"
 #include <memory>
 #include <vector>
 
@@ -39,8 +39,8 @@ class Application
     PlatformLinux platform_;
     VulkanRenderer renderer_;
     ResourceManager resourceManager_;
-    MaterialsService materialsService_;
-    MeshesService meshesService_;
+    MaterialService materialService_;
+    MeshesService meshService_;
     DebugLayerData debugLayerData_;
     std::vector<std::unique_ptr<ILayer>> layers_;
 };
