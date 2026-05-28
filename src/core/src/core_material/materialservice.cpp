@@ -1,19 +1,18 @@
 #include "core_material/materialservice.h"
 #include <spdlog/spdlog.h>
 
-Material *
-MaterialService::registerMaterial(const std::string &name, Material material)
+IMaterial *MaterialService::registerMaterial(
+    const std::string &name, std::unique_ptr<IMaterial> material
+)
 {
     spdlog::debug("Registering material: {}", name);
-    std::unique_ptr<Material> materialPtr =
-        std::make_unique<Material>(std::move(material));
-    Material *rawPtr = materialPtr.get();
-    materials_[name] = std::move(materialPtr);
+    IMaterial *rawPtr = material.get();
+    materials_[name] = std::move(material);
     spdlog::debug("Material registered: {}", name);
     return rawPtr;
 }
 
-Material *MaterialService::getMaterial(const std::string &name)
+IMaterial *MaterialService::getMaterial(const std::string &name)
 {
     auto it = materials_.find(name);
     if (it != materials_.end())
@@ -22,9 +21,9 @@ Material *MaterialService::getMaterial(const std::string &name)
     return nullptr;
 }
 
-std::vector<Material *> MaterialService::getAllMaterials()
+std::vector<IMaterial *> MaterialService::getAllMaterials()
 {
-    std::vector<Material *> result;
+    std::vector<IMaterial *> result;
     for (auto &pair : materials_)
     {
         result.push_back(pair.second.get());

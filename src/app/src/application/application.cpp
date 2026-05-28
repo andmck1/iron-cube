@@ -9,16 +9,6 @@
 #include "core_layer/debuglayer.h"
 #include "core_common/helpers.h"
 
-#include <csignal>
-#include <atomic>
-
-static std::atomic<bool> gSignalReceived{false};
-
-static void signalHandler(int)
-{
-    gSignalReceived.store(true);
-}
-
 #include <iostream>
 #include <spdlog/spdlog.h>
 
@@ -223,7 +213,7 @@ bool Application::initialiseEntities(Scene *scene)
 void Application::mainLoop()
 {
     spdlog::info("Starting main loop");
-    while (!platform_.shouldExit() && !gSignalReceived.load())
+    while (!platform_.shouldExit())
     {
         debugLayerData_.timer.tick();
         renderer_.setDeltaTime(debugLayerData_.timer.getDeltaSeconds());
@@ -269,9 +259,6 @@ void Application::shutdownAll()
 bool Application::run()
 {
     spdlog::info("Iron Cube starting");
-
-    signal(SIGTERM, signalHandler);
-    signal(SIGINT, signalHandler);
 
     initLogging();
     initConfig();

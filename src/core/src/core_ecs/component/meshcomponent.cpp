@@ -6,7 +6,7 @@ void MeshComponent::setMesh(Mesh *m)
 {
     mesh = m;
 }
-void MeshComponent::setMaterial(Material *mat)
+void MeshComponent::setMaterial(IMaterial *mat)
 {
     material = mat;
 }
@@ -15,7 +15,7 @@ Mesh *MeshComponent::getMesh() const
 {
     return mesh;
 }
-Material *MeshComponent::getMaterial() const
+IMaterial *MeshComponent::getMaterial() const
 {
     return material;
 }
@@ -33,7 +33,6 @@ void MeshComponent::render()
     if (!transform)
         return;
 
-    material->bind();
-    material->setUniform("modelMatrix", transform->getTransformMatrix());
+    material->set();
     mesh->render();
 }

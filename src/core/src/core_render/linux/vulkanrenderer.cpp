@@ -850,29 +850,6 @@ bool VulkanRenderer::beginFrame()
     scissor.extent = swapchainExtent_;
     vkCmdSetScissor(commandBuffers_[currentImageIndex_], 0, 1, &scissor);
 
-    // Upload view/projection matrices to UBO once per frame
-    {
-        UBO ubo{};
-        glm::mat4 view = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        );
-        std::memcpy(ubo.view, glm::value_ptr(view), 16 * sizeof(float));
-
-        float aspect = swapchainExtent_.width /
-                       static_cast<float>(swapchainExtent_.height);
-        glm::mat4 proj =
-            glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
-        proj[1][1] *= -1.0f;
-        std::memcpy(ubo.proj, glm::value_ptr(proj), 16 * sizeof(float));
-
-        void *uboMapped = mapMemory(uniformAlloc_, sizeof(UBO));
-        if (uboMapped)
-        {
-            std::memcpy(uboMapped, &ubo, sizeof(UBO));
-            unmapMemory(uniformAlloc_);
-        }
-    }
     return true;
 }
 

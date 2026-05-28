@@ -20,7 +20,8 @@ add_library(
     src/core_layer/scenelayer.cpp
     src/core_material/material.cpp
     src/core_material/materialservice.cpp
-    src/core_shader/shader.cpp
+    src/core_shader/vulkanshader.cpp
+    src/core_shader/shaderservice.cpp
     src/core_mesh/mesh.cpp
     src/core_mesh/meshservice.cpp
     src/core_ecs/ecs.cpp

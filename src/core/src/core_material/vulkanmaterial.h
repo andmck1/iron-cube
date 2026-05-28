@@ -1,10 +1,6 @@
 #pragma once
 
-#include "core_shader/ishader.h"
-#include "glm/ext/matrix_float4x4.hpp"
-#include <string>
-#include <vector>
-#include <vulkan/vulkan.h>
+#include "core_material/imaterial.h"
 
 struct VertexAttribute
 {
@@ -33,10 +29,8 @@ struct DynamicState
     VkDynamicState state;
 };
 
-struct ShaderPipelineConfig
+struct VulkanMaterialConfig : BaseMaterialConfig
 {
-    std::vector<BaseShaderConfig> shaders;
-
     std::vector<VertexBinding> vertexBindings;
     std::vector<VertexAttribute> vertexAttributes;
 
@@ -55,29 +49,11 @@ struct ShaderPipelineConfig
     };
 };
 
-class Material
+class VulkanMaterial : public IMaterial
 {
-    public:
-    Material();
-    explicit Material(ShaderPipelineConfig config);
-
-    void bind();
-    void setUniform(std::string matrixName, glm::mat4 matrix);
-
-    ShaderPipelineConfig getConfig() const;
-
-    protected:
-    ShaderPipelineConfig config_;
-};
-
-class DefaultMaterial : public Material
-{
-    public:
-    DefaultMaterial();
-};
-
-class CubeMaterial : public Material
-{
-    public:
-    CubeMaterial();
+    VulkanMaterial(BaseMaterialConfig materialConfig);
+    
+    VulkanMaterialConfig *getConfig();
+    void set() override;
+    void addShader(IShader *shader) override;
 };

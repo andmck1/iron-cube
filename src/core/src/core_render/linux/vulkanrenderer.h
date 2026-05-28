@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core_material/material.h"
-#include "core_shader/shader.h"
+#include "core_material/vulkanmaterial.h"
+#include "core_shader/vulkanshader.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include <memory>
 #include "core_render/irenderer.h"
@@ -28,25 +28,21 @@ class VulkanRenderer : public IRenderer
 {
     public:
     bool init(IPlatform *platform) override;
-    bool initialisePipeline(const ShaderPipelineConfig &config) override;
-    void swapBuffers() override;
     void shutdown() override;
-
-    bool beginFrame();
     bool newFrame() override;
     bool renderScene(Scene *scene) override;
-    bool endFrame();
-    bool initImGui() override;
     bool renderImGui() override;
-    void shutdownImGui() override;
-
-    void setExitRequestedCallback(std::function<bool()> callback);
-
-    void setUniformModelMatrix(glm::mat4 model) override;
-    bool drawGeometry(Geometry *geometry) override;
-    void setDeltaTime(float deltaSeconds) override;
+    bool draw(Geometry *geometry) override;
 
     private:
+    bool initialisePipeline();
+    void swapBuffers();
+    bool beginFrame();
+    bool endFrame();
+    bool initImGui();
+    void shutdownImGui();
+
+    void setExitRequestedCallback(std::function<bool()> callback);
     void createInstance();
     void setupDebugMessenger();
     void createSurface();
@@ -55,7 +51,7 @@ class VulkanRenderer : public IRenderer
     void createSwapchain();
     void createImageViews();
     void createRenderPass();
-    void createGraphicsPipeline(const ShaderPipelineConfig &config);
+    void createGraphicsPipeline(const VulkanMaterial *material);
     void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
@@ -132,6 +128,5 @@ class VulkanRenderer : public IRenderer
     glm::mat4 currentModelMatrix_ = glm::mat4(1.0f);
     bool uniformDirty_ = false;
     float deltaTime_ = 1.0f / 60.0f;
-    ShaderPipelineConfig currentPipelineConfig_;
     std::vector<std::unique_ptr<IShader>> shaders_;
 };

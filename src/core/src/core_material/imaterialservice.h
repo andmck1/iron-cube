@@ -1,6 +1,8 @@
 #pragma once
 
-#include "core_material/material.h"
+#include "core_material/imaterial.h"
+#include <memory>
+#include <vector>
 #include <string>
 
 class IMaterialService
@@ -8,8 +10,9 @@ class IMaterialService
     public:
     virtual ~IMaterialService() = default;
 
-    virtual Material *
-    registerMaterial(const std::string &name, Material material) = 0;
-    virtual Material *getMaterial(const std::string &name) = 0;
-    virtual std::vector<Material *> getAllMaterials() = 0;
+    virtual IMaterial *registerMaterial(
+        const std::string &name, std::unique_ptr<IMaterial> material
+    ) = 0;
+    virtual IMaterial *getMaterial(const std::string &name) = 0;
+    virtual std::vector<IMaterial *> getAllMaterials() = 0;
 };

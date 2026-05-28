@@ -1,4 +1,4 @@
-#include "core_shader/shader.h"
+#include "core_shader/vulkanshader.h"
 #include "core_render/linux/vulkanhelpers.h"
 #include <spdlog/spdlog.h>
 #include <fstream>

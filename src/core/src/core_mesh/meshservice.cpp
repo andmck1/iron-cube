@@ -1,7 +1,7 @@
 #include "core_mesh/meshservice.h"
 #include <spdlog/spdlog.h>
 
-Mesh *MeshesService::registerMesh(const std::string &name, Mesh mesh)
+Mesh *MeshService::registerMesh(const std::string &name, Mesh mesh)
 {
     spdlog::debug("Registering mesh: {}", name);
     std::unique_ptr<Mesh> meshPtr = std::make_unique<Mesh>(std::move(mesh));
@@ -11,7 +11,7 @@ Mesh *MeshesService::registerMesh(const std::string &name, Mesh mesh)
     return rawPtr;
 }
 
-Mesh *MeshesService::getMesh(const std::string &name)
+Mesh *MeshService::getMesh(const std::string &name)
 {
     auto it = meshes_.find(name);
     if (it != meshes_.end())

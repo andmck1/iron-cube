@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-class MeshesService : public IMeshService
+class MeshService : public IMeshService
 {
     public:
     Mesh *registerMesh(const std::string &name, Mesh mesh) override;
