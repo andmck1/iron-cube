@@ -7,6 +7,15 @@ VulkanShader::VulkanShader()
 {
 }
 
+VulkanShader::~VulkanShader()
+{
+    if (module_ != VK_NULL_HANDLE)
+    {
+        vkDestroyShaderModule(device_, module_, nullptr);
+        module_ = VK_NULL_HANDLE;
+    }
+}
+
 void VulkanShader::init(const BaseShaderConfig &baseShaderConfig)
 {
     const VulkanShaderConfig &shaderConfig =
@@ -41,13 +50,15 @@ void VulkanShader::init(const BaseShaderConfig &baseShaderConfig)
     vkCheck(result, "Failed to create shader module");
 }
 
-VulkanShader::~VulkanShader()
+void VulkanShader::set()
 {
-    if (module_ != VK_NULL_HANDLE)
-    {
-        vkDestroyShaderModule(device_, module_, nullptr);
-        module_ = VK_NULL_HANDLE;
-    }
+}
+
+IBuffer *VulkanShader::addBuffer(IBuffer *buffer)
+{
+    VulkanBuffer *vulkanBuffer = dynamic_cast<VulkanBuffer *>(buffer);
+    buffers_.push_back(std::unique_ptr<VulkanBuffer>(vulkanBuffer));
+    return buffers_.back().get();
 }
 
 VkPipelineShaderStageCreateInfo VulkanShader::getShaderStageInfo() const

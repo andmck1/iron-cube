@@ -1,10 +1,12 @@
 #pragma once
 
+#include "core_buffer/vulkanbuffer.h"
 #include "core_shader/ishader.h"
 
 #include <vulkan/vulkan.h>
 #include <string>
-
+#include <vector>
+#include <memory>
 
 struct VulkanShaderConfig : public BaseShaderConfig
 {
@@ -24,13 +26,15 @@ class VulkanShader : public IShader
     VulkanShader &operator=(const VulkanShader &) = delete;
 
     void init(const BaseShaderConfig &shaderConfig) override;
-    void set(BaseBuffer buffer) override;
+    IBuffer *addBuffer(IBuffer *buffer) override;
+    void set() override;
 
     VkPipelineShaderStageCreateInfo getShaderStageInfo() const;
 
-    private:
+    protected:
     VkDevice device_;
     VkShaderModule module_ = VK_NULL_HANDLE;
     VkShaderStageFlagBits stage_;
     const char *entryPoint_;
+    std::vector<std::unique_ptr<VulkanBuffer>> buffers_;
 };

@@ -13,10 +13,10 @@ class IMaterial
     public:
     virtual ~IMaterial() = default;
 
-    virtual void set() = 0;
+    virtual bool init() = 0;
+    virtual bool set() = 0;
     virtual void addShader(IShader *) = 0;
 
     protected:
-    BaseMaterialConfig config_;
-    std::vector<IShader *> shaders;
+    std::vector<IShader *> shaders_;
 };

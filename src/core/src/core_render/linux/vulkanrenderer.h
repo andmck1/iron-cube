@@ -1,28 +1,18 @@
 #pragma once
 
-#include "core_material/vulkanmaterial.h"
-#include "core_shader/vulkanshader.h"
-#include "glm/ext/matrix_float4x4.hpp"
-#include <memory>
 #include "core_render/irenderer.h"
+#include "core_shader/ishader.h"
+
+#include "glm/ext/matrix_float4x4.hpp"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <string>
 #include <cstdint>
 #include <functional>
-#include <unordered_map>
 
 static constexpr uint64_t kGpuOperationTimeoutNs = 100'000'000;
-
-struct BufferAllocation
-{
-    VkBuffer buffer{VK_NULL_HANDLE};
-    VkDeviceMemory memory{VK_NULL_HANDLE};
-    VkDeviceSize size{0};
-};
 
 class VulkanRenderer : public IRenderer
 {
@@ -32,7 +22,15 @@ class VulkanRenderer : public IRenderer
     bool newFrame() override;
     bool renderScene(Scene *scene) override;
     bool renderImGui() override;
-    bool draw(Geometry *geometry) override;
+    bool drawGeometry(Geometry *geometry) override;
+
+    VkDevice getDevice() const;
+    VkRenderPass getRenderPass() const;
+    uint32_t
+    findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(
+        const std::vector<VkSurfaceFormatKHR> &formats
+    ) const;
 
     private:
     bool initialisePipeline();
@@ -51,34 +49,16 @@ class VulkanRenderer : public IRenderer
     void createSwapchain();
     void createImageViews();
     void createRenderPass();
-    void createGraphicsPipeline(const VulkanMaterial *material);
     void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
-    void createUniformBuffer();
-    void createDescriptorSet();
     void createSynchronizationPrimitives();
     void cleanupSwapchain();
     void cleanup();
 
-    BufferAllocation allocateBuffer(
-        VkDeviceSize size, VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags properties
-    );
-    void *mapMemory(BufferAllocation &alloc, VkDeviceSize size);
-    void unmapMemory(BufferAllocation &alloc);
-    void freeBuffer(BufferAllocation &alloc);
-    BufferAllocation *
-    allocateVertexBufferForGeometry(Geometry *geometry, uint32_t vertexCount);
-
     bool checkValidationLayerSupport() const;
     std::vector<const char *> getRequiredExtensions() const;
     bool isDeviceSuitable(VkPhysicalDevice device) const;
-    uint32_t
-    findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-        const std::vector<VkSurfaceFormatKHR> &formats
-    ) const;
     VkPresentModeKHR
     chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &modes) const;
     VkExtent2D
@@ -103,18 +83,10 @@ class VulkanRenderer : public IRenderer
     VkExtent2D swapchainExtent_ = {0, 0};
 
     VkRenderPass renderPass_ = VK_NULL_HANDLE;
-    VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;
-    VkPipeline graphicsPipeline_ = VK_NULL_HANDLE;
-
-    VkDescriptorSetLayout descriptorSetLayout_{};
-    VkDescriptorSet descriptorSet_{};
-    VkDescriptorPool descriptorPool_{};
 
     VkCommandPool commandPool_ = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> commandBuffers_;
 
-    BufferAllocation uniformAlloc_;
-    std::unordered_map<Geometry *, BufferAllocation> vertexAllocs_;
     VkSemaphore imageAvailableSemaphore_ = VK_NULL_HANDLE;
     VkSemaphore renderFinishedSemaphore_ = VK_NULL_HANDLE;
     VkFence inFlightFence_ = VK_NULL_HANDLE;

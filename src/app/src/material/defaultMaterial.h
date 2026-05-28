@@ -1,13 +1,14 @@
 #pragma once
 
-#include "core_material/material.h"
-class DefaultMaterial : public Material
+#include "core_material/vulkanmaterial.h"
+
+class DefaultMaterial : public VulkanMaterial
 {
     public:
     DefaultMaterial();
 };
 
-class CubeMaterial : public Material
+class CubeMaterial : public VulkanMaterial
 {
     public:
     CubeMaterial();

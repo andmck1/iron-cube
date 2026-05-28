@@ -16,5 +16,5 @@ class IRenderer
     virtual bool renderScene(Scene *scene) = 0;
     virtual void shutdown() = 0;
     virtual bool renderImGui() = 0;
-    virtual bool draw(Geometry *geometry) = 0;
+    virtual bool drawGeometry(Geometry *geometry) = 0;
 };

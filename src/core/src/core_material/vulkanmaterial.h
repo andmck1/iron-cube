@@ -51,9 +51,22 @@ struct VulkanMaterialConfig : BaseMaterialConfig
 
 class VulkanMaterial : public IMaterial
 {
-    VulkanMaterial(BaseMaterialConfig materialConfig);
-    
+    VulkanMaterial(VulkanMaterialConfig materialConfig);
+
     VulkanMaterialConfig *getConfig();
-    void set() override;
+    bool init() override;
+    bool set() override;
     void addShader(IShader *shader) override;
+
+    private:
+    bool createGraphicsPipeline();
+    void createUniformBuffer();
+    void createDescriptorSet();
+
+    VulkanMaterialConfig config_;
+    VkDescriptorSetLayout descriptorSetLayout_{};
+    VkDescriptorSet descriptorSet_{};
+    VkDescriptorPool descriptorPool_{};
+    VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;
+    VkPipeline graphicsPipeline_ = VK_NULL_HANDLE;
 };

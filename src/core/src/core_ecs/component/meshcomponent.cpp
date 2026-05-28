@@ -34,5 +34,5 @@ void MeshComponent::render()
         return;
 
     material->set();
-    mesh->render();
+
 }

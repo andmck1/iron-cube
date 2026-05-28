@@ -1,7 +1,5 @@
 #include "core_render/linux/vulkanrenderer.h"
 #include "core_ecs/component/meshcomponent.h"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "core_platform/linux/platformlinux.h"
 #include "core_render/linux/vulkanhelpers.h"
@@ -24,6 +22,16 @@ static bool enableValidationLayers()
 #endif
 }
 
+VkDevice VulkanRenderer::getDevice() const
+{
+    return device_;
+}
+
+VkRenderPass VulkanRenderer::getRenderPass() const
+{
+    return renderPass_;
+}
+
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");
@@ -41,11 +49,12 @@ bool VulkanRenderer::init(IPlatform *platform)
         createSwapchain();
         createImageViews();
         createRenderPass();
-
         if (!initImGui())
             throw std::runtime_error("ImGui failed to initialise");
-
         createSynchronizationPrimitives();
+        createFramebuffers();
+        createCommandPool();
+        createCommandBuffers();
 
         spdlog::info("VulkanRenderer initialised successfully");
         return true;
@@ -332,167 +341,6 @@ void VulkanRenderer::createRenderPass()
     vkCheck(result, "Failed to create render pass");
 }
 
-void VulkanRenderer::createGraphicsPipeline(const ShaderPipelineConfig &config)
-{
-    spdlog::debug("Creating graphics pipeline");
-    currentPipelineConfig_ = config;
-
-    // Create shader instances from definitions
-    shaders_.clear();
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-    for (const BaseShaderConfig &baseShaderConfig : config.shaders)
-    {
-        const VulkanShaderConfig &shaderConfig =
-            dynamic_cast<const VulkanShaderConfig &>(baseShaderConfig);
-        shaders_.push_back(std::make_unique<VulkanShader>());
-        IShader *shader = shaders_.back().get();
-        shader->init(shaderConfig);
-        shaderStages.push_back(shaders_.back()->getShaderStageInfo());
-    }
-
-    std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-    for (const VertexBinding &vb : config.vertexBindings)
-    {
-        VkVertexInputBindingDescription desc{};
-        desc.binding = vb.binding;
-        desc.stride = vb.stride;
-        desc.inputRate = vb.inputRate;
-        bindingDescriptions.push_back(desc);
-    }
-
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-    for (const VertexAttribute &va : config.vertexAttributes)
-    {
-        VkVertexInputAttributeDescription desc{};
-        desc.binding = 0;
-        desc.location = va.location;
-        desc.format = va.format;
-        desc.offset = va.offset;
-        attributeDescriptions.push_back(desc);
-    }
-
-    VkPipelineVertexInputStateCreateInfo vertexInput{};
-    vertexInput.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInput.vertexBindingDescriptionCount =
-        static_cast<uint32_t>(bindingDescriptions.size());
-    vertexInput.pVertexBindingDescriptions = bindingDescriptions.data();
-    vertexInput.vertexAttributeDescriptionCount =
-        static_cast<uint32_t>(attributeDescriptions.size());
-    vertexInput.pVertexAttributeDescriptions = attributeDescriptions.data();
-
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-    inputAssembly.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology = config.topology;
-    inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-    VkPipelineViewportStateCreateInfo viewportState{};
-    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportState.viewportCount = 1;
-    viewportState.scissorCount = 1;
-
-    VkPipelineRasterizationStateCreateInfo rasteriser{};
-    rasteriser.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasteriser.depthClampEnable = VK_FALSE;
-    rasteriser.rasterizerDiscardEnable = VK_FALSE;
-    rasteriser.polygonMode = config.polygonMode;
-    rasteriser.lineWidth = 1.0f;
-    rasteriser.cullMode = config.cullMode;
-    rasteriser.frontFace = config.frontFace;
-    rasteriser.depthBiasEnable = VK_FALSE;
-
-    VkPipelineMultisampleStateCreateInfo multisampling{};
-    multisampling.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.sampleShadingEnable = VK_FALSE;
-    multisampling.rasterizationSamples = config.samples;
-
-    VkPipelineColorBlendAttachmentState colourBlendAttachment{};
-    colourBlendAttachment.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    colourBlendAttachment.blendEnable = VK_FALSE;
-
-    VkPipelineColorBlendStateCreateInfo colourBlending{};
-    colourBlending.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    colourBlending.logicOpEnable = VK_FALSE;
-    colourBlending.attachmentCount = 1;
-    colourBlending.pAttachments = &colourBlendAttachment;
-
-    VkPipelineDynamicStateCreateInfo dynamicState{};
-    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dynamicState.dynamicStateCount =
-        static_cast<uint32_t>(config.dynamicStates.size());
-    dynamicState.pDynamicStates = config.dynamicStates.data();
-
-    // Push constant range for per-draw model matrix (64 bytes =
-    // sizeof(glm::mat4))
-    VkPushConstantRange pushConstantRange{};
-    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    pushConstantRange.offset = 0;
-    pushConstantRange.size = sizeof(glm::mat4);
-
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
-    pipelineLayoutInfo.pushConstantRangeCount = 1;
-    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-    std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-    for (const DescriptorBinding &db : config.descriptorBindings)
-    {
-        VkDescriptorSetLayoutBinding binding{};
-        binding.binding = db.binding;
-        binding.descriptorType = db.descriptorType;
-        binding.descriptorCount = db.descriptorCount;
-        binding.stageFlags = db.stageFlags;
-        binding.pImmutableSamplers = nullptr;
-        layoutBindings.push_back(binding);
-    }
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
-    layoutInfo.pBindings = layoutBindings.data();
-
-    vkCheck(
-        vkCreateDescriptorSetLayout(
-            device_, &layoutInfo, nullptr, &descriptorSetLayout_
-        ),
-        "Failed to create descriptor set layout"
-    );
-
-    VkResult result = vkCreatePipelineLayout(
-        device_, &pipelineLayoutInfo, nullptr, &pipelineLayout_
-    );
-    vkCheck(result, "Failed to create pipeline layout");
-
-    VkGraphicsPipelineCreateInfo pipelineInfo{};
-    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
-    pipelineInfo.pStages = shaderStages.data();
-    pipelineInfo.pVertexInputState = &vertexInput;
-    pipelineInfo.pInputAssemblyState = &inputAssembly;
-    pipelineInfo.pViewportState = &viewportState;
-    pipelineInfo.pRasterizationState = &rasteriser;
-    pipelineInfo.pMultisampleState = &multisampling;
-    pipelineInfo.pColorBlendState = &colourBlending;
-    pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.renderPass = renderPass_;
-    pipelineInfo.subpass = 0;
-    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-    pipelineInfo.layout = pipelineLayout_;
-
-    result = vkCreateGraphicsPipelines(
-        device_, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline_
-    );
-    vkCheck(result, "Failed to create graphics pipeline");
-}
-
 void VulkanRenderer::createFramebuffers()
 {
     spdlog::debug("Creating framebuffers");
@@ -550,179 +398,7 @@ void VulkanRenderer::createCommandBuffers()
     vkCheck(result, "Failed to allocate command buffers");
 }
 
-void VulkanRenderer::createUniformBuffer()
-{
-    spdlog::debug("Creating uniform buffer");
-    VkDeviceSize bufferSize = sizeof(UBO);
 
-    uniformAlloc_ = allocateBuffer(
-        bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    );
-    if (uniformAlloc_.buffer == VK_NULL_HANDLE)
-        throw std::runtime_error("Failed to allocate uniform buffer");
-}
-
-BufferAllocation VulkanRenderer::allocateBuffer(
-    VkDeviceSize size, VkBufferUsageFlags usage,
-    VkMemoryPropertyFlags properties
-)
-{
-    BufferAllocation alloc{};
-
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    VkResult result =
-        vkCreateBuffer(device_, &bufferInfo, nullptr, &alloc.buffer);
-    vkCheck(result, "Failed to create buffer");
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device_, alloc.buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex =
-        findMemoryType(memRequirements.memoryTypeBits, properties);
-
-    result = vkAllocateMemory(device_, &allocInfo, nullptr, &alloc.memory);
-    vkCheck(result, "Failed to allocate buffer memory");
-
-    vkBindBufferMemory(device_, alloc.buffer, alloc.memory, 0);
-    alloc.size = size;
-    return alloc;
-}
-
-void *VulkanRenderer::mapMemory(BufferAllocation &alloc, VkDeviceSize size)
-{
-    void *data;
-    VkResult result = vkMapMemory(device_, alloc.memory, 0, size, 0, &data);
-    if (result != VK_SUCCESS)
-    {
-        spdlog::error("Failed to map memory");
-        return nullptr;
-    }
-    return data;
-}
-
-void VulkanRenderer::unmapMemory(BufferAllocation &alloc)
-{
-    vkUnmapMemory(device_, alloc.memory);
-}
-
-void VulkanRenderer::freeBuffer(BufferAllocation &alloc)
-{
-    if (alloc.buffer != VK_NULL_HANDLE)
-    {
-        vkDestroyBuffer(device_, alloc.buffer, nullptr);
-        alloc.buffer = VK_NULL_HANDLE;
-    }
-    if (alloc.memory != VK_NULL_HANDLE)
-    {
-        vkFreeMemory(device_, alloc.memory, nullptr);
-        alloc.memory = VK_NULL_HANDLE;
-    }
-}
-
-BufferAllocation *VulkanRenderer::allocateVertexBufferForGeometry(
-    Geometry *geometry, uint32_t vertexCount
-)
-{
-    // Check if we already have a buffer for this geometry
-    auto it = vertexAllocs_.find(geometry);
-    if (it != vertexAllocs_.end())
-    {
-        // Reuse existing buffer if size matches
-        VkDeviceSize currentSize = it->second.size;
-        VkDeviceSize neededSize = sizeof(Vertex) * vertexCount;
-        if (currentSize >= neededSize)
-        {
-            return &it->second;
-        }
-
-        // Need to resize - wait for GPU, free old, allocate new
-        VkResult waitResult = vkDeviceWaitIdle(device_);
-        if (waitResult != VK_SUCCESS && waitResult != VK_ERROR_DEVICE_LOST)
-        {
-            throw std::runtime_error(
-                std::string("Device wait idle failed") +
-                " (VkResult: " + std::to_string(waitResult) + ")"
-            );
-        }
-        freeBuffer(it->second);
-    }
-
-    VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
-    if (bufferSize > 10000)
-        return nullptr;
-    spdlog::info(
-        "Allocating vertex buffer: {} vertices, {} bytes", vertexCount,
-        bufferSize
-    );
-
-    BufferAllocation alloc = allocateBuffer(
-        bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    );
-    if (alloc.buffer == VK_NULL_HANDLE)
-        return nullptr;
-
-    vertexAllocs_[geometry] = alloc;
-    return &vertexAllocs_[geometry];
-}
-
-void VulkanRenderer::createDescriptorSet()
-{
-    spdlog::debug("Creating descriptor set");
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = 1;
-
-    VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = 1;
-    poolInfo.flags = 0;
-
-    vkCheck(
-        vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_),
-        "Failed to create descriptor pool"
-    );
-
-    VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = descriptorPool_;
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &descriptorSetLayout_;
-
-    vkCheck(
-        vkAllocateDescriptorSets(device_, &allocInfo, &descriptorSet_),
-        "Failed to allocate descriptor sets"
-    );
-
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformAlloc_.buffer;
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UBO);
-
-    VkWriteDescriptorSet write{};
-    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    write.dstSet = descriptorSet_;
-    write.dstBinding = 0;
-    write.dstArrayElement = 0;
-    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    write.descriptorCount = 1;
-    write.pBufferInfo = &bufferInfo;
-
-    vkUpdateDescriptorSets(device_, 1, &write, 0, nullptr);
-}
 
 void VulkanRenderer::createSynchronizationPrimitives()
 {
@@ -743,28 +419,6 @@ void VulkanRenderer::createSynchronizationPrimitives()
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     vkCreateFence(device_, &fenceInfo, nullptr, &inFlightFence_);
-}
-
-bool VulkanRenderer::initialisePipeline(const ShaderPipelineConfig &config)
-{
-    spdlog::debug("Initialising graphics pipelines");
-    try
-    {
-        createGraphicsPipeline(config);
-        createFramebuffers();
-        createCommandPool();
-        createCommandBuffers();
-        createUniformBuffer();
-        createDescriptorSet();
-    }
-    catch (const std::exception &e)
-    {
-        spdlog::error("Pipeline initialisation failed: {}", e.what());
-        return false;
-    }
-
-    spdlog::info("Graphics pipelines initialised");
-    return true;
 }
 
 void VulkanRenderer::setExitRequestedCallback(std::function<bool()> callback)
@@ -915,12 +569,6 @@ bool VulkanRenderer::endFrame()
     );
 
     return true;
-}
-
-void VulkanRenderer::setUniformModelMatrix(glm::mat4 model)
-{
-    currentModelMatrix_ = model;
-    uniformDirty_ = true;
 }
 
 bool VulkanRenderer::drawGeometry(Geometry *geometry)
