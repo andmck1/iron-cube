@@ -13,6 +13,58 @@ void VulkanBuffer::init()
     );
 }
 
+void VulkanBuffer::createDescriptorSet()
+{
+    spdlog::debug("Creating descriptor set");
+    VulkanRenderer *renderer_ = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    const VkDevice device_ = renderer_->getDevice();
+
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = 1;
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = 1;
+    poolInfo.flags = 0;
+
+    vkCheck(
+        vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_),
+        "Failed to create descriptor pool"
+    );
+
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool_;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &descriptorSetLayout_;
+
+    vkCheck(
+        vkAllocateDescriptorSets(device_, &allocInfo, &descriptorSet_),
+        "Failed to allocate descriptor sets"
+    );
+
+    VkDescriptorBufferInfo bufferInfo{};
+    bufferInfo.buffer = uniformAlloc_.buffer;
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(UBO);
+
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = descriptorSet_;
+    write.dstBinding = 0;
+    write.dstArrayElement = 0;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    write.descriptorCount = 1;
+    write.pBufferInfo = &bufferInfo;
+
+    vkUpdateDescriptorSets(device_, 1, &write, 0, nullptr);
+}
+
 template <typename T> void VulkanBuffer::createBuffer(T)
 {
     spdlog::debug("Creating uniform buffer");
@@ -64,8 +116,10 @@ BufferAllocation VulkanBuffer::allocateBuffer(
 
 void *VulkanBuffer::mapMemory(BufferAllocation &alloc, VkDeviceSize size)
 {
+    VkDevice device = renderer_->getDevice();
+
     void *data;
-    VkResult result = vkMapMemory(device_, alloc.memory, 0, size, 0, &data);
+    VkResult result = vkMapMemory(device, alloc.memory, 0, size, 0, &data);
     if (result != VK_SUCCESS)
     {
         spdlog::error("Failed to map memory");
@@ -76,19 +130,21 @@ void *VulkanBuffer::mapMemory(BufferAllocation &alloc, VkDeviceSize size)
 
 void VulkanBuffer::unmapMemory(BufferAllocation &alloc)
 {
-    vkUnmapMemory(device_, alloc.memory);
+    VkDevice device = renderer_->getDevice();
+    vkUnmapMemory(device, alloc.memory);
 }
 
 void VulkanBuffer::freeBuffer(BufferAllocation &alloc)
 {
+    VkDevice device = renderer_->getDevice();
     if (alloc.buffer != VK_NULL_HANDLE)
     {
-        vkDestroyBuffer(device_, alloc.buffer, nullptr);
+        vkDestroyBuffer(device, alloc.buffer, nullptr);
         alloc.buffer = VK_NULL_HANDLE;
     }
     if (alloc.memory != VK_NULL_HANDLE)
     {
-        vkFreeMemory(device_, alloc.memory, nullptr);
+        vkFreeMemory(device, alloc.memory, nullptr);
         alloc.memory = VK_NULL_HANDLE;
     }
 }
@@ -97,11 +153,10 @@ BufferAllocation *VulkanBuffer::allocateVertexBufferForGeometry(
     Geometry *geometry, uint32_t vertexCount
 )
 {
-    // Check if we already have a buffer for this geometry
+    VkDevice device = renderer_->getDevice();
     auto it = vertexAllocs_.find(geometry);
     if (it != vertexAllocs_.end())
     {
-        // Reuse existing buffer if size matches
         VkDeviceSize currentSize = it->second.size;
         VkDeviceSize neededSize = sizeof(Vertex) * vertexCount;
         if (currentSize >= neededSize)
@@ -109,8 +164,7 @@ BufferAllocation *VulkanBuffer::allocateVertexBufferForGeometry(
             return &it->second;
         }
 
-        // Need to resize - wait for GPU, free old, allocate new
-        VkResult waitResult = vkDeviceWaitIdle(device_);
+        VkResult waitResult = vkDeviceWaitIdle(device);
         if (waitResult != VK_SUCCESS && waitResult != VK_ERROR_DEVICE_LOST)
         {
             throw std::runtime_error(

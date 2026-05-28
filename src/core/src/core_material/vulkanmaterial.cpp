@@ -195,55 +195,6 @@ bool VulkanMaterial::createGraphicsPipeline()
 }
 
 
-void VulkanMaterial::createDescriptorSet()
-{
-    spdlog::debug("Creating descriptor set");
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = 1;
-
-    VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = 1;
-    poolInfo.flags = 0;
-
-    vkCheck(
-        vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_),
-        "Failed to create descriptor pool"
-    );
-
-    VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = descriptorPool_;
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &descriptorSetLayout_;
-
-    vkCheck(
-        vkAllocateDescriptorSets(device_, &allocInfo, &descriptorSet_),
-        "Failed to allocate descriptor sets"
-    );
-
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformAlloc_.buffer;
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UBO);
-
-    VkWriteDescriptorSet write{};
-    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    write.dstSet = descriptorSet_;
-    write.dstBinding = 0;
-    write.dstArrayElement = 0;
-    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    write.descriptorCount = 1;
-    write.pBufferInfo = &bufferInfo;
-
-    vkUpdateDescriptorSets(device_, 1, &write, 0, nullptr);
-}
-
-
-
 VulkanMaterialConfig *VulkanMaterial::getConfig()
 {
     return dynamic_cast<VulkanMaterialConfig *>(&config_);

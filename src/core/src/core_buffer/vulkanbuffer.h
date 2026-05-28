@@ -25,6 +25,7 @@ class VulkanBuffer : public IBuffer
     void *mapMemory(BufferAllocation &alloc, VkDeviceSize size);
     void unmapMemory(BufferAllocation &alloc);
     void freeBuffer(BufferAllocation &alloc);
+    void createDescriptorSet();
 
     VulkanRenderer *renderer_;
     BufferAllocation uniformAlloc_;
@@ -35,6 +36,6 @@ class VulkanVertexBuffer : public VulkanBuffer
     BufferAllocation *
     allocateVertexBufferForGeometry(Geometry *geometry, uint32_t vertexCount);
 
-    private:
+    protected:
     std::unordered_map<Geometry *, BufferAllocation> vertexAllocs_;
 };
