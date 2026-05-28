@@ -32,6 +32,11 @@ VkRenderPass VulkanRenderer::getRenderPass() const
     return renderPass_;
 }
 
+VkDescriptorPool VulkanRenderer::getDescriptorPool() const
+{
+    return descriptorPool_;
+}
+
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");
@@ -55,6 +60,7 @@ bool VulkanRenderer::init(IPlatform *platform)
         createFramebuffers();
         createCommandPool();
         createCommandBuffers();
+        createDescriptorPool();
 
         spdlog::info("VulkanRenderer initialised successfully");
         return true;
@@ -398,8 +404,6 @@ void VulkanRenderer::createCommandBuffers()
     vkCheck(result, "Failed to allocate command buffers");
 }
 
-
-
 void VulkanRenderer::createSynchronizationPrimitives()
 {
     spdlog::debug("Creating synchronization primitives");
@@ -616,6 +620,25 @@ bool VulkanRenderer::drawGeometry(Geometry *geometry)
 
 void VulkanRenderer::swapBuffers()
 {
+}
+
+void VulkanRenderer::createDescriptorPool()
+{
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = 1;
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = 1;
+    poolInfo.flags = 0;
+
+    vkCheck(
+        vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_),
+        "Failed to create descriptor pool"
+    );
 }
 
 bool VulkanRenderer::initImGui()

@@ -136,35 +136,29 @@ bool VulkanMaterial::createGraphicsPipeline()
     pushConstantRange.size = sizeof(glm::mat4);
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_;
-    pipelineLayoutInfo.pushConstantRangeCount = 1;
-    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-    std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-    for (const DescriptorBinding &db : config_.descriptorBindings)
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+    std::vector<VkPushConstantRange> pushConstantRanges;
+    for (VulkanShader *shader : shaders_)
     {
-        VkDescriptorSetLayoutBinding binding{};
-        binding.binding = db.binding;
-        binding.descriptorType = db.descriptorType;
-        binding.descriptorCount = db.descriptorCount;
-        binding.stageFlags = db.stageFlags;
-        binding.pImmutableSamplers = nullptr;
-        layoutBindings.push_back(binding);
+        descriptorSetLayouts.push_back(shader->getDescriptorSetLayout());
+        if (shader->getPushConstantRange())
+        {
+            pushConstantRanges.push_back(
+                shader->getPushConstantRange().value()
+            );
+        }
     }
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount =
+        static_cast<uint32_t>(descriptorSetLayouts.size());
+    pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
 
-    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
-    layoutInfo.pBindings = layoutBindings.data();
-
-    vkCheck(
-        vkCreateDescriptorSetLayout(
-            device_, &layoutInfo, nullptr, &descriptorSetLayout_
-        ),
-        "Failed to create descriptor set layout"
-    );
+    if (pushConstantRanges.size() > 0)
+    {
+        pipelineLayoutInfo.pushConstantRangeCount =
+            static_cast<uint32_t>(pushConstantRanges.size());
+        pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
+    }
 
     VkResult result = vkCreatePipelineLayout(
         device_, &pipelineLayoutInfo, nullptr, &pipelineLayout_
@@ -193,7 +187,6 @@ bool VulkanMaterial::createGraphicsPipeline()
     vkCheck(result, "Failed to create graphics pipeline");
     return true;
 }
-
 
 VulkanMaterialConfig *VulkanMaterial::getConfig()
 {

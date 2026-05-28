@@ -26,6 +26,7 @@ class VulkanRenderer : public IRenderer
 
     VkDevice getDevice() const;
     VkRenderPass getRenderPass() const;
+    VkDescriptorPool getDescriptorPool() const;
     uint32_t
     findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(
@@ -53,6 +54,7 @@ class VulkanRenderer : public IRenderer
     void createCommandPool();
     void createCommandBuffers();
     void createSynchronizationPrimitives();
+    void createDescriptorPool();
     void cleanupSwapchain();
     void cleanup();
 
@@ -83,6 +85,7 @@ class VulkanRenderer : public IRenderer
     VkExtent2D swapchainExtent_ = {0, 0};
 
     VkRenderPass renderPass_ = VK_NULL_HANDLE;
+    VkDescriptorPool descriptorPool_ = VK_NULL_HANDLE;
 
     VkCommandPool commandPool_ = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> commandBuffers_;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "core_material/imaterial.h"
+#include "core_shader/vulkanshader.h"
+#include <vector>
 
 struct VertexAttribute
 {
@@ -14,14 +16,6 @@ struct VertexBinding
     uint32_t binding = 0;
     VkDeviceSize stride = 0;
     VkVertexInputRate inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-};
-
-struct DescriptorBinding
-{
-    uint32_t binding = 0;
-    VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uint32_t descriptorCount = 1;
-    VkShaderStageFlags stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 };
 
 struct DynamicState
@@ -42,8 +36,6 @@ struct VulkanMaterialConfig : BaseMaterialConfig
 
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
 
-    std::vector<DescriptorBinding> descriptorBindings;
-
     std::vector<VkDynamicState> dynamicStates = {
         VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
     };
@@ -58,15 +50,14 @@ class VulkanMaterial : public IMaterial
     bool set() override;
     void addShader(IShader *shader) override;
 
-    private:
+    protected:
     bool createGraphicsPipeline();
     void createUniformBuffer();
     void createDescriptorSet();
 
     VulkanMaterialConfig config_;
-    VkDescriptorSetLayout descriptorSetLayout_{};
     VkDescriptorSet descriptorSet_{};
-    VkDescriptorPool descriptorPool_{};
     VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;
     VkPipeline graphicsPipeline_ = VK_NULL_HANDLE;
+    std::vector<VulkanShader *> shaders_;
 };

@@ -19,27 +19,12 @@ void VulkanBuffer::createDescriptorSet()
     VulkanRenderer *renderer_ = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
-    const VkDevice device_ = renderer_->getDevice();
-
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = 1;
-
-    VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = 1;
-    poolInfo.flags = 0;
-
-    vkCheck(
-        vkCreateDescriptorPool(device_, &poolInfo, nullptr, &descriptorPool_),
-        "Failed to create descriptor pool"
-    );
+    const VkDevice device = renderer_->getDevice();
+    const VkDescriptorPool descriptorPool = renderer_->getDescriptorPool();
 
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = descriptorPool_;
+    allocInfo.descriptorPool = descriptorPool;
     allocInfo.descriptorSetCount = 1;
     allocInfo.pSetLayouts = &descriptorSetLayout_;
 
