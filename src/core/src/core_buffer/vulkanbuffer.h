@@ -13,6 +13,7 @@ struct BufferAllocation
 
 class VulkanBuffer : public IBuffer
 {
+    public:
     void init() override;
     void set() override;
 

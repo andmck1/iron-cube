@@ -37,6 +37,24 @@ VkDescriptorPool VulkanRenderer::getDescriptorPool() const
     return descriptorPool_;
 }
 
+void VulkanRenderer::bindPipeline(VkPipeline pipeline)
+{
+    vkCmdBindPipeline(
+        commandBuffers_[currentImageIndex_], VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipeline
+    );
+}
+
+void VulkanRenderer::bindDescriptorSet(
+    VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet
+)
+{
+    vkCmdBindDescriptorSets(
+        commandBuffers_[currentImageIndex_], VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipelineLayout, 0, 1, &descriptorSet, 0, nullptr
+    );
+}
+
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");
@@ -430,11 +448,6 @@ void VulkanRenderer::setExitRequestedCallback(std::function<bool()> callback)
     exitRequested_ = callback;
 }
 
-void VulkanRenderer::setDeltaTime(float deltaSeconds)
-{
-    deltaTime_ = deltaSeconds;
-}
-
 bool VulkanRenderer::beginFrame()
 {
     if (exitRequested_ && exitRequested_())
@@ -483,15 +496,6 @@ bool VulkanRenderer::beginFrame()
     vkCmdBeginRenderPass(
         commandBuffers_[currentImageIndex_], &renderPassInfo,
         VK_SUBPASS_CONTENTS_INLINE
-    );
-    vkCmdBindPipeline(
-        commandBuffers_[currentImageIndex_], VK_PIPELINE_BIND_POINT_GRAPHICS,
-        graphicsPipeline_
-    );
-
-    vkCmdBindDescriptorSets(
-        commandBuffers_[currentImageIndex_], VK_PIPELINE_BIND_POINT_GRAPHICS,
-        pipelineLayout_, 0, 1, &descriptorSet_, 0, nullptr
     );
 
     VkViewport viewport{};
@@ -580,13 +584,11 @@ bool VulkanRenderer::drawGeometry(Geometry *geometry)
     if (!geometry || !geometry->vertices || geometry->vertexCount == 0)
         return false;
 
-    // Allocate or reuse vertex buffer for this geometry
     BufferAllocation *vertAlloc =
         allocateVertexBufferForGeometry(geometry, geometry->vertexCount);
     if (!vertAlloc)
         return false;
 
-    // Upload vertex data
     VkDeviceSize bufferSize = sizeof(Vertex) * geometry->vertexCount;
     void *mapped = mapMemory(*vertAlloc, bufferSize);
     if (mapped)
@@ -597,15 +599,12 @@ bool VulkanRenderer::drawGeometry(Geometry *geometry)
         unmapMemory(*vertAlloc);
     }
 
-    // Push the model matrix directly into the command buffer — isolated per
-    // draw
     vkCmdPushConstants(
         commandBuffers_[currentImageIndex_], pipelineLayout_,
         VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
         glm::value_ptr(currentModelMatrix_)
     );
 
-    // Bind vertex buffer and draw
     VkBuffer vertexBuffers[] = {vertAlloc->buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(
@@ -726,7 +725,6 @@ bool VulkanRenderer::newFrame()
         static_cast<float>(swapchainExtent_.height)
     );
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-    io.DeltaTime = deltaTime_;
 
     // Platform/Renderer backend new frame
     ImGui_ImplGlfw_NewFrame();

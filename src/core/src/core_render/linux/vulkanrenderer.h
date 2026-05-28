@@ -1,9 +1,7 @@
 #pragma once
 
 #include "core_render/irenderer.h"
-#include "core_shader/ishader.h"
 
-#include "glm/ext/matrix_float4x4.hpp"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
@@ -27,6 +25,12 @@ class VulkanRenderer : public IRenderer
     VkDevice getDevice() const;
     VkRenderPass getRenderPass() const;
     VkDescriptorPool getDescriptorPool() const;
+
+    void bindPipeline(VkPipeline pipeline);
+    void bindDescriptorSet(
+        VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet
+    );
+
     uint32_t
     findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(
@@ -99,9 +103,4 @@ class VulkanRenderer : public IRenderer
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;
-
-    glm::mat4 currentModelMatrix_ = glm::mat4(1.0f);
-    bool uniformDirty_ = false;
-    float deltaTime_ = 1.0f / 60.0f;
-    std::vector<std::unique_ptr<IShader>> shaders_;
 };

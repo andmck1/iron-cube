@@ -107,4 +107,8 @@ std::optional<VkPushConstantRange> VulkanShader::getPushConstantRange() const
 
 void VulkanShader::set()
 {
+    for (const std::unique_ptr<VulkanBuffer> &buffer : buffers_)
+    {
+        buffer->set();
+    }
 }

@@ -54,7 +54,8 @@ class VulkanMaterial : public IMaterial
     bool createGraphicsPipeline();
     void createUniformBuffer();
     void createDescriptorSet();
-
+    
+    VulkanRenderer *renderer_;
     VulkanMaterialConfig config_;
     VkDescriptorSet descriptorSet_{};
     VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;

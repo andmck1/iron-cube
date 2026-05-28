@@ -32,7 +32,7 @@ void MeshComponent::render()
         getOwner()->getComponent<TransformComponent>();
     if (!transform)
         return;
-
+    
     material->set();
-
+    mesh->render();
 }

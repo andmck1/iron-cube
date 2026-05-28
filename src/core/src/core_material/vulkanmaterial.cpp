@@ -16,6 +16,10 @@ VulkanMaterial::VulkanMaterial(VulkanMaterialConfig materialConfig)
 bool VulkanMaterial::init()
 {
     spdlog::debug("Initialising graphics pipelines");
+    renderer_ = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
     try
     {
         createGraphicsPipeline();
@@ -195,7 +199,13 @@ VulkanMaterialConfig *VulkanMaterial::getConfig()
 
 bool VulkanMaterial::set()
 {
+    for (VulkanShader *shader : shaders_)
+    {
+       shader->set(); 
+    }
 
+    renderer_->bindPipeline(graphicsPipeline_);
+    renderer_->bindDescriptorSet(pipelineLayout_, descriptorSet_);
     return true;
 }
 
