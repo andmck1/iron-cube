@@ -13,7 +13,9 @@ void VulkanBuffer::init()
     );
 }
 
-void VulkanBuffer::createDescriptorSet()
+void VulkanBuffer::createDescriptorSet(
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts
+)
 {
     spdlog::debug("Creating descriptor set");
     VulkanRenderer *renderer_ = dynamic_cast<VulkanRenderer *>(
@@ -25,11 +27,12 @@ void VulkanBuffer::createDescriptorSet()
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &descriptorSetLayout_;
+    allocInfo.descriptorSetCount =
+        static_cast<uint32_t>(descriptorSetLayouts.size());
+    allocInfo.pSetLayouts = descriptorSetLayouts.data();
 
     vkCheck(
-        vkAllocateDescriptorSets(device_, &allocInfo, &descriptorSet_),
+        vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet_),
         "Failed to allocate descriptor sets"
     );
 

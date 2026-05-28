@@ -57,7 +57,6 @@ class VulkanMaterial : public IMaterial
     
     VulkanRenderer *renderer_;
     VulkanMaterialConfig config_;
-    VkDescriptorSet descriptorSet_{};
     VkPipelineLayout pipelineLayout_ = VK_NULL_HANDLE;
     VkPipeline graphicsPipeline_ = VK_NULL_HANDLE;
     std::vector<VulkanShader *> shaders_;

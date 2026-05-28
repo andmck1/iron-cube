@@ -11,6 +11,7 @@ struct BufferAllocation
     VkDeviceSize size{0};
 };
 
+
 class VulkanBuffer : public IBuffer
 {
     public:
@@ -26,10 +27,13 @@ class VulkanBuffer : public IBuffer
     void *mapMemory(BufferAllocation &alloc, VkDeviceSize size);
     void unmapMemory(BufferAllocation &alloc);
     void freeBuffer(BufferAllocation &alloc);
-    void createDescriptorSet();
+    void createDescriptorSet(
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts
+    );
 
     VulkanRenderer *renderer_;
     BufferAllocation uniformAlloc_;
+    VkDescriptorSet descriptorSet_{};
 };
 
 class VulkanVertexBuffer : public VulkanBuffer
