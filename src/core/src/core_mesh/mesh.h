@@ -8,6 +8,6 @@ class Mesh
     void setGeometry(const std::string &geometryName);
     bool render();
 
-    private:
+    protected:
     std::string geometryName_;
 };

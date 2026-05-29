@@ -29,7 +29,5 @@ bool Mesh::render()
     if (!renderer)
         return false;
 
-    renderer->drawGeometry(geometry);
-
     return true;
 }

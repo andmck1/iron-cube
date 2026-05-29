@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core_render/irenderer.h"
 
 class ILayer
 {
@@ -8,9 +7,6 @@ class ILayer
     virtual ~ILayer() = default;
 
     virtual bool initialise() = 0;
-    virtual bool render() = 0;
-    virtual void shutdown() = 0;
+    virtual bool frame() = 0;
 
-    protected:
-    IRenderer *renderer_;
 };
