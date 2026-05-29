@@ -1,4 +1,4 @@
-#include "core_platform/linux/platformlinux.h"
+#include "core_platform/linux/platform.h"
 #include <spdlog/spdlog.h>
 
 bool PlatformLinux::initialise()

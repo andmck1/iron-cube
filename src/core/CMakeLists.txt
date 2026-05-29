@@ -7,30 +7,30 @@ target_include_directories(iron-stb INTERFACE ${stb_SOURCE_DIR})
 add_library(
     iron-core
     STATIC
-    src/core_service/servicelocator.cpp
-    src/core_config/config.cpp
-    src/core_platform/linux/windowglfw.cpp
-    src/core_platform/linux/inputglfw.cpp
-    src/core_platform/linux/platformlinux.cpp
-    src/core_render/linux/vulkanrenderer.cpp
-    src/core_render/linux/vulkanhelpers.cpp
-    src/core_scene/scene.cpp
-    src/core_resource/resourcemanager.cpp
-    src/core_layer/debuglayer.cpp
-    src/core_layer/scenelayer.cpp
-    src/core_material/material.cpp
-    src/core_material/materialservice.cpp
-    src/core_shader/vulkanshader.cpp
-    src/core_shader/shaderservice.cpp
-    src/core_mesh/mesh.cpp
-    src/core_mesh/meshservice.cpp
-    src/core_ecs/ecs.cpp
-    src/core_ecs/component/transformcomponent.cpp
-    src/core_ecs/component/meshcomponent.cpp
+    src/core_common/helpers.cpp
     src/core_common/timer.cpp
     src/core_common/types.cpp
-    src/core_common/loggerservice.cpp
-    src/core_common/helpers.cpp
+    src/core_common/logger.cpp
+    src/core_config/config.cpp
+    src/core_ecs/component/mesh.cpp
+    src/core_ecs/component/transform.cpp
+    src/core_ecs/ecs.cpp
+    src/core_layer/debug.cpp
+    src/core_layer/debuglayerdata.cpp
+    src/core_layer/scene.cpp
+    src/core_mesh/mesh.cpp
+    src/core_mesh/meshmanager.cpp
+    src/core_platform/linux/inputglfw.cpp
+    src/core_platform/linux/platform.cpp
+    src/core_platform/linux/windowglfw.cpp
+    src/core_render/vulkan/helpers.cpp
+    src/core_render/vulkan/renderer.cpp
+    src/core_render/vulkan/shader.cpp
+    src/core_render/vulkan/shaderpipeline.cpp
+    src/core_render/vulkan/shaderpipelinemanager.cpp
+    src/core_resource/resourcemanager.cpp
+    src/core_scene/scene.cpp
+    src/core_service/servicelocator.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_demo.cpp

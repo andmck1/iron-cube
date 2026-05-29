@@ -10,8 +10,7 @@
 #include "core_layer/debug.h"
 #include "core_common/helpers.h"
 
-// TODO - get rid of ..
-#include "../shaderpipeline/default.h"
+#include "shaderpipeline/default.h"
 
 #include <iostream>
 #include <spdlog/spdlog.h>

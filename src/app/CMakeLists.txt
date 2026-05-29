@@ -22,13 +22,10 @@ foreach(SHADER_FILE ${ALL_SHADERS})
     file(RELATIVE_PATH REL_PATH ${SHADER_BASE_DIR} ${SHADER_FILE})
     string(REPLACE ".slang" ".spv" SPIRV_FILE_REL_PATH ${REL_PATH})
     set(SPIRV_FILE "${SPIRV_BASE_DIR}/${SPIRV_FILE_REL_PATH}")
-    
+
     set(SHADER_DEPENDENCIES ${SHADER_FILE})
     if(STAGE STREQUAL "vertex")
-        list(
-            APPEND SHADER_DEPENDENCIES
-            ${SHADER_BASE_DIR}/buffer/ubuffer.h
-        )
+        list(APPEND SHADER_DEPENDENCIES ${SHADER_BASE_DIR}/buffer/ubuffer.h)
     endif()
 
     add_custom_command(
@@ -47,8 +44,18 @@ if(ALL_SPIRV_FILES)
 endif()
 
 # Iron Cube executable
-add_executable(iron-cube src/main.cpp src/application/application.cpp)
+add_executable(
+    iron-cube
+    src/main.cpp
+    src/application/application.cpp
+    src/shaderpipeline/default.cpp
+)
 
 target_link_libraries(iron-cube PRIVATE iron-core)
+
+target_include_directories(iron-cube PRIVATE 
+    src
+    src/shader
+)
 
 add_dependencies(iron-cube compile_shaders)

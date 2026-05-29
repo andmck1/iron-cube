@@ -1,4 +1,4 @@
-#include "defaultShaderPipeline.h"
+#include "default.h"
 
 DefaultShaderPipeline::DefaultShaderPipeline()
 {
