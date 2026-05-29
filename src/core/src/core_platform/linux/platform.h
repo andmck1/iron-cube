@@ -1,4 +1,5 @@
 #pragma once
+#define GLFW_INCLUDE_VULKAN
 
 #include "core_platform/iplatform.h"
 #include "core_platform/linux/windowglfw.h"

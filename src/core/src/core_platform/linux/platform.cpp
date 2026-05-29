@@ -60,6 +60,9 @@ bool PlatformLinux::shouldExit() const
     if (window_.isCloseRequested())
         return true;
 
+    if (glfwWindowShouldClose(window_.getGLFWWindow()))
+        return true;
+
     if (input_.isKeyPressed(KeyCode::Escape) && !window_.isIconified())
         return true;
 

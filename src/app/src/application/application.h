@@ -17,6 +17,7 @@ class Application
     public:
     bool init(int argc, char *argv[]);
     bool run();
+    void shutdown();
 
     private:
     void initLogging();

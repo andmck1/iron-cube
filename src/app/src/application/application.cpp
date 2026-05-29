@@ -105,10 +105,10 @@ bool Application::createAndInitialiseLayers()
     layers_.push_back(std::make_unique<SceneLayer>());
     SceneLayer *sceneLayer = dynamic_cast<SceneLayer *>(layers_.back().get());
 
-    initialiseDebugLayerData(&sceneLayer->scene);
-    layers_.push_back(std::make_unique<DebugLayer>());
-    DebugLayer *debugLayer = dynamic_cast<DebugLayer *>(layers_.back().get());
-    debugLayer->setDebugData(&debugLayerData_);
+    // initialiseDebugLayerData(&sceneLayer->scene);
+    // layers_.push_back(std::make_unique<DebugLayer>());
+    // DebugLayer *debugLayer = dynamic_cast<DebugLayer *>(layers_.back().get());
+    // debugLayer->setDebugData(&debugLayerData_);
 
     for (std::unique_ptr<ILayer> &layer : layers_)
     {
@@ -179,6 +179,12 @@ void Application::mainLoop()
     }
 }
 
+void Application::shutdown()
+{
+    spdlog::info("Shutting application down");
+    platform_.shutdown();
+}
+
 bool Application::run()
 {
     spdlog::info("Iron Cube starting");
@@ -198,12 +204,14 @@ bool Application::run()
             return false;
 
         mainLoop();
+        shutdown();
         spdlog::info("Iron Cube shut down cleanly");
         return true;
     }
     catch (const std::runtime_error &e)
     {
         spdlog::error("Fatal error: {}", e.what());
+        shutdown();
         return false;
     }
 }

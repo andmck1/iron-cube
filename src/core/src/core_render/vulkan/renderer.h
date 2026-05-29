@@ -5,9 +5,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
-#include <vulkan/vulkan.h>
-#include <vector>
-#include <cstdint>
+#include <vulkan/vulkan_raii.hpp>
 
 class VulkanRenderer : public IRenderer
 {
@@ -23,45 +21,57 @@ class VulkanRenderer : public IRenderer
     bool initImGui();
     void shutdownImGui();
 
-    void createInstance();
-    void setupDebugMessenger();
-    void createSurface();
-    void selectGPU();
-    void createLogicalDevice();
-    void createSwapchain();
-    void createImageViews();
-    void createRenderPass();
-    void createFramebuffers();
-    void createCommandPool();
-    void createCommandBuffers();
-    void createSynchronizationPrimitives();
-    void createDescriptorPool();
+    bool createInstance();
+    bool setupDebugMessenger();
+    bool createSurface();
+    bool pickPhysicalDevice();
+    bool createSwapchain();
+    bool createImageViews();
+    bool createRenderPass();
+    bool createFramebuffers();
+    bool createCommandPool();
+    bool createCommandBuffers();
+    bool createSynchronizationPrimitives();
+    bool createDescriptorPool();
+
+    std::vector<const char *> getRequiredInstanceExtensions();
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+        VkDebugUtilsMessageTypeFlagsEXT type,
+        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+        void *pUserData
+    );
 
     uint32_t findQueueFamilyIndex() const;
 
     IPlatform *platform_ = nullptr;
 
-    VkDevice device_ = VK_NULL_HANDLE;
-    VkInstance instance_ = VK_NULL_HANDLE;
-    VkDebugUtilsMessengerEXT debugMessenger_ = VK_NULL_HANDLE;
-    VkSurfaceKHR surface_ = VK_NULL_HANDLE;
-    VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
-    VkSwapchainKHR swapchain_ = VK_NULL_HANDLE;
-    std::vector<VkImage> swapchainImages_;
-    std::vector<VkImageView> swapchainImageViews_;
-    std::vector<VkFramebuffer> framebuffers_;
-    VkRenderPass renderPass_ = VK_NULL_HANDLE;
-    VkCommandPool commandPool_ = VK_NULL_HANDLE;
-    std::vector<VkCommandBuffer> commandBuffers_;
-    VkQueue graphicsQueue_;
+    vk::raii::Context context_;
+    vk::raii::Instance instance_ = nullptr;
+    vk::raii::DebugUtilsMessengerEXT debugMessenger_ = nullptr;
+    vk::raii::PhysicalDevice physicalDevice_ = nullptr;
 
-    VkSemaphore imageAvailableSemaphore_ = VK_NULL_HANDLE;
-    VkSemaphore renderFinishedSemaphore_ = VK_NULL_HANDLE;
-    VkFence inFlightFence_ = VK_NULL_HANDLE;
     ImGuiContext *imguiContext_ = nullptr;
     VkDescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
-    uint32_t currentImageIndex_ = 0;
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;
+
+    const std::vector<char const *> validationLayers = {
+        "VK_LAYER_KHRONOS_validation"
+    };
+    const VkDebugUtilsMessageSeverityFlagsEXT debugMessageSeverityFlags_ =
+        VkDebugUtilsMessageSeverityFlagsEXT(
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError
+        );
+    const VkDebugUtilsMessageTypeFlagsEXT debugMessageTypeFlags_ =
+        VkDebugUtilsMessageTypeFlagsEXT(
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
+        );
+
+    // Unlikely I'll ever want to turn these off
+    bool enableValidationLayers_ = true;
 };
