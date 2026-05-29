@@ -4,6 +4,7 @@
 #include "core_layer/debuglayerdata.h"
 #include "core_platform/linux/platform.h"
 #include "core_render/vulkan/renderer.h"
+#include "core_render/vulkan/shadermanager.h"
 #include "core_render/vulkan/shaderpipelinemanager.h"
 #include "core_resource/resourcemanager.h"
 #include "core_mesh/meshmanager.h"
@@ -25,6 +26,8 @@ class Application
     bool registerServices();
     bool initialisePlatform();
     bool initialiseRenderer();
+    bool initialiseShaders();
+    bool initialiseShaderPipelines();
     bool createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
     bool initialiseEntities(Scene *scene);
@@ -38,7 +41,9 @@ class Application
     VulkanRenderer renderer_;
     ResourceManager resourceManager_;
     MeshManager meshManager_;
+    ShaderManager shaderManager_;
     ShaderPipelineManager shaderPipelineManager_;
+
     DebugLayerData debugLayerData_;
     std::vector<std::unique_ptr<ILayer>> layers_;
 };

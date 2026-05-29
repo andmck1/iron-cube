@@ -2,6 +2,7 @@
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
 #include "core_render/vulkan/ishaderpipelinemanager.h"
+#include "core_render/vulkan/shader.h"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
 #include "core_service/servicelocator.h"
@@ -61,6 +62,7 @@ bool Application::registerServices()
     locator.registerService<IRenderer>(&renderer_);
     locator.registerService<IResourceManager>(&resourceManager_);
     locator.registerService<IMeshManager>(&meshManager_);
+    locator.registerService<IShaderManager>(&shaderManager_);
     locator.registerService<IShaderPipelineManager>(&shaderPipelineManager_);
     return true;
 }
@@ -95,6 +97,44 @@ bool Application::initialiseRenderer()
     return true;
 }
 
+bool Application::initialiseShaders()
+{
+    spdlog::debug("Initialising shaders");
+
+    // TODO - look up nicer init styles
+    VulkanShaderConfig defaultVertexShaderConfig;
+    defaultVertexShaderConfig.path = "build/shaders/default.vert.spv";
+
+    std::unique_ptr<VulkanShader> defaultVertexShader =
+        std::make_unique<VulkanShader>(defaultVertexShaderConfig);
+    shaderManager_.registerShader(
+        "defaultVertex", std::move(defaultVertexShader)
+    );
+
+    VulkanShaderConfig defaultFragmentShaderConfig;
+    defaultFragmentShaderConfig.path = "build/shaders/default.frag.spv";
+
+    std::unique_ptr<VulkanShader> defaultFragmentShader =
+        std::make_unique<VulkanShader>(defaultFragmentShaderConfig);
+    shaderManager_.registerShader(
+        "defaultFragment", std::move(defaultFragmentShader)
+    );
+
+    spdlog::debug("Finished initialising shaders");
+    return true;
+}
+
+bool Application::initialiseShaderPipelines()
+{
+    std::unique_ptr<DefaultShaderPipeline> triangleShaderPipeline =
+        std::make_unique<DefaultShaderPipeline>();
+    auto _ = shaderPipelineManager_.registerShaderPipeline(
+        "triangle", std::move(triangleShaderPipeline)
+    );
+
+    return true;
+}
+
 void Application::initialiseDebugLayerData(Scene *scene)
 {
     debugLayerData_.scene = scene;
@@ -107,8 +147,8 @@ bool Application::createAndInitialiseLayers()
 
     // initialiseDebugLayerData(&sceneLayer->scene);
     // layers_.push_back(std::make_unique<DebugLayer>());
-    // DebugLayer *debugLayer = dynamic_cast<DebugLayer *>(layers_.back().get());
-    // debugLayer->setDebugData(&debugLayerData_);
+    // DebugLayer *debugLayer = dynamic_cast<DebugLayer
+    // *>(layers_.back().get()); debugLayer->setDebugData(&debugLayerData_);
 
     for (std::unique_ptr<ILayer> &layer : layers_)
     {
@@ -141,13 +181,6 @@ bool Application::initialiseEntities(Scene *scene)
     triangleMesh.setGeometry("triangle");
     Mesh *registeredMesh =
         meshManager_.registerMesh("triangle", std::move(triangleMesh));
-
-    std::unique_ptr<DefaultShaderPipeline> triangleShaderPipeline =
-        std::make_unique<DefaultShaderPipeline>();
-    IShaderPipeline *registeredShaderPipeline =
-        shaderPipelineManager_.registerShaderPipeline(
-            "triangle", std::move(triangleShaderPipeline)
-        );
 
     std::unique_ptr<Entity> triangle = std::make_unique<Entity>("triangle");
 

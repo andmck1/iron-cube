@@ -9,7 +9,7 @@ class ShaderPipelineManager : public IShaderPipelineManager
 {
     public:
     IShaderPipeline *registerShaderPipeline(
-        const std::string &name, std::unique_ptr<IShaderPipeline> material
+        const std::string &name, std::unique_ptr<IShaderPipeline> shaderPipeline
     ) override;
     IShaderPipeline *getShaderPipeline(const std::string &name) override;
     std::vector<IShaderPipeline *> getAllShaderPipelines() override;

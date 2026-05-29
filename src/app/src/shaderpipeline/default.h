@@ -1,15 +1,13 @@
 #pragma once
 
-#include "core_render/vulkan/shaderpipeline.h"
+#include "core_render/ishaderpipeline.h"
+#include <vulkan/vulkan_raii.hpp>
 
-class DefaultShaderPipeline : public VulkanShaderPipeline
+class DefaultVulkanShaderPipeline : public IShaderPipeline
 {
     public:
-    DefaultShaderPipeline();
-};
+    DefaultVulkanShaderPipeline();
 
-class CubeShaderPipeline : public VulkanShaderPipeline
-{
-    public:
-    CubeShaderPipeline();
+    protected:
+    vk::Pipeline graphicsPipeline_ = nullptr;
 };

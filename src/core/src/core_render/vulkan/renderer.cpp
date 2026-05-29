@@ -11,6 +11,24 @@ vk::raii::Device &VulkanRenderer::getDevice()
     return device_;
 }
 
+vk::Viewport VulkanRenderer::getViewport()
+{
+    // TODO - generalise a bit
+    return {
+        0.0f,
+        0.0f,
+        static_cast<float>(swapChainExtent_.width),
+        static_cast<float>(swapChainExtent_.height),
+        0.0f,
+        1.0f
+    };
+}
+
+vk::PipelineInputAssemblyStateCreateInfo VulkanRenderer::getInputAssembly()
+{
+    return inputAssembly_;
+}
+
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");

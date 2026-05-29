@@ -15,6 +15,8 @@ class VulkanRenderer : public IRenderer
     bool renderImGui() override;
 
     vk::raii::Device &getDevice();
+    vk::Viewport getViewport();
+    vk::PipelineInputAssemblyStateCreateInfo getInputAssembly();
 
     private:
     bool initialisePipeline();
@@ -36,7 +38,6 @@ class VulkanRenderer : public IRenderer
     bool createCommandBuffers();
     bool createSynchronizationPrimitives();
     bool createDescriptorPool();
-
     std::vector<const char *> getRequiredInstanceExtensions();
     bool isDeviceSuitable(vk::PhysicalDevice physicalDevice);
     static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
@@ -80,6 +81,10 @@ class VulkanRenderer : public IRenderer
     uint32_t width_ = 0;
     uint32_t height_ = 0;
 
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly_ =
+        vk::PipelineInputAssemblyStateCreateInfo{}.setTopology(
+            vk::PrimitiveTopology::eTriangleList
+        );
     const std::vector<char const *> validationLayers = {
         "VK_LAYER_KHRONOS_validation"
     };

@@ -2,7 +2,6 @@
 add_library(iron-stb INTERFACE)
 target_include_directories(iron-stb INTERFACE ${stb_SOURCE_DIR})
 
-
 # Iron core static library
 add_library(
     iron-core
@@ -28,6 +27,7 @@ add_library(
     src/core_render/vulkan/shader.cpp
     src/core_render/vulkan/shaderpipeline.cpp
     src/core_render/vulkan/shaderpipelinemanager.cpp
+    src/core_render/vulkan/shadermanager.cpp
     src/core_resource/resourcemanager.cpp
     src/core_scene/scene.cpp
     src/core_service/servicelocator.cpp

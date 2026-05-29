@@ -34,3 +34,9 @@ VulkanShader::VulkanShader(const VulkanShaderConfig shaderConfig)
         vk::raii::ShaderModule(vulkanRenderer->getDevice(), createInfo)
     );
 }
+
+
+std::optional<vk::raii::ShaderModule> *VulkanShader::getShaderModule()
+{
+    return &shaderModule_;
+}

@@ -14,6 +14,8 @@ class VulkanShader : public IShader
     public:
     VulkanShader(const VulkanShaderConfig config); 
 
+    std::optional<vk::raii::ShaderModule> *getShaderModule();
+
     protected:
     std::optional<vk::raii::ShaderModule> shaderModule_;
 };
