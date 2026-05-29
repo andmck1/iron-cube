@@ -17,6 +17,10 @@ class VulkanRenderer : public IRenderer
     vk::raii::Device &getDevice();
     vk::Viewport getViewport();
     vk::PipelineInputAssemblyStateCreateInfo getInputAssembly();
+    vk::PipelineRasterizationStateCreateInfo getRasteriser();
+    vk::PipelineMultisampleStateCreateInfo getMultisampling();
+    vk::PipelineColorBlendAttachmentState getColourBlendAttachment();
+    vk::PipelineRenderingCreateInfo getPipelineRendereringCreateInfo();
 
     private:
     bool initialisePipeline();
@@ -80,11 +84,41 @@ class VulkanRenderer : public IRenderer
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;
-
+    
+    // TODO - consider moving this somewhere else
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly_ =
         vk::PipelineInputAssemblyStateCreateInfo{}.setTopology(
             vk::PrimitiveTopology::eTriangleList
         );
+    vk::PipelineRasterizationStateCreateInfo rasteriser_ =
+        vk::PipelineRasterizationStateCreateInfo{}
+            .setDepthClampEnable(vk::False)
+            .setRasterizerDiscardEnable(vk::False)
+            // For wireframe set to eLine
+            .setPolygonMode(vk::PolygonMode::eFill)
+            .setCullMode(vk::CullModeFlagBits::eBack)
+            .setFrontFace(vk::FrontFace::eClockwise)
+            .setDepthBiasEnable(vk::False)
+            .setLineWidth(1.0f);
+    vk::PipelineMultisampleStateCreateInfo multisampling_ =
+        vk::PipelineMultisampleStateCreateInfo{}
+            .setRasterizationSamples(vk::SampleCountFlagBits::e1)
+            .setSampleShadingEnable(vk::False);
+    vk::PipelineColorBlendAttachmentState colourBlendAttachment_ =
+        vk::PipelineColorBlendAttachmentState{}
+            .setBlendEnable(vk::True)
+            .setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha)
+            .setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha)
+            .setColorBlendOp(vk::BlendOp::eAdd)
+            .setSrcAlphaBlendFactor(vk::BlendFactor::eOne)
+            .setDstAlphaBlendFactor(vk::BlendFactor::eZero)
+            .setAlphaBlendOp(vk::BlendOp::eAdd)
+            .setColorWriteMask(
+                vk::ColorComponentFlagBits::eR |
+                vk::ColorComponentFlagBits::eG |
+                vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
+            );
+
     const std::vector<char const *> validationLayers = {
         "VK_LAYER_KHRONOS_validation"
     };

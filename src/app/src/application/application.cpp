@@ -126,8 +126,8 @@ bool Application::initialiseShaders()
 
 bool Application::initialiseShaderPipelines()
 {
-    std::unique_ptr<DefaultShaderPipeline> triangleShaderPipeline =
-        std::make_unique<DefaultShaderPipeline>();
+    std::unique_ptr<DefaultVulkanShaderPipeline> triangleShaderPipeline =
+        std::make_unique<DefaultVulkanShaderPipeline>();
     auto _ = shaderPipelineManager_.registerShaderPipeline(
         "triangle", std::move(triangleShaderPipeline)
     );

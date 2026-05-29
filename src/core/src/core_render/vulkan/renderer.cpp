@@ -29,6 +29,27 @@ vk::PipelineInputAssemblyStateCreateInfo VulkanRenderer::getInputAssembly()
     return inputAssembly_;
 }
 
+vk::PipelineRasterizationStateCreateInfo VulkanRenderer::getRasteriser()
+{
+    return rasteriser_;
+}
+
+vk::PipelineMultisampleStateCreateInfo VulkanRenderer::getMultisampling()
+{
+    return multisampling_;
+}
+
+vk::PipelineColorBlendAttachmentState VulkanRenderer::getColourBlendAttachment()
+{
+    return colourBlendAttachment_;
+}
+
+vk::PipelineRenderingCreateInfo
+VulkanRenderer::getPipelineRendereringCreateInfo()
+{
+    return {1, swapChainSurfaceFormat_.format};
+}
+
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");

@@ -10,4 +10,5 @@ class DefaultVulkanShaderPipeline : public IShaderPipeline
 
     protected:
     vk::Pipeline graphicsPipeline_ = nullptr;
+    vk::raii::PipelineLayout pipelineLayout_ = nullptr;
 };

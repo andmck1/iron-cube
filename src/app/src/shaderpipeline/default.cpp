@@ -30,6 +30,12 @@ DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
             .setModule(defaultFragmentShader->getShaderModule()->value())
             .setPName("main");
 
+    vk::Viewport viewport = renderer->getViewport();
+
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly =
+        renderer->getInputAssembly();
+
     vk::PipelineShaderStageCreateInfo shaderStages[] = {
         vertexShaderStageInfo, fragShaderStageInfo
     };
@@ -43,7 +49,45 @@ DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
             .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
             .setPDynamicStates(dynamicStates.data());
 
-    vk::PipelineInputAssemblyStateCreateInfo inputAssembly =
-        renderer->getInputAssembly();
-    vk::Viewport viewport = renderer->getViewport();
+    vk::PipelineViewportStateCreateInfo viewportState =
+        vk::PipelineViewportStateCreateInfo{}
+            .setViewportCount(1)
+            .setScissorCount(1);
+
+    vk::PipelineRasterizationStateCreateInfo rasteriser =
+        renderer->getRasteriser();
+
+    vk::PipelineMultisampleStateCreateInfo multisampling =
+        renderer->getMultisampling();
+
+    vk::PipelineColorBlendAttachmentState colourBlendAttachment =
+        renderer->getColourBlendAttachment();
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
+        vk::PipelineLayoutCreateInfo{}
+            .setSetLayoutCount(0)
+            .setPushConstantRangeCount(0);
+
+    pipelineLayout_ =
+        vk::raii::PipelineLayout(renderer->getDevice(), pipelineLayoutInfo);
+
+    vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo =
+        renderer->getPipelineRendereringCreateInfo();
+
+    vk::StructureChain<
+        vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo>
+        pipelineCreateInfoChain =
+    // TODO - start here
+            {{.stageCount = 2,
+              .pStages = shaderStages,
+              .pVertexInputState = &vertexInputInfo,
+              .pInputAssemblyState = &inputAssembly,
+              .pViewportState = &viewportState,
+              .pRasterizationState = &rasteriser,
+              .pMultisampleState = &multisampling,
+              .pColorBlendState = &colourBlendAttachment,
+              .pDynamicState = &dynamicState,
+              .layout = pipelineLayoutInfo,
+              .renderPass = nullptr},
+             pipelineRenderingCreateInfo};
 }
