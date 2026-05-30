@@ -1,4 +1,6 @@
 #include "core_ecs/component/mesh.h"
+#include "core_render/irenderer.h"
+#include "core_service/servicelocator.h"
 #include <spdlog/spdlog.h>
 
 void MeshComponent::setMesh(Mesh *mesh)
@@ -7,7 +9,7 @@ void MeshComponent::setMesh(Mesh *mesh)
 }
 void MeshComponent::setShaderPipeline(IShaderPipeline *shaderPipeline)
 {
-    shaderPipeline = shaderPipeline;
+    shaderPipeline_ = shaderPipeline;
 }
 
 Mesh *MeshComponent::getMesh() const
@@ -19,9 +21,24 @@ IShaderPipeline *MeshComponent::getShaderPipeline() const
     return shaderPipeline_;
 }
 
-void MeshComponent::render()
+bool MeshComponent::render()
 {
     spdlog::debug(
         "Rendering MeshComponent for entity: {}", getOwner()->getName()
     );
+
+    IRenderer *renderer = ServiceLocator::instance().get<IRenderer>();
+    if (!renderer)
+        return false;
+
+    if (!renderer->bind(shaderPipeline_))
+        return false;
+    if (!renderer->draw(mesh_->getGeometry()))
+        return false;
+
+    spdlog::debug(
+        "Finished rendering MeshComponent for entity: {}", getOwner()->getName()
+    );
+
+    return true;
 }

@@ -1,5 +1,6 @@
 #include "core_render/vulkan/renderer.h"
 #include "core_platform/linux/platform.h"
+#include "core_render/vulkan/shaderpipeline.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <spdlog/spdlog.h>
@@ -71,11 +72,10 @@ bool VulkanRenderer::init(IPlatform *platform)
     createRenderPass();
     // if (!initImGui())
     //     throw std::runtime_error("ImGui failed to initialise");
-    createSynchronizationPrimitives();
+    createSyncObjects();
     createFramebuffers();
     createCommandPool();
-    createCommandBuffers();
-    createDescriptorPool();
+    createCommandBuffer();
 
     spdlog::debug("Finished creating descriptor pool");
     return true;
@@ -253,7 +253,6 @@ bool VulkanRenderer::createLogicalDevice()
 
     // get the first index into queueFamilyProperties which supports both
     // graphics and present
-    uint32_t queueIndex = ~0;
     for (uint32_t qfpIndex = 0; qfpIndex < queueFamilyProperties.size();
          qfpIndex++)
     {
@@ -261,11 +260,11 @@ bool VulkanRenderer::createLogicalDevice()
              vk::QueueFlagBits::eGraphics) &&
             physicalDevice_.getSurfaceSupportKHR(qfpIndex, *surface_))
         {
-            queueIndex = qfpIndex;
+            queueIndex_ = qfpIndex;
             break;
         }
     }
-    if (queueIndex == ~0)
+    if (queueIndex_ == ~0)
     {
         throw std::runtime_error(
             "Could not find a queue for graphics and present"
@@ -277,7 +276,7 @@ bool VulkanRenderer::createLogicalDevice()
     float queuePriority = 0.5f;
     vk::DeviceQueueCreateInfo deviceQueueCreateInfo =
         vk::DeviceQueueCreateInfo{}
-            .setQueueFamilyIndex(queueIndex)
+            .setQueueFamilyIndex(queueIndex_)
             .setQueueCount(1)
             .setPQueuePriorities(&queuePriority);
 
@@ -289,7 +288,9 @@ bool VulkanRenderer::createLogicalDevice()
         featureChain = {
             {},
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
-            vk::PhysicalDeviceVulkan13Features{}.setDynamicRendering(true),
+            vk::PhysicalDeviceVulkan13Features{}
+                .setDynamicRendering(true)
+                .setSynchronization2(true),
             vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT{}
                 .setExtendedDynamicState(true)
         };
@@ -314,7 +315,7 @@ bool VulkanRenderer::createLogicalDevice()
             .setPpEnabledExtensionNames(requiredDeviceExtension.data());
 
     device_ = vk::raii::Device(physicalDevice_, deviceCreateInfo);
-    graphicsQueue_ = vk::raii::Queue(device_, queueIndex, 0);
+    queue_ = vk::raii::Queue(device_, queueIndex_, 0);
 
     spdlog::debug("Finished creating logical device");
     return true;
@@ -415,36 +416,147 @@ bool VulkanRenderer::createFramebuffers()
 bool VulkanRenderer::createCommandPool()
 {
     spdlog::debug("Creating command pool");
+
+    vk::CommandPoolCreateInfo poolInfo =
+        vk::CommandPoolCreateInfo{}
+            .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
+            .setQueueFamilyIndex(queueIndex_);
+
+    commandPool_ = vk::raii::CommandPool(device_, poolInfo);
+
     spdlog::debug("Finished creating command pool");
     return true;
 }
 
-bool VulkanRenderer::createCommandBuffers()
+bool VulkanRenderer::createCommandBuffer()
 {
-    spdlog::debug("Creating command buffers");
-    spdlog::debug("Finished creating command buffers");
+    spdlog::debug("Creating command buffer");
+
+    vk::CommandBufferAllocateInfo allocInfo =
+        vk::CommandBufferAllocateInfo{}
+            .setCommandPool(commandPool_)
+            .setLevel(vk::CommandBufferLevel::ePrimary)
+            .setCommandBufferCount(1);
+
+    commandBuffer_ =
+        std::move(vk::raii::CommandBuffers(device_, allocInfo).front());
+
+    spdlog::debug("Finished creating command buffer");
     return true;
 }
 
-bool VulkanRenderer::createSynchronizationPrimitives()
+bool VulkanRenderer::createSyncObjects()
 {
-    spdlog::debug("Creating synchronization primitives");
-    spdlog::debug("Finished creating synchronization primitives");
+    spdlog::debug("Creating sync objects");
+
+    presentCompleteSemaphore_ =
+        vk::raii::Semaphore(device_, vk::SemaphoreCreateInfo());
+    renderFinishedSemaphore_ =
+        vk::raii::Semaphore(device_, vk::SemaphoreCreateInfo());
+    drawFence_ = vk::raii::Fence(device_, {vk::FenceCreateFlagBits::eSignaled});
+
+    spdlog::debug("Finished creating sync objects");
     return true;
 }
 
 bool VulkanRenderer::beginFrame()
 {
+    // Wait for previous frame to finish
+    vk::Result fenceResult =
+        device_.waitForFences(*drawFence_, vk::True, UINT64_MAX);
+    if (fenceResult != vk::Result::eSuccess)
+    {
+        throw std::runtime_error("failed to wait for fence!");
+    }
+    device_.resetFences(*drawFence_);
+
+    // Get an image from the framebuffer now the previous frame is finished
+    auto [_, imageIndex] = swapChain_.acquireNextImage(
+        UINT64_MAX, *presentCompleteSemaphore_, nullptr
+    );
+    currentImageIndex_ = imageIndex;
+
+    // Begin recording commands
+    commandBuffer_.begin({});
+    transition_image_layout(
+        imageIndex, vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eColorAttachmentOptimal, {},
+        vk::AccessFlagBits2::eColorAttachmentWrite,
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput
+    );
+    vk::ClearValue clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    vk::RenderingAttachmentInfo attachmentInfo =
+        vk::RenderingAttachmentInfo{}
+            .setImageView(swapChainImageViews_[imageIndex])
+            .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
+            .setLoadOp(vk::AttachmentLoadOp::eClear)
+            .setStoreOp(vk::AttachmentStoreOp::eStore)
+            .setClearValue(clearColor);
+    vk::RenderingInfo renderingInfo =
+        vk::RenderingInfo{}
+            .setRenderArea({{0, 0}, swapChainExtent_})
+            .setLayerCount(1)
+            .setColorAttachmentCount(1)
+            .setPColorAttachments(&attachmentInfo);
+
+    commandBuffer_.beginRendering(renderingInfo);
+
     return true;
 }
 
-bool VulkanRenderer::endFrame()
+bool VulkanRenderer::drawFrame()
 {
+    // Stop recording commands
+    commandBuffer_.endRendering();
+
+    transition_image_layout(
+        currentImageIndex_, vk::ImageLayout::eColorAttachmentOptimal,
+        vk::ImageLayout::ePresentSrcKHR,
+        vk::AccessFlagBits2::eColorAttachmentWrite, {},
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+        vk::PipelineStageFlagBits2::eBottomOfPipe
+    );
+
+    commandBuffer_.end();
+
+    // Execute draw commands
+    queue_.waitIdle();
+    vk::PipelineStageFlags waitDestinationStageMask(
+        vk::PipelineStageFlagBits::eColorAttachmentOutput
+    );
+    const vk::SubmitInfo submitInfo =
+        vk::SubmitInfo{}
+            .setWaitSemaphoreCount(1)
+            .setPWaitSemaphores(&*presentCompleteSemaphore_)
+            .setPWaitDstStageMask(&waitDestinationStageMask)
+            .setCommandBufferCount(1)
+            .setPCommandBuffers(&*commandBuffer_)
+            .setSignalSemaphoreCount(1)
+            .setPSignalSemaphores(&*renderFinishedSemaphore_);
+    queue_.submit(submitInfo, *drawFence_);
+
     return true;
 }
 
-bool VulkanRenderer::createDescriptorPool()
+bool VulkanRenderer::present()
 {
+    const vk::PresentInfoKHR presentInfoKHR =
+        vk::PresentInfoKHR{}
+            .setWaitSemaphoreCount(1)
+            .setPWaitSemaphores(&*renderFinishedSemaphore_)
+            .setSwapchainCount(1)
+            .setPSwapchains(&*swapChain_)
+            .setPImageIndices(&currentImageIndex_)
+            .setPResults(nullptr);
+    auto _ = queue_.presentKHR(presentInfoKHR);
+
+    return true;
+}
+
+bool VulkanRenderer::shutdown()
+{
+    device_.waitIdle();
     return true;
 }
 
@@ -518,11 +630,6 @@ bool VulkanRenderer::initImGui()
     //
     // spdlog::info("ImGui initialised");
     // return true;
-}
-
-bool VulkanRenderer::frame()
-{
-    return true;
 }
 
 bool VulkanRenderer::renderImGui()
@@ -732,4 +839,61 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VulkanRenderer::debugCallback(
     );
 
     return vk::False;
+}
+
+bool VulkanRenderer::bind(IShaderPipeline *shaderPipeline)
+{
+    spdlog::debug("Binding shader pipeline");
+    VulkanShaderPipeline *vulkanShaderPipeline =
+        dynamic_cast<VulkanShaderPipeline *>(shaderPipeline);
+
+    commandBuffer_.bindPipeline(
+        vk::PipelineBindPoint::eGraphics,
+        *vulkanShaderPipeline->getGraphicsPipeline()
+    );
+    commandBuffer_.setViewport(
+        0, vk::Viewport(
+               0.0f, 0.0f, static_cast<float>(swapChainExtent_.width),
+               static_cast<float>(swapChainExtent_.height), 0.0f, 1.0f
+           )
+    );
+    commandBuffer_.setScissor(
+        0, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent_)
+    );
+    spdlog::debug("Finished binding shader pipeline");
+
+    return true;
+}
+
+bool VulkanRenderer::draw(Geometry *geometry)
+{
+    commandBuffer_.draw(geometry->vertexCount, 1, 0, 0);
+
+    return true;
+}
+
+void VulkanRenderer::transition_image_layout(
+    uint32_t imageIndex, vk::ImageLayout old_layout, vk::ImageLayout new_layout,
+    vk::AccessFlags2 src_access_mask, vk::AccessFlags2 dst_access_mask,
+    vk::PipelineStageFlags2 src_stage_mask,
+    vk::PipelineStageFlags2 dst_stage_mask
+)
+{
+    vk::ImageMemoryBarrier2 barrier =
+        vk::ImageMemoryBarrier2{}
+            .setSrcStageMask(src_stage_mask)
+            .setSrcAccessMask(src_access_mask)
+            .setDstStageMask(dst_stage_mask)
+            .setDstAccessMask(dst_access_mask)
+            .setOldLayout(old_layout)
+            .setNewLayout(new_layout)
+            .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+            .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+            .setImage(swapChainImages_[imageIndex])
+            .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+    vk::DependencyInfo dependencyInfo = vk::DependencyInfo{}
+                                            .setDependencyFlags({})
+                                            .setImageMemoryBarrierCount(1)
+                                            .setPImageMemoryBarriers(&barrier);
+    commandBuffer_.pipelineBarrier2(dependencyInfo);
 }

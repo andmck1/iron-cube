@@ -1,7 +1,7 @@
 #include "application.h"
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
-#include "core_render/vulkan/ishaderpipelinemanager.h"
+#include "core_render/ishaderpipelinemanager.h"
 #include "core_render/vulkan/shader.h"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
@@ -219,6 +219,7 @@ void Application::mainLoop()
 void Application::shutdown()
 {
     spdlog::info("Shutting application down");
+    renderer_.shutdown();
     platform_.shutdown();
 }
 

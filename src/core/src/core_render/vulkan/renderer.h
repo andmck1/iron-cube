@@ -11,8 +11,14 @@ class VulkanRenderer : public IRenderer
 {
     public:
     bool init(IPlatform *platform) override;
-    bool frame() override;
     bool renderImGui() override;
+    bool beginFrame() override;
+    bool drawFrame() override;
+    bool present() override;
+    bool shutdown() override;
+
+    bool draw(Geometry *geometry) override;
+    bool bind(IShaderPipeline *shaderPipeline) override;
 
     vk::raii::Device &getDevice();
     vk::Viewport getViewport();
@@ -24,8 +30,6 @@ class VulkanRenderer : public IRenderer
 
     private:
     bool initialisePipeline();
-    bool beginFrame();
-    bool endFrame();
     bool initImGui();
     void shutdownImGui();
 
@@ -39,9 +43,8 @@ class VulkanRenderer : public IRenderer
     bool createRenderPass();
     bool createFramebuffers();
     bool createCommandPool();
-    bool createCommandBuffers();
-    bool createSynchronizationPrimitives();
-    bool createDescriptorPool();
+    bool createCommandBuffer();
+    bool createSyncObjects();
     std::vector<const char *> getRequiredInstanceExtensions();
     bool isDeviceSuitable(vk::PhysicalDevice physicalDevice);
     static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
@@ -61,6 +64,14 @@ class VulkanRenderer : public IRenderer
     );
     vk::Extent2D
     chooseSwapExtent(vk::SurfaceCapabilitiesKHR const &capabilities);
+    void recordCommandBuffer(uint32_t imageIndex);
+    void transition_image_layout(
+        uint32_t imageIndex, vk::ImageLayout old_layout,
+        vk::ImageLayout new_layout, vk::AccessFlags2 src_access_mask,
+        vk::AccessFlags2 dst_access_mask,
+        vk::PipelineStageFlags2 src_stage_mask,
+        vk::PipelineStageFlags2 dst_stage_mask
+    );
 
     uint32_t findQueueFamilyIndex() const;
 
@@ -71,20 +82,28 @@ class VulkanRenderer : public IRenderer
     vk::raii::DebugUtilsMessengerEXT debugMessenger_ = nullptr;
     vk::raii::PhysicalDevice physicalDevice_ = nullptr;
     vk::raii::Device device_ = nullptr;
-    vk::raii::Queue graphicsQueue_ = nullptr;
+    uint32_t queueIndex_ = ~0;
+    vk::raii::Queue queue_ = nullptr;
     vk::raii::SurfaceKHR surface_ = nullptr;
     vk::raii::SwapchainKHR swapChain_ = nullptr;
     std::vector<vk::Image> swapChainImages_;
     vk::SurfaceFormatKHR swapChainSurfaceFormat_;
     vk::Extent2D swapChainExtent_;
     std::vector<vk::raii::ImageView> swapChainImageViews_;
+    vk::raii::CommandPool commandPool_ = nullptr;
+    vk::raii::CommandBuffer commandBuffer_ = nullptr;
+
+    vk::raii::Semaphore presentCompleteSemaphore_ = nullptr;
+    vk::raii::Semaphore renderFinishedSemaphore_ = nullptr;
+    vk::raii::Fence drawFence_ = nullptr;
 
     ImGuiContext *imguiContext_ = nullptr;
     vk::DescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;
-    
+    uint32_t currentImageIndex_ = 0;
+
     // TODO - consider moving this somewhere else
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly_ =
         vk::PipelineInputAssemblyStateCreateInfo{}.setTopology(

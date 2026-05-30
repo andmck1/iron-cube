@@ -38,7 +38,7 @@ VulkanShader::VulkanShader(const VulkanShaderConfig shaderConfig)
 }
 
 
-std::optional<vk::raii::ShaderModule> *VulkanShader::getShaderModule()
+vk::raii::ShaderModule &VulkanShader::getShaderModule()
 {
-    return &shaderModule_;
+    return shaderModule_.value();
 }

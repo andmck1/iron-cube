@@ -15,11 +15,9 @@ class ServiceLocator
 
     template <typename T> T *get()
     {
-        spdlog::debug("Requesting service: {}", typeid(T).name());
         auto services_iterator = services_.find(std::type_index(typeid(T)));
         if (services_iterator != services_.end())
         {
-            spdlog::debug("Service found: {}", typeid(T).name());
             return static_cast<T *>(services_iterator->second);
         }
         spdlog::error("Service not found: {}", typeid(T).name());

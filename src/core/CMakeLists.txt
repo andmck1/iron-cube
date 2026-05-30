@@ -26,6 +26,7 @@ add_library(
     src/core_render/vulkan/renderer.cpp
     src/core_render/vulkan/shader.cpp
     src/core_render/vulkan/shaderpipelinemanager.cpp
+    src/core_render/vulkan/shaderpipeline.cpp
     src/core_render/vulkan/shadermanager.cpp
     src/core_resource/resourcemanager.cpp
     src/core_scene/scene.cpp

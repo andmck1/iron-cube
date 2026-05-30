@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core_render/vulkan/ishaderpipelinemanager.h"
+#include "core_render/ishaderpipelinemanager.h"
 #include <memory>
 #include <string>
 #include <unordered_map>

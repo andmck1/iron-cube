@@ -1,5 +1,5 @@
 #include "default.h"
-#include "core_render/vulkan/ishadermanager.h"
+#include "core_render/ishadermanager.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
@@ -21,13 +21,13 @@ DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
     vk::PipelineShaderStageCreateInfo vertexShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eVertex)
-            .setModule(defaultVertexShader->getShaderModule()->value())
+            .setModule(defaultVertexShader->getShaderModule())
             .setPName("main");
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eFragment)
-            .setModule(defaultFragmentShader->getShaderModule()->value())
+            .setModule(defaultFragmentShader->getShaderModule())
             .setPName("main");
 
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
