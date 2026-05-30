@@ -1,30 +1,23 @@
-#include "../../buffer/ubuffer.h"
+// #include "../../buffer/ubuffer.h"
 
-[[vk::binding(0, 0)]]
-ConstantBuffer<UBO> ubo;
+static float2 positions[3] =
+    float2[](float2(0.0, -0.5), float2(0.5, 0.5), float2(-0.5, 0.5));
 
-[[vk::push_constant]]
-uniform PushConstantData push;
-
-struct VertexInput
-{
-    float3 position : LOCATION0;
-    float3 colour : LOCATION1;
-};
+static float3 colors[3] = float3[](
+    float3(1.0, 0.0, 0.0), float3(0.0, 1.0, 0.0), float3(0.0, 0.0, 1.0)
+);
 
 struct VertexOutput
 {
-    float3 colour : LOCATION0;
-    float4 position : SV_POSITION;
+    float3 color;
+    float4 sv_position : SV_Position;
 };
 
 [shader("vertex")]
-VertexOutput main(VertexInput input)
+VertexOutput main(uint vid: SV_VertexID)
 {
     VertexOutput output;
-    float4 pos = float4(input.position, 1.0);
-    pos = mul(ubo.proj, mul(ubo.view, mul(push.model, pos)));
-    output.position = pos;
-    output.colour = input.colour;
+    output.sv_position = float4(positions[vid], 0.0, 1.0);
+    output.color = colors[vid];
     return output;
 }

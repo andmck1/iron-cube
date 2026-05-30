@@ -47,7 +47,10 @@ vk::PipelineColorBlendAttachmentState VulkanRenderer::getColourBlendAttachment()
 vk::PipelineRenderingCreateInfo
 VulkanRenderer::getPipelineRendereringCreateInfo()
 {
-    return {1, swapChainSurfaceFormat_.format};
+    return vk::PipelineRenderingCreateInfo{}
+        .setViewMask(0)
+        .setColorAttachmentCount(1)
+        .setPColorAttachmentFormats(&swapChainSurfaceFormat_.format);
 }
 
 bool VulkanRenderer::init(IPlatform *platform)
@@ -280,10 +283,12 @@ bool VulkanRenderer::createLogicalDevice()
 
     // Which features to enable in vulkan
     vk::StructureChain<
-        vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features,
+        vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
+        vk::PhysicalDeviceVulkan13Features,
         vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
         featureChain = {
             {},
+            vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
             vk::PhysicalDeviceVulkan13Features{}.setDynamicRendering(true),
             vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT{}
                 .setExtendedDynamicState(true)

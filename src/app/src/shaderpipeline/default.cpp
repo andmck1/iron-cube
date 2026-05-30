@@ -30,8 +30,6 @@ DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
             .setModule(defaultFragmentShader->getShaderModule()->value())
             .setPName("main");
 
-    vk::Viewport viewport = renderer->getViewport();
-
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly =
         renderer->getInputAssembly();
@@ -63,6 +61,13 @@ DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
     vk::PipelineColorBlendAttachmentState colourBlendAttachment =
         renderer->getColourBlendAttachment();
 
+    vk::PipelineColorBlendStateCreateInfo colourBlending =
+        vk::PipelineColorBlendStateCreateInfo{}
+            .setLogicOpEnable(vk::False)
+            .setLogicOp(vk::LogicOp::eCopy)
+            .setAttachmentCount(1)
+            .setPAttachments(&colourBlendAttachment);
+
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
         vk::PipelineLayoutCreateInfo{}
             .setSetLayoutCount(0)
@@ -71,23 +76,31 @@ DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
     pipelineLayout_ =
         vk::raii::PipelineLayout(renderer->getDevice(), pipelineLayoutInfo);
 
+    vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo =
+        vk::GraphicsPipelineCreateInfo{}
+            .setStageCount(2)
+            .setPStages(shaderStages)
+            .setPVertexInputState(&vertexInputInfo)
+            .setPInputAssemblyState(&inputAssembly)
+            .setPViewportState(&viewportState)
+            .setPRasterizationState(&rasteriser)
+            .setPMultisampleState(&multisampling)
+            .setPColorBlendState(&colourBlending)
+            .setPDynamicState(&dynamicState)
+            .setLayout(pipelineLayout_)
+            .setRenderPass(nullptr);
+
     vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo =
         renderer->getPipelineRendereringCreateInfo();
 
     vk::StructureChain<
         vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo>
-        pipelineCreateInfoChain =
-    // TODO - start here
-            {{.stageCount = 2,
-              .pStages = shaderStages,
-              .pVertexInputState = &vertexInputInfo,
-              .pInputAssemblyState = &inputAssembly,
-              .pViewportState = &viewportState,
-              .pRasterizationState = &rasteriser,
-              .pMultisampleState = &multisampling,
-              .pColorBlendState = &colourBlendAttachment,
-              .pDynamicState = &dynamicState,
-              .layout = pipelineLayoutInfo,
-              .renderPass = nullptr},
-             pipelineRenderingCreateInfo};
+        pipelineCreateInfoChain = {
+            graphicsPipelineCreateInfo, pipelineRenderingCreateInfo
+        };
+
+    graphicsPipeline_ = vk::raii::Pipeline(
+        renderer->getDevice(), nullptr,
+        pipelineCreateInfoChain.get<vk::GraphicsPipelineCreateInfo>()
+    );
 }

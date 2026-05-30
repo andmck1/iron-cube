@@ -12,7 +12,7 @@ bool SceneLayer::initialise()
 
 bool SceneLayer::frame()
 {
-    spdlog::debug("SceneLayer rendering");
+    // spdlog::debug("SceneLayer rendering");
     if (!renderer_)
         return false;
     renderer_->frame();

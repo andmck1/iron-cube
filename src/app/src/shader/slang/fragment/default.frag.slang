@@ -1,10 +1,19 @@
-struct FragmentInput
+static float2 positions[3] =
+    float2[](float2(0.0, -0.5), float2(0.5, 0.5), float2(-0.5, 0.5));
+
+static float3 colors[3] = float3[](
+    float3(1.0, 0.0, 0.0), float3(0.0, 1.0, 0.0), float3(0.0, 0.0, 1.0)
+);
+
+struct VertexOutput
 {
-    float3 colour : LOCATION0;
+    float3 color;
+    float4 sv_position : SV_Position;
 };
 
 [shader("fragment")]
-float4 main(FragmentInput input) : SV_TARGET
+float4 main(VertexOutput inVert) : SV_Target
 {
-    return float4(input.colour, 1.0);
+    float3 color = inVert.color;
+    return float4(color, 1.0);
 }

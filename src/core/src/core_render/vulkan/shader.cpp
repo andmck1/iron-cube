@@ -33,6 +33,8 @@ VulkanShader::VulkanShader(const VulkanShaderConfig shaderConfig)
     shaderModule_.emplace(
         vk::raii::ShaderModule(vulkanRenderer->getDevice(), createInfo)
     );
+
+    spdlog::debug("Finished loading shader: {}", shaderConfig.path);
 }
 
 

@@ -103,7 +103,8 @@ bool Application::initialiseShaders()
 
     // TODO - look up nicer init styles
     VulkanShaderConfig defaultVertexShaderConfig;
-    defaultVertexShaderConfig.path = "build/shaders/default.vert.spv";
+    defaultVertexShaderConfig.path =
+        "build/shader/slang/vertex/default.vert.spv";
 
     std::unique_ptr<VulkanShader> defaultVertexShader =
         std::make_unique<VulkanShader>(defaultVertexShaderConfig);
@@ -112,7 +113,8 @@ bool Application::initialiseShaders()
     );
 
     VulkanShaderConfig defaultFragmentShaderConfig;
-    defaultFragmentShaderConfig.path = "build/shaders/default.frag.spv";
+    defaultFragmentShaderConfig.path =
+        "build/shader/slang/fragment/default.frag.spv";
 
     std::unique_ptr<VulkanShader> defaultFragmentShader =
         std::make_unique<VulkanShader>(defaultFragmentShaderConfig);
@@ -191,7 +193,9 @@ bool Application::initialiseEntities(Scene *scene)
     transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
 
     MeshComponent *meshComponent = triangle->addComponent<MeshComponent>();
-    meshComponent->setShaderPipeline(registeredShaderPipeline);
+    IShaderPipeline *triangleShaderPipeline =
+        shaderPipelineManager_.getShaderPipeline("triangle");
+    meshComponent->setShaderPipeline(triangleShaderPipeline);
     meshComponent->setMesh(registeredMesh);
     scene->addEntity(std::move(triangle));
     return true;
@@ -232,6 +236,10 @@ bool Application::run()
         if (!initialisePlatform())
             return false;
         if (!initialiseRenderer())
+            return false;
+        if (!initialiseShaders())
+            return false;
+        if (!initialiseShaderPipelines())
             return false;
         if (!createAndInitialiseLayers())
             return false;
