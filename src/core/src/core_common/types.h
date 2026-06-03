@@ -1,18 +1,13 @@
 #pragma once
 
 #include "glm/ext/vector_float3.hpp"
+#include "core_buffertypes/buffertypes.h"
 #include <memory>
 #include <vector>
 
-struct Vertex
-{
-    glm::vec3 position;
-    glm::vec3 colour;
-};
-
 struct Geometry
 {
-    std::shared_ptr<std::vector<Vertex>> vertices;
+    std::shared_ptr<std::vector<VertexInputType>> vertices;
     uint32_t vertexCount;
 };
 

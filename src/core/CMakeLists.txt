@@ -31,6 +31,7 @@ add_library(
     src/core_resource/resourcemanager.cpp
     src/core_scene/scene.cpp
     src/core_service/servicelocator.cpp
+    src/core_buffertypes/buffertypes.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_demo.cpp

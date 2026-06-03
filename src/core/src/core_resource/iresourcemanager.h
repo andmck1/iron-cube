@@ -9,7 +9,8 @@ class IResourceManager
     virtual ~IResourceManager() = default;
 
     virtual bool loadGeometry(
-        const std::string &name, std::shared_ptr<std::vector<Vertex>> verts,
+        const std::string &name,
+        std::shared_ptr<std::vector<VertexInputType>> verts,
         uint32_t vertexCount
     ) = 0;
 

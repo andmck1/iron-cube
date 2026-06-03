@@ -2,8 +2,8 @@
 #include <spdlog/spdlog.h>
 
 bool ResourceManager::loadGeometry(
-    const std::string &name, std::shared_ptr<std::vector<Vertex>> verts,
-    uint32_t vertexCount
+    const std::string &name,
+    std::shared_ptr<std::vector<VertexInputType>> verts, uint32_t vertexCount
 )
 {
     spdlog::debug("Loading geometry '{}': {} vertices", name, vertexCount);
@@ -47,10 +47,10 @@ bool ResourceManager::unloadGeometry(const std::string &name)
     return false;
 }
 
-std::shared_ptr<std::vector<Vertex>>
+std::shared_ptr<std::vector<VertexInputType>>
 ResourceManager::generateProceduralTriangle()
 {
-    auto vertices = std::make_shared<std::vector<Vertex>>();
+    auto vertices = std::make_shared<std::vector<VertexInputType>>();
     vertices->reserve(3);
 
     vertices->push_back(
@@ -67,9 +67,10 @@ ResourceManager::generateProceduralTriangle()
     return vertices;
 }
 
-std::shared_ptr<std::vector<Vertex>> ResourceManager::generateProceduralCube()
+std::shared_ptr<std::vector<VertexInputType>>
+ResourceManager::generateProceduralCube()
 {
-    auto vertices = std::make_shared<std::vector<Vertex>>();
+    auto vertices = std::make_shared<std::vector<VertexInputType>>();
     vertices->reserve(36);
     glm::vec3 defaultColour(1.0f, 0.5f, 0.2f);
 
