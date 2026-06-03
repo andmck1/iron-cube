@@ -54,13 +54,16 @@ ResourceManager::generateProceduralTriangle()
     vertices->reserve(3);
 
     vertices->push_back(
-        {glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)}
+        {glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.5f, 1.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
     );
     vertices->push_back(
-        {glm::vec3(-0.866f, -0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}
+        {glm::vec3(-0.866f, -0.5f, 0.0f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
     );
     vertices->push_back(
-        {glm::vec3(0.866f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
+        {glm::vec3(0.866f, -0.5f, 0.0f), glm::vec2(1.0f, 0.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
     );
 
     spdlog::info("Generated procedural triangle geometry");
@@ -72,55 +75,162 @@ ResourceManager::generateProceduralCube()
 {
     auto vertices = std::make_shared<std::vector<VertexInputType>>();
     vertices->reserve(36);
-    glm::vec3 defaultColour(1.0f, 0.5f, 0.2f);
 
     // Front face (z = +0.5)
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, -0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, 0.5f), defaultColour});
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(1.0f, 0.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 1.0f),
+         glm::vec3(0.0f, 0.0f, 1.0f)}
+    );
 
     // Back face (z = -0.5)
-    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, -0.5f), defaultColour});
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, 0.0f, -1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(1.0f, 0.0f),
+         glm::vec3(0.0f, 0.0f, -1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(0.0f, 0.0f, -1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, 0.0f, -1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(0.0f, 0.0f, -1.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, -0.5f), glm::vec2(0.0f, 1.0f),
+         glm::vec3(0.0f, 0.0f, -1.0f)}
+    );
 
     // Top face (y = +0.5)
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, -0.5f), defaultColour});
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, 1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 1.0f),
+         glm::vec3(0.0f, 1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(0.0f, 1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, 1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(0.0f, 1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, -0.5f), glm::vec2(1.0f, 0.0f),
+         glm::vec3(0.0f, 1.0f, 0.0f)}
+    );
 
     // Bottom face (y = -0.5)
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, -0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, -0.5f), defaultColour});
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, -1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(1.0f, 0.0f),
+         glm::vec3(0.0f, -1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(0.0f, -1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(0.0f, -1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(0.0f, -1.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 1.0f),
+         glm::vec3(0.0f, -1.0f, 0.0f)}
+    );
 
     // Right face (x = +0.5)
-    vertices->push_back({glm::vec3(0.5f, -0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, -0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, 0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(0.5f, -0.5f, -0.5f), defaultColour});
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 1.0f),
+         glm::vec3(1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, 0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1.0f, 0.0f),
+         glm::vec3(1.0f, 0.0f, 0.0f)}
+    );
 
     // Left face (x = -0.5)
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, -0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, 0.5f, 0.5f), defaultColour});
-    vertices->push_back({glm::vec3(-0.5f, -0.5f, 0.5f), defaultColour});
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(-1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec2(0.0f, 1.0f),
+         glm::vec3(-1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(-1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
+         glm::vec3(-1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
+         glm::vec3(-1.0f, 0.0f, 0.0f)}
+    );
+    vertices->push_back(
+        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(1.0f, 0.0f),
+         glm::vec3(-1.0f, 0.0f, 0.0f)}
+    );
 
     spdlog::info("Generated procedural cube geometry");
     return vertices;

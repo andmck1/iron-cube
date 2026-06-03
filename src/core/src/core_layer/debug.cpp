@@ -1,7 +1,6 @@
 #include "core_layer/debug.h"
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
-#include "core_resource/iresourcemanager.h"
 #include "core_service/servicelocator.h"
 #include <imgui.h>
 #include <spdlog/spdlog.h>
@@ -91,34 +90,6 @@ bool DebugLayer::frame()
 
             // Write transform back to component
             transformComp->setTransform(localTransform);
-
-            // Cube-specific: colour picker
-            if (entityName == "cube")
-            {
-                ImGui::Separator();
-                ImGui::Text("Cube Colour");
-                if (ImGui::ColorPicker3(
-                        "##CubeColour", &cubeColor_.x,
-                        ImGuiColorEditFlags_NoOptions
-                    ))
-                {
-                    // Update vertex colours in the cube geometry
-                    IResourceManager *resourceManager =
-                        ServiceLocator::instance().get<IResourceManager>();
-                    if (resourceManager)
-                    {
-                        Geometry *cubeGeom =
-                            resourceManager->getGeometry("cube");
-                        if (cubeGeom && cubeGeom->vertices)
-                        {
-                            for (Vertex &vertex : *cubeGeom->vertices)
-                            {
-                                vertex.colour = cubeColor_;
-                            }
-                        }
-                    }
-                }
-            }
 
             ImGui::Separator();
         }

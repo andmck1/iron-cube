@@ -1,6 +1,5 @@
 #include "core_render/vulkan/renderer.h"
 #include "core_platform/linux/platform.h"
-#include "core_render/vulkan/shaderpipeline.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <spdlog/spdlog.h>
@@ -10,6 +9,21 @@
 vk::raii::Device &VulkanRenderer::getDevice()
 {
     return device_;
+}
+
+vk::raii::PhysicalDevice &VulkanRenderer::getPhysicalDevice()
+{
+    return physicalDevice_;
+}
+
+vk::raii::CommandBuffer &VulkanRenderer::getCommandBuffer()
+{
+    return commandBuffer_;
+}
+
+vk::Extent2D &VulkanRenderer::getSwapChainExtent()
+{
+    return swapChainExtent_;
 }
 
 vk::Viewport VulkanRenderer::getViewport()
@@ -629,7 +643,7 @@ bool VulkanRenderer::initImGui()
     // ImGui_ImplVulkan_CreateFontsTexture();
     //
     // spdlog::info("ImGui initialised");
-    // return true;
+    return true;
 }
 
 bool VulkanRenderer::renderImGui()
@@ -682,6 +696,7 @@ uint32_t VulkanRenderer::findQueueFamilyIndex() const
     //         return i;
     // }
     // throw std::runtime_error("Failed to find graphics queue family");
+    return 0;
 }
 
 std::vector<const char *> VulkanRenderer::getRequiredInstanceExtensions()
@@ -839,30 +854,6 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VulkanRenderer::debugCallback(
     );
 
     return vk::False;
-}
-
-bool VulkanRenderer::bind(IShaderPipeline *shaderPipeline)
-{
-    spdlog::debug("Binding shader pipeline");
-    VulkanShaderPipeline *vulkanShaderPipeline =
-        dynamic_cast<VulkanShaderPipeline *>(shaderPipeline);
-
-    commandBuffer_.bindPipeline(
-        vk::PipelineBindPoint::eGraphics,
-        *vulkanShaderPipeline->getGraphicsPipeline()
-    );
-    commandBuffer_.setViewport(
-        0, vk::Viewport(
-               0.0f, 0.0f, static_cast<float>(swapChainExtent_.width),
-               static_cast<float>(swapChainExtent_.height), 0.0f, 1.0f
-           )
-    );
-    commandBuffer_.setScissor(
-        0, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent_)
-    );
-    spdlog::debug("Finished binding shader pipeline");
-
-    return true;
 }
 
 bool VulkanRenderer::draw(Geometry *geometry)

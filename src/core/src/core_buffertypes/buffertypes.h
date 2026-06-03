@@ -22,9 +22,9 @@ using float4x4 = glm::mat4;
 //   offset 20: normal   (12 bytes)
 struct VertexInputType
 {
-    float3 position; // location = 0
-    float2 tex;      // location = 1
-    float3 normal;   // location = 2
+    float3 position;
+    float2 tex;
+    float3 normal;
 };
 
 struct VertexOutputType

@@ -1,22 +1,11 @@
-// #include "../../buffer/ubuffer.h"
 #include "core_buffertypes/buffertypes.h"
 #include "shader/shared/buffertypes.h"
 
-struct VSInput {
-    float2 inPosition;
-    float3 inColor;
-};
-
-struct VSOutput
-{
-    float4 pos : SV_Position;
-    float3 color;
-};
-
 [shader("vertex")]
-VSOutput main(VSInput input) {
-    VSOutput output;
-    output.pos = float4(input.inPosition, 0.0, 1.0);
-    output.color = input.inColor;
+VertexOutputType main(VertexInputType input)
+{
+    VertexOutputType output;
+    output.position = float4(input.position, 1.0);
+    output.colour = float3(input.tex, 0.f);
     return output;
 }

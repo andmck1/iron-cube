@@ -12,7 +12,7 @@ struct VulkanShaderConfig : public BaseShaderConfig
 class VulkanShader : public IShader
 {
     public:
-    VulkanShader(const VulkanShaderConfig config); 
+    VulkanShader(const VulkanShaderConfig config);
 
     vk::raii::ShaderModule &getShaderModule();
 

@@ -2,7 +2,6 @@
 
 #include "core_common/types.h"
 #include "core_platform/iplatform.h"
-#include "core_render/ishaderpipeline.h"
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
@@ -20,5 +19,4 @@ class IRenderer
     virtual bool renderImGui() = 0;
 
     virtual bool draw(Geometry *geometry) = 0;
-    virtual bool bind(IShaderPipeline *shaderPipeline) = 0;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "core_buffertypes/buffertypes.h"
+#include <vulkan/vulkan_raii.hpp>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <string>
@@ -13,4 +14,43 @@ inline void vulkanCheck(VkResult result, const char *message)
             std::string(message) + " (VkResult: " + std::to_string(result) + ")"
         );
     }
+}
+
+// TODO - move this somewhere else, need to generalise the vertex logic
+static vk::VertexInputBindingDescription getVertexBindingDescription()
+{
+    return {0, sizeof(VertexInputType), vk::VertexInputRate::eVertex};
+}
+
+static std::array<vk::VertexInputAttributeDescription, 3>
+getVertexAttributeDescriptions()
+{
+    return {
+        {{0, 0, vk::Format::eR32G32B32Sfloat,
+          offsetof(VertexInputType, position)},
+         {1, 0, vk::Format::eR32G32Sfloat, offsetof(VertexInputType, tex)},
+         {2, 0, vk::Format::eR32G32B32Sfloat,
+          offsetof(VertexInputType, normal)}}
+    };
+}
+
+static uint32_t findMemoryType(
+    vk::raii::PhysicalDevice physicalDevice, uint32_t typeFilter,
+    vk::MemoryPropertyFlags properties
+)
+{
+    vk::PhysicalDeviceMemoryProperties memProperties =
+        physicalDevice.getMemoryProperties();
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) ==
+                properties)
+        {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type!");
 }

@@ -37,7 +37,6 @@ VulkanShader::VulkanShader(const VulkanShaderConfig shaderConfig)
     spdlog::debug("Finished loading shader: {}", shaderConfig.path);
 }
 
-
 vk::raii::ShaderModule &VulkanShader::getShaderModule()
 {
     return shaderModule_.value();

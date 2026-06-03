@@ -172,13 +172,14 @@ bool Application::initialiseEntities(Scene *scene)
     spdlog::info("Initialising entities");
 
     // triangle
-    std::shared_ptr<std::vector<Vertex>> triangleVertices =
+    std::shared_ptr<std::vector<VertexInputType>> triangleVertices =
         ResourceManager::generateProceduralTriangle();
     resourceManager_.loadGeometry(
         "triangle", triangleVertices,
         static_cast<uint32_t>(triangleVertices->size())
     );
-
+    
+    // Confusing API as triangle mesh is dangling
     Mesh triangleMesh = Mesh();
     triangleMesh.setGeometry("triangle");
     Mesh *registeredMesh =
@@ -195,6 +196,7 @@ bool Application::initialiseEntities(Scene *scene)
     MeshComponent *meshComponent = triangle->addComponent<MeshComponent>();
     IShaderPipeline *triangleShaderPipeline =
         shaderPipelineManager_.getShaderPipeline("triangle");
+    triangleShaderPipeline->init(registeredMesh->getGeometry());
     meshComponent->setShaderPipeline(triangleShaderPipeline);
     meshComponent->setMesh(registeredMesh);
     scene->addEntity(std::move(triangle));

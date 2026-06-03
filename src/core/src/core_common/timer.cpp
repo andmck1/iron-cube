@@ -34,7 +34,8 @@ void Timer::tick()
     if (++tickCount % 100 == 0)
     {
         // spdlog::debug(
-        //     "Timer tick - FPS: {:.2f}, Frame Time: {:.2f}ms", fps_, frameTime_
+        //     "Timer tick - FPS: {:.2f}, Frame Time: {:.2f}ms", fps_,
+        //     frameTime_
         // );
     }
 }

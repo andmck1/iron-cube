@@ -18,9 +18,11 @@ class VulkanRenderer : public IRenderer
     bool shutdown() override;
 
     bool draw(Geometry *geometry) override;
-    bool bind(IShaderPipeline *shaderPipeline) override;
 
     vk::raii::Device &getDevice();
+    vk::raii::PhysicalDevice &getPhysicalDevice();
+    vk::raii::CommandBuffer &getCommandBuffer();
+    vk::Extent2D &getSwapChainExtent();
     vk::Viewport getViewport();
     vk::PipelineInputAssemblyStateCreateInfo getInputAssembly();
     vk::PipelineRasterizationStateCreateInfo getRasteriser();

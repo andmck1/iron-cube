@@ -1,6 +1,5 @@
 #pragma once
 
-
 class ILayer
 {
     public:
@@ -8,5 +7,4 @@ class ILayer
 
     virtual bool initialise() = 0;
     virtual bool frame() = 0;
-
 };

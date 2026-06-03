@@ -1,10 +1,20 @@
 #include "default.h"
 #include "core_render/ishadermanager.h"
+#include "core_render/vulkan/helpers.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
 
-DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
+bool DefaultVulkanShaderPipeline::init(Geometry *geometry)
+{
+    if (!initGraphicsPipeline())
+        return false;
+    if (!initVertexBuffer(geometry))
+        return false;
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -30,7 +40,18 @@ DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
             .setModule(defaultFragmentShader->getShaderModule())
             .setPName("main");
 
-    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+    vk::VertexInputBindingDescription bindingDescription =
+        getVertexBindingDescription();
+    auto attributeDescriptions = getVertexAttributeDescriptions();
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
+        vk::PipelineVertexInputStateCreateInfo{}
+            .setVertexBindingDescriptionCount(1)
+            .setPVertexBindingDescriptions(&bindingDescription)
+            .setVertexAttributeDescriptionCount(
+                static_cast<uint32_t>(attributeDescriptions.size())
+            )
+            .setPVertexAttributeDescriptions(attributeDescriptions.data());
+
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly =
         renderer->getInputAssembly();
 
@@ -103,4 +124,67 @@ DefaultVulkanShaderPipeline::DefaultVulkanShaderPipeline()
         renderer->getDevice(), nullptr,
         pipelineCreateInfoChain.get<vk::GraphicsPipelineCreateInfo>()
     );
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::initVertexBuffer(Geometry *geometry)
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    std::shared_ptr<std::vector<VertexInputType>> vertices = geometry->vertices;
+    vk::BufferCreateInfo bufferInfo =
+        vk::BufferCreateInfo{}
+            .setSize(sizeof(vertices->front()) * vertices->size())
+            .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
+            .setSharingMode(vk::SharingMode::eExclusive);
+    vertexBuffer_ = vk::raii::Buffer(renderer->getDevice(), bufferInfo);
+
+    vk::MemoryRequirements memRequirements =
+        vertexBuffer_.getMemoryRequirements();
+    vk::MemoryAllocateInfo memoryAllocateInfo =
+        vk::MemoryAllocateInfo{}
+            .setAllocationSize(memRequirements.size)
+            .setMemoryTypeIndex(findMemoryType(
+                renderer->getPhysicalDevice(), memRequirements.memoryTypeBits,
+                vk::MemoryPropertyFlagBits::eHostVisible |
+                    vk::MemoryPropertyFlagBits::eHostCoherent
+            ));
+    vertexBufferMemory_ =
+        vk::raii::DeviceMemory(renderer->getDevice(), memoryAllocateInfo);
+    vertexBuffer_.bindMemory(*vertexBufferMemory_, 0);
+
+    void *data = vertexBufferMemory_.mapMemory(0, bufferInfo.size);
+    memcpy(data, vertices->data(), bufferInfo.size);
+    vertexBufferMemory_.unmapMemory();
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::bind()
+{
+    spdlog::debug("Binding shader pipeline");
+
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+    vk::Extent2D &swapChainExtent = renderer->getSwapChainExtent();
+
+    commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
+    );
+    commandBuffer.bindVertexBuffers(0, *vertexBuffer_, {0});
+    commandBuffer.setViewport(
+        0, vk::Viewport(
+               0.0f, 0.0f, static_cast<float>(swapChainExtent.width),
+               static_cast<float>(swapChainExtent.height), 0.0f, 1.0f
+           )
+    );
+    commandBuffer.setScissor(
+        0, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent)
+    );
+    spdlog::debug("Finished binding shader pipeline");
+
+    return true;
 }

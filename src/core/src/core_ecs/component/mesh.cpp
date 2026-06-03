@@ -31,7 +31,7 @@ bool MeshComponent::render()
     if (!renderer)
         return false;
 
-    if (!renderer->bind(shaderPipeline_))
+    if (!shaderPipeline_->bind())
         return false;
     if (!renderer->draw(mesh_->getGeometry()))
         return false;

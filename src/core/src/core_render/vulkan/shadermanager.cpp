@@ -12,8 +12,7 @@ IShader *ShaderManager::registerShader(
     return shaderPtr;
 }
 
-IShader *
-ShaderManager::getShader(const std::string &name)
+IShader *ShaderManager::getShader(const std::string &name)
 {
     auto it = shaders_.find(name);
     if (it != shaders_.end())
