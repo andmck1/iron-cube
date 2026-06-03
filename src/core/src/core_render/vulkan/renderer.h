@@ -100,7 +100,7 @@ class VulkanRenderer : public IRenderer
     vk::raii::Fence drawFence_ = nullptr;
 
     ImGuiContext *imguiContext_ = nullptr;
-    vk::DescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
+    vk::raii::DescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;

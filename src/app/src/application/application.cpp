@@ -178,8 +178,8 @@ bool Application::initialiseEntities(Scene *scene)
         "triangle", triangleVertices,
         static_cast<uint32_t>(triangleVertices->size())
     );
-    
-    // Confusing API as triangle mesh is dangling
+
+    // Confusing API as triangle mesh is danglin
     Mesh triangleMesh = Mesh();
     triangleMesh.setGeometry("triangle");
     Mesh *registeredMesh =
@@ -222,7 +222,6 @@ void Application::shutdown()
 {
     spdlog::info("Shutting application down");
     renderer_.shutdown();
-    platform_.shutdown();
 }
 
 bool Application::run()

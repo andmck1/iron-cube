@@ -7,6 +7,7 @@
 class ServiceLocator
 {
     public:
+    // TODO - move these to cpp
     template <typename T> void registerService(T *service)
     {
         spdlog::debug("Registering service: {}", typeid(T).name());

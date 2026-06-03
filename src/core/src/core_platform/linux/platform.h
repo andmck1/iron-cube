@@ -9,6 +9,7 @@
 class PlatformLinux : public IPlatform
 {
     public:
+    ~PlatformLinux();
     bool initialise() override;
     bool createWindow(const PlatformConfig &config) override;
     void pollEvents() override;

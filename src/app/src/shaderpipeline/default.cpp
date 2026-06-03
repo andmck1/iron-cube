@@ -14,6 +14,17 @@ bool DefaultVulkanShaderPipeline::init(Geometry *geometry)
     return true;
 }
 
+bool DefaultVulkanShaderPipeline::shutdown()
+{
+    spdlog::debug("Shutting down default vulkan pipeline");
+    vertexBuffer_ = nullptr;
+    vertexBufferMemory_ = nullptr;
+    pipelineLayout_ = nullptr;
+    graphicsPipeline_ = nullptr;
+    spdlog::debug("Shutdown complete for default vulkan pipeline");
+    return true;
+}
+
 bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(

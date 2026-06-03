@@ -570,7 +570,35 @@ bool VulkanRenderer::present()
 
 bool VulkanRenderer::shutdown()
 {
+    spdlog::debug("Shutting down the vulkan renderer");
+
     device_.waitIdle();
+
+    // // Explicit teardown in reverse-creation order
+    // shutdownImGui();
+    //
+    // // Clear sync objects
+    // drawFence_.clear();
+    // renderFinishedSemaphore_.clear();
+    // presentCompleteSemaphore_.clear();
+    //
+    // // Clear command buffer before pool
+    // commandBuffer_.clear();
+    // commandPool_.clear();
+    //
+    // // Clear swapchain resources
+    // swapChainImageViews_.clear();
+    // swapChain_.clear(); // swapchain before surface
+    //
+    // surface_.clear(); // surface before instance
+    // device_.clear();
+    // physicalDevice_.clear();
+    // debugMessenger_.clear();
+    // instance_.clear();
+    //
+    // return true;
+
+    spdlog::debug("Vulkan renderer shutdown");
     return true;
 }
 

@@ -8,4 +8,5 @@ class IShaderPipeline
     virtual ~IShaderPipeline() = default;
     virtual bool init(Geometry *geometry) = 0;
     virtual bool bind() = 0;
+    virtual bool shutdown() = 0;
 };

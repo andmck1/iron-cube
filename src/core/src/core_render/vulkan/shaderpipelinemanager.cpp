@@ -1,6 +1,8 @@
 #include "core_render/vulkan/shaderpipelinemanager.h"
 #include <spdlog/spdlog.h>
 
+// TODO - rename this to VulkanShaderPipelineManager
+
 IShaderPipeline *ShaderPipelineManager::registerShaderPipeline(
     const std::string &name, std::unique_ptr<IShaderPipeline> shaderPipeline
 )

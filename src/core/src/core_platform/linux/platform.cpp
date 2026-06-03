@@ -1,6 +1,11 @@
 #include "core_platform/linux/platform.h"
 #include <spdlog/spdlog.h>
 
+PlatformLinux::~PlatformLinux()
+{
+    shutdown();
+}
+
 bool PlatformLinux::initialise()
 {
     spdlog::debug("Initialising platform (GLFW)");
