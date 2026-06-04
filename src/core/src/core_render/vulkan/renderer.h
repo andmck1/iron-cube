@@ -120,7 +120,7 @@ class VulkanRenderer : public IRenderer
     uint32_t currentFrameIndex_ = 0;
 
     ImGuiContext *imguiContext_ = nullptr;
-    vk::raii::DescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
+    vk::raii::DescriptorPool imguiDescriptorPool_ = nullptr;
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;

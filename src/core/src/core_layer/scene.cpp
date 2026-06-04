@@ -18,7 +18,6 @@ bool SceneLayer::frame()
     IRenderer *renderer_ = ServiceLocator::instance().get<IRenderer>();
     if (!renderer_)
         return false;
-    renderer_->beginFrame();
     for (const std::unique_ptr<Entity> &sceneEntity : scene.getEntities())
     {
         MeshComponent *entityMeshComponent =
@@ -26,7 +25,5 @@ bool SceneLayer::frame()
         if (entityMeshComponent != nullptr)
             entityMeshComponent->render();
     }
-    renderer_->drawFrame();
-    renderer_->present();
     return true;
 }

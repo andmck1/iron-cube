@@ -85,6 +85,7 @@ bool VulkanRenderer::init(IPlatform *platform)
     width_ = platform->getConfig().window_width;
     height_ = platform->getConfig().window_height;
 
+    // TODO - proper error checking?
     createInstance();
     setupDebugMessenger();
     pickPhysicalDevice();
@@ -94,8 +95,8 @@ bool VulkanRenderer::init(IPlatform *platform)
     createSwapChain();
     createImageViews();
     createRenderPass();
-    // if (!initImGui())
-    //     throw std::runtime_error("ImGui failed to initialise");
+    if (!initImGui())
+        throw std::runtime_error("ImGui failed to initialise");
     createSyncObjects();
     createFramebuffers();
     createCommandPool();
@@ -534,6 +535,9 @@ bool VulkanRenderer::beginFrame()
         UINT64_MAX, *presentCompleteSemaphores_[currentFrameIndex_], nullptr
     );
     currentImageIndex_ = imageIndex;
+    
+    // TODO - move??
+    ImGui::NewFrame();
 
     // Begin recording commands
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
@@ -624,158 +628,139 @@ bool VulkanRenderer::shutdown()
     spdlog::debug("Shutting down the vulkan renderer");
 
     device_.waitIdle();
-
-    // // Explicit teardown in reverse-creation order
-    // shutdownImGui();
-    //
-    // // Clear sync objects
-    // drawFence_.clear();
-    // renderFinishedSemaphore_.clear();
-    // presentCompleteSemaphore_.clear();
-    //
-    // // Clear command buffer before pool
-    // commandBuffer_.clear();
-    // commandPool_.clear();
-    //
-    // // Clear swapchain resources
-    // swapChainImageViews_.clear();
-    // swapChain_.clear(); // swapchain before surface
-    //
-    // surface_.clear(); // surface before instance
-    // device_.clear();
-    // physicalDevice_.clear();
-    // debugMessenger_.clear();
-    // instance_.clear();
-    //
-    // return true;
+    shutdownImGui();
 
     spdlog::debug("Vulkan renderer shutdown");
     return true;
 }
 
+// TODO - move this to a separate VulkanDebug class?
 bool VulkanRenderer::initImGui()
 {
-    // imguiContext_ = ImGui::CreateContext();
-    // ImGui::SetCurrentContext(imguiContext_);
-    //
-    // ImGuiIO &io = ImGui::GetIO();
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    // io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
-    // io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
-    //
-    // GLFWwindow *glfwWindow =
-    //     static_cast<PlatformLinux *>(platform_)->getGLFWWindow();
-    // ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
-    //
-    // VkDescriptorPoolSize poolSizes[] = {
-    //     {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-    //     {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-    //     {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-    //     {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-    //     {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-    //     {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-    //     {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-    //     {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-    //     {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-    //     {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-    //     {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}
-    // };
-    //
-    // VkDescriptorPoolCreateInfo poolInfo{};
-    // poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    // poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-    // poolInfo.maxSets = 1000 * sizeof(poolSizes) / sizeof(poolSizes[0]);
-    // poolInfo.poolSizeCount =
-    //     static_cast<uint32_t>(sizeof(poolSizes) / sizeof(poolSizes[0]));
-    // poolInfo.pPoolSizes = poolSizes;
-    //
-    // VkResult result = vkCreateDescriptorPool(
-    //     device_, &poolInfo, nullptr, &imguiDescriptorPool_
-    // );
-    // if (result != VK_SUCCESS)
-    // {
-    //     spdlog::error(
-    //         "Failed to create ImGui descriptor pool: {}",
-    //         static_cast<int>(result)
-    //     );
-    //     imguiDescriptorPool_ = VK_NULL_HANDLE;
-    //     return false;
-    // }
-    //
-    // ImGui_ImplVulkan_InitInfo initInfo{};
-    // initInfo.Instance = instance_;
-    // initInfo.PhysicalDevice = physicalDevice_;
-    // initInfo.Device = device_;
-    // initInfo.QueueFamily = findQueueFamilyIndex();
-    // initInfo.Queue = graphicsQueue_;
-    // initInfo.PipelineCache = VK_NULL_HANDLE;
-    // initInfo.DescriptorPool = imguiDescriptorPool_;
-    // initInfo.Subpass = 0;
-    // initInfo.MinImageCount = 2;
-    // initInfo.ImageCount = static_cast<uint32_t>(swapchainImages_.size());
-    // initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-    // initInfo.RenderPass = renderPass_;
-    //
-    // ImGui_ImplVulkan_Init(&initInfo);
-    //
-    // // Upload font texture
-    // ImGui_ImplVulkan_CreateFontsTexture();
-    //
-    // spdlog::info("ImGui initialised");
+    spdlog::debug("Initialising ImGui");
+    imguiContext_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(imguiContext_);
+
+    ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+    io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+
+    GLFWwindow *glfwWindow =
+        static_cast<PlatformLinux *>(platform_)->getGLFWWindow();
+    ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
+
+    vk::DescriptorPoolSize poolSizes[] = {
+        {vk::DescriptorType::eSampler, 1000},
+        {vk::DescriptorType::eCombinedImageSampler, 1000},
+        {vk::DescriptorType::eSampledImage, 1000},
+        {vk::DescriptorType::eStorageImage, 1000},
+        {vk::DescriptorType::eUniformTexelBuffer, 1000},
+        {vk::DescriptorType::eStorageTexelBuffer, 1000},
+        {vk::DescriptorType::eUniformBuffer, 1000},
+        {vk::DescriptorType::eStorageBuffer, 1000},
+        {vk::DescriptorType::eUniformBufferDynamic, 1000},
+        {vk::DescriptorType::eStorageBufferDynamic, 1000},
+        {vk::DescriptorType::eInputAttachment, 1000}
+    };
+
+    vk::DescriptorPoolCreateInfo poolInfo =
+        vk::DescriptorPoolCreateInfo{}
+            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
+            .setMaxSets(
+                static_cast<uint32_t>(
+                    1000 * sizeof(poolSizes) / sizeof(poolSizes[0])
+                )
+            )
+            .setPoolSizeCount(
+                static_cast<uint32_t>(sizeof(poolSizes) / sizeof(poolSizes[0]))
+            )
+            .setPPoolSizes(poolSizes);
+
+    try
+    {
+        imguiDescriptorPool_ = vk::raii::DescriptorPool(device_, poolInfo);
+    }
+    catch (const vk::SystemError &err)
+    {
+        spdlog::error("Failed to create ImGui descriptor pool: {}", err.what());
+        return false;
+    }
+
+    ImGui_ImplVulkan_InitInfo initInfo{};
+    initInfo.Instance = *instance_;
+    initInfo.PhysicalDevice = *physicalDevice_;
+    initInfo.Device = *device_;
+    initInfo.QueueFamily = queueIndex_;
+    initInfo.Queue = *queue_;
+    initInfo.PipelineCache = VK_NULL_HANDLE;
+    initInfo.DescriptorPool = *imguiDescriptorPool_;
+    initInfo.Subpass = 0;
+    initInfo.MinImageCount = 2;
+    initInfo.ImageCount = static_cast<uint32_t>(swapChainImages_.size());
+    initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.RenderPass = VK_NULL_HANDLE;
+    initInfo.UseDynamicRendering = true;
+
+    initInfo.PipelineRenderingCreateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
+    initInfo.PipelineRenderingCreateInfo.pNext = nullptr;
+    initInfo.PipelineRenderingCreateInfo.viewMask = 0;
+    initInfo.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+    initInfo.PipelineRenderingCreateInfo.pColorAttachmentFormats =
+        reinterpret_cast<VkFormat *>(&swapChainSurfaceFormat_.format);
+    initInfo.PipelineRenderingCreateInfo.depthAttachmentFormat =
+        VK_FORMAT_UNDEFINED;
+    initInfo.PipelineRenderingCreateInfo.stencilAttachmentFormat =
+        VK_FORMAT_UNDEFINED;
+
+    ImGui_ImplVulkan_Init(&initInfo);
+
+    // Upload font texture
+    ImGui_ImplVulkan_CreateFontsTexture();
+
+    spdlog::debug("ImGui initialised");
     return true;
 }
 
 bool VulkanRenderer::renderImGui()
 {
-    // ImGui::Render();
-    // ImDrawData *drawData = ImGui::GetDrawData();
-    // if (drawData->TotalVtxCount > 0)
-    // {
-    //     ImGui_ImplVulkan_RenderDrawData(
-    //         drawData, commandBuffers_[currentImageIndex_]
-    //     );
-    // }
-    //
+    ImGui::Render();
+    ImDrawData *drawData = ImGui::GetDrawData();
+    if (drawData->TotalVtxCount > 0)
+    {
+        vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
+        ImGui_ImplVulkan_RenderDrawData(drawData, *commandBuffer);
+    }
     return true;
 }
 
 void VulkanRenderer::shutdownImGui()
 {
-    // if (imguiContext_)
-    // {
-    //     ImGui_ImplVulkan_Shutdown();
-    //     ImGui_ImplGlfw_Shutdown();
-    //     ImGui::DestroyContext(imguiContext_);
-    //     imguiContext_ = nullptr;
-    //
-    //     if (imguiDescriptorPool_ != VK_NULL_HANDLE)
-    //     {
-    //         vkDestroyDescriptorPool(device_, imguiDescriptorPool_,
-    //         nullptr); imguiDescriptorPool_ = VK_NULL_HANDLE;
-    //     }
-    //
-    //     spdlog::info("ImGui shut down");
-    // }
+    if (imguiContext_)
+    {
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext(imguiContext_);
+        imguiContext_ = nullptr;
+
+        imguiDescriptorPool_ = nullptr;
+
+        spdlog::debug("ImGui shut down");
+    }
 }
 
 uint32_t VulkanRenderer::findQueueFamilyIndex() const
 {
-    // uint32_t queueFamilyCount = 0;
-    // vkGetPhysicalDeviceQueueFamilyProperties(
-    //     physicalDevice_, &queueFamilyCount, nullptr
-    // );
-    // std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    // vkGetPhysicalDeviceQueueFamilyProperties(
-    //     physicalDevice_, &queueFamilyCount, queueFamilies.data()
-    // );
-    //
-    // for (uint32_t i = 0; i < queueFamilyCount; i++)
-    // {
-    //     if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-    //         return i;
-    // }
-    // throw std::runtime_error("Failed to find graphics queue family");
-    return 0;
+    std::vector<vk::QueueFamilyProperties> queueFamilies =
+        physicalDevice_.getQueueFamilyProperties();
+
+    for (uint32_t i = 0; i < queueFamilies.size(); i++)
+    {
+        if (queueFamilies[i].queueFlags & vk::QueueFlagBits::eGraphics)
+            return i;
+    }
+    throw std::runtime_error("Failed to find graphics queue family");
 }
 
 std::vector<const char *> VulkanRenderer::getRequiredInstanceExtensions()

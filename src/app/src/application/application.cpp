@@ -147,10 +147,10 @@ bool Application::createAndInitialiseLayers()
     layers_.push_back(std::make_unique<SceneLayer>());
     SceneLayer *sceneLayer = dynamic_cast<SceneLayer *>(layers_.back().get());
 
-    // initialiseDebugLayerData(&sceneLayer->scene);
-    // layers_.push_back(std::make_unique<DebugLayer>());
-    // DebugLayer *debugLayer = dynamic_cast<DebugLayer
-    // *>(layers_.back().get()); debugLayer->setDebugData(&debugLayerData_);
+    initialiseDebugLayerData(&sceneLayer->scene);
+    layers_.push_back(std::make_unique<DebugLayer>());
+    DebugLayer *debugLayer = dynamic_cast<DebugLayer *>(layers_.back().get());
+    debugLayer->setDebugData(&debugLayerData_);
 
     for (std::unique_ptr<ILayer> &layer : layers_)
     {
@@ -206,10 +206,13 @@ void Application::mainLoop()
         debugLayerData_.timer.tick();
         platform_.pollEvents();
 
+        renderer_.beginFrame();
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
             layer->frame();
         }
+        renderer_.drawFrame();
+        renderer_.present();
     }
 }
 
