@@ -68,6 +68,16 @@ VulkanRenderer::getPipelineRendereringCreateInfo()
         .setPColorAttachmentFormats(&swapChainSurfaceFormat_.format);
 }
 
+uint32_t &VulkanRenderer::getCurrentFrameIndex()
+{
+    return currentImageIndex_;
+}
+
+vk::raii::DescriptorPool &VulkanRenderer::getDescriptorPool()
+{
+    return descriptorPool_;
+}
+
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");
@@ -90,6 +100,7 @@ bool VulkanRenderer::init(IPlatform *platform)
     createFramebuffers();
     createCommandPool();
     createCommandBuffer();
+    createDescriptorPool();
 
     spdlog::debug("Finished creating descriptor pool");
     return true;
@@ -459,6 +470,24 @@ bool VulkanRenderer::createCommandBuffer()
     return true;
 }
 
+bool VulkanRenderer::createDescriptorPool()
+{
+    vk::DescriptorPoolSize poolSize =
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(MAX_FRAMES_IN_FLIGHT);
+    vk::DescriptorPoolCreateInfo poolInfo =
+        vk::DescriptorPoolCreateInfo{}
+            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
+            .setMaxSets(MAX_FRAMES_IN_FLIGHT)
+            .setPoolSizeCount(1)
+            .setPPoolSizes(&poolSize);
+
+    descriptorPool_ = vk::raii::DescriptorPool(device_, poolInfo);
+    return true;
+}
+
+
 bool VulkanRenderer::createSyncObjects()
 {
     spdlog::debug("Creating sync objects");
@@ -699,8 +728,8 @@ void VulkanRenderer::shutdownImGui()
     //
     //     if (imguiDescriptorPool_ != VK_NULL_HANDLE)
     //     {
-    //         vkDestroyDescriptorPool(device_, imguiDescriptorPool_, nullptr);
-    //         imguiDescriptorPool_ = VK_NULL_HANDLE;
+    //         vkDestroyDescriptorPool(device_, imguiDescriptorPool_,
+    //         nullptr); imguiDescriptorPool_ = VK_NULL_HANDLE;
     //     }
     //
     //     spdlog::info("ImGui shut down");

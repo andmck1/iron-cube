@@ -7,19 +7,28 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
 {
     public:
     bool init(Geometry *geometry) override;
+    bool update() override;
     bool bind() override;
     bool shutdown() override;
 
     protected:
-    vk::raii::DescriptorSetLayout descriptorSetLayout = nullptr;
+    vk::raii::DescriptorSets descriptorSets_ = nullptr;
+    vk::raii::DescriptorSetLayout descriptorSetLayout_ = nullptr;
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
     vk::raii::DeviceMemory vertexBufferMemory_ = nullptr;
     vk::raii::Buffer vertexBuffer_ = nullptr;
     vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
     vk::raii::Buffer indexBuffer_ = nullptr;
     uint32_t indexCount_ = 0;
+
+    std::vector<vk::raii::Buffer> uniformBuffers;
+    std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
+    std::vector<void *> uniformBuffersMapped;
+
     bool initGraphicsPipeline();
     bool initVertexBuffer(Geometry *geometry);
     bool initIndexBuffer(Geometry *geometry);
     bool initDescriptorLayout();
+    bool initUniformBuffers();
+    bool initDescriptorSets();
 };

@@ -1,9 +1,12 @@
 #include "default.h"
+#include "core_buffertypes/buffertypes.h"
 #include "core_render/ishadermanager.h"
 #include "core_render/vulkan/helpers.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 
 // TODO - you can have the vertex and index buffers in one buffer and use
 // offsets (see tutorial on index buffer)
@@ -12,6 +15,8 @@
 bool DefaultVulkanShaderPipeline::init(Geometry *geometry)
 {
     if (!initDescriptorLayout())
+        return false;
+    if (!initDescriptorSets())
         return false;
     if (!initGraphicsPipeline())
         return false;
@@ -112,7 +117,8 @@ bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
 
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
         vk::PipelineLayoutCreateInfo{}
-            .setSetLayoutCount(0)
+            .setSetLayoutCount(1)
+            .setPSetLayouts(&*descriptorSetLayout_)
             .setPushConstantRangeCount(0);
 
     pipelineLayout_ =
@@ -211,6 +217,9 @@ bool DefaultVulkanShaderPipeline::initIndexBuffer(Geometry *geometry)
 
 bool DefaultVulkanShaderPipeline::initDescriptorLayout()
 {
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
     vk::DescriptorSetLayoutBinding mvpLayoutBinding =
         vk::DescriptorSetLayoutBinding{}
             .setBinding(0)
@@ -218,16 +227,70 @@ bool DefaultVulkanShaderPipeline::initDescriptorLayout()
             .setDescriptorCount(1)
             .setStageFlags(vk::ShaderStageFlagBits::eVertex);
 
-    vk::DescriptorSetLayoutBinding uboLayoutBinding{
-        .binding = 0,
-        .descriptorType = vk::DescriptorType::eUniformBuffer,
-        .descriptorCount = 1,
-        .stageFlags = vk::ShaderStageFlagBits::eVertex
-    };
-    vk::DescriptorSetLayoutCreateInfo layoutInfo{
-        .bindingCount = 1, .pBindings = &uboLayoutBinding
-    };
-    descriptorSetLayout = vk::raii::DescriptorSetLayout(device, layoutInfo);
+    vk::DescriptorSetLayoutCreateInfo layoutInfo =
+        vk::DescriptorSetLayoutCreateInfo{}.setBindingCount(1).setPBindings(
+            &mvpLayoutBinding
+        );
+    descriptorSetLayout_ =
+        vk::raii::DescriptorSetLayout(renderer->getDevice(), layoutInfo);
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::initUniformBuffers()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        vk::DeviceSize bufferSize = sizeof(MVPBuffer);
+        auto [buffer, bufferMem] = renderer->createBuffer(
+            bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible |
+                vk::MemoryPropertyFlagBits::eHostCoherent
+        );
+        uniformBuffers.emplace_back(std::move(buffer));
+        uniformBuffersMemory.emplace_back(std::move(bufferMem));
+        uniformBuffersMapped.emplace_back(
+            uniformBuffersMemory.back().mapMemory(0, bufferSize)
+        );
+    }
+
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::initDescriptorSets()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    std::vector<vk::DescriptorSetLayout> layouts(
+        renderer->MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout_
+    );
+    vk::DescriptorSetAllocateInfo allocInfo =
+        vk::DescriptorSetAllocateInfo{}
+            .setDescriptorPool(renderer->getDescriptorPool())
+            .setDescriptorSetCount(static_cast<uint32_t>(layouts.size()))
+            .setPSetLayouts(layouts.data());
+
+    descriptorSets_ = renderer->getDevice().allocateDescriptorSets(allocInfo);
+
+    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        vk::DescriptorBufferInfo bufferInfo = vk::DescriptorBufferInfo{}
+                                                  .setBuffer(uniformBuffers[i])
+                                                  .setOffset(0)
+                                                  .setRange(sizeof(MVPBuffer));
+        vk::WriteDescriptorSet descriptorWrite =
+            vk::WriteDescriptorSet{}
+                .setDstSet(descriptorSets_[i])
+                .setDstBinding(0)
+                .setDstArrayElement(0)
+                .setDescriptorCount(1)
+                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                .setPBufferInfo(&bufferInfo);
+        renderer->getDevice().updateDescriptorSets(descriptorWrite, {});
+    }
     return true;
 }
 
@@ -247,6 +310,10 @@ bool DefaultVulkanShaderPipeline::bind()
     );
     commandBuffer.bindVertexBuffers(0, *vertexBuffer_, {0});
     commandBuffer.bindIndexBuffer(*indexBuffer_, 0, vk::IndexType::eUint16);
+    commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
+        *descriptorSets_[renderer->getCurrentFrameIndex()], nullptr
+    );
     commandBuffer.setViewport(
         0, vk::Viewport(
                0.0f, 0.0f, static_cast<float>(swapChainExtent.width),
@@ -258,5 +325,41 @@ bool DefaultVulkanShaderPipeline::bind()
     );
     spdlog::debug("Finished binding shader pipeline");
 
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::update()
+{
+    // TODO - does this introduce inefficiency as being called every frame?
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    static auto startTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(
+                     currentTime - startTime
+    )
+                     .count();
+
+    MVPBuffer mvp{};
+    mvp.model = glm::rotate(
+        glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)
+    );
+    mvp.view = lookAt(
+        glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f)
+    );
+    mvp.projection = glm::perspective(
+        glm::radians(45.0f),
+        static_cast<float>(renderer->getSwapChainExtent().width) /
+            static_cast<float>(renderer->getSwapChainExtent().height),
+        0.1f, 10.0f
+    );
+    mvp.projection[1][1] *= -1;
+    memcpy(
+        uniformBuffersMapped[renderer->getCurrentFrameIndex()], &mvp,
+        sizeof(mvp)
+    );
     return true;
 }

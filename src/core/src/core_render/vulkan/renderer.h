@@ -22,6 +22,7 @@ class VulkanRenderer : public IRenderer
     vk::raii::Device &getDevice();
     vk::raii::PhysicalDevice &getPhysicalDevice();
     vk::raii::CommandBuffer &getCommandBuffer();
+    vk::raii::DescriptorPool &getDescriptorPool();
     vk::Extent2D &getSwapChainExtent();
     vk::Viewport getViewport();
     vk::PipelineInputAssemblyStateCreateInfo getInputAssembly();
@@ -29,6 +30,7 @@ class VulkanRenderer : public IRenderer
     vk::PipelineMultisampleStateCreateInfo getMultisampling();
     vk::PipelineColorBlendAttachmentState getColourBlendAttachment();
     vk::PipelineRenderingCreateInfo getPipelineRendereringCreateInfo();
+    uint32_t &getCurrentFrameIndex();
     uint32_t
     findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 
@@ -40,6 +42,9 @@ class VulkanRenderer : public IRenderer
         vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer,
         vk::DeviceSize size
     );
+    
+    // TODO - incorporate this
+    static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
     private:
     bool initialisePipeline();
@@ -58,6 +63,8 @@ class VulkanRenderer : public IRenderer
     bool createCommandPool();
     bool createCommandBuffer();
     bool createSyncObjects();
+    bool createDescriptorPool();
+
     std::vector<const char *> getRequiredInstanceExtensions();
     bool isDeviceSuitable(vk::PhysicalDevice physicalDevice);
     static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
@@ -105,6 +112,7 @@ class VulkanRenderer : public IRenderer
     std::vector<vk::raii::ImageView> swapChainImageViews_;
     vk::raii::CommandPool commandPool_ = nullptr;
     vk::raii::CommandBuffer commandBuffer_ = nullptr;
+    vk::raii::DescriptorPool descriptorPool_ = nullptr;
 
     vk::raii::Semaphore presentCompleteSemaphore_ = nullptr;
     vk::raii::Semaphore renderFinishedSemaphore_ = nullptr;
@@ -115,6 +123,7 @@ class VulkanRenderer : public IRenderer
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;
+    // TODO - frame index instead with multiple command buffers for each frame??
     uint32_t currentImageIndex_ = 0;
 
     // TODO - consider moving this somewhere else
@@ -129,7 +138,7 @@ class VulkanRenderer : public IRenderer
             // For wireframe set to eLine
             .setPolygonMode(vk::PolygonMode::eFill)
             .setCullMode(vk::CullModeFlagBits::eBack)
-            .setFrontFace(vk::FrontFace::eClockwise)
+            .setFrontFace(vk::FrontFace::eCounterClockwise)
             .setDepthBiasEnable(vk::False)
             .setLineWidth(1.0f);
     vk::PipelineMultisampleStateCreateInfo multisampling_ =
