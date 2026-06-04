@@ -161,41 +161,41 @@ bool Application::initialiseEntities(Scene *scene)
     spdlog::info("Initialising entities");
 
     // geometry
-    Geometry rectangleGeometry = ResourceManager::generateProceduralRectangle();
-    resourceManager_.loadGeometry("rectangle", rectangleGeometry);
+    Geometry cubeGeometry = ResourceManager::generateProceduralCube();
+    resourceManager_.loadGeometry("cube", cubeGeometry);
 
     // mesh
-    Mesh rectangleMesh = Mesh();
-    rectangleMesh.setGeometry("rectangle");
+    Mesh cubeMesh = Mesh();
+    cubeMesh.setGeometry("cube");
     Mesh *registeredMesh =
-        meshManager_.registerMesh("rectangle", std::move(rectangleMesh));
+        meshManager_.registerMesh("cube", std::move(cubeMesh));
 
     // entity
-    std::unique_ptr<Entity> rectangle = std::make_unique<Entity>("rectangle");
+    std::unique_ptr<Entity> cube = std::make_unique<Entity>("cube");
 
     // transform component
     TransformComponent *transformComponent =
-        rectangle->addComponent<TransformComponent>();
+        cube->addComponent<TransformComponent>();
     transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
     transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
 
     // mesh component
-    MeshComponent *meshComponent = rectangle->addComponent<MeshComponent>();
+    MeshComponent *meshComponent = cube->addComponent<MeshComponent>();
 
     // shader pipeline
     std::unique_ptr<DefaultShaderPipelineUpdateData>
-        rectangleShaderPipelineUpdateData =
+        cubeShaderPipelineUpdateData =
             std::make_unique<DefaultShaderPipelineUpdateData>();
-    rectangleShaderPipelineUpdateData->modelMatrixPtr =
+    cubeShaderPipelineUpdateData->modelMatrixPtr =
         transformComponent->getTransformMatrixRef();
 
-    std::unique_ptr<DefaultVulkanShaderPipeline> rectangleShaderPipeline =
+    std::unique_ptr<DefaultVulkanShaderPipeline> cubeShaderPipeline =
         std::make_unique<DefaultVulkanShaderPipeline>();
     auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
         shaderPipelineManager_.registerShaderPipeline(
-            "rectangle", std::move(rectangleShaderPipeline),
-            std::move(rectangleShaderPipelineUpdateData)
+            "cube", std::move(cubeShaderPipeline),
+            std::move(cubeShaderPipelineUpdateData)
         );
     // TODO - should init reference the pointer to this update data?
     registeredShaderPipeline->init(
@@ -204,7 +204,7 @@ bool Application::initialiseEntities(Scene *scene)
 
     meshComponent->setShaderPipeline(registeredShaderPipeline);
     meshComponent->setMesh(registeredMesh);
-    scene->addEntity(std::move(rectangle));
+    scene->addEntity(std::move(cube));
     return true;
 }
 

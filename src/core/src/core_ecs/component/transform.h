@@ -22,6 +22,8 @@ class TransformComponent : public Component
     glm::mat4 *getTransformMatrixRef();
 
     private:
+    void updateTransformMatrix() const;
+
     Transform transform_ = Transform();
 
     mutable glm::mat4 transformMatrix_ = glm::mat4(1.0f);
