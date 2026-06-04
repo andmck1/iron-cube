@@ -171,31 +171,30 @@ bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
 
-    // triangle
-    Geometry triangleGeometry = ResourceManager::generateProceduralTriangle();
-    resourceManager_.loadGeometry("triangle", triangleGeometry);
+    // rectangle
+    Geometry rectangleGeometry = ResourceManager::generateProceduralRectangle();
+    resourceManager_.loadGeometry("rectangle", rectangleGeometry);
 
-    // Confusing API as triangle mesh is danglin
-    Mesh triangleMesh = Mesh();
-    triangleMesh.setGeometry("triangle");
+    Mesh rectangleMesh = Mesh();
+    rectangleMesh.setGeometry("rectangle");
     Mesh *registeredMesh =
-        meshManager_.registerMesh("triangle", std::move(triangleMesh));
+        meshManager_.registerMesh("rectangle", std::move(rectangleMesh));
 
-    std::unique_ptr<Entity> triangle = std::make_unique<Entity>("triangle");
+    std::unique_ptr<Entity> rectangle = std::make_unique<Entity>("rectangle");
 
     TransformComponent *transformComponent =
-        triangle->addComponent<TransformComponent>();
+        rectangle->addComponent<TransformComponent>();
     transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
     transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
 
-    MeshComponent *meshComponent = triangle->addComponent<MeshComponent>();
-    IShaderPipeline *triangleShaderPipeline =
+    MeshComponent *meshComponent = rectangle->addComponent<MeshComponent>();
+    IShaderPipeline *rectangleShaderPipeline =
         shaderPipelineManager_.getShaderPipeline("triangle");
-    triangleShaderPipeline->init(registeredMesh->getGeometry());
-    meshComponent->setShaderPipeline(triangleShaderPipeline);
+    rectangleShaderPipeline->init(registeredMesh->getGeometry());
+    meshComponent->setShaderPipeline(rectangleShaderPipeline);
     meshComponent->setMesh(registeredMesh);
-    scene->addEntity(std::move(triangle));
+    scene->addEntity(std::move(rectangle));
     return true;
 }
 

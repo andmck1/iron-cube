@@ -5,6 +5,10 @@
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
 
+// TODO - you can have the vertex and index buffers in one buffer and use
+// offsets (see tutorial on index buffer)
+// TODO - you can have a separate command pool for transfer instructions (see
+// same tutorial)
 bool DefaultVulkanShaderPipeline::init(Geometry *geometry)
 {
     if (!initGraphicsPipeline())
