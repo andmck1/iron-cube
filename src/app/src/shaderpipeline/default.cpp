@@ -16,6 +16,8 @@ bool DefaultVulkanShaderPipeline::init(Geometry *geometry)
 {
     if (!initDescriptorLayout())
         return false;
+    if (!initUniformBuffers())
+        return false;
     if (!initDescriptorSets())
         return false;
     if (!initGraphicsPipeline())

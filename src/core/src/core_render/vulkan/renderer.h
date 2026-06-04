@@ -42,7 +42,7 @@ class VulkanRenderer : public IRenderer
         vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer,
         vk::DeviceSize size
     );
-    
+
     // TODO - incorporate this
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -61,7 +61,7 @@ class VulkanRenderer : public IRenderer
     bool createRenderPass();
     bool createFramebuffers();
     bool createCommandPool();
-    bool createCommandBuffer();
+    bool createCommandBuffers();
     bool createSyncObjects();
     bool createDescriptorPool();
 
@@ -111,19 +111,19 @@ class VulkanRenderer : public IRenderer
     vk::Extent2D swapChainExtent_;
     std::vector<vk::raii::ImageView> swapChainImageViews_;
     vk::raii::CommandPool commandPool_ = nullptr;
-    vk::raii::CommandBuffer commandBuffer_ = nullptr;
+    std::vector<vk::raii::CommandBuffer> commandBuffers_;
     vk::raii::DescriptorPool descriptorPool_ = nullptr;
 
-    vk::raii::Semaphore presentCompleteSemaphore_ = nullptr;
-    vk::raii::Semaphore renderFinishedSemaphore_ = nullptr;
-    vk::raii::Fence drawFence_ = nullptr;
+    std::vector<vk::raii::Semaphore> presentCompleteSemaphores_;
+    std::vector<vk::raii::Semaphore> renderFinishedSemaphores_;
+    std::vector<vk::raii::Fence> inFlightFences_;
+    uint32_t currentFrameIndex_ = 0;
 
     ImGuiContext *imguiContext_ = nullptr;
     vk::raii::DescriptorPool imguiDescriptorPool_ = VK_NULL_HANDLE;
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;
-    // TODO - frame index instead with multiple command buffers for each frame??
     uint32_t currentImageIndex_ = 0;
 
     // TODO - consider moving this somewhere else

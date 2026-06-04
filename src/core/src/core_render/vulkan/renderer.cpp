@@ -18,7 +18,7 @@ vk::raii::PhysicalDevice &VulkanRenderer::getPhysicalDevice()
 
 vk::raii::CommandBuffer &VulkanRenderer::getCommandBuffer()
 {
-    return commandBuffer_;
+    return commandBuffers_[currentFrameIndex_];
 }
 
 vk::Extent2D &VulkanRenderer::getSwapChainExtent()
@@ -70,7 +70,7 @@ VulkanRenderer::getPipelineRendereringCreateInfo()
 
 uint32_t &VulkanRenderer::getCurrentFrameIndex()
 {
-    return currentImageIndex_;
+    return currentFrameIndex_;
 }
 
 vk::raii::DescriptorPool &VulkanRenderer::getDescriptorPool()
@@ -99,7 +99,7 @@ bool VulkanRenderer::init(IPlatform *platform)
     createSyncObjects();
     createFramebuffers();
     createCommandPool();
-    createCommandBuffer();
+    createCommandBuffers();
     createDescriptorPool();
 
     spdlog::debug("Finished creating descriptor pool");
@@ -453,18 +453,19 @@ bool VulkanRenderer::createCommandPool()
     return true;
 }
 
-bool VulkanRenderer::createCommandBuffer()
+bool VulkanRenderer::createCommandBuffers()
 {
-    spdlog::debug("Creating command buffer");
+    spdlog::debug("Creating command buffers");
+
+    commandBuffers_.clear();
 
     vk::CommandBufferAllocateInfo allocInfo =
         vk::CommandBufferAllocateInfo{}
             .setCommandPool(commandPool_)
             .setLevel(vk::CommandBufferLevel::ePrimary)
-            .setCommandBufferCount(1);
+            .setCommandBufferCount(MAX_FRAMES_IN_FLIGHT);
 
-    commandBuffer_ =
-        std::move(vk::raii::CommandBuffers(device_, allocInfo).front());
+    commandBuffers_ = vk::raii::CommandBuffers(device_, allocInfo);
 
     spdlog::debug("Finished creating command buffer");
     return true;
@@ -487,16 +488,30 @@ bool VulkanRenderer::createDescriptorPool()
     return true;
 }
 
-
 bool VulkanRenderer::createSyncObjects()
 {
     spdlog::debug("Creating sync objects");
+    assert(
+        presentCompleteSemaphores_.empty() &&
+        renderFinishedSemaphores_.empty() && inFlightFences_.empty()
+    );
+    for (size_t i = 0; i < swapChainImages_.size(); i++)
+    {
+        renderFinishedSemaphores_.emplace_back(
+            device_, vk::SemaphoreCreateInfo()
+        );
+    }
 
-    presentCompleteSemaphore_ =
-        vk::raii::Semaphore(device_, vk::SemaphoreCreateInfo());
-    renderFinishedSemaphore_ =
-        vk::raii::Semaphore(device_, vk::SemaphoreCreateInfo());
-    drawFence_ = vk::raii::Fence(device_, {vk::FenceCreateFlagBits::eSignaled});
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        presentCompleteSemaphores_.emplace_back(
+            device_, vk::SemaphoreCreateInfo()
+        );
+        inFlightFences_.emplace_back(
+            device_,
+            vk::FenceCreateInfo{}.setFlags(vk::FenceCreateFlagBits::eSignaled)
+        );
+    }
 
     spdlog::debug("Finished creating sync objects");
     return true;
@@ -505,22 +520,24 @@ bool VulkanRenderer::createSyncObjects()
 bool VulkanRenderer::beginFrame()
 {
     // Wait for previous frame to finish
-    vk::Result fenceResult =
-        device_.waitForFences(*drawFence_, vk::True, UINT64_MAX);
+    vk::Result fenceResult = device_.waitForFences(
+        *inFlightFences_[currentFrameIndex_], vk::True, UINT64_MAX
+    );
     if (fenceResult != vk::Result::eSuccess)
     {
         throw std::runtime_error("failed to wait for fence!");
     }
-    device_.resetFences(*drawFence_);
+    device_.resetFences(*inFlightFences_[currentFrameIndex_]);
 
     // Get an image from the framebuffer now the previous frame is finished
     auto [_, imageIndex] = swapChain_.acquireNextImage(
-        UINT64_MAX, *presentCompleteSemaphore_, nullptr
+        UINT64_MAX, *presentCompleteSemaphores_[currentFrameIndex_], nullptr
     );
     currentImageIndex_ = imageIndex;
 
     // Begin recording commands
-    commandBuffer_.begin({});
+    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
+    commandBuffer.begin({});
     transition_image_layout(
         imageIndex, vk::ImageLayout::eUndefined,
         vk::ImageLayout::eColorAttachmentOptimal, {},
@@ -543,7 +560,7 @@ bool VulkanRenderer::beginFrame()
             .setColorAttachmentCount(1)
             .setPColorAttachments(&attachmentInfo);
 
-    commandBuffer_.beginRendering(renderingInfo);
+    commandBuffer.beginRendering(renderingInfo);
 
     return true;
 }
@@ -551,7 +568,8 @@ bool VulkanRenderer::beginFrame()
 bool VulkanRenderer::drawFrame()
 {
     // Stop recording commands
-    commandBuffer_.endRendering();
+    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
+    commandBuffer.endRendering();
 
     transition_image_layout(
         currentImageIndex_, vk::ImageLayout::eColorAttachmentOptimal,
@@ -561,23 +579,26 @@ bool VulkanRenderer::drawFrame()
         vk::PipelineStageFlagBits2::eBottomOfPipe
     );
 
-    commandBuffer_.end();
+    commandBuffer.end();
 
     // Execute draw commands
-    queue_.waitIdle();
     vk::PipelineStageFlags waitDestinationStageMask(
         vk::PipelineStageFlagBits::eColorAttachmentOutput
     );
     const vk::SubmitInfo submitInfo =
         vk::SubmitInfo{}
             .setWaitSemaphoreCount(1)
-            .setPWaitSemaphores(&*presentCompleteSemaphore_)
+            .setPWaitSemaphores(
+                &*presentCompleteSemaphores_[currentFrameIndex_]
+            )
             .setPWaitDstStageMask(&waitDestinationStageMask)
             .setCommandBufferCount(1)
-            .setPCommandBuffers(&*commandBuffer_)
+            .setPCommandBuffers(&*commandBuffer)
             .setSignalSemaphoreCount(1)
-            .setPSignalSemaphores(&*renderFinishedSemaphore_);
-    queue_.submit(submitInfo, *drawFence_);
+            .setPSignalSemaphores(
+                &*renderFinishedSemaphores_[currentFrameIndex_]
+            );
+    queue_.submit(submitInfo, *inFlightFences_[currentFrameIndex_]);
 
     return true;
 }
@@ -587,12 +608,13 @@ bool VulkanRenderer::present()
     const vk::PresentInfoKHR presentInfoKHR =
         vk::PresentInfoKHR{}
             .setWaitSemaphoreCount(1)
-            .setPWaitSemaphores(&*renderFinishedSemaphore_)
+            .setPWaitSemaphores(&*renderFinishedSemaphores_[currentFrameIndex_])
             .setSwapchainCount(1)
             .setPSwapchains(&*swapChain_)
             .setPImageIndices(&currentImageIndex_)
             .setPResults(nullptr);
     auto _ = queue_.presentKHR(presentInfoKHR);
+    currentFrameIndex_ = (currentFrameIndex_ + 1) % MAX_FRAMES_IN_FLIGHT;
 
     return true;
 }
@@ -915,7 +937,9 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VulkanRenderer::debugCallback(
 
 bool VulkanRenderer::draw(Geometry *geometry)
 {
-    commandBuffer_.drawIndexed(
+
+    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
+    commandBuffer.drawIndexed(
         static_cast<uint32_t>(geometry->indices.size()), 1, 0, 0, 0
     );
 
@@ -929,6 +953,7 @@ void VulkanRenderer::transition_image_layout(
     vk::PipelineStageFlags2 dst_stage_mask
 )
 {
+    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     vk::ImageMemoryBarrier2 barrier =
         vk::ImageMemoryBarrier2{}
             .setSrcStageMask(src_stage_mask)
@@ -945,7 +970,7 @@ void VulkanRenderer::transition_image_layout(
                                             .setDependencyFlags({})
                                             .setImageMemoryBarrierCount(1)
                                             .setPImageMemoryBarriers(&barrier);
-    commandBuffer_.pipelineBarrier2(dependencyInfo);
+    commandBuffer.pipelineBarrier2(dependencyInfo);
 }
 
 uint32_t VulkanRenderer::findMemoryType(
