@@ -144,30 +144,27 @@ bool DefaultVulkanShaderPipeline::initVertexBuffer(Geometry *geometry)
         ServiceLocator::instance().get<IRenderer>()
     );
     std::shared_ptr<std::vector<VertexInputType>> vertices = geometry->vertices;
-    vk::BufferCreateInfo bufferInfo =
-        vk::BufferCreateInfo{}
-            .setSize(sizeof(vertices->front()) * vertices->size())
-            .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
-            .setSharingMode(vk::SharingMode::eExclusive);
-    vertexBuffer_ = vk::raii::Buffer(renderer->getDevice(), bufferInfo);
 
-    vk::MemoryRequirements memRequirements =
-        vertexBuffer_.getMemoryRequirements();
-    vk::MemoryAllocateInfo memoryAllocateInfo =
-        vk::MemoryAllocateInfo{}
-            .setAllocationSize(memRequirements.size)
-            .setMemoryTypeIndex(findMemoryType(
-                renderer->getPhysicalDevice(), memRequirements.memoryTypeBits,
-                vk::MemoryPropertyFlagBits::eHostVisible |
-                    vk::MemoryPropertyFlagBits::eHostCoherent
-            ));
-    vertexBufferMemory_ =
-        vk::raii::DeviceMemory(renderer->getDevice(), memoryAllocateInfo);
-    vertexBuffer_.bindMemory(*vertexBufferMemory_, 0);
+    vk::DeviceSize bufferSize = sizeof(vertices->front()) * vertices->size();
+    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
+        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+        vk::MemoryPropertyFlagBits::eHostVisible |
+            vk::MemoryPropertyFlagBits::eHostCoherent
+    );
 
-    void *data = vertexBufferMemory_.mapMemory(0, bufferInfo.size);
-    memcpy(data, vertices->data(), bufferInfo.size);
-    vertexBufferMemory_.unmapMemory();
+    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
+    memcpy(dataStaging, vertices->data(), bufferSize);
+    stagingBufferMemory.unmapMemory();
+
+    std::tie(vertexBuffer_, vertexBufferMemory_) = renderer->createBuffer(
+        bufferSize,
+        vk::BufferUsageFlagBits::eVertexBuffer |
+            vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+    );
+
+    renderer->copyBuffer(stagingBuffer, vertexBuffer_, bufferSize);
+
     return true;
 }
 

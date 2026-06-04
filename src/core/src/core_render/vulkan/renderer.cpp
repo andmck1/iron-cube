@@ -916,3 +916,74 @@ void VulkanRenderer::transition_image_layout(
                                             .setPImageMemoryBarriers(&barrier);
     commandBuffer_.pipelineBarrier2(dependencyInfo);
 }
+
+uint32_t VulkanRenderer::findMemoryType(
+    uint32_t typeFilter, vk::MemoryPropertyFlags properties
+)
+{
+    vk::PhysicalDeviceMemoryProperties memProperties =
+        physicalDevice_.getMemoryProperties();
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) ==
+                properties)
+        {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type!");
+}
+
+std::pair<vk::raii::Buffer, vk::raii::DeviceMemory>
+VulkanRenderer::createBuffer(
+    vk::DeviceSize size, vk::BufferUsageFlags usage,
+    vk::MemoryPropertyFlags properties
+)
+{
+    vk::BufferCreateInfo bufferInfo =
+        vk::BufferCreateInfo{}.setSize(size).setUsage(usage).setSharingMode(
+            vk::SharingMode::eExclusive
+        );
+    vk::raii::Buffer buffer = vk::raii::Buffer(device_, bufferInfo);
+    vk::MemoryRequirements memRequirements = buffer.getMemoryRequirements();
+    vk::MemoryAllocateInfo allocInfo =
+        vk::MemoryAllocateInfo{}
+            .setAllocationSize(memRequirements.size)
+            .setMemoryTypeIndex(
+                findMemoryType(memRequirements.memoryTypeBits, properties)
+            );
+    vk::raii::DeviceMemory bufferMemory =
+        vk::raii::DeviceMemory(device_, allocInfo);
+    buffer.bindMemory(*bufferMemory, 0);
+    return {std::move(buffer), std::move(bufferMemory)};
+}
+
+bool VulkanRenderer::copyBuffer(
+    vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer,
+    vk::DeviceSize size
+)
+{
+    vk::CommandBufferAllocateInfo allocInfo =
+        vk::CommandBufferAllocateInfo{}
+            .setCommandPool(commandPool_)
+            .setLevel(vk::CommandBufferLevel::ePrimary)
+            .setCommandBufferCount(1);
+    vk::raii::CommandBuffer commandCopyBuffer =
+        std::move(device_.allocateCommandBuffers(allocInfo).front());
+    commandCopyBuffer.begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+    commandCopyBuffer.copyBuffer(
+        *srcBuffer, *dstBuffer, vk::BufferCopy(0, 0, size)
+    );
+    commandCopyBuffer.end();
+    queue_.submit(
+        vk::SubmitInfo{}.setCommandBufferCount(1).setPCommandBuffers(
+            &*commandCopyBuffer
+        ),
+        nullptr
+    );
+    queue_.waitIdle();
+    return true;
+}

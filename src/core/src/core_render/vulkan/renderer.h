@@ -29,6 +29,17 @@ class VulkanRenderer : public IRenderer
     vk::PipelineMultisampleStateCreateInfo getMultisampling();
     vk::PipelineColorBlendAttachmentState getColourBlendAttachment();
     vk::PipelineRenderingCreateInfo getPipelineRendereringCreateInfo();
+    uint32_t
+    findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
+
+    std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> createBuffer(
+        vk::DeviceSize size, vk::BufferUsageFlags usage,
+        vk::MemoryPropertyFlags properties
+    );
+    bool copyBuffer(
+        vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer,
+        vk::DeviceSize size
+    );
 
     private:
     bool initialisePipeline();
