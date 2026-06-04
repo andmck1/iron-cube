@@ -886,7 +886,9 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VulkanRenderer::debugCallback(
 
 bool VulkanRenderer::draw(Geometry *geometry)
 {
-    commandBuffer_.draw(geometry->vertexCount, 1, 0, 0);
+    commandBuffer_.drawIndexed(
+        static_cast<uint32_t>(geometry->indices.size()), 1, 0, 0, 0
+    );
 
     return true;
 }

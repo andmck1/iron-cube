@@ -33,4 +33,3 @@ getVertexAttributeDescriptions()
           offsetof(VertexInputType, normal)}}
     };
 }
-

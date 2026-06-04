@@ -11,6 +11,8 @@ bool DefaultVulkanShaderPipeline::init(Geometry *geometry)
         return false;
     if (!initVertexBuffer(geometry))
         return false;
+    if (!initIndexBuffer(geometry))
+        return false;
     return true;
 }
 
@@ -19,6 +21,8 @@ bool DefaultVulkanShaderPipeline::shutdown()
     spdlog::debug("Shutting down default vulkan pipeline");
     vertexBuffer_ = nullptr;
     vertexBufferMemory_ = nullptr;
+    indexBuffer_ = nullptr;
+    indexBufferMemory_ = nullptr;
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
     spdlog::debug("Shutdown complete for default vulkan pipeline");
@@ -143,9 +147,9 @@ bool DefaultVulkanShaderPipeline::initVertexBuffer(Geometry *geometry)
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
-    std::shared_ptr<std::vector<VertexInputType>> vertices = geometry->vertices;
+    const std::vector<VertexInputType> &vertices = geometry->vertices;
 
-    vk::DeviceSize bufferSize = sizeof(vertices->front()) * vertices->size();
+    vk::DeviceSize bufferSize = sizeof(vertices.front()) * vertices.size();
     auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible |
@@ -153,7 +157,7 @@ bool DefaultVulkanShaderPipeline::initVertexBuffer(Geometry *geometry)
     );
 
     void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, vertices->data(), bufferSize);
+    memcpy(dataStaging, vertices.data(), bufferSize);
     stagingBufferMemory.unmapMemory();
 
     std::tie(vertexBuffer_, vertexBufferMemory_) = renderer->createBuffer(
@@ -164,6 +168,37 @@ bool DefaultVulkanShaderPipeline::initVertexBuffer(Geometry *geometry)
     );
 
     renderer->copyBuffer(stagingBuffer, vertexBuffer_, bufferSize);
+
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::initIndexBuffer(Geometry *geometry)
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    const std::vector<uint16_t> &indices = geometry->indices;
+
+    vk::DeviceSize bufferSize = sizeof(indices.front()) * indices.size();
+    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
+        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+        vk::MemoryPropertyFlagBits::eHostVisible |
+            vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+
+    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
+    memcpy(dataStaging, indices.data(), bufferSize);
+    stagingBufferMemory.unmapMemory();
+
+    std::tie(indexBuffer_, indexBufferMemory_) = renderer->createBuffer(
+        bufferSize,
+        vk::BufferUsageFlagBits::eIndexBuffer |
+            vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+    );
+
+    renderer->copyBuffer(stagingBuffer, indexBuffer_, bufferSize);
+    indexCount_ = static_cast<uint32_t>(indices.size());
 
     return true;
 }
@@ -183,6 +218,7 @@ bool DefaultVulkanShaderPipeline::bind()
         vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
     );
     commandBuffer.bindVertexBuffers(0, *vertexBuffer_, {0});
+    commandBuffer.bindIndexBuffer(*indexBuffer_, 0, vk::IndexType::eUint16);
     commandBuffer.setViewport(
         0, vk::Viewport(
                0.0f, 0.0f, static_cast<float>(swapChainExtent.width),

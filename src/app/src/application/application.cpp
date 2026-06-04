@@ -172,12 +172,8 @@ bool Application::initialiseEntities(Scene *scene)
     spdlog::info("Initialising entities");
 
     // triangle
-    std::shared_ptr<std::vector<VertexInputType>> triangleVertices =
-        ResourceManager::generateProceduralTriangle();
-    resourceManager_.loadGeometry(
-        "triangle", triangleVertices,
-        static_cast<uint32_t>(triangleVertices->size())
-    );
+    Geometry triangleGeometry = ResourceManager::generateProceduralTriangle();
+    resourceManager_.loadGeometry("triangle", triangleGeometry);
 
     // Confusing API as triangle mesh is danglin
     Mesh triangleMesh = Mesh();

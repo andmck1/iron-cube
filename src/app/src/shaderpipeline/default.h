@@ -14,6 +14,10 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
     vk::raii::DeviceMemory vertexBufferMemory_ = nullptr;
     vk::raii::Buffer vertexBuffer_ = nullptr;
+    vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
+    vk::raii::Buffer indexBuffer_ = nullptr;
+    uint32_t indexCount_ = 0;
     bool initGraphicsPipeline();
     bool initVertexBuffer(Geometry *geometry);
+    bool initIndexBuffer(Geometry *geometry);
 };

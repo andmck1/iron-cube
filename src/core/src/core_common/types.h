@@ -2,12 +2,12 @@
 
 #include "glm/ext/vector_float3.hpp"
 #include "core_buffertypes/buffertypes.h"
-#include <memory>
 #include <vector>
 
 struct Geometry
 {
-    std::shared_ptr<std::vector<VertexInputType>> vertices;
+    std::vector<VertexInputType> vertices;
+    std::vector<uint16_t> indices;
     uint32_t vertexCount;
 };
 
