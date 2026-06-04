@@ -10,7 +10,6 @@ VertexOutputType main(VertexInputType input)
     output.position =
         mul(mvp.projection,
             mul(mvp.view, mul(mvp.model, float4(input.position, 1.0))));
-    output.colour =
-        float3(input.tex.x, input.tex.y, (input.tex.x + input.tex.y) * 0.5f);
+    output.colour = (input.normal + 1.f) / 2.f;
     return output;
 }

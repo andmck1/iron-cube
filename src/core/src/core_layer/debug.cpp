@@ -82,7 +82,7 @@ bool DebugLayer::frame()
                 posId.c_str(), &localTransform.position.x, -5.0f, 5.0f
             );
             ImGui::SliderFloat3(
-                rotId.c_str(), &localTransform.rotation.x, -180.0f, 180.0f
+                rotId.c_str(), &localTransform.rotation.x, -3.0f, 3.0f
             );
             ImGui::SliderFloat3(
                 scaleId.c_str(), &localTransform.scale.x, 0.1f, 5.0f, "%.2f"

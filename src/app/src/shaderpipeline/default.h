@@ -28,7 +28,6 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     vk::raii::Buffer vertexBuffer_ = nullptr;
     vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
     vk::raii::Buffer indexBuffer_ = nullptr;
-    uint32_t indexCount_ = 0;
 
     std::vector<vk::raii::Buffer> uniformBuffers;
     std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;

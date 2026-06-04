@@ -7,7 +7,7 @@ bool ResourceManager::loadGeometry(const std::string &name, Geometry geometry)
 
     geometries_[name] = geometry;
     spdlog::info(
-        "Loaded geometry '{}': {} vertices", name, geometry.vertexCount
+        "Loaded geometry '{}': {} vertices", name, geometry.indices.size()
     );
     return true;
 }
@@ -61,8 +61,6 @@ Geometry ResourceManager::generateProceduralTriangle()
     geometry.indices.push_back(1);
     geometry.indices.push_back(2);
 
-    geometry.vertexCount = static_cast<uint32_t>(geometry.vertices.size());
-
     spdlog::info("Generated procedural triangle geometry");
     return geometry;
 }
@@ -96,8 +94,6 @@ Geometry ResourceManager::generateProceduralRectangle()
     geometry.indices.push_back(2);
     geometry.indices.push_back(3);
     geometry.indices.push_back(0);
-
-    geometry.vertexCount = static_cast<uint32_t>(geometry.vertices.size());
 
     spdlog::info("Generated procedural rectangle geometry");
     return geometry;
@@ -183,11 +179,7 @@ Geometry ResourceManager::generateProceduralCube()
 
     // Bottom face (y = -0.5) — vertices 12-15
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
-         glm::vec3(0.0f, -1.0f, 0.0f)}
-    );
-    geometry.vertices.push_back(
-        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(1.0f, 0.0f),
+        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 1.0f),
          glm::vec3(0.0f, -1.0f, 0.0f)}
     );
     geometry.vertices.push_back(
@@ -195,7 +187,11 @@ Geometry ResourceManager::generateProceduralCube()
          glm::vec3(0.0f, -1.0f, 0.0f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 1.0f),
+        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(1.0f, 0.0f),
+         glm::vec3(0.0f, -1.0f, 0.0f)}
+    );
+    geometry.vertices.push_back(
+        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
          glm::vec3(0.0f, -1.0f, 0.0f)}
     );
     geometry.indices.push_back(12);
@@ -252,8 +248,6 @@ Geometry ResourceManager::generateProceduralCube()
     geometry.indices.push_back(20);
     geometry.indices.push_back(22);
     geometry.indices.push_back(23);
-
-    geometry.vertexCount = static_cast<uint32_t>(geometry.vertices.size());
 
     spdlog::info("Generated procedural cube geometry");
     return geometry;

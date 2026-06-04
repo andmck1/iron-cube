@@ -172,7 +172,7 @@ bool DefaultVulkanShaderPipeline::initVertexBuffer(Geometry *geometry)
     );
     const std::vector<VertexInputType> &vertices = geometry->vertices;
 
-    vk::DeviceSize bufferSize = sizeof(vertices.front()) * vertices.size();
+    vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertices.size();
     auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible |
@@ -202,7 +202,7 @@ bool DefaultVulkanShaderPipeline::initIndexBuffer(Geometry *geometry)
     );
     const std::vector<uint16_t> &indices = geometry->indices;
 
-    vk::DeviceSize bufferSize = sizeof(indices.front()) * indices.size();
+    vk::DeviceSize bufferSize = sizeof(uint16_t) * indices.size();
     auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible |
@@ -221,7 +221,6 @@ bool DefaultVulkanShaderPipeline::initIndexBuffer(Geometry *geometry)
     );
 
     renderer->copyBuffer(stagingBuffer, indexBuffer_, bufferSize);
-    indexCount_ = static_cast<uint32_t>(indices.size());
 
     return true;
 }
@@ -325,12 +324,7 @@ bool DefaultVulkanShaderPipeline::bind()
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
         *descriptorSets_[renderer->getCurrentFrameIndex()], nullptr
     );
-    commandBuffer.setViewport(
-        0, vk::Viewport(
-               0.0f, 0.0f, static_cast<float>(swapChainExtent.width),
-               static_cast<float>(swapChainExtent.height), 0.0f, 1.0f
-           )
-    );
+    commandBuffer.setViewport(0, renderer->getViewport());
     commandBuffer.setScissor(
         0, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent)
     );
@@ -352,7 +346,7 @@ bool DefaultVulkanShaderPipeline::update()
     mvp.model = *defaultUpdateData.modelMatrixPtr;
     mvp.view = lookAt(
         glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f)
+        glm::vec3(0.0f, 1.0f, 0.0f)
     );
     mvp.projection = glm::perspective(
         glm::radians(45.0f),

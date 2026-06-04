@@ -8,7 +8,6 @@ struct Geometry
 {
     std::vector<VertexInputType> vertices;
     std::vector<uint16_t> indices;
-    uint32_t vertexCount;
 };
 
 struct Transform
