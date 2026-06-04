@@ -11,6 +11,7 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool shutdown() override;
 
     protected:
+    vk::raii::DescriptorSetLayout descriptorSetLayout = nullptr;
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
     vk::raii::DeviceMemory vertexBufferMemory_ = nullptr;
     vk::raii::Buffer vertexBuffer_ = nullptr;
@@ -20,4 +21,5 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool initGraphicsPipeline();
     bool initVertexBuffer(Geometry *geometry);
     bool initIndexBuffer(Geometry *geometry);
+    bool initDescriptorLayout();
 };

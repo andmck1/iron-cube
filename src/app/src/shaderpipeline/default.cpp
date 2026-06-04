@@ -11,6 +11,8 @@
 // same tutorial)
 bool DefaultVulkanShaderPipeline::init(Geometry *geometry)
 {
+    if (!initDescriptorLayout())
+        return false;
     if (!initGraphicsPipeline())
         return false;
     if (!initVertexBuffer(geometry))
@@ -204,6 +206,28 @@ bool DefaultVulkanShaderPipeline::initIndexBuffer(Geometry *geometry)
     renderer->copyBuffer(stagingBuffer, indexBuffer_, bufferSize);
     indexCount_ = static_cast<uint32_t>(indices.size());
 
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::initDescriptorLayout()
+{
+    vk::DescriptorSetLayoutBinding mvpLayoutBinding =
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(0)
+            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+
+    vk::DescriptorSetLayoutBinding uboLayoutBinding{
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eVertex
+    };
+    vk::DescriptorSetLayoutCreateInfo layoutInfo{
+        .bindingCount = 1, .pBindings = &uboLayoutBinding
+    };
+    descriptorSetLayout = vk::raii::DescriptorSetLayout(device, layoutInfo);
     return true;
 }
 

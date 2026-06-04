@@ -33,4 +33,11 @@ struct VertexOutputType
     float3 colour;
 };
 
+struct MVPBuffer
+{
+    float4x4 model;
+    float4x4 view;
+    float4x4 projection;
+};
+
 #endif
