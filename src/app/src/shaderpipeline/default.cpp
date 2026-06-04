@@ -8,11 +8,20 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 
+bool DefaultVulkanShaderPipeline::init(
+    Geometry *geometry, ShaderPipelineUpdateData *updateData
+)
+{
+    updateData_ = updateData;
+    return initPipeline(geometry);
+}
+
 // TODO - you can have the vertex and index buffers in one buffer and use
 // offsets (see tutorial on index buffer)
 // TODO - you can have a separate command pool for transfer instructions (see
 // same tutorial)
-bool DefaultVulkanShaderPipeline::init(Geometry *geometry)
+//
+bool DefaultVulkanShaderPipeline::initPipeline(Geometry *geometry)
 {
     if (!initDescriptorLayout())
         return false;
@@ -332,22 +341,15 @@ bool DefaultVulkanShaderPipeline::bind()
 
 bool DefaultVulkanShaderPipeline::update()
 {
-    // TODO - does this introduce inefficiency as being called every frame?
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    static auto startTime = std::chrono::high_resolution_clock::now();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(
-                     currentTime - startTime
-    )
-                     .count();
+    const DefaultShaderPipelineUpdateData &defaultUpdateData =
+        dynamic_cast<const DefaultShaderPipelineUpdateData &>(*updateData_);
 
     MVPBuffer mvp{};
-    mvp.model = glm::rotate(
-        glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)
-    );
+    mvp.model = *defaultUpdateData.modelMatrixPtr;
     mvp.view = lookAt(
         glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 1.0f)

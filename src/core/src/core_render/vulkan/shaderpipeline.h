@@ -10,4 +10,5 @@ class VulkanShaderPipeline : public IShaderPipeline
 
     protected:
     std::optional<vk::raii::Pipeline> graphicsPipeline_;
+    ShaderPipelineUpdateData *updateData_ = nullptr;
 };

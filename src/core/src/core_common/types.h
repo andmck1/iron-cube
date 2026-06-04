@@ -17,3 +17,8 @@ struct Transform
     glm::vec3 rotation = {0.f, 0.f, 0.f};
     glm::vec3 scale = {1.f, 1.f, 1.f};
 };
+
+struct ShaderPipelineUpdateData
+{
+    virtual ~ShaderPipelineUpdateData() = default;
+};

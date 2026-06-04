@@ -70,3 +70,10 @@ glm::mat4 TransformComponent::getTransformMatrix() const
     transformMatrix_ = translationMatrix * rotationMatrix * scaleMatrix;
     return transformMatrix_;
 }
+
+glm::mat4 *TransformComponent::getTransformMatrixRef()
+{
+    // TODO - there's an update transform matrix function then?
+    auto _ = getTransformMatrix();
+    return &transformMatrix_;
+}

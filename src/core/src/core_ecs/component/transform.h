@@ -19,6 +19,7 @@ class TransformComponent : public Component
     const glm::vec3 &getScale() const;
 
     glm::mat4 getTransformMatrix() const;
+    glm::mat4 *getTransformMatrixRef();
 
     private:
     Transform transform_ = Transform();

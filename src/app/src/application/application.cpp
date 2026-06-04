@@ -126,17 +126,6 @@ bool Application::initialiseShaders()
     return true;
 }
 
-bool Application::initialiseShaderPipelines()
-{
-    std::unique_ptr<DefaultVulkanShaderPipeline> triangleShaderPipeline =
-        std::make_unique<DefaultVulkanShaderPipeline>();
-    auto _ = shaderPipelineManager_.registerShaderPipeline(
-        "triangle", std::move(triangleShaderPipeline)
-    );
-
-    return true;
-}
-
 void Application::initialiseDebugLayerData(Scene *scene)
 {
     debugLayerData_.scene = scene;
@@ -171,28 +160,49 @@ bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
 
-    // rectangle
+    // geometry
     Geometry rectangleGeometry = ResourceManager::generateProceduralRectangle();
     resourceManager_.loadGeometry("rectangle", rectangleGeometry);
 
+    // mesh
     Mesh rectangleMesh = Mesh();
     rectangleMesh.setGeometry("rectangle");
     Mesh *registeredMesh =
         meshManager_.registerMesh("rectangle", std::move(rectangleMesh));
 
+    // entity
     std::unique_ptr<Entity> rectangle = std::make_unique<Entity>("rectangle");
 
+    // transform component
     TransformComponent *transformComponent =
         rectangle->addComponent<TransformComponent>();
     transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
     transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
 
+    // mesh component
     MeshComponent *meshComponent = rectangle->addComponent<MeshComponent>();
-    IShaderPipeline *rectangleShaderPipeline =
-        shaderPipelineManager_.getShaderPipeline("triangle");
-    rectangleShaderPipeline->init(registeredMesh->getGeometry());
-    meshComponent->setShaderPipeline(rectangleShaderPipeline);
+
+    // shader pipeline
+    std::unique_ptr<DefaultShaderPipelineUpdateData>
+        rectangleShaderPipelineUpdateData =
+            std::make_unique<DefaultShaderPipelineUpdateData>();
+    rectangleShaderPipelineUpdateData->modelMatrixPtr =
+        transformComponent->getTransformMatrixRef();
+
+    std::unique_ptr<DefaultVulkanShaderPipeline> rectangleShaderPipeline =
+        std::make_unique<DefaultVulkanShaderPipeline>();
+    auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+        shaderPipelineManager_.registerShaderPipeline(
+            "rectangle", std::move(rectangleShaderPipeline),
+            std::move(rectangleShaderPipelineUpdateData)
+        );
+    // TODO - should init reference the pointer to this update data?
+    registeredShaderPipeline->init(
+        registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+    );
+
+    meshComponent->setShaderPipeline(registeredShaderPipeline);
     meshComponent->setMesh(registeredMesh);
     scene->addEntity(std::move(rectangle));
     return true;
@@ -238,8 +248,6 @@ bool Application::run()
         if (!initialiseRenderer())
             return false;
         if (!initialiseShaders())
-            return false;
-        if (!initialiseShaderPipelines())
             return false;
         if (!createAndInitialiseLayers())
             return false;

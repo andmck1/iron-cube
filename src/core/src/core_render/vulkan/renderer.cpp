@@ -535,7 +535,7 @@ bool VulkanRenderer::beginFrame()
         UINT64_MAX, *presentCompleteSemaphores_[currentFrameIndex_], nullptr
     );
     currentImageIndex_ = imageIndex;
-    
+
     // TODO - move??
     ImGui::NewFrame();
 

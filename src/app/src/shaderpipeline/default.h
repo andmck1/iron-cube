@@ -1,12 +1,21 @@
 #pragma once
 
+#include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "glm/ext/matrix_float4x4.hpp"
 #include <vulkan/vulkan_raii.hpp>
+
+class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
+{
+    public:
+    glm::mat4 *modelMatrixPtr = nullptr;
+};
 
 class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
 {
     public:
-    bool init(Geometry *geometry) override;
+    bool
+    init(Geometry *geometry, ShaderPipelineUpdateData *updateData) override;
     bool update() override;
     bool bind() override;
     bool shutdown() override;
@@ -26,6 +35,7 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     std::vector<void *> uniformBuffersMapped;
 
     bool initGraphicsPipeline();
+    bool initPipeline(Geometry *geometry);
     bool initVertexBuffer(Geometry *geometry);
     bool initIndexBuffer(Geometry *geometry);
     bool initDescriptorLayout();

@@ -8,13 +8,18 @@
 class ShaderPipelineManager : public IShaderPipelineManager
 {
     public:
-    IShaderPipeline *registerShaderPipeline(
-        const std::string &name, std::unique_ptr<IShaderPipeline> shaderPipeline
+    std::pair<IShaderPipeline *, ShaderPipelineUpdateData *>
+    registerShaderPipeline(
+        const std::string &name,
+        std::unique_ptr<IShaderPipeline> shaderPipeline,
+        std::unique_ptr<ShaderPipelineUpdateData> shaderPipelineUpdateData
     ) override;
     IShaderPipeline *getShaderPipeline(const std::string &name) override;
     std::vector<IShaderPipeline *> getAllShaderPipelines() override;
 
     private:
     std::unordered_map<std::string, std::unique_ptr<IShaderPipeline>>
-        shaderpipelines_;
+        shaderPipelines_;
+    std::unordered_map<std::string, std::unique_ptr<ShaderPipelineUpdateData>>
+        shaderPipelineUpdateDataEntries_;
 };

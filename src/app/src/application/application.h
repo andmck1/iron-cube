@@ -27,7 +27,6 @@ class Application
     bool initialisePlatform();
     bool initialiseRenderer();
     bool initialiseShaders();
-    bool initialiseShaderPipelines();
     bool createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
     bool initialiseEntities(Scene *scene);
