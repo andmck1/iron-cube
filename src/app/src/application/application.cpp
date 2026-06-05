@@ -131,6 +131,7 @@ bool Application::initialiseShaders()
 void Application::initialiseDebugLayerData(Scene *scene)
 {
     debugLayerData_.scene = scene;
+    debugLayerData_.timer = &timer_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -249,8 +250,10 @@ bool Application::initialiseCamera(Scene *scene)
 
 void Application::handleInput()
 {
-    // TODO - scale with delta time
-    // TODO - make a switch case
+    float deltaSeconds = timer_.getDeltaSeconds();
+    float movementSpeed = MOVEMENT_SENSITIVITY * deltaSeconds;
+    float rotationSpeed = MOUSE_SENSITIVITY * deltaSeconds;
+
     IInput *input = platform_.getInput();
     if (!input)
         return;
@@ -263,21 +266,21 @@ void Application::handleInput()
     {
         MouseDelta delta = input->getMouseDelta();
 
-        currentRotation.y -= delta.x * MOUSE_SENSITIVITY;
-        currentRotation.x -= delta.y * MOUSE_SENSITIVITY;
+        currentRotation.y -= delta.x * rotationSpeed;
+        currentRotation.x -= delta.y * rotationSpeed;
 
         if (input->isKeyPressed(KeyCode::W))
-            currentPosition.z += 0.1f;
+            currentPosition.z += movementSpeed;
         if (input->isKeyPressed(KeyCode::S))
-            currentPosition.z -= 0.1f;
+            currentPosition.z -= movementSpeed;
         if (input->isKeyPressed(KeyCode::D))
-            currentPosition.x -= 0.1f;
+            currentPosition.x -= movementSpeed;
         if (input->isKeyPressed(KeyCode::A))
-            currentPosition.x += 0.1f;
+            currentPosition.x += movementSpeed;
         if (input->isKeyPressed(KeyCode::Q))
-            currentPosition.y += 0.1f;
+            currentPosition.y += movementSpeed;
         if (input->isKeyPressed(KeyCode::E))
-            currentPosition.y -= 0.1f;
+            currentPosition.y -= movementSpeed;
     }
 
     cameraTransform->setPosition(currentPosition);
@@ -290,7 +293,7 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
-        debugLayerData_.timer.tick();
+        timer_.tick();
         platform_.pollEvents();
         handleInput();
 

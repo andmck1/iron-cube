@@ -354,7 +354,7 @@ bool DefaultVulkanShaderPipeline::update()
     MVPBuffer mvp{};
     mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
-    mvp.view = *defaultUpdateData.camera->getViewMatrixRef(); 
+    mvp.view = *defaultUpdateData.camera->getViewMatrixRef();
     mvp.projection = glm::perspective(
         glm::radians(45.0f),
         static_cast<float>(renderer->getSwapChainExtent().width) /

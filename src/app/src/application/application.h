@@ -2,6 +2,7 @@
 
 #include "core_actor/camera.h"
 #include "core_common/logger.h"
+#include "core_common/timer.h"
 #include "core_layer/debuglayerdata.h"
 #include "core_platform/linux/platform.h"
 #include "core_render/vulkan/renderer.h"
@@ -14,7 +15,8 @@
 #include <memory>
 #include <vector>
 
-static constexpr float MOUSE_SENSITIVITY = 0.001f;
+static constexpr float MOUSE_SENSITIVITY = 0.05f;
+static constexpr float MOVEMENT_SENSITIVITY = 5.f;
 
 class Application
 {
@@ -51,5 +53,6 @@ class Application
     CameraActor *camera_;
 
     DebugLayerData debugLayerData_;
+    Timer timer_;
     std::vector<std::unique_ptr<ILayer>> layers_;
 };

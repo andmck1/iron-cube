@@ -9,5 +9,5 @@ class DebugLayerData : public IDebugLayerData
     public:
     DebugLayerData() = default;
     Scene *scene;
-    Timer timer;
+    Timer *timer;
 };
