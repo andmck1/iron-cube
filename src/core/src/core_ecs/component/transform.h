@@ -13,6 +13,7 @@ class TransformComponent : public Component
     glm::mat4 *getTransformMatrixRef();
     glm::mat4 getRotationMatrix() const;
     const glm::vec3 &getPosition() const;
+    glm::vec3 getForwardVector() const;
 
     void
     moveTo(float xWorldPosition, float yWorldPosition, float zWorldPosition);
@@ -31,5 +32,4 @@ class TransformComponent : public Component
 
     Transform transform_ = Transform();
     glm::mat4 transformMatrix_ = glm::mat4(1.0f);
-    glm::vec3 forwardVector_ = {1.f, 0.f, 0.f};
 };

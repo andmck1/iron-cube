@@ -17,15 +17,12 @@ glm::mat4 *TransformComponent::getTransformMatrixRef()
 glm::mat4 TransformComponent::getRotationMatrix() const
 {
     glm::mat4 rotationMatrix = glm::mat4(1.0f);
-    rotationMatrix = glm::rotate(
-        rotationMatrix, transform_.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)
-    );
-    rotationMatrix = glm::rotate(
-        rotationMatrix, transform_.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)
-    );
-    rotationMatrix = glm::rotate(
-        rotationMatrix, transform_.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)
-    );
+    rotationMatrix =
+        glm::rotate(rotationMatrix, transform_.rotation.y, glm::vec3(0, 1, 0));
+    rotationMatrix =
+        glm::rotate(rotationMatrix, transform_.rotation.x, glm::vec3(1, 0, 0));
+    rotationMatrix =
+        glm::rotate(rotationMatrix, transform_.rotation.z, glm::vec3(0, 0, 1));
     return rotationMatrix;
 }
 
@@ -47,25 +44,19 @@ void TransformComponent::setTransform(const Transform &transform)
     updateTransformMatrix();
 }
 
+glm::vec3 TransformComponent::getForwardVector() const
+{
+    glm::mat4 rot = getRotationMatrix();
+    return glm::normalize(glm::vec3(-rot[2]));
+}
+
 void TransformComponent::updateTransformMatrix()
 {
-    glm::mat4 translationMatrix =
-        glm::translate(glm::mat4(1.0f), transform_.position);
+    glm::mat4 T = glm::translate(glm::mat4(1.0f), transform_.position);
+    glm::mat4 R = getRotationMatrix();
+    glm::mat4 S = glm::scale(glm::mat4(1.0f), transform_.scale);
 
-    glm::mat4 rotationMatrix = glm::mat4(1.0f);
-    rotationMatrix = glm::rotate(
-        rotationMatrix, transform_.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)
-    );
-    rotationMatrix = glm::rotate(
-        rotationMatrix, transform_.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)
-    );
-    rotationMatrix = glm::rotate(
-        rotationMatrix, transform_.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)
-    );
-
-    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), transform_.scale);
-
-    transformMatrix_ = translationMatrix * rotationMatrix * scaleMatrix;
+    transformMatrix_ = T * R * S;
 }
 
 void TransformComponent::moveTo(
@@ -90,50 +81,28 @@ void TransformComponent::moveRelativeToForwardVectorBy(
     float xOffset, float yOffset, float zOffset
 )
 {
-    glm::vec3 rightVector =
-        glm::normalize(glm::cross(forwardVector_, glm::vec3(0.f, 1.f, 0.f)));
-    glm::vec3 upVector = glm::vec3(0.f, 1.f, 0.f);
+    glm::mat4 rot = getRotationMatrix();
 
-    transform_.position += forwardVector_ * xOffset;
-    transform_.position += upVector * yOffset;
-    transform_.position += rightVector * zOffset;
+    glm::vec3 localOffset(xOffset, yOffset, zOffset);
+    glm::vec3 worldOffset = glm::vec3(rot * glm::vec4(localOffset, 0.0f));
+
+    transform_.position += worldOffset;
+
     updateTransformMatrix();
 }
 
 void TransformComponent::rotateTo(float pitch, float yaw, float roll)
 {
-    transform_.rotation.x = pitch;
-    transform_.rotation.y = yaw;
-    transform_.rotation.z = roll;
-
-    transform_.rotation.x = glm::clamp(transform_.rotation.x, -90.f, 90.f);
-
+    transform_.rotation = glm::vec3(pitch, yaw, roll);
     updateTransformMatrix();
-    forwardVector_ = glm::normalize(
-        glm::vec3(
-            transformMatrix_[0][0], transformMatrix_[1][0],
-            transformMatrix_[2][0]
-        )
-    );
 }
 
 void TransformComponent::rotateBy(
     float pitchOffset, float yawOffset, float rollOffset
 )
 {
-    transform_.rotation.x += pitchOffset;
-    transform_.rotation.y += yawOffset;
-    transform_.rotation.z += rollOffset;
-
-    transform_.rotation.x = glm::clamp(transform_.rotation.x, -90.f, 90.f);
-
+    transform_.rotation += glm::vec3(pitchOffset, yawOffset, rollOffset);
     updateTransformMatrix();
-    forwardVector_ = glm::normalize(
-        glm::vec3(
-            transformMatrix_[0][0], transformMatrix_[1][0],
-            transformMatrix_[2][0]
-        )
-    );
 }
 
 void TransformComponent::scaleTo(float xFactor, float yFactor, float zFactor)
