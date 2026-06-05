@@ -1,4 +1,5 @@
 #include "application.h"
+#include "core_actor/sceneactor.h"
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
 #include "core_render/ishaderpipelinemanager.h"
@@ -171,17 +172,17 @@ bool Application::initialiseEntities(Scene *scene)
         meshManager_.registerMesh("cube", std::move(cubeMesh));
 
     // entity
-    std::unique_ptr<Entity> cube = std::make_unique<Entity>("cube");
+    std::unique_ptr<SceneActor> cube = std::make_unique<SceneActor>("cube");
 
     // transform component
     TransformComponent *transformComponent =
-        cube->addComponent<TransformComponent>();
+        cube->getComponent<TransformComponent>();
     transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
     transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
 
     // mesh component
-    MeshComponent *meshComponent = cube->addComponent<MeshComponent>();
+    MeshComponent *meshComponent = cube->getComponent<MeshComponent>();
 
     // shader pipeline
     std::unique_ptr<DefaultShaderPipelineUpdateData>

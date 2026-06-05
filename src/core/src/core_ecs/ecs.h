@@ -28,6 +28,8 @@ class Component
 class Entity
 {
     public:
+    virtual ~Entity() = default;
+
     explicit Entity(const std::string &entityName) : name_(entityName)
     {
     }

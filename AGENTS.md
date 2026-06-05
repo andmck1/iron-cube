@@ -39,6 +39,8 @@ cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Debug
 ninja -C build
 ```
 
+- Never use auto where possible.
+
 # AI Tips
 
 - Always compact and summarise before running tasks.
