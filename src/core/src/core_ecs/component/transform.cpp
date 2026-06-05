@@ -14,6 +14,7 @@ glm::mat4 *TransformComponent::getTransformMatrixRef()
     return &transformMatrix_;
 }
 
+// TODO - use quaternions
 glm::mat4 TransformComponent::getRotationMatrix() const
 {
     glm::mat4 rotationMatrix = glm::mat4(1.0f);
@@ -52,11 +53,12 @@ glm::vec3 TransformComponent::getForwardVector() const
 
 void TransformComponent::updateTransformMatrix()
 {
-    glm::mat4 T = glm::translate(glm::mat4(1.0f), transform_.position);
-    glm::mat4 R = getRotationMatrix();
-    glm::mat4 S = glm::scale(glm::mat4(1.0f), transform_.scale);
+    glm::mat4 translationMatrix =
+        glm::translate(glm::mat4(1.0f), transform_.position);
+    glm::mat4 rotationMatrix = getRotationMatrix();
+    glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), transform_.scale);
 
-    transformMatrix_ = T * R * S;
+    transformMatrix_ = translationMatrix * rotationMatrix * scalingMatrix;
 }
 
 void TransformComponent::moveTo(
