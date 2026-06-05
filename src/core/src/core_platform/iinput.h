@@ -5,6 +5,25 @@
 enum class KeyCode : int32_t
 {
     Escape = 256,
+    W = 87,
+    A = 65,
+    S = 83,
+    D = 68,
+    Q = 81,
+    E = 69,
+};
+
+enum class MouseButton : int32_t
+{
+    Left = 0,
+    Middle = 2,
+    Right = 1,
+};
+
+struct MouseDelta
+{
+    float x = 0.0f;
+    float y = 0.0f;
 };
 
 class IInput
@@ -13,4 +32,7 @@ class IInput
     virtual ~IInput() = default;
 
     virtual bool isKeyPressed(KeyCode key) const = 0;
+    virtual bool isMouseButtonPressed(MouseButton button) const = 0;
+    virtual MouseDelta getMouseDelta() const = 0;
+    virtual void resetMouseDelta() = 0;
 };

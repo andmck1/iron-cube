@@ -49,7 +49,14 @@ bool PlatformLinux::createWindow(const PlatformConfig &config)
     }
 
     input_.init();
+    input_.setWindow(window_.getGLFWWindow());
     glfwSetKeyCallback(window_.getGLFWWindow(), InputGLFW::keyCallback);
+    glfwSetMouseButtonCallback(
+        window_.getGLFWWindow(), InputGLFW::mouseButtonCallback
+    );
+    glfwSetCursorPosCallback(
+        window_.getGLFWWindow(), InputGLFW::cursorPositionCallback
+    );
 
     glfwShowWindow(window_.getGLFWWindow());
     spdlog::debug("Window created and shown");
@@ -93,4 +100,9 @@ GLFWwindow *PlatformLinux::getGLFWWindow() const
 const PlatformConfig &PlatformLinux::getConfig() const
 {
     return config_;
+}
+
+IInput *PlatformLinux::getInput()
+{
+    return &input_;
 }

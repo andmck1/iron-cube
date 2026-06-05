@@ -16,6 +16,7 @@ class PlatformLinux : public IPlatform
     bool shouldExit() const override;
     void shutdown() override;
     const PlatformConfig &getConfig() const override;
+    IInput *getInput() override;
 
     GLFWwindow *getGLFWWindow() const;
 

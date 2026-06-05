@@ -29,11 +29,11 @@ bool DebugLayer::frame()
     );
 
     // FPS display
-    ImGui::Text("FPS: %.1f", debugData_->timer.getFps());
-    ImGui::Text("Frame Time: %.2f ms", debugData_->timer.getFrameTime());
+    ImGui::Text("FPS: %.1f", debugData_->timer->getFps());
+    ImGui::Text("Frame Time: %.2f ms", debugData_->timer->getFrameTime());
 
     // Frame time mini graph
-    const std::vector<float> &frameTimes = debugData_->timer.getFrameTimes();
+    const std::vector<float> &frameTimes = debugData_->timer->getFrameTimes();
     if (!frameTimes.empty())
     {
         float maxTime = 33.33f;

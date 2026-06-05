@@ -1,8 +1,10 @@
 #include "application.h"
+#include "core_actor/sceneactor.h"
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
 #include "core_render/ishaderpipelinemanager.h"
 #include "core_render/vulkan/shader.h"
+#include "core_platform/iinput.h"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
 #include "core_service/servicelocator.h"
@@ -129,6 +131,7 @@ bool Application::initialiseShaders()
 void Application::initialiseDebugLayerData(Scene *scene)
 {
     debugLayerData_.scene = scene;
+    debugLayerData_.timer = &timer_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -159,6 +162,23 @@ bool Application::createAndInitialiseLayers()
 bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
+    // camera must be first for the view matrix
+    initialiseCamera(scene);
+    initialiseCube(scene);
+    spdlog::info("Finished initilising entities");
+    return true;
+}
+
+// TODO - generalise for any geometry
+bool Application::initialiseCube(Scene *scene)
+{
+    spdlog::debug("Initialising cube entity");
+
+    // entity
+    std::unique_ptr<SceneActor> cube = std::make_unique<SceneActor>("cube");
+    scene->addEntity(std::move(cube));
+    SceneActor *cubePtr =
+        dynamic_cast<SceneActor *>(scene->getEntities().back().get());
 
     // geometry
     Geometry cubeGeometry = ResourceManager::generateProceduralCube();
@@ -170,25 +190,18 @@ bool Application::initialiseEntities(Scene *scene)
     Mesh *registeredMesh =
         meshManager_.registerMesh("cube", std::move(cubeMesh));
 
-    // entity
-    std::unique_ptr<Entity> cube = std::make_unique<Entity>("cube");
-
     // transform component
-    TransformComponent *transformComponent =
-        cube->addComponent<TransformComponent>();
-    transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
-    transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
-    transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
+    auto _ = cubePtr->getComponent<TransformComponent>();
 
     // mesh component
-    MeshComponent *meshComponent = cube->addComponent<MeshComponent>();
+    MeshComponent *meshComponent = cubePtr->getComponent<MeshComponent>();
 
     // shader pipeline
     std::unique_ptr<DefaultShaderPipelineUpdateData>
         cubeShaderPipelineUpdateData =
             std::make_unique<DefaultShaderPipelineUpdateData>();
-    cubeShaderPipelineUpdateData->modelMatrixPtr =
-        transformComponent->getTransformMatrixRef();
+    cubeShaderPipelineUpdateData->actor = cubePtr;
+    cubeShaderPipelineUpdateData->camera = camera_;
 
     std::unique_ptr<DefaultVulkanShaderPipeline> cubeShaderPipeline =
         std::make_unique<DefaultVulkanShaderPipeline>();
@@ -204,8 +217,74 @@ bool Application::initialiseEntities(Scene *scene)
 
     meshComponent->setShaderPipeline(registeredShaderPipeline);
     meshComponent->setMesh(registeredMesh);
-    scene->addEntity(std::move(cube));
+
+    spdlog::debug("Finished initialising cube entity");
     return true;
+}
+
+bool Application::initialiseCamera(Scene *scene)
+{
+    spdlog::debug("Initialising camera entity");
+
+    // entity
+    std::unique_ptr<CameraActor> camera =
+        std::make_unique<CameraActor>("camera");
+
+    // transform component
+    TransformComponent *transformComponent =
+        camera->getComponent<TransformComponent>();
+    transformComponent->moveTo(0.f, 0.f, 3.f);
+    transformComponent->rotateBy(0.f, 3.141f, 0.f);
+
+    scene->addEntity(std::move(camera));
+    camera_ = dynamic_cast<CameraActor *>(scene->getEntities().back().get());
+
+    spdlog::debug("Finished initialising camera entity");
+    return true;
+}
+
+void Application::handleInput()
+{
+    float deltaSeconds = timer_.getDeltaSeconds();
+    float movementSpeed = MOVEMENT_SENSITIVITY * deltaSeconds;
+    float rotationSpeed = MOUSE_SENSITIVITY * deltaSeconds;
+
+    IInput *input = platform_.getInput();
+    if (!input)
+        return;
+    TransformComponent *cameraTransform =
+        camera_->getComponent<TransformComponent>();
+    glm::vec3 rotationOffset = {0.f, 0.f, 0.f};
+    glm::vec3 positionOffset = {0.f, 0.f, 0.f};
+
+    if (input->isMouseButtonPressed(MouseButton::Right))
+    {
+        MouseDelta delta = input->getMouseDelta();
+
+        rotationOffset.y -= delta.x * rotationSpeed;
+        rotationOffset.x -= delta.y * rotationSpeed;
+
+        if (input->isKeyPressed(KeyCode::W))
+            positionOffset.z += movementSpeed;
+        if (input->isKeyPressed(KeyCode::S))
+            positionOffset.z -= movementSpeed;
+        if (input->isKeyPressed(KeyCode::D))
+            positionOffset.x -= movementSpeed;
+        if (input->isKeyPressed(KeyCode::A))
+            positionOffset.x += movementSpeed;
+        if (input->isKeyPressed(KeyCode::Q))
+            positionOffset.y += movementSpeed;
+        if (input->isKeyPressed(KeyCode::E))
+            positionOffset.y -= movementSpeed;
+    }
+
+    cameraTransform->moveRelativeToForwardVectorBy(
+        positionOffset.x, positionOffset.y, positionOffset.z
+    );
+    cameraTransform->rotateBy(
+        rotationOffset.x, rotationOffset.y, rotationOffset.z
+    );
+    input->resetMouseDelta();
 }
 
 void Application::mainLoop()
@@ -213,8 +292,9 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
-        debugLayerData_.timer.tick();
+        timer_.tick();
         platform_.pollEvents();
+        handleInput();
 
         renderer_.beginFrame();
         for (std::unique_ptr<ILayer> &layer : layers_)

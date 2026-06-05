@@ -10,6 +10,8 @@ struct PlatformConfig
     uint32_t window_height = 720;
 };
 
+class IInput;
+
 class IPlatform
 {
     public:
@@ -21,4 +23,5 @@ class IPlatform
     virtual bool shouldExit() const = 0;
     virtual void shutdown() = 0;
     virtual const PlatformConfig &getConfig() const = 0;
+    virtual IInput *getInput() = 0;
 };
