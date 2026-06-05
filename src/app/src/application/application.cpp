@@ -237,8 +237,8 @@ bool Application::initialiseCamera(Scene *scene)
     TransformComponent *transformComponent =
         camera->getComponent<TransformComponent>();
     transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
-    transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
-    transformComponent->setPosition(glm::vec3(0.f, 0.f, 3.f));
+    transformComponent->setRotation(glm::vec3(0.f, -3.141f, 0.f));
+    transformComponent->setPosition(glm::vec3(0.f, 0.f, -3.f));
 
     scene->addEntity(std::move(camera));
     camera_ = dynamic_cast<CameraActor *>(scene->getEntities().back().get());
@@ -249,22 +249,39 @@ bool Application::initialiseCamera(Scene *scene)
 
 void Application::handleInput()
 {
+    // TODO - scale with delta time
+    // TODO - make a switch case
     IInput *input = platform_.getInput();
     if (!input)
         return;
+    TransformComponent *cameraTransform =
+        camera_->getComponent<TransformComponent>();
+    glm::vec3 currentRotation = cameraTransform->getRotation();
+    glm::vec3 currentPosition = cameraTransform->getPosition();
 
     if (input->isMouseButtonPressed(MouseButton::Right))
     {
         MouseDelta delta = input->getMouseDelta();
-        TransformComponent *cameraTransform =
-            camera_->getComponent<TransformComponent>();
 
-        glm::vec3 currentRotation = cameraTransform->getRotation();
-        currentRotation.y += delta.x * MOUSE_SENSITIVITY;
-        currentRotation.x += delta.y * MOUSE_SENSITIVITY;
-        cameraTransform->setRotation(currentRotation);
+        currentRotation.y -= delta.x * MOUSE_SENSITIVITY;
+        currentRotation.x -= delta.y * MOUSE_SENSITIVITY;
+
+        if (input->isKeyPressed(KeyCode::W))
+            currentPosition.z += 0.1f;
+        if (input->isKeyPressed(KeyCode::S))
+            currentPosition.z -= 0.1f;
+        if (input->isKeyPressed(KeyCode::D))
+            currentPosition.x -= 0.1f;
+        if (input->isKeyPressed(KeyCode::A))
+            currentPosition.x += 0.1f;
+        if (input->isKeyPressed(KeyCode::Q))
+            currentPosition.y += 0.1f;
+        if (input->isKeyPressed(KeyCode::E))
+            currentPosition.y -= 0.1f;
     }
 
+    cameraTransform->setPosition(currentPosition);
+    cameraTransform->setRotation(currentRotation);
     input->resetMouseDelta();
 }
 
