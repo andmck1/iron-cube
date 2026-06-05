@@ -14,6 +14,26 @@ glm::mat4 *TransformComponent::getTransformMatrixRef()
     return &transformMatrix_;
 }
 
+glm::mat4 TransformComponent::getRotationMatrix() const
+{
+    glm::mat4 rotationMatrix = glm::mat4(1.0f);
+    rotationMatrix = glm::rotate(
+        rotationMatrix, transform_.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)
+    );
+    rotationMatrix = glm::rotate(
+        rotationMatrix, transform_.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)
+    );
+    rotationMatrix = glm::rotate(
+        rotationMatrix, transform_.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)
+    );
+    return rotationMatrix;
+}
+
+const glm::vec3 &TransformComponent::getPosition() const
+{
+    return transform_.position;
+}
+
 void TransformComponent::setTransform(const Transform &transform)
 {
     spdlog::debug(
@@ -70,7 +90,13 @@ void TransformComponent::moveRelativeToForwardVectorBy(
     float xOffset, float yOffset, float zOffset
 )
 {
-    // FILL IN
+    glm::vec3 rightVector =
+        glm::normalize(glm::cross(forwardVector_, glm::vec3(0.f, 1.f, 0.f)));
+    glm::vec3 upVector = glm::vec3(0.f, 1.f, 0.f);
+
+    transform_.position += forwardVector_ * xOffset;
+    transform_.position += upVector * yOffset;
+    transform_.position += rightVector * zOffset;
     updateTransformMatrix();
 }
 
@@ -80,9 +106,15 @@ void TransformComponent::rotateTo(float pitch, float yaw, float roll)
     transform_.rotation.y = yaw;
     transform_.rotation.z = roll;
 
-    // CLAMP
-    // UPDATE FORWARD VECTOR
+    transform_.rotation.x = glm::clamp(transform_.rotation.x, -90.f, 90.f);
+
     updateTransformMatrix();
+    forwardVector_ = glm::normalize(
+        glm::vec3(
+            transformMatrix_[0][0], transformMatrix_[1][0],
+            transformMatrix_[2][0]
+        )
+    );
 }
 
 void TransformComponent::rotateBy(
@@ -93,9 +125,15 @@ void TransformComponent::rotateBy(
     transform_.rotation.y += yawOffset;
     transform_.rotation.z += rollOffset;
 
-    // CLAMP
-    // UPDATE FORWARD VECTOR
+    transform_.rotation.x = glm::clamp(transform_.rotation.x, -90.f, 90.f);
+
     updateTransformMatrix();
+    forwardVector_ = glm::normalize(
+        glm::vec3(
+            transformMatrix_[0][0], transformMatrix_[1][0],
+            transformMatrix_[2][0]
+        )
+    );
 }
 
 void TransformComponent::scaleTo(float xFactor, float yFactor, float zFactor)
@@ -104,7 +142,9 @@ void TransformComponent::scaleTo(float xFactor, float yFactor, float zFactor)
     transform_.scale.y = yFactor;
     transform_.scale.z = zFactor;
 
-    // CLAMP to be positive
+    transform_.scale.x = glm::max(transform_.scale.x, 0.001f);
+    transform_.scale.y = glm::max(transform_.scale.y, 0.001f);
+    transform_.scale.z = glm::max(transform_.scale.z, 0.001f);
     updateTransformMatrix();
 }
 
@@ -116,6 +156,8 @@ void TransformComponent::scaleBy(
     transform_.scale.y += yFactorOffset;
     transform_.scale.z += zFactorOffset;
 
-    // CLAMP to be positive
+    transform_.scale.x = glm::max(transform_.scale.x, 0.001f);
+    transform_.scale.y = glm::max(transform_.scale.y, 0.001f);
+    transform_.scale.z = glm::max(transform_.scale.z, 0.001f);
     updateTransformMatrix();
 }

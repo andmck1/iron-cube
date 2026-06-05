@@ -11,6 +11,8 @@ class TransformComponent : public Component
     void setTransform(const Transform &transform);
     const Transform &getTransform() const;
     glm::mat4 *getTransformMatrixRef();
+    glm::mat4 getRotationMatrix() const;
+    const glm::vec3 &getPosition() const;
 
     void
     moveTo(float xWorldPosition, float yWorldPosition, float zWorldPosition);
@@ -24,7 +26,7 @@ class TransformComponent : public Component
     void scaleTo(float xFactor, float yFactor, float zFactor);
     void scaleBy(float xFactorOffset, float yFactorOffset, float zFactorOffset);
 
-    private:
+    protected:
     void updateTransformMatrix();
 
     Transform transform_ = Transform();

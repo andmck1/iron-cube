@@ -234,6 +234,7 @@ bool Application::initialiseCamera(Scene *scene)
     TransformComponent *transformComponent =
         camera->getComponent<TransformComponent>();
     transformComponent->moveTo(0.f, 0.f, 3.f);
+    transformComponent->rotateBy(0.f, 3.141f, 0.f);
 
     scene->addEntity(std::move(camera));
     camera_ = dynamic_cast<CameraActor *>(scene->getEntities().back().get());
@@ -253,8 +254,8 @@ void Application::handleInput()
         return;
     TransformComponent *cameraTransform =
         camera_->getComponent<TransformComponent>();
-    glm::vec3 rotationOffset;
-    glm::vec3 positionOffset;
+    glm::vec3 rotationOffset = {0.f, 0.f, 0.f};
+    glm::vec3 positionOffset = {0.f, 0.f, 0.f};
 
     if (input->isMouseButtonPressed(MouseButton::Right))
     {
