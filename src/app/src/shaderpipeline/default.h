@@ -9,6 +9,7 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
 {
     public:
     glm::mat4 *modelMatrixPtr = nullptr;
+    glm::mat4 *viewMatrixPtr = nullptr;
 };
 
 class DefaultVulkanShaderPipeline : public VulkanShaderPipeline

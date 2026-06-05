@@ -4,6 +4,7 @@
 #include "core_ecs/component/mesh.h"
 #include "core_render/ishaderpipelinemanager.h"
 #include "core_render/vulkan/shader.h"
+#include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
 #include "core_service/servicelocator.h"
@@ -160,6 +161,17 @@ bool Application::createAndInitialiseLayers()
 bool Application::initialiseEntities(Scene *scene)
 {
     spdlog::info("Initialising entities");
+    // camera must be first for the view matrix
+    initialiseCamera(scene);
+    initialiseCube(scene);
+    spdlog::info("Finished initilising entities");
+    return true;
+}
+
+// TODO - generalise for any geometry
+bool Application::initialiseCube(Scene *scene)
+{
+    spdlog::debug("Initialising cube entity");
 
     // geometry
     Geometry cubeGeometry = ResourceManager::generateProceduralCube();
@@ -179,7 +191,7 @@ bool Application::initialiseEntities(Scene *scene)
         cube->getComponent<TransformComponent>();
     transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
-    transformComponent->setPosition(glm::vec3(1.f, 1.f, 1.f));
+    transformComponent->setPosition(glm::vec3(0.f, 0.f, 0.f));
 
     // mesh component
     MeshComponent *meshComponent = cube->getComponent<MeshComponent>();
@@ -190,6 +202,7 @@ bool Application::initialiseEntities(Scene *scene)
             std::make_unique<DefaultShaderPipelineUpdateData>();
     cubeShaderPipelineUpdateData->modelMatrixPtr =
         transformComponent->getTransformMatrixRef();
+    cubeShaderPipelineUpdateData->viewMatrixPtr = camera_->getViewMatrixRef();
 
     std::unique_ptr<DefaultVulkanShaderPipeline> cubeShaderPipeline =
         std::make_unique<DefaultVulkanShaderPipeline>();
@@ -206,6 +219,30 @@ bool Application::initialiseEntities(Scene *scene)
     meshComponent->setShaderPipeline(registeredShaderPipeline);
     meshComponent->setMesh(registeredMesh);
     scene->addEntity(std::move(cube));
+
+    spdlog::debug("Finished initialising cube entity");
+    return true;
+}
+
+bool Application::initialiseCamera(Scene *scene)
+{
+    spdlog::debug("Initialising camera entity");
+
+    // entity
+    std::unique_ptr<CameraActor> camera =
+        std::make_unique<CameraActor>("camera");
+
+    // transform component
+    TransformComponent *transformComponent =
+        camera->getComponent<TransformComponent>();
+    transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
+    transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
+    transformComponent->setPosition(glm::vec3(0.f, 0.f, 3.f));
+
+    scene->addEntity(std::move(camera));
+    camera_ = dynamic_cast<CameraActor *>(scene->getEntities().back().get());
+
+    spdlog::debug("Finished initialising camera entity");
     return true;
 }
 

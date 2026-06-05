@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core_actor/camera.h"
 #include "core_common/logger.h"
 #include "core_layer/debuglayerdata.h"
 #include "core_platform/linux/platform.h"
@@ -30,6 +31,8 @@ class Application
     bool createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
     bool initialiseEntities(Scene *scene);
+    bool initialiseCube(Scene *scene);
+    bool initialiseCamera(Scene *scene);
     void mainLoop();
 
     bool debugMode_ = false;
@@ -42,6 +45,7 @@ class Application
     MeshManager meshManager_;
     ShaderManager shaderManager_;
     ShaderPipelineManager shaderPipelineManager_;
+    CameraActor *camera_;
 
     DebugLayerData debugLayerData_;
     std::vector<std::unique_ptr<ILayer>> layers_;

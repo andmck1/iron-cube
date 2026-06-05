@@ -6,11 +6,13 @@
 class CameraActor : public IActor
 {
     public:
+    explicit CameraActor(const std::string &entityName) : IActor(entityName) {};
     ~CameraActor() = default;
 
-    const glm::mat4x4 &getViewMatrix() const;
-    void setViewMatrix();
+    const glm::mat4x4 &getViewMatrix();
+    glm::mat4x4 *getViewMatrixRef();
 
     protected:
+    void updateViewMatrix();
     glm::mat4x4 viewMatrix_;
 };

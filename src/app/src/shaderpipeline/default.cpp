@@ -6,7 +6,6 @@
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
 #include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_transform.hpp"
 
 bool DefaultVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
@@ -353,10 +352,7 @@ bool DefaultVulkanShaderPipeline::update()
 
     MVPBuffer mvp{};
     mvp.model = *defaultUpdateData.modelMatrixPtr;
-    mvp.view = lookAt(
-        glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f)
-    );
+    mvp.view = *defaultUpdateData.viewMatrixPtr;
     mvp.projection = glm::perspective(
         glm::radians(45.0f),
         static_cast<float>(renderer->getSwapChainExtent().width) /
