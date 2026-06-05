@@ -219,11 +219,11 @@ Geometry ResourceManager::generateProceduralCube()
          glm::vec3(1.0f, 0.0f, 0.0f)}
     );
     geometry.indices.push_back(16);
+    geometry.indices.push_back(18);
     geometry.indices.push_back(17);
-    geometry.indices.push_back(18);
     geometry.indices.push_back(16);
-    geometry.indices.push_back(18);
     geometry.indices.push_back(19);
+    geometry.indices.push_back(18);
 
     // Left face (x = -0.5) — vertices 20-23
     geometry.vertices.push_back(
@@ -243,11 +243,11 @@ Geometry ResourceManager::generateProceduralCube()
          glm::vec3(-1.0f, 0.0f, 0.0f)}
     );
     geometry.indices.push_back(20);
+    geometry.indices.push_back(22);
     geometry.indices.push_back(21);
-    geometry.indices.push_back(22);
     geometry.indices.push_back(20);
-    geometry.indices.push_back(22);
     geometry.indices.push_back(23);
+    geometry.indices.push_back(22);
 
     spdlog::info("Generated procedural cube geometry");
     return geometry;

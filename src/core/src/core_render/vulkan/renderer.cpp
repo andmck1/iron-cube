@@ -65,7 +65,8 @@ VulkanRenderer::getPipelineRendereringCreateInfo()
     return vk::PipelineRenderingCreateInfo{}
         .setViewMask(0)
         .setColorAttachmentCount(1)
-        .setPColorAttachmentFormats(&swapChainSurfaceFormat_.format);
+        .setPColorAttachmentFormats(&swapChainSurfaceFormat_.format)
+        .setDepthAttachmentFormat(findDepthFormat());
 }
 
 uint32_t &VulkanRenderer::getCurrentFrameIndex()
@@ -565,11 +566,22 @@ bool VulkanRenderer::beginFrame()
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     commandBuffer.begin({});
     transitionImageLayout(
-        imageIndex, vk::ImageLayout::eUndefined,
+        swapChainImages_[imageIndex], vk::ImageLayout::eUndefined,
         vk::ImageLayout::eColorAttachmentOptimal, {},
         vk::AccessFlagBits2::eColorAttachmentWrite,
         vk::PipelineStageFlagBits2::eColorAttachmentOutput,
         vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+        vk::ImageAspectFlagBits::eColor
+    );
+    transitionImageLayout(
+        *depthImage_, vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eDepthAttachmentOptimal,
+        vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+        vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+        vk::PipelineStageFlagBits2::eEarlyFragmentTests |
+            vk::PipelineStageFlagBits2::eLateFragmentTests,
+        vk::PipelineStageFlagBits2::eEarlyFragmentTests |
+            vk::PipelineStageFlagBits2::eLateFragmentTests,
         vk::ImageAspectFlagBits::eDepth
     );
     vk::ClearValue clearColour = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
@@ -610,7 +622,8 @@ bool VulkanRenderer::drawFrame()
     commandBuffer.endRendering();
 
     transitionImageLayout(
-        currentImageIndex_, vk::ImageLayout::eColorAttachmentOptimal,
+        swapChainImages_[currentImageIndex_],
+        vk::ImageLayout::eColorAttachmentOptimal,
         vk::ImageLayout::ePresentSrcKHR,
         vk::AccessFlagBits2::eColorAttachmentWrite, {},
         vk::PipelineStageFlagBits2::eColorAttachmentOutput,
@@ -745,7 +758,7 @@ bool VulkanRenderer::initImGui()
     initInfo.PipelineRenderingCreateInfo.pColorAttachmentFormats =
         reinterpret_cast<VkFormat *>(&swapChainSurfaceFormat_.format);
     initInfo.PipelineRenderingCreateInfo.depthAttachmentFormat =
-        VK_FORMAT_UNDEFINED;
+        VK_FORMAT_D32_SFLOAT;
     initInfo.PipelineRenderingCreateInfo.stencilAttachmentFormat =
         VK_FORMAT_UNDEFINED;
 
@@ -967,7 +980,7 @@ bool VulkanRenderer::draw(Geometry *geometry)
 }
 
 void VulkanRenderer::transitionImageLayout(
-    uint32_t imageIndex, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+    vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
     vk::AccessFlags2 srcAccessMask, vk::AccessFlags2 dstAccessMask,
     vk::PipelineStageFlags2 srcStageMask, vk::PipelineStageFlags2 dstStageMask,
     vk::ImageAspectFlags imageAspectFlags
@@ -984,7 +997,7 @@ void VulkanRenderer::transitionImageLayout(
             .setNewLayout(newLayout)
             .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
             .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-            .setImage(swapChainImages_[imageIndex])
+            .setImage(image)
             .setSubresourceRange(
                 vk::ImageSubresourceRange{}
                     .setAspectMask(imageAspectFlags)
