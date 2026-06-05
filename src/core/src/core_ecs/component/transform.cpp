@@ -52,33 +52,70 @@ void TransformComponent::moveTo(
     float xWorldPosition, float yWorldPosition, float zWorldPosition
 )
 {
+    transform_.position.x = xWorldPosition;
+    transform_.position.y = yWorldPosition;
+    transform_.position.z = zWorldPosition;
+    updateTransformMatrix();
 }
 
 void TransformComponent::moveBy(float xOffset, float yOffset, float zOffset)
 {
+    transform_.position.x += xOffset;
+    transform_.position.y += yOffset;
+    transform_.position.z += zOffset;
+    updateTransformMatrix();
 }
+
 void TransformComponent::moveRelativeToForwardVectorBy(
     float xOffset, float yOffset, float zOffset
 )
 {
+    // FILL IN
+    updateTransformMatrix();
 }
 
 void TransformComponent::rotateTo(float pitch, float yaw, float roll)
 {
+    transform_.rotation.x = pitch;
+    transform_.rotation.y = yaw;
+    transform_.rotation.z = roll;
+
+    // CLAMP
+    // UPDATE FORWARD VECTOR
+    updateTransformMatrix();
 }
 
 void TransformComponent::rotateBy(
     float pitchOffset, float yawOffset, float rollOffset
 )
 {
+    transform_.rotation.x += pitchOffset;
+    transform_.rotation.y += yawOffset;
+    transform_.rotation.z += rollOffset;
+
+    // CLAMP
+    // UPDATE FORWARD VECTOR
+    updateTransformMatrix();
 }
 
 void TransformComponent::scaleTo(float xFactor, float yFactor, float zFactor)
 {
+    transform_.scale.x = xFactor;
+    transform_.scale.y = yFactor;
+    transform_.scale.z = zFactor;
+
+    // CLAMP to be positive
+    updateTransformMatrix();
 }
 
 void TransformComponent::scaleBy(
     float xFactorOffset, float yFactorOffset, float zFactorOffset
 )
 {
+    transform_.scale.x += xFactorOffset;
+    transform_.scale.y += yFactorOffset;
+    transform_.scale.z += zFactorOffset;
+
+    // CLAMP to be positive
+    updateTransformMatrix();
 }

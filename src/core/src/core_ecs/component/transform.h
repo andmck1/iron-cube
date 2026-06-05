@@ -29,8 +29,5 @@ class TransformComponent : public Component
 
     Transform transform_ = Transform();
     glm::mat4 transformMatrix_ = glm::mat4(1.0f);
-    glm::vec3 worldPosition_ = {0.f, 0.f, 0.f};
-    glm::vec3 rotation_ = {0.f, 0.f, 0.f};
-    glm::vec3 scaling_ = {1.f, 1.f, 1.f};
     glm::vec3 forwardVector_ = {1.f, 0.f, 0.f};
 };
