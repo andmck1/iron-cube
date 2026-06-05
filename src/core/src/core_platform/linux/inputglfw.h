@@ -14,6 +14,8 @@ class InputGLFW : public IInput
     bool isMouseButtonPressed(MouseButton button) const override;
     MouseDelta getMouseDelta() const override;
     void resetMouseDelta() override;
+    void setWindow(GLFWwindow *window);
+    void setCursorMode(bool disabled);
     static void keyCallback(GLFWwindow *, int, int, int, int);
     static void mouseButtonCallback(GLFWwindow *, int, int, int);
     static void cursorPositionCallback(GLFWwindow *, double, double);
@@ -26,4 +28,5 @@ class InputGLFW : public IInput
     double lastCursorX_ = 0.0;
     double lastCursorY_ = 0.0;
     bool cursorInitialised_ = false;
+    GLFWwindow *window_ = nullptr;
 };

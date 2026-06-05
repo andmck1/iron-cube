@@ -49,6 +49,7 @@ bool PlatformLinux::createWindow(const PlatformConfig &config)
     }
 
     input_.init();
+    input_.setWindow(window_.getGLFWWindow());
     glfwSetKeyCallback(window_.getGLFWWindow(), InputGLFW::keyCallback);
     glfwSetMouseButtonCallback(
         window_.getGLFWWindow(), InputGLFW::mouseButtonCallback

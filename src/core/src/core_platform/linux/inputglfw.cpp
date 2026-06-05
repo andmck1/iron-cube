@@ -48,6 +48,25 @@ void InputGLFW::resetMouseDelta()
     mouseDelta_ = {0.0f, 0.0f};
 }
 
+void InputGLFW::setWindow(GLFWwindow *window)
+{
+    window_ = window;
+}
+
+void InputGLFW::setCursorMode(bool disabled)
+{
+    if (!window_)
+        return;
+    if (disabled)
+    {
+        glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    else
+    {
+        glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+}
+
 void InputGLFW::keyCallback(GLFWwindow *, int key, int, int action, int)
 {
     if (!instance_)
@@ -67,14 +86,23 @@ void InputGLFW::mouseButtonCallback(GLFWwindow *, int button, int action, int)
 {
     if (!instance_)
         return;
-
+    
+    // TODO - generalise
     if (action == GLFW_PRESS)
     {
         instance_->mouse_button_states_[button] = true;
+        if (button == static_cast<int>(MouseButton::Right))
+        {
+            instance_->setCursorMode(true);
+        }
     }
     else if (action == GLFW_RELEASE)
     {
         instance_->mouse_button_states_[button] = false;
+        if (button == static_cast<int>(MouseButton::Right))
+        {
+            instance_->setCursorMode(false);
+        }
     }
 }
 
