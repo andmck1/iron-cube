@@ -1,5 +1,6 @@
 #include "default.h"
 #include "core_buffertypes/buffertypes.h"
+#include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
 #include "core_render/vulkan/helpers.h"
 #include "core_render/vulkan/renderer.h"
@@ -351,8 +352,9 @@ bool DefaultVulkanShaderPipeline::update()
         dynamic_cast<const DefaultShaderPipelineUpdateData &>(*updateData_);
 
     MVPBuffer mvp{};
-    mvp.model = *defaultUpdateData.modelMatrixPtr;
-    mvp.view = *defaultUpdateData.viewMatrixPtr;
+    mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
+                     ->getTransformMatrixRef();
+    mvp.view = *defaultUpdateData.camera->getViewMatrixRef(); 
     mvp.projection = glm::perspective(
         glm::radians(45.0f),
         static_cast<float>(renderer->getSwapChainExtent().width) /

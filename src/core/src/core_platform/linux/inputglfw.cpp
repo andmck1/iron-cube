@@ -9,12 +9,16 @@ void InputGLFW::init()
 {
     instance_ = this;
     key_states_.clear();
+    mouse_button_states_.clear();
+    mouseDelta_ = {0.0f, 0.0f};
+    cursorInitialised_ = false;
     spdlog::debug("Input system initialised");
 }
 
 void InputGLFW::shutdown()
 {
     key_states_.clear();
+    mouse_button_states_.clear();
 }
 
 bool InputGLFW::isKeyPressed(KeyCode key) const
@@ -23,6 +27,25 @@ bool InputGLFW::isKeyPressed(KeyCode key) const
     if (key_state_iterator != key_states_.end())
         return key_state_iterator->second;
     return false;
+}
+
+bool InputGLFW::isMouseButtonPressed(MouseButton button) const
+{
+    auto button_state_iterator =
+        mouse_button_states_.find(static_cast<int32_t>(button));
+    if (button_state_iterator != mouse_button_states_.end())
+        return button_state_iterator->second;
+    return false;
+}
+
+MouseDelta InputGLFW::getMouseDelta() const
+{
+    return mouseDelta_;
+}
+
+void InputGLFW::resetMouseDelta()
+{
+    mouseDelta_ = {0.0f, 0.0f};
 }
 
 void InputGLFW::keyCallback(GLFWwindow *, int key, int, int action, int)
@@ -38,4 +61,40 @@ void InputGLFW::keyCallback(GLFWwindow *, int key, int, int action, int)
     {
         instance_->key_states_[key] = false;
     }
+}
+
+void InputGLFW::mouseButtonCallback(GLFWwindow *, int button, int action, int)
+{
+    if (!instance_)
+        return;
+
+    if (action == GLFW_PRESS)
+    {
+        instance_->mouse_button_states_[button] = true;
+    }
+    else if (action == GLFW_RELEASE)
+    {
+        instance_->mouse_button_states_[button] = false;
+    }
+}
+
+void InputGLFW::cursorPositionCallback(GLFWwindow *, double xpos, double ypos)
+{
+    if (!instance_)
+        return;
+
+    if (!instance_->cursorInitialised_)
+    {
+        instance_->lastCursorX_ = xpos;
+        instance_->lastCursorY_ = ypos;
+        instance_->cursorInitialised_ = true;
+        return;
+    }
+
+    instance_->mouseDelta_.x +=
+        static_cast<float>(xpos - instance_->lastCursorX_);
+    instance_->mouseDelta_.y +=
+        static_cast<float>(ypos - instance_->lastCursorY_);
+    instance_->lastCursorX_ = xpos;
+    instance_->lastCursorY_ = ypos;
 }

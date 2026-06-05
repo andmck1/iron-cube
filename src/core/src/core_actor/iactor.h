@@ -6,8 +6,7 @@
 class IActor : public Entity
 {
     public:
-    explicit IActor(const std::string &entityName)
-        : Entity(entityName)
+    explicit IActor(const std::string &entityName) : Entity(entityName)
     {
         addComponent<TransformComponent>();
     }

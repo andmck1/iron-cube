@@ -4,7 +4,7 @@
 #include "core_ecs/component/mesh.h"
 #include "core_render/ishaderpipelinemanager.h"
 #include "core_render/vulkan/shader.h"
-#include "glm/ext/matrix_transform.hpp"
+#include "core_platform/iinput.h"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
 #include "core_service/servicelocator.h"
@@ -173,6 +173,12 @@ bool Application::initialiseCube(Scene *scene)
 {
     spdlog::debug("Initialising cube entity");
 
+    // entity
+    std::unique_ptr<SceneActor> cube = std::make_unique<SceneActor>("cube");
+    scene->addEntity(std::move(cube));
+    SceneActor *cubePtr =
+        dynamic_cast<SceneActor *>(scene->getEntities().back().get());
+
     // geometry
     Geometry cubeGeometry = ResourceManager::generateProceduralCube();
     resourceManager_.loadGeometry("cube", cubeGeometry);
@@ -183,26 +189,22 @@ bool Application::initialiseCube(Scene *scene)
     Mesh *registeredMesh =
         meshManager_.registerMesh("cube", std::move(cubeMesh));
 
-    // entity
-    std::unique_ptr<SceneActor> cube = std::make_unique<SceneActor>("cube");
-
     // transform component
     TransformComponent *transformComponent =
-        cube->getComponent<TransformComponent>();
+        cubePtr->getComponent<TransformComponent>();
     transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
     transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
     transformComponent->setPosition(glm::vec3(0.f, 0.f, 0.f));
 
     // mesh component
-    MeshComponent *meshComponent = cube->getComponent<MeshComponent>();
+    MeshComponent *meshComponent = cubePtr->getComponent<MeshComponent>();
 
     // shader pipeline
     std::unique_ptr<DefaultShaderPipelineUpdateData>
         cubeShaderPipelineUpdateData =
             std::make_unique<DefaultShaderPipelineUpdateData>();
-    cubeShaderPipelineUpdateData->modelMatrixPtr =
-        transformComponent->getTransformMatrixRef();
-    cubeShaderPipelineUpdateData->viewMatrixPtr = camera_->getViewMatrixRef();
+    cubeShaderPipelineUpdateData->actor = cubePtr;
+    cubeShaderPipelineUpdateData->camera = camera_;
 
     std::unique_ptr<DefaultVulkanShaderPipeline> cubeShaderPipeline =
         std::make_unique<DefaultVulkanShaderPipeline>();
@@ -218,7 +220,6 @@ bool Application::initialiseCube(Scene *scene)
 
     meshComponent->setShaderPipeline(registeredShaderPipeline);
     meshComponent->setMesh(registeredMesh);
-    scene->addEntity(std::move(cube));
 
     spdlog::debug("Finished initialising cube entity");
     return true;
@@ -246,6 +247,27 @@ bool Application::initialiseCamera(Scene *scene)
     return true;
 }
 
+void Application::handleInput()
+{
+    IInput *input = platform_.getInput();
+    if (!input)
+        return;
+
+    if (input->isMouseButtonPressed(MouseButton::Right))
+    {
+        MouseDelta delta = input->getMouseDelta();
+        TransformComponent *cameraTransform =
+            camera_->getComponent<TransformComponent>();
+
+        glm::vec3 currentRotation = cameraTransform->getRotation();
+        currentRotation.y += delta.x * MOUSE_SENSITIVITY;
+        currentRotation.x += delta.y * MOUSE_SENSITIVITY;
+        cameraTransform->setRotation(currentRotation);
+    }
+
+    input->resetMouseDelta();
+}
+
 void Application::mainLoop()
 {
     spdlog::info("Starting main loop");
@@ -253,6 +275,7 @@ void Application::mainLoop()
     {
         debugLayerData_.timer.tick();
         platform_.pollEvents();
+        handleInput();
 
         renderer_.beginFrame();
         for (std::unique_ptr<ILayer> &layer : layers_)

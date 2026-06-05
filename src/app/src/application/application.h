@@ -14,6 +14,8 @@
 #include <memory>
 #include <vector>
 
+static constexpr float MOUSE_SENSITIVITY = 0.001f;
+
 class Application
 {
     public:
@@ -33,6 +35,7 @@ class Application
     bool initialiseEntities(Scene *scene);
     bool initialiseCube(Scene *scene);
     bool initialiseCamera(Scene *scene);
+    void handleInput();
     void mainLoop();
 
     bool debugMode_ = false;

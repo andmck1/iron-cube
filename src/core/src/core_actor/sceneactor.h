@@ -6,8 +6,7 @@
 class SceneActor : public IActor
 {
     public:
-    explicit SceneActor(const std::string &entityName)
-        : IActor(entityName)
+    explicit SceneActor(const std::string &entityName) : IActor(entityName)
     {
         addComponent<MeshComponent>();
     }

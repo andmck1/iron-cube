@@ -1,15 +1,16 @@
 #pragma once
 
+#include "core_actor/camera.h"
+#include "core_actor/sceneactor.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
-#include "glm/ext/matrix_float4x4.hpp"
 #include <vulkan/vulkan_raii.hpp>
 
 class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
 {
     public:
-    glm::mat4 *modelMatrixPtr = nullptr;
-    glm::mat4 *viewMatrixPtr = nullptr;
+    SceneActor *actor = nullptr;
+    CameraActor *camera = nullptr;
 };
 
 class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
