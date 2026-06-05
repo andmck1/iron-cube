@@ -86,7 +86,7 @@ void InputGLFW::mouseButtonCallback(GLFWwindow *, int button, int action, int)
 {
     if (!instance_)
         return;
-    
+
     // TODO - generalise
     if (action == GLFW_PRESS)
     {

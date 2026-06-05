@@ -523,11 +523,18 @@ bool VulkanRenderer::createSyncObjects()
         presentCompleteSemaphores_.empty() &&
         renderFinishedSemaphores_.empty() && inFlightFences_.empty()
     );
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+
+    // renderFinishedSemaphores_ is indexed by swapchain image index because
+    // the same image can be acquired by different frames
+    for (size_t i = 0; i < swapChainImages_.size(); i++)
     {
         renderFinishedSemaphores_.emplace_back(
             device_, vk::SemaphoreCreateInfo()
         );
+    }
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
         presentCompleteSemaphores_.emplace_back(
             device_, vk::SemaphoreCreateInfo()
         );
@@ -648,7 +655,7 @@ bool VulkanRenderer::drawFrame()
             .setPCommandBuffers(&*commandBuffer)
             .setSignalSemaphoreCount(1)
             .setPSignalSemaphores(
-                &*renderFinishedSemaphores_[currentFrameIndex_]
+                &*renderFinishedSemaphores_[currentImageIndex_]
             );
     queue_.submit(submitInfo, *inFlightFences_[currentFrameIndex_]);
 
@@ -660,7 +667,7 @@ bool VulkanRenderer::present()
     const vk::PresentInfoKHR presentInfoKHR =
         vk::PresentInfoKHR{}
             .setWaitSemaphoreCount(1)
-            .setPWaitSemaphores(&*renderFinishedSemaphores_[currentFrameIndex_])
+            .setPWaitSemaphores(&*renderFinishedSemaphores_[currentImageIndex_])
             .setSwapchainCount(1)
             .setPSwapchains(&*swapChain_)
             .setPImageIndices(&currentImageIndex_)
