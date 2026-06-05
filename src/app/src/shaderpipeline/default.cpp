@@ -126,6 +126,14 @@ bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
             .setAttachmentCount(1)
             .setPAttachments(&colourBlendAttachment);
 
+    vk::PipelineDepthStencilStateCreateInfo depthStencil =
+        vk::PipelineDepthStencilStateCreateInfo{}
+            .setDepthTestEnable(vk::True)
+            .setDepthWriteEnable(vk::True)
+            .setDepthCompareOp(vk::CompareOp::eLess)
+            .setDepthBoundsTestEnable(vk::False)
+            .setStencilTestEnable(vk::False);
+
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
         vk::PipelineLayoutCreateInfo{}
             .setSetLayoutCount(1)
@@ -145,6 +153,7 @@ bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
             .setPRasterizationState(&rasteriser)
             .setPMultisampleState(&multisampling)
             .setPColorBlendState(&colourBlending)
+            .setPDepthStencilState(&depthStencil)
             .setPDynamicState(&dynamicState)
             .setLayout(pipelineLayout_)
             .setRenderPass(nullptr);

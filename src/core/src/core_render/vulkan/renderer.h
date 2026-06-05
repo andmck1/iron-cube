@@ -1,5 +1,7 @@
 #pragma once
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #include "core_render/irenderer.h"
 
 #include <imgui.h>
@@ -62,6 +64,7 @@ class VulkanRenderer : public IRenderer
     bool createFramebuffers();
     bool createCommandPool();
     bool createCommandBuffers();
+    bool createDepthResources();
     bool createSyncObjects();
     bool createDescriptorPool();
 
@@ -85,12 +88,27 @@ class VulkanRenderer : public IRenderer
     vk::Extent2D
     chooseSwapExtent(vk::SurfaceCapabilitiesKHR const &capabilities);
     void recordCommandBuffer(uint32_t imageIndex);
-    void transition_image_layout(
-        uint32_t imageIndex, vk::ImageLayout old_layout,
-        vk::ImageLayout new_layout, vk::AccessFlags2 src_access_mask,
-        vk::AccessFlags2 dst_access_mask,
-        vk::PipelineStageFlags2 src_stage_mask,
-        vk::PipelineStageFlags2 dst_stage_mask
+    void transitionImageLayout(
+        uint32_t imageIndex, vk::ImageLayout oldLayout,
+        vk::ImageLayout newLayout, vk::AccessFlags2 srcAccessMask,
+        vk::AccessFlags2 dstAccessMask,
+        vk::PipelineStageFlags2 srcStageMask,
+        vk::PipelineStageFlags2 dstStageMask,
+        vk::ImageAspectFlags imageAspectFlags
+    );
+    vk::Format findSupportedFormat(
+        const std::vector<vk::Format> &candidates, vk::ImageTiling tiling,
+        vk::FormatFeatureFlags features
+    );
+    vk::Format findDepthFormat();
+    std::pair<vk::raii::Image, vk::raii::DeviceMemory> createImage(
+        uint32_t width, uint32_t height, vk::Format format,
+        vk::ImageTiling tiling, vk::ImageUsageFlags usage,
+        vk::MemoryPropertyFlags properties
+    );
+    vk::raii::ImageView createImageView(
+        vk::Image const &image, vk::Format format,
+        vk::ImageAspectFlags aspectFlags
     );
 
     uint32_t findQueueFamilyIndex() const;
@@ -113,6 +131,9 @@ class VulkanRenderer : public IRenderer
     vk::raii::CommandPool commandPool_ = nullptr;
     std::vector<vk::raii::CommandBuffer> commandBuffers_;
     vk::raii::DescriptorPool descriptorPool_ = nullptr;
+    vk::raii::Image depthImage_ = nullptr;
+    vk::raii::DeviceMemory depthImageMemory_ = nullptr;
+    vk::raii::ImageView depthImageView_ = nullptr;
 
     std::vector<vk::raii::Semaphore> presentCompleteSemaphores_;
     std::vector<vk::raii::Semaphore> renderFinishedSemaphores_;

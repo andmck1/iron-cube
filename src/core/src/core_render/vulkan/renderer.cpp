@@ -100,6 +100,7 @@ bool VulkanRenderer::init(IPlatform *platform)
     createSyncObjects();
     createFramebuffers();
     createCommandPool();
+    createDepthResources();
     createCommandBuffers();
     createDescriptorPool();
 
@@ -397,32 +398,36 @@ bool VulkanRenderer::createImageViews()
         throw std::runtime_error("Failed to create image views");
     }
 
-    vk::ImageSubresourceRange imageSubresourceRange =
-        vk::ImageSubresourceRange{}
-            .setAspectMask(vk::ImageAspectFlagBits::eColor)
-            .setLevelCount(1)
-            .setLayerCount(1);
-    vk::ImageViewCreateInfo imageViewCreateInfo =
-        vk::ImageViewCreateInfo{}
-            .setViewType(vk::ImageViewType::e2D)
-            .setFormat(swapChainSurfaceFormat_.format)
-            .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1})
-            .setComponents(
-                {vk::ComponentSwizzle::eIdentity,
-                 vk::ComponentSwizzle::eIdentity,
-                 vk::ComponentSwizzle::eIdentity,
-                 vk::ComponentSwizzle::eIdentity}
-            )
-            .setSubresourceRange(imageSubresourceRange);
-
-    for (vk::Image &image : swapChainImages_)
+    swapChainImageViews_.reserve(swapChainImages_.size());
+    for (auto &image : swapChainImages_)
     {
-        imageViewCreateInfo.image = image;
-        // emplace back runs the constructor of the type of the vector
-        swapChainImageViews_.emplace_back(device_, imageViewCreateInfo);
+        swapChainImageViews_.emplace_back(createImageView(
+            image, swapChainSurfaceFormat_.format,
+            vk::ImageAspectFlagBits::eColor
+        ));
     }
+
     spdlog::debug("Finished creating image views");
     return true;
+}
+
+vk::raii::ImageView VulkanRenderer::createImageView(
+    vk::Image const &image, vk::Format format, vk::ImageAspectFlags aspectFlags
+)
+{
+    vk::ImageViewCreateInfo viewInfo = vk::ImageViewCreateInfo{}
+                                           .setImage(image)
+                                           .setViewType(vk::ImageViewType::e2D)
+                                           .setFormat(format)
+                                           .setSubresourceRange(
+                                               vk::ImageSubresourceRange{}
+                                                   .setAspectMask(aspectFlags)
+                                                   .setBaseMipLevel(0)
+                                                   .setLevelCount(1)
+                                                   .setBaseArrayLayer(0)
+                                                   .setLayerCount(1)
+                                           );
+    return vk::raii::ImageView(device_, viewInfo);
 }
 
 bool VulkanRenderer::createRenderPass()
@@ -469,6 +474,27 @@ bool VulkanRenderer::createCommandBuffers()
     commandBuffers_ = vk::raii::CommandBuffers(device_, allocInfo);
 
     spdlog::debug("Finished creating command buffer");
+    return true;
+}
+
+bool VulkanRenderer::createDepthResources()
+{
+    spdlog::debug("Creating depth resources");
+
+    vk::Format depthFormat = findDepthFormat();
+
+    std::tie(depthImage_, depthImageMemory_) = createImage(
+        swapChainExtent_.width, swapChainExtent_.height, depthFormat,
+        vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eDepthStencilAttachment,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+    );
+    depthImageView_ = createImageView(
+        depthImage_, depthFormat, vk::ImageAspectFlagBits::eDepth
+    );
+
+    spdlog::debug("Finished creating depth resources");
+
     return true;
 }
 
@@ -538,27 +564,39 @@ bool VulkanRenderer::beginFrame()
     // Begin recording commands
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     commandBuffer.begin({});
-    transition_image_layout(
+    transitionImageLayout(
         imageIndex, vk::ImageLayout::eUndefined,
         vk::ImageLayout::eColorAttachmentOptimal, {},
         vk::AccessFlagBits2::eColorAttachmentWrite,
         vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-        vk::PipelineStageFlagBits2::eColorAttachmentOutput
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+        vk::ImageAspectFlagBits::eDepth
     );
-    vk::ClearValue clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    vk::ClearValue clearColour = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
     vk::RenderingAttachmentInfo attachmentInfo =
         vk::RenderingAttachmentInfo{}
             .setImageView(swapChainImageViews_[imageIndex])
             .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
-            .setClearValue(clearColor);
+            .setClearValue(clearColour);
+
+    vk::ClearValue clearDepth = vk::ClearDepthStencilValue(1.0f, 0);
+    vk::RenderingAttachmentInfo depthAttachmentInfo =
+        vk::RenderingAttachmentInfo{}
+            .setImageView(depthImageView_)
+            .setImageLayout(vk::ImageLayout::eDepthAttachmentOptimal)
+            .setLoadOp(vk::AttachmentLoadOp::eClear)
+            .setStoreOp(vk::AttachmentStoreOp::eDontCare)
+            .setClearValue(clearDepth);
+
     vk::RenderingInfo renderingInfo =
         vk::RenderingInfo{}
             .setRenderArea({{0, 0}, swapChainExtent_})
             .setLayerCount(1)
             .setColorAttachmentCount(1)
-            .setPColorAttachments(&attachmentInfo);
+            .setPColorAttachments(&attachmentInfo)
+            .setPDepthAttachment(&depthAttachmentInfo);
 
     commandBuffer.beginRendering(renderingInfo);
 
@@ -571,12 +609,13 @@ bool VulkanRenderer::drawFrame()
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     commandBuffer.endRendering();
 
-    transition_image_layout(
+    transitionImageLayout(
         currentImageIndex_, vk::ImageLayout::eColorAttachmentOptimal,
         vk::ImageLayout::ePresentSrcKHR,
         vk::AccessFlagBits2::eColorAttachmentWrite, {},
         vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-        vk::PipelineStageFlagBits2::eBottomOfPipe
+        vk::PipelineStageFlagBits2::eBottomOfPipe,
+        vk::ImageAspectFlagBits::eColor
     );
 
     commandBuffer.end();
@@ -927,26 +966,33 @@ bool VulkanRenderer::draw(Geometry *geometry)
     return true;
 }
 
-void VulkanRenderer::transition_image_layout(
-    uint32_t imageIndex, vk::ImageLayout old_layout, vk::ImageLayout new_layout,
-    vk::AccessFlags2 src_access_mask, vk::AccessFlags2 dst_access_mask,
-    vk::PipelineStageFlags2 src_stage_mask,
-    vk::PipelineStageFlags2 dst_stage_mask
+void VulkanRenderer::transitionImageLayout(
+    uint32_t imageIndex, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+    vk::AccessFlags2 srcAccessMask, vk::AccessFlags2 dstAccessMask,
+    vk::PipelineStageFlags2 srcStageMask, vk::PipelineStageFlags2 dstStageMask,
+    vk::ImageAspectFlags imageAspectFlags
 )
 {
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     vk::ImageMemoryBarrier2 barrier =
         vk::ImageMemoryBarrier2{}
-            .setSrcStageMask(src_stage_mask)
-            .setSrcAccessMask(src_access_mask)
-            .setDstStageMask(dst_stage_mask)
-            .setDstAccessMask(dst_access_mask)
-            .setOldLayout(old_layout)
-            .setNewLayout(new_layout)
+            .setSrcStageMask(srcStageMask)
+            .setSrcAccessMask(srcAccessMask)
+            .setDstStageMask(dstStageMask)
+            .setDstAccessMask(dstAccessMask)
+            .setOldLayout(oldLayout)
+            .setNewLayout(newLayout)
             .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
             .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
             .setImage(swapChainImages_[imageIndex])
-            .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+            .setSubresourceRange(
+                vk::ImageSubresourceRange{}
+                    .setAspectMask(imageAspectFlags)
+                    .setBaseMipLevel(0)
+                    .setLevelCount(1)
+                    .setBaseArrayLayer(0)
+                    .setLayerCount(1)
+            );
     vk::DependencyInfo dependencyInfo = vk::DependencyInfo{}
                                             .setDependencyFlags({})
                                             .setImageMemoryBarrierCount(1)
@@ -1023,4 +1069,72 @@ bool VulkanRenderer::copyBuffer(
     );
     queue_.waitIdle();
     return true;
+}
+
+vk::Format VulkanRenderer::findSupportedFormat(
+    const std::vector<vk::Format> &candidates, vk::ImageTiling tiling,
+    vk::FormatFeatureFlags features
+)
+{
+    for (const auto format : candidates)
+    {
+        vk::FormatProperties props =
+            physicalDevice_.getFormatProperties(format);
+
+        if (tiling == vk::ImageTiling::eLinear &&
+            (props.linearTilingFeatures & features) == features)
+        {
+            return format;
+        }
+        if (tiling == vk::ImageTiling::eOptimal &&
+            (props.optimalTilingFeatures & features) == features)
+        {
+            return format;
+        }
+    }
+
+    throw std::runtime_error("failed to find supported format!");
+}
+
+vk::Format VulkanRenderer::findDepthFormat()
+{
+    return findSupportedFormat(
+        {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint,
+         vk::Format::eD24UnormS8Uint},
+        vk::ImageTiling::eOptimal,
+        vk::FormatFeatureFlagBits::eDepthStencilAttachment
+    );
+}
+
+std::pair<vk::raii::Image, vk::raii::DeviceMemory> VulkanRenderer::createImage(
+    uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
+    vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties
+)
+{
+    vk::ImageCreateInfo imageInfo =
+        vk::ImageCreateInfo{}
+            .setImageType(vk::ImageType::e2D)
+            .setFormat(format)
+            .setExtent({width, height, 1})
+            .setMipLevels(1)
+            .setArrayLayers(1)
+            .setSamples(vk::SampleCountFlagBits::e1)
+            .setTiling(tiling)
+            .setUsage(usage)
+            .setSharingMode(vk::SharingMode::eExclusive);
+
+    vk::raii::Image image = vk::raii::Image(device_, imageInfo);
+
+    vk::MemoryRequirements memRequirements = image.getMemoryRequirements();
+    vk::MemoryAllocateInfo allocInfo =
+        vk::MemoryAllocateInfo{}
+            .setAllocationSize(memRequirements.size)
+            .setMemoryTypeIndex(
+                findMemoryType(memRequirements.memoryTypeBits, properties)
+            );
+    vk::raii::DeviceMemory imageMemory =
+        vk::raii::DeviceMemory(device_, allocInfo);
+    image.bindMemory(imageMemory, 0);
+
+    return {std::move(image), std::move(imageMemory)};
 }
