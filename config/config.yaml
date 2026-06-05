@@ -1,0 +1,4 @@
+platform:
+  window_title: "Iron Cube"
+  window_width: 1280
+  window_height: 720

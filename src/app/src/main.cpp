@@ -1,7 +1,9 @@
-#include "Application.h"
+#include "application/application.h"
 
-int main()
+int main(int argc, char *argv[])
 {
     Application app;
-    return app.run();
+    if (!app.init(argc, argv))
+        return 1;
+    return app.run() ? 0 : 1;
 }

@@ -8,6 +8,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-Wl,-debug")
 endif()
 
+set(FETCHCONTENT_QUIET ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -56,41 +57,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyobjloader)
 
-# Use system Vulkan - slang will also use system Vulkan
+# Use system Vulkan
 find_package(Vulkan REQUIRED)
 
-# FetchContent_Declare(
-#     slang
-#     GIT_REPOSITORY https://github.com/shader-slang/slang.git
-#     GIT_TAG v2025.5
-# )
-# FetchContent_MakeAvailable(slang)
+# Use system slangc for shader compilation
+find_program(SLANGC_EXECUTABLE slangc REQUIRED)
 
 FetchContent_Declare(
-    catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.7.0
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG master
 )
-FetchContent_MakeAvailable(catch2)
-
-enable_testing()
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+FetchContent_MakeAvailable(yaml-cpp)
 
 add_subdirectory(src/core)
 add_subdirectory(src/app)
-add_subdirectory(tests)
-
-# Doxygen documentation
-find_package(Doxygen REQUIRED)
-
-if(DOXYGEN_FOUND)
-    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile)
-    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/docs)
-
-    add_custom_target(
-        ironcube_docs
-        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_IN}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Generating API documentation with Doxygen"
-        VERBATIM
-    )
-endif()
