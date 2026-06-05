@@ -9,22 +9,28 @@ class TransformComponent : public Component
 {
     public:
     void setTransform(const Transform &transform);
-    void setPosition(const glm::vec3 &position);
-    void setRotation(const glm::vec3 &rotation);
-    void setScale(const glm::vec3 &scale);
-
     const Transform &getTransform() const;
-    const glm::vec3 &getPosition() const;
-    const glm::vec3 &getRotation() const;
-    const glm::vec3 &getScale() const;
-
-    glm::mat4 getTransformMatrix() const;
     glm::mat4 *getTransformMatrixRef();
 
+    void
+    moveTo(float xWorldPosition, float yWorldPosition, float zWorldPosition);
+    void moveBy(float xOffset, float yOffset, float zOffset);
+    void
+    moveRelativeToForwardVectorBy(float xOffset, float yOffset, float zOffset);
+
+    void rotateTo(float pitch, float yaw, float roll);
+    void rotateBy(float pitchOffset, float yawOffset, float rollOffset);
+
+    void scaleTo(float xFactor, float yFactor, float zFactor);
+    void scaleBy(float xFactorOffset, float yFactorOffset, float zFactorOffset);
+
     private:
-    void updateTransformMatrix() const;
+    void updateTransformMatrix();
 
     Transform transform_ = Transform();
-
-    mutable glm::mat4 transformMatrix_ = glm::mat4(1.0f);
+    glm::mat4 transformMatrix_ = glm::mat4(1.0f);
+    glm::vec3 worldPosition_ = {0.f, 0.f, 0.f};
+    glm::vec3 rotation_ = {0.f, 0.f, 0.f};
+    glm::vec3 scaling_ = {1.f, 1.f, 1.f};
+    glm::vec3 forwardVector_ = {1.f, 0.f, 0.f};
 };

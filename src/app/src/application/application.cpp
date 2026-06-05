@@ -191,11 +191,7 @@ bool Application::initialiseCube(Scene *scene)
         meshManager_.registerMesh("cube", std::move(cubeMesh));
 
     // transform component
-    TransformComponent *transformComponent =
-        cubePtr->getComponent<TransformComponent>();
-    transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
-    transformComponent->setRotation(glm::vec3(0.f, 0.f, 0.f));
-    transformComponent->setPosition(glm::vec3(0.f, 0.f, 0.f));
+    auto _ = cubePtr->getComponent<TransformComponent>();
 
     // mesh component
     MeshComponent *meshComponent = cubePtr->getComponent<MeshComponent>();
@@ -237,9 +233,7 @@ bool Application::initialiseCamera(Scene *scene)
     // transform component
     TransformComponent *transformComponent =
         camera->getComponent<TransformComponent>();
-    transformComponent->setScale(glm::vec3(1.f, 1.f, 1.f));
-    transformComponent->setRotation(glm::vec3(0.f, -3.141f, 0.f));
-    transformComponent->setPosition(glm::vec3(0.f, 0.f, -3.f));
+    transformComponent->moveTo(0.f, 0.f, 3.f);
 
     scene->addEntity(std::move(camera));
     camera_ = dynamic_cast<CameraActor *>(scene->getEntities().back().get());
@@ -259,32 +253,36 @@ void Application::handleInput()
         return;
     TransformComponent *cameraTransform =
         camera_->getComponent<TransformComponent>();
-    glm::vec3 currentRotation = cameraTransform->getRotation();
-    glm::vec3 currentPosition = cameraTransform->getPosition();
+    glm::vec3 rotationOffset;
+    glm::vec3 positionOffset;
 
     if (input->isMouseButtonPressed(MouseButton::Right))
     {
         MouseDelta delta = input->getMouseDelta();
 
-        currentRotation.y -= delta.x * rotationSpeed;
-        currentRotation.x -= delta.y * rotationSpeed;
+        rotationOffset.y -= delta.x * rotationSpeed;
+        rotationOffset.x -= delta.y * rotationSpeed;
 
         if (input->isKeyPressed(KeyCode::W))
-            currentPosition.z += movementSpeed;
+            positionOffset.z += movementSpeed;
         if (input->isKeyPressed(KeyCode::S))
-            currentPosition.z -= movementSpeed;
+            positionOffset.z -= movementSpeed;
         if (input->isKeyPressed(KeyCode::D))
-            currentPosition.x -= movementSpeed;
+            positionOffset.x -= movementSpeed;
         if (input->isKeyPressed(KeyCode::A))
-            currentPosition.x += movementSpeed;
+            positionOffset.x += movementSpeed;
         if (input->isKeyPressed(KeyCode::Q))
-            currentPosition.y += movementSpeed;
+            positionOffset.y += movementSpeed;
         if (input->isKeyPressed(KeyCode::E))
-            currentPosition.y -= movementSpeed;
+            positionOffset.y -= movementSpeed;
     }
 
-    cameraTransform->setPosition(currentPosition);
-    cameraTransform->setRotation(currentRotation);
+    cameraTransform->moveRelativeToForwardVectorBy(
+        positionOffset.x, positionOffset.y, positionOffset.z
+    );
+    cameraTransform->rotateBy(
+        rotationOffset.x, rotationOffset.y, rotationOffset.z
+    );
     input->resetMouseDelta();
 }
 

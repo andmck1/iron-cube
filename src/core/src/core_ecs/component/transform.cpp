@@ -3,9 +3,31 @@
 #include "glm/ext/matrix_transform.hpp"
 #include <spdlog/spdlog.h>
 
-// TODO - as I use a reference to the transformMatrix elsewhere I have to update
-// on change rather than on get
-void TransformComponent::updateTransformMatrix() const
+const Transform &TransformComponent::getTransform() const
+{
+    return transform_;
+}
+
+glm::mat4 *TransformComponent::getTransformMatrixRef()
+{
+    updateTransformMatrix();
+    return &transformMatrix_;
+}
+
+void TransformComponent::setTransform(const Transform &transform)
+{
+    spdlog::debug(
+        "Transform updated: pos=({}, {}, {}), rot=({}, {}, {}), scale=({}, {}, "
+        "{})",
+        transform.position.x, transform.position.y, transform.position.z,
+        transform.rotation.x, transform.rotation.y, transform.rotation.z,
+        transform.scale.x, transform.scale.y, transform.scale.z
+    );
+    transform_ = transform;
+    updateTransformMatrix();
+}
+
+void TransformComponent::updateTransformMatrix()
 {
     glm::mat4 translationMatrix =
         glm::translate(glm::mat4(1.0f), transform_.position);
@@ -26,62 +48,37 @@ void TransformComponent::updateTransformMatrix() const
     transformMatrix_ = translationMatrix * rotationMatrix * scaleMatrix;
 }
 
-void TransformComponent::setTransform(const Transform &transform)
+void TransformComponent::moveTo(
+    float xWorldPosition, float yWorldPosition, float zWorldPosition
+)
 {
-    spdlog::debug(
-        "Transform updated: pos=({}, {}, {}), rot=({}, {}, {}), scale=({}, {}, "
-        "{})",
-        transform.position.x, transform.position.y, transform.position.z,
-        transform.rotation.x, transform.rotation.y, transform.rotation.z,
-        transform.scale.x, transform.scale.y, transform.scale.z
-    );
-    transform_ = transform;
-    updateTransformMatrix();
 }
 
-void TransformComponent::setPosition(const glm::vec3 &position)
+void TransformComponent::moveBy(float xOffset, float yOffset, float zOffset)
 {
-    transform_.position = position;
-    updateTransformMatrix();
+}
+void TransformComponent::moveRelativeToForwardVectorBy(
+    float xOffset, float yOffset, float zOffset
+)
+{
 }
 
-void TransformComponent::setRotation(const glm::vec3 &rotation)
+void TransformComponent::rotateTo(float pitch, float yaw, float roll)
 {
-    transform_.rotation = rotation;
-    updateTransformMatrix();
 }
 
-void TransformComponent::setScale(const glm::vec3 &scale)
+void TransformComponent::rotateBy(
+    float pitchOffset, float yawOffset, float rollOffset
+)
 {
-    transform_.scale = scale;
-    updateTransformMatrix();
 }
 
-const Transform &TransformComponent::getTransform() const
+void TransformComponent::scaleTo(float xFactor, float yFactor, float zFactor)
 {
-    return transform_;
-}
-const glm::vec3 &TransformComponent::getPosition() const
-{
-    return transform_.position;
-}
-const glm::vec3 &TransformComponent::getRotation() const
-{
-    return transform_.rotation;
-}
-const glm::vec3 &TransformComponent::getScale() const
-{
-    return transform_.scale;
 }
 
-glm::mat4 TransformComponent::getTransformMatrix() const
+void TransformComponent::scaleBy(
+    float xFactorOffset, float yFactorOffset, float zFactorOffset
+)
 {
-    updateTransformMatrix();
-    return transformMatrix_;
-}
-
-glm::mat4 *TransformComponent::getTransformMatrixRef()
-{
-    updateTransformMatrix();
-    return &transformMatrix_;
 }
