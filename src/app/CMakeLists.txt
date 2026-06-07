@@ -17,6 +17,8 @@ foreach(SHADER_FILE ${ALL_SHADERS})
         set(STAGE "vertex")
     elseif(SHADER_NAME MATCHES ".frag.slang")
         set(STAGE "fragment")
+    elseif(SHADER_NAME MATCHES ".mesh.slang")
+        set(STAGE "mesh")
     else()
         continue()
     endif()
@@ -51,6 +53,7 @@ add_executable(
     src/main.cpp
     src/application/application.cpp
     src/shaderpipeline/default.cpp
+    src/shaderpipeline/defaultMesh.cpp
 )
 
 target_link_libraries(iron-cube PRIVATE iron-core)

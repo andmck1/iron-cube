@@ -975,13 +975,15 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VulkanRenderer::debugCallback(
     return vk::False;
 }
 
+// TODO - move to shader pipeline!
 bool VulkanRenderer::draw(Geometry *geometry)
 {
 
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
-    commandBuffer.drawIndexed(
-        static_cast<uint32_t>(geometry->indices.size()), 1, 0, 0, 0
-    );
+    commandBuffer.drawMeshTasksEXT(1, 1, 1);
+    // commandBuffer.drawIndexed(
+    //     static_cast<uint32_t>(geometry->indices.size()), 1, 0, 0, 0
+    // );
 
     return true;
 }

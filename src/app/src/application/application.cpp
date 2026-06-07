@@ -14,6 +14,7 @@
 #include "core_common/helpers.h"
 
 #include "shaderpipeline/default.h"
+#include "shaderpipeline/defaultMesh.h"
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -114,6 +115,13 @@ bool Application::initialiseShaders()
         "defaultVertex", std::move(defaultVertexShader)
     );
 
+    VulkanShaderConfig defaultMeshShaderConfig;
+    defaultMeshShaderConfig.path = "build/shader/slang/mesh/default.mesh.spv";
+
+    std::unique_ptr<VulkanShader> defaultMeshShader =
+        std::make_unique<VulkanShader>(defaultMeshShaderConfig);
+    shaderManager_.registerShader("defaultMesh", std::move(defaultMeshShader));
+
     VulkanShaderConfig defaultFragmentShaderConfig;
     defaultFragmentShaderConfig.path =
         "build/shader/slang/fragment/default.frag.spv";
@@ -164,8 +172,63 @@ bool Application::initialiseEntities(Scene *scene)
     spdlog::info("Initialising entities");
     // camera must be first for the view matrix
     initialiseCamera(scene);
-    initialiseCube(scene);
+    // initialiseCube(scene);
+    initialiseTriangle(scene);
     spdlog::info("Finished initilising entities");
+    return true;
+}
+
+// TODO - generalise for any geometry
+bool Application::initialiseTriangle(Scene *scene)
+{
+    spdlog::debug("Initialising triangle entity");
+
+    // entity
+    std::unique_ptr<SceneActor> triangle =
+        std::make_unique<SceneActor>("triangle");
+    scene->addEntity(std::move(triangle));
+    SceneActor *trianglePtr =
+        dynamic_cast<SceneActor *>(scene->getEntities().back().get());
+
+    // geometry
+    Geometry triangleGeometry = ResourceManager::generateProceduralTriangle();
+    resourceManager_.loadGeometry("triangle", triangleGeometry);
+
+    // mesh
+    Mesh triangleMesh = Mesh();
+    triangleMesh.setGeometry("triangle");
+    Mesh *registeredMesh =
+        meshManager_.registerMesh("triangle", std::move(triangleMesh));
+
+    // transform component
+    auto _ = trianglePtr->getComponent<TransformComponent>();
+
+    // mesh component
+    MeshComponent *meshComponent = trianglePtr->getComponent<MeshComponent>();
+
+    // shader pipeline
+    std::unique_ptr<DefaultShaderPipelineUpdateData>
+        triangleShaderPipelineUpdateData =
+            std::make_unique<DefaultShaderPipelineUpdateData>();
+    triangleShaderPipelineUpdateData->actor = trianglePtr;
+    triangleShaderPipelineUpdateData->camera = camera_;
+
+    std::unique_ptr<DefaultVulkanMeshShaderPipeline> triangleShaderPipeline =
+        std::make_unique<DefaultVulkanMeshShaderPipeline>();
+    auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+        shaderPipelineManager_.registerShaderPipeline(
+            "triangle", std::move(triangleShaderPipeline),
+            std::move(triangleShaderPipelineUpdateData)
+        );
+    // TODO - should init reference the pointer to this update data?
+    registeredShaderPipeline->init(
+        registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+    );
+
+    meshComponent->setShaderPipeline(registeredShaderPipeline);
+    meshComponent->setMesh(registeredMesh);
+
+    spdlog::debug("Finished initialising triangle entity");
     return true;
 }
 

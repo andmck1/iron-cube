@@ -36,6 +36,7 @@ class Application
     void initialiseDebugLayerData(Scene *scene);
     bool initialiseEntities(Scene *scene);
     bool initialiseCube(Scene *scene);
+    bool initialiseTriangle(Scene *scene);
     bool initialiseCamera(Scene *scene);
     void handleInput();
     void mainLoop();
