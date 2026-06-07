@@ -19,6 +19,17 @@ bool WindowGLFW::init(uint32_t width, uint32_t height, const char *title)
         return false;
     }
 
+    int monitorCount;
+    GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
+    if (monitorCount > 1)
+    {
+        GLFWmonitor *secondMonitor = monitors[1];
+        int xpos, ypos;
+        glfwGetMonitorPos(secondMonitor, &xpos, &ypos);
+        glfwSetWindowPos(window_, xpos, ypos);
+        spdlog::info("Moved window to second monitor at ({}, {})", xpos, ypos);
+    }
+
     spdlog::debug("GLFW window created");
     glfwSetWindowCloseCallback(window_, closeCallback);
     glfwMakeContextCurrent(window_);
