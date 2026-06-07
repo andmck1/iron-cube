@@ -312,7 +312,8 @@ bool VulkanRenderer::createLogicalDevice()
     vk::StructureChain<
         vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
         vk::PhysicalDeviceVulkan13Features,
-        vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
+        vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
+        vk::PhysicalDeviceMeshShaderFeaturesEXT>
         featureChain = {
             {},
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
@@ -320,12 +321,15 @@ bool VulkanRenderer::createLogicalDevice()
                 .setDynamicRendering(true)
                 .setSynchronization2(true),
             vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT{}
-                .setExtendedDynamicState(true)
+                .setExtendedDynamicState(true),
+            vk::PhysicalDeviceMeshShaderFeaturesEXT{}
+                .setMeshShader(true)
+                .setTaskShader(true)
         };
 
     // Enable swapchains
     std::vector<const char *> requiredDeviceExtension = {
-        vk::KHRSwapchainExtensionName
+        vk::KHRSwapchainExtensionName, vk::EXTMeshShaderExtensionName
     };
 
     vk::DeviceCreateInfo deviceCreateInfo =

@@ -2,7 +2,6 @@
 #include "core_buffertypes/buffertypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
-#include "core_render/vulkan/helpers.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
@@ -30,10 +29,6 @@ bool DefaultVulkanMeshShaderPipeline::initPipeline(Geometry *geometry)
     if (!initDescriptorSets())
         return false;
     if (!initGraphicsPipeline())
-        return false;
-    if (!initVertexBuffer(geometry))
-        return false;
-    if (!initIndexBuffer(geometry))
         return false;
     return true;
 }
@@ -76,21 +71,6 @@ bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
             .setStage(vk::ShaderStageFlagBits::eFragment)
             .setModule(defaultFragmentShader->getShaderModule())
             .setPName("main");
-
-    // vk::VertexInputBindingDescription bindingDescription =
-    //     getVertexBindingDescription();
-    // auto attributeDescriptions = getVertexAttributeDescriptions();
-    // vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
-    //     vk::PipelineVertexInputStateCreateInfo{}
-    //         .setVertexBindingDescriptionCount(1)
-    //         .setPVertexBindingDescriptions(&bindingDescription)
-    //         .setVertexAttributeDescriptionCount(
-    //             static_cast<uint32_t>(attributeDescriptions.size())
-    //         )
-    //         .setPVertexAttributeDescriptions(attributeDescriptions.data());
-
-    // vk::PipelineInputAssemblyStateCreateInfo inputAssembly =
-    //     renderer->getInputAssembly();
 
     vk::PipelineShaderStageCreateInfo shaderStages[] = {
         meshShaderStageInfo, fragShaderStageInfo
@@ -147,8 +127,6 @@ bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
         vk::GraphicsPipelineCreateInfo{}
             .setStageCount(2)
             .setPStages(shaderStages)
-            // .setPVertexInputState(&vertexInputInfo)
-            // .setPInputAssemblyState(&inputAssembly)
             .setPViewportState(&viewportState)
             .setPRasterizationState(&rasteriser)
             .setPMultisampleState(&multisampling)
@@ -174,66 +152,6 @@ bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
     return true;
 }
 
-bool DefaultVulkanMeshShaderPipeline::initVertexBuffer(Geometry *geometry)
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    const std::vector<VertexInputType> &vertices = geometry->vertices;
-
-    vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertices.size();
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, vertices.data(), bufferSize);
-    stagingBufferMemory.unmapMemory();
-
-    std::tie(vertexBuffer_, vertexBufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eVertexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    renderer->copyBuffer(stagingBuffer, vertexBuffer_, bufferSize);
-
-    return true;
-}
-
-bool DefaultVulkanMeshShaderPipeline::initIndexBuffer(Geometry *geometry)
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    const std::vector<uint16_t> &indices = geometry->indices;
-
-    vk::DeviceSize bufferSize = sizeof(uint16_t) * indices.size();
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, indices.data(), bufferSize);
-    stagingBufferMemory.unmapMemory();
-
-    std::tie(indexBuffer_, indexBufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eIndexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    renderer->copyBuffer(stagingBuffer, indexBuffer_, bufferSize);
-
-    return true;
-}
-
 bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
@@ -244,7 +162,7 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
             .setBinding(0)
             .setDescriptorType(vk::DescriptorType::eUniformBuffer)
             .setDescriptorCount(1)
-            .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo =
         vk::DescriptorSetLayoutCreateInfo{}.setBindingCount(1).setPBindings(
@@ -327,9 +245,6 @@ bool DefaultVulkanMeshShaderPipeline::bind()
     commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
     );
-    commandBuffer.drawMeshTasksEXT(1, 1, 1);
-    // commandBuffer.bindVertexBuffers(0, *vertexBuffer_, {0});
-    // commandBuffer.bindIndexBuffer(*indexBuffer_, 0, vk::IndexType::eUint16);
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
         *descriptorSets_[renderer->getCurrentFrameIndex()], nullptr
@@ -345,5 +260,27 @@ bool DefaultVulkanMeshShaderPipeline::bind()
 
 bool DefaultVulkanMeshShaderPipeline::update()
 {
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
+        dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
+
+    MVPBuffer mvp{};
+    mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
+                     ->getTransformMatrixRef();
+    mvp.view = *defaultUpdateData.camera->getViewMatrixRef();
+    mvp.projection = glm::perspective(
+        glm::radians(45.0f),
+        static_cast<float>(renderer->getSwapChainExtent().width) /
+            static_cast<float>(renderer->getSwapChainExtent().height),
+        0.1f, 10.0f
+    );
+    mvp.projection[1][1] *= -1;
+    memcpy(
+        uniformBuffersMapped[renderer->getCurrentFrameIndex()], &mvp,
+        sizeof(mvp)
+    );
     return true;
 }

@@ -37,8 +37,6 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
-    bool initVertexBuffer(Geometry *geometry);
-    bool initIndexBuffer(Geometry *geometry);
     bool initDescriptorLayout();
     bool initUniformBuffers();
     bool initDescriptorSets();

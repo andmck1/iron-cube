@@ -207,9 +207,9 @@ bool Application::initialiseTriangle(Scene *scene)
     MeshComponent *meshComponent = trianglePtr->getComponent<MeshComponent>();
 
     // shader pipeline
-    std::unique_ptr<DefaultShaderPipelineUpdateData>
+    std::unique_ptr<DefaultMeshShaderPipelineUpdateData>
         triangleShaderPipelineUpdateData =
-            std::make_unique<DefaultShaderPipelineUpdateData>();
+            std::make_unique<DefaultMeshShaderPipelineUpdateData>();
     triangleShaderPipelineUpdateData->actor = trianglePtr;
     triangleShaderPipelineUpdateData->camera = camera_;
 
@@ -325,7 +325,7 @@ void Application::handleInput()
         MouseDelta delta = input->getMouseDelta();
 
         rotationOffset.y -= delta.x * rotationSpeed;
-        rotationOffset.x -= delta.y * rotationSpeed;
+        rotationOffset.x = delta.y * rotationSpeed;
 
         if (input->isKeyPressed(KeyCode::W))
             positionOffset.z += movementSpeed;
