@@ -18,7 +18,8 @@ bool WindowGLFW::init(uint32_t width, uint32_t height, const char *title)
         spdlog::error("Failed to create window");
         return false;
     }
-
+    
+    // TODO - add this to config
     int monitorCount;
     GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
     if (monitorCount > 1)
