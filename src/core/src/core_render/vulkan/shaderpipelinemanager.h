@@ -16,6 +16,7 @@ class ShaderPipelineManager : public IShaderPipelineManager
     ) override;
     IShaderPipeline *getShaderPipeline(const std::string &name) override;
     std::vector<IShaderPipeline *> getAllShaderPipelines() override;
+    bool checkForUpdates() override;
 
     private:
     std::unordered_map<std::string, std::unique_ptr<IShaderPipeline>>

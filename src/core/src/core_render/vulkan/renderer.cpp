@@ -46,7 +46,21 @@ vk::PipelineInputAssemblyStateCreateInfo VulkanRenderer::getInputAssembly()
 
 vk::PipelineRasterizationStateCreateInfo VulkanRenderer::getRasteriser()
 {
-    return rasteriser_;
+    vk::PipelineRasterizationStateCreateInfo result = rasteriser_;
+    result.setPolygonMode(
+        wireframeMode_ ? vk::PolygonMode::eLine : vk::PolygonMode::eFill
+    );
+    return result;
+}
+
+bool VulkanRenderer::isWireframeMode() const
+{
+    return wireframeMode_;
+}
+
+void VulkanRenderer::setWireframeMode(bool enabled)
+{
+    wireframeMode_ = enabled;
 }
 
 vk::PipelineMultisampleStateCreateInfo VulkanRenderer::getMultisampling()
@@ -312,20 +326,26 @@ bool VulkanRenderer::createLogicalDevice()
     vk::StructureChain<
         vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
         vk::PhysicalDeviceVulkan13Features,
-        vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
+        vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
+        vk::PhysicalDeviceMeshShaderFeaturesEXT>
         featureChain = {
-            {},
+            vk::PhysicalDeviceFeatures2{}.setFeatures(
+                vk::PhysicalDeviceFeatures{}.setFillModeNonSolid(true)
+            ),
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
             vk::PhysicalDeviceVulkan13Features{}
                 .setDynamicRendering(true)
                 .setSynchronization2(true),
             vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT{}
-                .setExtendedDynamicState(true)
+                .setExtendedDynamicState(true),
+            vk::PhysicalDeviceMeshShaderFeaturesEXT{}
+                .setMeshShader(true)
+                .setTaskShader(true)
         };
 
     // Enable swapchains
     std::vector<const char *> requiredDeviceExtension = {
-        vk::KHRSwapchainExtensionName
+        vk::KHRSwapchainExtensionName, vk::EXTMeshShaderExtensionName
     };
 
     vk::DeviceCreateInfo deviceCreateInfo =
@@ -501,14 +521,18 @@ bool VulkanRenderer::createDepthResources()
 
 bool VulkanRenderer::createDescriptorPool()
 {
+    // Account for all shader pipelines that draw from this pool
+    // (default + defaultMesh = 2 pipelines * MAX_FRAMES_IN_FLIGHT sets each)
+    const uint32_t numPipelines = 2;
+    const uint32_t maxSets = MAX_FRAMES_IN_FLIGHT * numPipelines;
     vk::DescriptorPoolSize poolSize =
         vk::DescriptorPoolSize{}
             .setType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(MAX_FRAMES_IN_FLIGHT);
+            .setDescriptorCount(maxSets);
     vk::DescriptorPoolCreateInfo poolInfo =
         vk::DescriptorPoolCreateInfo{}
             .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
-            .setMaxSets(MAX_FRAMES_IN_FLIGHT)
+            .setMaxSets(maxSets)
             .setPoolSizeCount(1)
             .setPPoolSizes(&poolSize);
 
@@ -676,6 +700,13 @@ bool VulkanRenderer::present()
     currentFrameIndex_ = (currentFrameIndex_ + 1) % MAX_FRAMES_IN_FLIGHT;
 
     return true;
+}
+
+void VulkanRenderer::waitAllFramesComplete()
+{
+    spdlog::debug("Waiting for all frames to complete");
+    device_.waitIdle();
+    spdlog::debug("All frames complete");
 }
 
 bool VulkanRenderer::shutdown()
@@ -973,17 +1004,6 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL VulkanRenderer::debugCallback(
     );
 
     return vk::False;
-}
-
-bool VulkanRenderer::draw(Geometry *geometry)
-{
-
-    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
-    commandBuffer.drawIndexed(
-        static_cast<uint32_t>(geometry->indices.size()), 1, 0, 0, 0
-    );
-
-    return true;
 }
 
 void VulkanRenderer::transitionImageLayout(

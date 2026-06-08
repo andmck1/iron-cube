@@ -10,5 +10,7 @@ class IShaderPipeline
     init(Geometry *geometry, ShaderPipelineUpdateData *updateData) = 0;
     virtual bool update() = 0;
     virtual bool bind() = 0;
+    virtual bool recreateGraphicsPipeline() = 0;
     virtual bool shutdown() = 0;
+    virtual bool draw() = 0;
 };

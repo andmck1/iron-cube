@@ -15,6 +15,8 @@ class DebugLayer : public ILayer
 
     void setDebugData(DebugLayerData *debugData);
 
+    int shaderTypeUpdate = -1;
+
     protected:
     IRenderer *renderer_;
     DebugLayerData *debugData_;

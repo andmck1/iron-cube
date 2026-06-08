@@ -19,4 +19,7 @@ class IShaderPipelineManager
     ) = 0;
     virtual IShaderPipeline *getShaderPipeline(const std::string &name) = 0;
     virtual std::vector<IShaderPipeline *> getAllShaderPipelines() = 0;
+    virtual bool checkForUpdates() = 0;
+
+    bool recreatePipelines = false;
 };

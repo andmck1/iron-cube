@@ -1,4 +1,6 @@
 #include "core_render/vulkan/shaderpipelinemanager.h"
+#include "core_render/vulkan/renderer.h"
+#include "core_service/servicelocator.h"
 #include <spdlog/spdlog.h>
 
 // TODO - rename this to VulkanShaderPipelineManager
@@ -40,4 +42,21 @@ std::vector<IShaderPipeline *> ShaderPipelineManager::getAllShaderPipelines()
         result.push_back(pair.second.get());
     }
     return result;
+}
+
+bool ShaderPipelineManager::checkForUpdates()
+{
+    if (recreatePipelines)
+    {
+        VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+            ServiceLocator::instance().get<IRenderer>()
+        );
+        renderer->waitAllFramesComplete();
+        for (IShaderPipeline *pipeline : getAllShaderPipelines())
+        {
+            pipeline->recreateGraphicsPipeline();
+        }
+        recreatePipelines = false;
+    }
+    return true;
 }

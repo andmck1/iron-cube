@@ -14,6 +14,7 @@
 #include "core_common/helpers.h"
 
 #include "shaderpipeline/default.h"
+#include "shaderpipeline/defaultMesh.h"
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -114,6 +115,13 @@ bool Application::initialiseShaders()
         "defaultVertex", std::move(defaultVertexShader)
     );
 
+    VulkanShaderConfig defaultMeshShaderConfig;
+    defaultMeshShaderConfig.path = "build/shader/slang/mesh/default.mesh.spv";
+
+    std::unique_ptr<VulkanShader> defaultMeshShader =
+        std::make_unique<VulkanShader>(defaultMeshShaderConfig);
+    shaderManager_.registerShader("defaultMesh", std::move(defaultMeshShader));
+
     VulkanShaderConfig defaultFragmentShaderConfig;
     defaultFragmentShaderConfig.path =
         "build/shader/slang/fragment/default.frag.spv";
@@ -137,12 +145,12 @@ void Application::initialiseDebugLayerData(Scene *scene)
 bool Application::createAndInitialiseLayers()
 {
     layers_.push_back(std::make_unique<SceneLayer>());
-    SceneLayer *sceneLayer = dynamic_cast<SceneLayer *>(layers_.back().get());
+    sceneLayer_ = dynamic_cast<SceneLayer *>(layers_.back().get());
 
-    initialiseDebugLayerData(&sceneLayer->scene);
+    initialiseDebugLayerData(&sceneLayer_->scene);
     layers_.push_back(std::make_unique<DebugLayer>());
-    DebugLayer *debugLayer = dynamic_cast<DebugLayer *>(layers_.back().get());
-    debugLayer->setDebugData(&debugLayerData_);
+    debugLayer_ = dynamic_cast<DebugLayer *>(layers_.back().get());
+    debugLayer_->setDebugData(&debugLayerData_);
 
     for (std::unique_ptr<ILayer> &layer : layers_)
     {
@@ -153,7 +161,7 @@ bool Application::createAndInitialiseLayers()
             return false;
         }
     }
-    if (!initialiseEntities(&sceneLayer->scene))
+    if (!initialiseEntities(&sceneLayer_->scene))
         return false;
 
     return true;
@@ -164,8 +172,84 @@ bool Application::initialiseEntities(Scene *scene)
     spdlog::info("Initialising entities");
     // camera must be first for the view matrix
     initialiseCamera(scene);
-    initialiseCube(scene);
+    // initialiseCube(scene);
+    initialiseTriangle(scene);
     spdlog::info("Finished initilising entities");
+    return true;
+}
+
+// TODO - generalise for any geometry
+bool Application::initialiseTriangle(Scene *scene)
+{
+    spdlog::debug("Initialising triangle entity");
+
+    // entity
+    std::unique_ptr<SceneActor> triangle =
+        std::make_unique<SceneActor>("triangle");
+    scene->addEntity(std::move(triangle));
+    SceneActor *trianglePtr =
+        dynamic_cast<SceneActor *>(scene->getEntities().back().get());
+
+    // geometry
+    Geometry triangleGeometry = ResourceManager::generateProceduralTriangle();
+    resourceManager_.loadGeometry("triangle", triangleGeometry);
+
+    // mesh
+    Mesh triangleMesh = Mesh();
+    triangleMesh.setGeometry("triangle");
+    Mesh *registeredMesh =
+        meshManager_.registerMesh("triangle", std::move(triangleMesh));
+
+    // transform component
+    auto _ = trianglePtr->getComponent<TransformComponent>();
+
+    // mesh component
+    MeshComponent *meshComponent = trianglePtr->getComponent<MeshComponent>();
+
+
+    // vertex shader pipeline
+    std::unique_ptr<DefaultShaderPipelineUpdateData>
+        triangleShaderPipelineUpdateData =
+            std::make_unique<DefaultShaderPipelineUpdateData>();
+    triangleShaderPipelineUpdateData->actor = trianglePtr;
+    triangleShaderPipelineUpdateData->camera = camera_;
+
+    std::unique_ptr<DefaultVulkanShaderPipeline> triangleShaderPipeline =
+        std::make_unique<DefaultVulkanShaderPipeline>();
+    auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+        shaderPipelineManager_.registerShaderPipeline(
+            "triangleTraditional", std::move(triangleShaderPipeline),
+            std::move(triangleShaderPipelineUpdateData)
+        );
+    // TODO - should init reference the pointer to this update data?
+    registeredShaderPipeline->init(
+        registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+    );
+    meshComponent->setShaderPipeline(registeredShaderPipeline);
+    meshComponent->setMesh(registeredMesh);
+
+    // mesh shader pipeline
+    std::unique_ptr<DefaultMeshShaderPipelineUpdateData>
+        triangleMeshShaderPipelineUpdateData =
+            std::make_unique<DefaultMeshShaderPipelineUpdateData>();
+    triangleMeshShaderPipelineUpdateData->actor = trianglePtr;
+    triangleMeshShaderPipelineUpdateData->camera = camera_;
+
+    std::unique_ptr<DefaultVulkanMeshShaderPipeline>
+        triangleMeshShaderPipeline =
+            std::make_unique<DefaultVulkanMeshShaderPipeline>();
+    auto
+        [registeredMeshShaderPipeline, registeredMeshShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                "triangleMesh", std::move(triangleMeshShaderPipeline),
+                std::move(triangleMeshShaderPipelineUpdateData)
+            );
+    // TODO - should init reference the pointer to this update data?
+    registeredMeshShaderPipeline->init(
+        registeredMesh->getGeometry(), registeredMeshShaderPipelineUpdateData
+    );
+
+    spdlog::debug("Finished initialising triangle entity");
     return true;
 }
 
@@ -262,7 +346,7 @@ void Application::handleInput()
         MouseDelta delta = input->getMouseDelta();
 
         rotationOffset.y -= delta.x * rotationSpeed;
-        rotationOffset.x -= delta.y * rotationSpeed;
+        rotationOffset.x = delta.y * rotationSpeed;
 
         if (input->isKeyPressed(KeyCode::W))
             positionOffset.z += movementSpeed;
@@ -295,7 +379,9 @@ void Application::mainLoop()
         timer_.tick();
         platform_.pollEvents();
         handleInput();
-
+    
+        checkForPipelineUpdates();
+        shaderPipelineManager_.checkForUpdates();
         renderer_.beginFrame();
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
@@ -303,6 +389,48 @@ void Application::mainLoop()
         }
         renderer_.drawFrame();
         renderer_.present();
+    }
+}
+
+void Application::checkForPipelineUpdates()
+{
+    if (debugLayer_->shaderTypeUpdate > -1)
+    {
+        IShaderPipelineManager *shaderPipelineManager =
+            ServiceLocator::instance().get<IShaderPipelineManager>();
+        IShaderPipeline *shaderPipeline = nullptr;
+        switch (debugLayer_->shaderTypeUpdate)
+        {
+        case 0:
+        {
+            shaderPipeline =
+                shaderPipelineManager->getShaderPipeline("triangleTraditional");
+            break;
+        }
+        case 1:
+        {
+            shaderPipeline =
+                shaderPipelineManager->getShaderPipeline("triangleMesh");
+            break;
+        }
+        default:
+        {
+            shaderPipeline =
+                shaderPipelineManager->getShaderPipeline("triangleTraditional");
+            break;
+        }
+        }
+        if (shaderPipeline)
+        {
+            const std::vector<std::unique_ptr<Entity>> &entities =
+                sceneLayer_->scene.getEntities();
+            for (const std::unique_ptr<Entity> &entity : entities)
+            {
+                MeshComponent *meshComp = entity->getComponent<MeshComponent>();
+                if (meshComp)
+                    meshComp->setShaderPipeline(shaderPipeline);
+            }
+        }
     }
 }
 

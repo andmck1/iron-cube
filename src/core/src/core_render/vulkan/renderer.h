@@ -17,9 +17,8 @@ class VulkanRenderer : public IRenderer
     bool beginFrame() override;
     bool drawFrame() override;
     bool present() override;
+    void waitAllFramesComplete();
     bool shutdown() override;
-
-    bool draw(Geometry *geometry) override;
 
     vk::raii::Device &getDevice();
     vk::raii::PhysicalDevice &getPhysicalDevice();
@@ -29,6 +28,8 @@ class VulkanRenderer : public IRenderer
     vk::Viewport getViewport();
     vk::PipelineInputAssemblyStateCreateInfo getInputAssembly();
     vk::PipelineRasterizationStateCreateInfo getRasteriser();
+    bool isWireframeMode() const;
+    void setWireframeMode(bool enabled);
     vk::PipelineMultisampleStateCreateInfo getMultisampling();
     vk::PipelineColorBlendAttachmentState getColourBlendAttachment();
     vk::PipelineRenderingCreateInfo getPipelineRendereringCreateInfo();
@@ -145,6 +146,8 @@ class VulkanRenderer : public IRenderer
     uint32_t width_ = 0;
     uint32_t height_ = 0;
     uint32_t currentImageIndex_ = 0;
+
+    bool wireframeMode_ = false;
 
     // TODO - consider moving this somewhere else
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly_ =
