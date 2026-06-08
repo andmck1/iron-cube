@@ -523,18 +523,24 @@ bool VulkanRenderer::createDescriptorPool()
 {
     // Account for all shader pipelines that draw from this pool
     // (default + defaultMesh = 2 pipelines * MAX_FRAMES_IN_FLIGHT sets each)
+    // TODO - this should not be hardcoded, this feels like it's part of the
+    // shader pipeline
     const uint32_t numPipelines = 2;
     const uint32_t maxSets = MAX_FRAMES_IN_FLIGHT * numPipelines;
-    vk::DescriptorPoolSize poolSize =
+    std::vector<vk::DescriptorPoolSize> poolSizes = {
         vk::DescriptorPoolSize{}
             .setType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(maxSets);
+            .setDescriptorCount(maxSets),
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(maxSets)
+    };
     vk::DescriptorPoolCreateInfo poolInfo =
         vk::DescriptorPoolCreateInfo{}
             .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
             .setMaxSets(maxSets)
-            .setPoolSizeCount(1)
-            .setPPoolSizes(&poolSize);
+            .setPoolSizeCount(poolSizes.size())
+            .setPPoolSizes(poolSizes.data());
 
     descriptorPool_ = vk::raii::DescriptorPool(device_, poolInfo);
     return true;

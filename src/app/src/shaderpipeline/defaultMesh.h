@@ -30,16 +30,17 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
     vk::raii::DeviceMemory vertexBufferMemory_ = nullptr;
     vk::raii::Buffer vertexBuffer_ = nullptr;
-    vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
-    vk::raii::Buffer indexBuffer_ = nullptr;
 
     std::vector<vk::raii::Buffer> uniformBuffers;
     std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
     std::vector<void *> uniformBuffersMapped;
 
+    Geometry *geometry_ = nullptr;
+
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
     bool initDescriptorLayout();
     bool initUniformBuffers();
+    bool initStorageBuffers();
     bool initDescriptorSets();
 };

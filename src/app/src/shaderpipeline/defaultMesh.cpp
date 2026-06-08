@@ -22,9 +22,12 @@ bool DefaultVulkanMeshShaderPipeline::init(
 //
 bool DefaultVulkanMeshShaderPipeline::initPipeline(Geometry *geometry)
 {
+    geometry_ = geometry;
     if (!initDescriptorLayout())
         return false;
     if (!initUniformBuffers())
+        return false;
+    if (!initStorageBuffers())
         return false;
     if (!initDescriptorSets())
         return false;
@@ -164,6 +167,7 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
+
     vk::DescriptorSetLayoutBinding mvpLayoutBinding =
         vk::DescriptorSetLayoutBinding{}
             .setBinding(0)
@@ -171,10 +175,22 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
             .setDescriptorCount(1)
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
 
+    vk::DescriptorSetLayoutBinding vertexBufferBinding =
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(1)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
+
+    std::vector<vk::DescriptorSetLayoutBinding> bindings = {
+        mvpLayoutBinding, vertexBufferBinding
+    };
+
     vk::DescriptorSetLayoutCreateInfo layoutInfo =
-        vk::DescriptorSetLayoutCreateInfo{}.setBindingCount(1).setPBindings(
-            &mvpLayoutBinding
-        );
+        vk::DescriptorSetLayoutCreateInfo{}
+            .setBindingCount(bindings.size())
+            .setPBindings(bindings.data());
+
     descriptorSetLayout_ =
         vk::raii::DescriptorSetLayout(renderer->getDevice(), layoutInfo);
     return true;
@@ -203,6 +219,35 @@ bool DefaultVulkanMeshShaderPipeline::initUniformBuffers()
     return true;
 }
 
+bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    vk::DeviceSize vertexBufferSize =
+        sizeof(VertexInputType) * geometry_->vertices.size();
+    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
+        vertexBufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+        vk::MemoryPropertyFlagBits::eHostVisible |
+            vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+
+    std::tie(vertexBuffer_, vertexBufferMemory_) = renderer->createBuffer(
+        vertexBufferSize,
+        vk::BufferUsageFlagBits::eStorageBuffer |
+            vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+    );
+
+    void *stagingData = stagingBufferMemory.mapMemory(0, vertexBufferSize);
+    memcpy(stagingData, geometry_->vertices.data(), vertexBufferSize);
+
+    renderer->copyBuffer(stagingBuffer, vertexBuffer_, vertexBufferSize);
+
+    return true;
+}
+
 bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
@@ -221,19 +266,35 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
 
     for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
     {
-        vk::DescriptorBufferInfo bufferInfo = vk::DescriptorBufferInfo{}
-                                                  .setBuffer(uniformBuffers[i])
-                                                  .setOffset(0)
-                                                  .setRange(sizeof(MVPBuffer));
-        vk::WriteDescriptorSet descriptorWrite =
+        vk::DescriptorBufferInfo mvpBufferInfo =
+            vk::DescriptorBufferInfo{}
+                .setBuffer(uniformBuffers[i])
+                .setOffset(0)
+                .setRange(sizeof(MVPBuffer));
+
+        vk::DescriptorBufferInfo vertexBufferInfo =
+            vk::DescriptorBufferInfo{}
+                .setBuffer(vertexBuffer_)
+                .setOffset(0)
+                .setRange(VK_WHOLE_SIZE);
+
+        std::vector<vk::WriteDescriptorSet> descriptorWrites = {
             vk::WriteDescriptorSet{}
                 .setDstSet(descriptorSets_[i])
                 .setDstBinding(0)
                 .setDstArrayElement(0)
                 .setDescriptorCount(1)
                 .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                .setPBufferInfo(&bufferInfo);
-        renderer->getDevice().updateDescriptorSets(descriptorWrite, {});
+                .setPBufferInfo(&mvpBufferInfo),
+            vk::WriteDescriptorSet{}
+                .setDstSet(descriptorSets_[i])
+                .setDstBinding(1)
+                .setDstArrayElement(0)
+                .setDescriptorCount(1)
+                .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                .setPBufferInfo(&vertexBufferInfo)
+        };
+        renderer->getDevice().updateDescriptorSets(descriptorWrites, {});
     }
     return true;
 }
