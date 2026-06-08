@@ -3,7 +3,9 @@
 #include "core_actor/camera.h"
 #include "core_common/logger.h"
 #include "core_common/timer.h"
+#include "core_layer/debug.h"
 #include "core_layer/debuglayerdata.h"
+#include "core_layer/scene.h"
 #include "core_platform/linux/platform.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shadermanager.h"
@@ -41,6 +43,8 @@ class Application
     void handleInput();
     void mainLoop();
 
+    void checkForPipelineUpdates();
+
     bool debugMode_ = false;
     Logger logger_;
     Config config_;
@@ -52,6 +56,8 @@ class Application
     ShaderManager shaderManager_;
     ShaderPipelineManager shaderPipelineManager_;
     CameraActor *camera_;
+    SceneLayer *sceneLayer_;
+    DebugLayer *debugLayer_;
 
     DebugLayerData debugLayerData_;
     Timer timer_;

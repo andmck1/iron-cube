@@ -33,6 +33,13 @@ bool DefaultVulkanMeshShaderPipeline::initPipeline(Geometry *geometry)
     return true;
 }
 
+bool DefaultVulkanMeshShaderPipeline::recreateGraphicsPipeline()
+{
+    spdlog::debug("Recreating graphics pipeline");
+    graphicsPipeline_ = nullptr;
+    return initGraphicsPipeline();
+}
+
 bool DefaultVulkanMeshShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down default vulkan pipeline");
@@ -282,5 +289,14 @@ bool DefaultVulkanMeshShaderPipeline::update()
         uniformBuffersMapped[renderer->getCurrentFrameIndex()], &mvp,
         sizeof(mvp)
     );
+    return true;
+}
+
+bool DefaultVulkanMeshShaderPipeline::draw()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    renderer->getCommandBuffer().drawMeshTasksEXT(1, 1, 1);
     return true;
 }

@@ -21,6 +21,8 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool update() override;
     bool bind() override;
     bool shutdown() override;
+    bool recreateGraphicsPipeline() override;
+    bool draw() override;
 
     protected:
     vk::raii::DescriptorSets descriptorSets_ = nullptr;

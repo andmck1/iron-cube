@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core_common/types.h"
 #include "core_platform/iplatform.h"
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -17,6 +16,4 @@ class IRenderer
     virtual bool present() = 0;
     virtual bool shutdown() = 0;
     virtual bool renderImGui() = 0;
-
-    virtual bool draw(Geometry *geometry) = 0;
 };

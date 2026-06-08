@@ -12,8 +12,9 @@ bool DefaultVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
 )
 {
+    geometry_ = geometry;
     updateData_ = updateData;
-    return initPipeline(geometry);
+    return initPipeline();
 }
 
 // TODO - you can have the vertex and index buffers in one buffer and use
@@ -21,7 +22,7 @@ bool DefaultVulkanShaderPipeline::init(
 // TODO - you can have a separate command pool for transfer instructions (see
 // same tutorial)
 //
-bool DefaultVulkanShaderPipeline::initPipeline(Geometry *geometry)
+bool DefaultVulkanShaderPipeline::initPipeline()
 {
     if (!initDescriptorLayout())
         return false;
@@ -31,11 +32,18 @@ bool DefaultVulkanShaderPipeline::initPipeline(Geometry *geometry)
         return false;
     if (!initGraphicsPipeline())
         return false;
-    if (!initVertexBuffer(geometry))
+    if (!initVertexBuffer())
         return false;
-    if (!initIndexBuffer(geometry))
+    if (!initIndexBuffer())
         return false;
     return true;
+}
+
+bool DefaultVulkanShaderPipeline::recreateGraphicsPipeline()
+{
+    spdlog::debug("Recreating graphics pipeline");
+    graphicsPipeline_ = nullptr;
+    return initGraphicsPipeline();
 }
 
 bool DefaultVulkanShaderPipeline::shutdown()
@@ -174,12 +182,12 @@ bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::initVertexBuffer(Geometry *geometry)
+bool DefaultVulkanShaderPipeline::initVertexBuffer()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
-    const std::vector<VertexInputType> &vertices = geometry->vertices;
+    const std::vector<VertexInputType> &vertices = geometry_->vertices;
 
     vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertices.size();
     auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
@@ -204,12 +212,12 @@ bool DefaultVulkanShaderPipeline::initVertexBuffer(Geometry *geometry)
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::initIndexBuffer(Geometry *geometry)
+bool DefaultVulkanShaderPipeline::initIndexBuffer()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
-    const std::vector<uint16_t> &indices = geometry->indices;
+    const std::vector<uint16_t> &indices = geometry_->indices;
 
     vk::DeviceSize bufferSize = sizeof(uint16_t) * indices.size();
     auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
@@ -365,6 +373,18 @@ bool DefaultVulkanShaderPipeline::update()
     memcpy(
         uniformBuffersMapped[renderer->getCurrentFrameIndex()], &mvp,
         sizeof(mvp)
+    );
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::draw()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    renderer->getCommandBuffer().drawIndexed(
+        static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
     );
     return true;
 }

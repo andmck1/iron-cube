@@ -35,7 +35,7 @@ bool MeshComponent::render()
         return false;
     if (!shaderPipeline_->update())
         return false;
-    if (!renderer->draw(mesh_->getGeometry()))
+    if (!shaderPipeline_->draw())
         return false;
 
     spdlog::debug(
