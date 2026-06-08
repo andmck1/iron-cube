@@ -48,8 +48,6 @@ bool DefaultVulkanMeshShaderPipeline::shutdown()
     spdlog::debug("Shutting down default vulkan pipeline");
     vertexBuffer_ = nullptr;
     vertexBufferMemory_ = nullptr;
-    indexBuffer_ = nullptr;
-    indexBufferMemory_ = nullptr;
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
     spdlog::debug("Shutdown complete for default vulkan pipeline");

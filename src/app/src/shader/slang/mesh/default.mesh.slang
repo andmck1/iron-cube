@@ -16,8 +16,9 @@ void main(
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, mvp.model));
     for (int i = 0; i < 3; i++)
     {
-        VertexInputType vertex = vertexBuffer[];
+        VertexInputType vertex = vertexBuffer[i];
         vertices[i].position = mul(mvpMatrix, vertex.position);
-        vertices[i].colour = vertex.normal;
+        vertices[i].colour = (-1.f * vertexBuffer[i].normal + 1.f) / 2.f;
+        vertices[i].colour[3] = 1.f;
     }
 }
