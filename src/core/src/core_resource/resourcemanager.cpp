@@ -45,16 +45,16 @@ Geometry ResourceManager::generateProceduralTriangle()
     geometry.indices.reserve(3);
 
     geometry.vertices.push_back(
-        {glm::vec3(0.f, -0.5f, 0.f), glm::vec2(0.5f, 0.f),
-         glm::vec3(0.f, 0.f, -1.f)}
+        {glm::vec4(0.f, -0.5f, 0.f, 1.f), glm::vec4(0.5f, 0.f, 0.f, 0.f),
+         glm::vec4(0.f, 0.f, -1.f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, 0.5f, 0.f), glm::vec2(0.f, 1.f),
-         glm::vec3(0.f, 0.f, -1.f)}
+        {glm::vec4(0.5f, 0.5f, 0.f, 1.f), glm::vec4(0.f, 1.f, 0.f, 0.f),
+         glm::vec4(0.f, 0.f, -1.f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, 0.5f, 0.f), glm::vec2(1.f, 1.f),
-         glm::vec3(0.f, 0.f, -1.f)}
+        {glm::vec4(-0.5f, 0.5f, 0.f, 1.f), glm::vec4(1.f, 1.f, 0.f, 0.f),
+         glm::vec4(0.f, 0.f, -1.f, 1.f)}
     );
 
     geometry.indices.push_back(0);
@@ -72,20 +72,20 @@ Geometry ResourceManager::generateProceduralRectangle()
     geometry.indices.reserve(6);
 
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, 0.f), glm::vec2(0.0f, 0.0f),
-         glm::vec3(0.f, 0.f, -1.f)}
+        {glm::vec4(-0.5f, -0.5f, 0.f, 1.f), glm::vec4(0.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.f, 0.f, -1.f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, -0.5f, 0.f), glm::vec2(1.0f, 0.0f),
-         glm::vec3(0.f, 0.f, -1.f)}
+        {glm::vec4(0.5f, -0.5f, 0.f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.f, 0.f, -1.f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, 0.5f, 0.f), glm::vec2(1.0f, 1.0f),
-         glm::vec3(0.f, 0.f, -1.f)}
+        {glm::vec4(0.5f, 0.5f, 0.f, 1.f), glm::vec4(1.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.f, 0.f, -1.f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, 0.5f, 0.f), glm::vec2(0.0f, 1.0f),
-         glm::vec3(0.f, 0.f, -1.f)}
+        {glm::vec4(-0.5f, 0.5f, 0.f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.f, 0.f, -1.f, 1.f)}
     );
 
     geometry.indices.push_back(0);
@@ -107,20 +107,20 @@ Geometry ResourceManager::generateProceduralCube()
 
     // Front face (z = +0.5) — vertices 0-3
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
-         glm::vec3(0.0f, 0.0f, 1.0f)}
+        {glm::vec4(-0.5f, -0.5f, 0.5f, 1.f), glm::vec4(0.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 0.0f, 1.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(1.0f, 0.0f),
-         glm::vec3(0.0f, 0.0f, 1.0f)}
+        {glm::vec4(0.5f, -0.5f, 0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 0.0f, 1.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
-         glm::vec3(0.0f, 0.0f, 1.0f)}
+        {glm::vec4(0.5f, 0.5f, 0.5f, 1.f), glm::vec4(1.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 0.0f, 1.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 1.0f),
-         glm::vec3(0.0f, 0.0f, 1.0f)}
+        {glm::vec4(-0.5f, 0.5f, 0.5f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 0.0f, 1.0f, 1.f)}
     );
     geometry.indices.push_back(0);
     geometry.indices.push_back(1);
@@ -131,20 +131,20 @@ Geometry ResourceManager::generateProceduralCube()
 
     // Back face (z = -0.5) — vertices 4-7
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
-         glm::vec3(0.0f, 0.0f, -1.0f)}
+        {glm::vec4(0.5f, -0.5f, -0.5f, 1.f), glm::vec4(0.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 0.0f, -1.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(1.0f, 0.0f),
-         glm::vec3(0.0f, 0.0f, -1.0f)}
+        {glm::vec4(-0.5f, -0.5f, -0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 0.0f, -1.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
-         glm::vec3(0.0f, 0.0f, -1.0f)}
+        {glm::vec4(-0.5f, 0.5f, -0.5f, 1.f), glm::vec4(1.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 0.0f, -1.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, 0.5f, -0.5f), glm::vec2(0.0f, 1.0f),
-         glm::vec3(0.0f, 0.0f, -1.0f)}
+        {glm::vec4(0.5f, 0.5f, -0.5f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 0.0f, -1.0f, 1.f)}
     );
     geometry.indices.push_back(4);
     geometry.indices.push_back(5);
@@ -155,20 +155,20 @@ Geometry ResourceManager::generateProceduralCube()
 
     // Top face (y = +0.5) — vertices 8-11
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
-         glm::vec3(0.0f, 1.0f, 0.0f)}
+        {glm::vec4(-0.5f, 0.5f, -0.5f, 1.f), glm::vec4(0.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 1.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 1.0f),
-         glm::vec3(0.0f, 1.0f, 0.0f)}
+        {glm::vec4(-0.5f, 0.5f, 0.5f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 1.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
-         glm::vec3(0.0f, 1.0f, 0.0f)}
+        {glm::vec4(0.5f, 0.5f, 0.5f, 1.f), glm::vec4(1.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 1.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, 0.5f, -0.5f), glm::vec2(1.0f, 0.0f),
-         glm::vec3(0.0f, 1.0f, 0.0f)}
+        {glm::vec4(0.5f, 0.5f, -0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.0f, 1.0f, 0.0f, 1.f)}
     );
     geometry.indices.push_back(8);
     geometry.indices.push_back(9);
@@ -179,20 +179,20 @@ Geometry ResourceManager::generateProceduralCube()
 
     // Bottom face (y = -0.5) — vertices 12-15
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 1.0f),
-         glm::vec3(0.0f, -1.0f, 0.0f)}
+        {glm::vec4(-0.5f, -0.5f, -0.5f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.0f, -1.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
-         glm::vec3(0.0f, -1.0f, 0.0f)}
+        {glm::vec4(0.5f, -0.5f, -0.5f, 1.f), glm::vec4(1.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(0.0f, -1.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(1.0f, 0.0f),
-         glm::vec3(0.0f, -1.0f, 0.0f)}
+        {glm::vec4(0.5f, -0.5f, 0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.0f, -1.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
-         glm::vec3(0.0f, -1.0f, 0.0f)}
+        {glm::vec4(-0.5f, -0.5f, 0.5f, 1.f), glm::vec4(0.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(0.0f, -1.0f, 0.0f, 1.f)}
     );
     geometry.indices.push_back(12);
     geometry.indices.push_back(13);
@@ -203,20 +203,20 @@ Geometry ResourceManager::generateProceduralCube()
 
     // Right face (x = +0.5) — vertices 16-19
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, -0.5f, 0.5f), glm::vec2(0.0f, 0.0f),
-         glm::vec3(1.0f, 0.0f, 0.0f)}
+        {glm::vec4(0.5f, -0.5f, 0.5f, 1.f), glm::vec4(0.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(1.0f, 0.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 1.0f),
-         glm::vec3(1.0f, 0.0f, 0.0f)}
+        {glm::vec4(0.5f, 0.5f, 0.5f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(1.0f, 0.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, 0.5f, -0.5f), glm::vec2(1.0f, 1.0f),
-         glm::vec3(1.0f, 0.0f, 0.0f)}
+        {glm::vec4(0.5f, 0.5f, -0.5f, 1.f), glm::vec4(1.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(1.0f, 0.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(0.5f, -0.5f, -0.5f), glm::vec2(1.0f, 0.0f),
-         glm::vec3(1.0f, 0.0f, 0.0f)}
+        {glm::vec4(0.5f, -0.5f, -0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(1.0f, 0.0f, 0.0f, 1.f)}
     );
     geometry.indices.push_back(16);
     geometry.indices.push_back(18);
@@ -227,20 +227,20 @@ Geometry ResourceManager::generateProceduralCube()
 
     // Left face (x = -0.5) — vertices 20-23
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec2(0.0f, 0.0f),
-         glm::vec3(-1.0f, 0.0f, 0.0f)}
+        {glm::vec4(-0.5f, -0.5f, -0.5f, 1.f), glm::vec4(0.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(-1.0f, 0.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec2(0.0f, 1.0f),
-         glm::vec3(-1.0f, 0.0f, 0.0f)}
+        {glm::vec4(-0.5f, 0.5f, -0.5f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(-1.0f, 0.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec2(1.0f, 1.0f),
-         glm::vec3(-1.0f, 0.0f, 0.0f)}
+        {glm::vec4(-0.5f, 0.5f, 0.5f, 1.f), glm::vec4(1.0f, 1.0f, 0.f, 0.f),
+         glm::vec4(-1.0f, 0.0f, 0.0f, 1.f)}
     );
     geometry.vertices.push_back(
-        {glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec2(1.0f, 0.0f),
-         glm::vec3(-1.0f, 0.0f, 0.0f)}
+        {glm::vec4(-0.5f, -0.5f, 0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
+         glm::vec4(-1.0f, 0.0f, 0.0f, 1.f)}
     );
     geometry.indices.push_back(20);
     geometry.indices.push_back(22);

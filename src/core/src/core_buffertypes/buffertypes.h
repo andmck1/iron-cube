@@ -22,15 +22,15 @@ using float4x4 = glm::mat4;
 //   offset 20: normal   (12 bytes)
 struct VertexInputType
 {
-    float3 position;
-    float2 tex;
-    float3 normal;
+    float4 position;
+    float4 tex;
+    float4 normal;
 };
 
 struct VertexOutputType
 {
     float4 position SEMANTIC(SV_Position);
-    float3 colour;
+    float4 colour;
 };
 
 struct MVPBuffer

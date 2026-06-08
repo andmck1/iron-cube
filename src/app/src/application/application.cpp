@@ -206,7 +206,6 @@ bool Application::initialiseTriangle(Scene *scene)
     // mesh component
     MeshComponent *meshComponent = trianglePtr->getComponent<MeshComponent>();
 
-
     // vertex shader pipeline
     std::unique_ptr<DefaultShaderPipelineUpdateData>
         triangleShaderPipelineUpdateData =
@@ -379,7 +378,7 @@ void Application::mainLoop()
         timer_.tick();
         platform_.pollEvents();
         handleInput();
-    
+
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
         renderer_.beginFrame();
