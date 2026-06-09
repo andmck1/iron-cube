@@ -285,6 +285,8 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
     {
         std::vector<vk::WriteDescriptorSet> descriptorWrites;
         std::vector<vk::DescriptorBufferInfo> bufferInfos;
+        descriptorWrites.reserve(5);
+        bufferInfos.reserve(5);
 
         addUniformBufferWrite(
             descriptorSets_[i], 0, &uniformBuffers[i], sizeof(MVPBuffer),

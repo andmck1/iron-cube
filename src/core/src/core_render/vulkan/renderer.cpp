@@ -533,7 +533,7 @@ bool VulkanRenderer::createDescriptorPool()
             .setDescriptorCount(maxSets * 4),
         vk::DescriptorPoolSize{}
             .setType(vk::DescriptorType::eStorageBuffer)
-            .setDescriptorCount(maxSets)
+            .setDescriptorCount(maxSets * 4)
     };
     vk::DescriptorPoolCreateInfo poolInfo =
         vk::DescriptorPoolCreateInfo{}
