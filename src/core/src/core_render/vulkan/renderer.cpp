@@ -88,11 +88,6 @@ uint32_t &VulkanRenderer::getCurrentFrameIndex()
     return currentFrameIndex_;
 }
 
-vk::raii::DescriptorPool &VulkanRenderer::getDescriptorPool()
-{
-    return descriptorPool_;
-}
-
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");
@@ -117,9 +112,7 @@ bool VulkanRenderer::init(IPlatform *platform)
     createCommandPool();
     createDepthResources();
     createCommandBuffers();
-    createDescriptorPool();
 
-    spdlog::debug("Finished creating descriptor pool");
     return true;
 }
 
@@ -516,33 +509,6 @@ bool VulkanRenderer::createDepthResources()
 
     spdlog::debug("Finished creating depth resources");
 
-    return true;
-}
-
-bool VulkanRenderer::createDescriptorPool()
-{
-    // Account for all shader pipelines that draw from this pool
-    // (default + defaultMesh = 2 pipelines * MAX_FRAMES_IN_FLIGHT sets each)
-    // TODO - this should not be hardcoded, this feels like it's part of the
-    // shader pipeline
-    const uint32_t numPipelines = 2;
-    const uint32_t maxSets = MAX_FRAMES_IN_FLIGHT * numPipelines;
-    std::vector<vk::DescriptorPoolSize> poolSizes = {
-        vk::DescriptorPoolSize{}
-            .setType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(maxSets * 4),
-        vk::DescriptorPoolSize{}
-            .setType(vk::DescriptorType::eStorageBuffer)
-            .setDescriptorCount(maxSets * 4)
-    };
-    vk::DescriptorPoolCreateInfo poolInfo =
-        vk::DescriptorPoolCreateInfo{}
-            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
-            .setMaxSets(maxSets)
-            .setPoolSizeCount(poolSizes.size())
-            .setPPoolSizes(poolSizes.data());
-
-    descriptorPool_ = vk::raii::DescriptorPool(device_, poolInfo);
     return true;
 }
 

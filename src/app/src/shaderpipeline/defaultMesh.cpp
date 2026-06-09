@@ -265,17 +265,47 @@ bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
     return true;
 }
 
+bool DefaultVulkanMeshShaderPipeline::createDescriptorPool()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    
+    // TODO - generalise this hardcoded *4 - can I have a vector of buffers?
+    std::vector<vk::DescriptorPoolSize> poolSizes = {
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT),
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT * 4)
+    };
+
+    vk::DescriptorPoolCreateInfo poolInfo =
+        vk::DescriptorPoolCreateInfo{}
+            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
+            .setMaxSets(renderer->MAX_FRAMES_IN_FLIGHT)
+            .setPoolSizeCount(static_cast<uint32_t>(poolSizes.size()))
+            .setPPoolSizes(poolSizes.data());
+
+    descriptorPool_ = vk::raii::DescriptorPool(renderer->getDevice(), poolInfo);
+    return true;
+}
+
 bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
+    if (!createDescriptorPool())
+        return false;
+
     std::vector<vk::DescriptorSetLayout> layouts(
         renderer->MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout_
     );
     vk::DescriptorSetAllocateInfo allocInfo =
         vk::DescriptorSetAllocateInfo{}
-            .setDescriptorPool(renderer->getDescriptorPool())
+            .setDescriptorPool(descriptorPool_)
             .setDescriptorSetCount(static_cast<uint32_t>(layouts.size()))
             .setPSetLayouts(layouts.data());
 

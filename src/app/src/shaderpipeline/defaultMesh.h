@@ -25,6 +25,7 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool draw() override;
 
     protected:
+    vk::raii::DescriptorPool descriptorPool_ = nullptr;
     vk::raii::DescriptorSets descriptorSets_ = nullptr;
     vk::raii::DescriptorSetLayout descriptorSetLayout_ = nullptr;
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
@@ -46,6 +47,7 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool initUniformBuffers();
     bool initStorageBuffers();
     bool initDescriptorSets();
+    bool createDescriptorPool();
 
     void addUniformBufferWrite(
         vk::raii::DescriptorSet &descriptorSet, uint32_t binding,

@@ -23,7 +23,7 @@ class VulkanRenderer : public IRenderer
     vk::raii::Device &getDevice();
     vk::raii::PhysicalDevice &getPhysicalDevice();
     vk::raii::CommandBuffer &getCommandBuffer();
-    vk::raii::DescriptorPool &getDescriptorPool();
+
     vk::Extent2D &getSwapChainExtent();
     vk::Viewport getViewport();
     vk::PipelineInputAssemblyStateCreateInfo getInputAssembly();
@@ -67,7 +67,6 @@ class VulkanRenderer : public IRenderer
     bool createCommandBuffers();
     bool createDepthResources();
     bool createSyncObjects();
-    bool createDescriptorPool();
 
     std::vector<const char *> getRequiredInstanceExtensions();
     bool isDeviceSuitable(vk::PhysicalDevice physicalDevice);
@@ -130,7 +129,7 @@ class VulkanRenderer : public IRenderer
     std::vector<vk::raii::ImageView> swapChainImageViews_;
     vk::raii::CommandPool commandPool_ = nullptr;
     std::vector<vk::raii::CommandBuffer> commandBuffers_;
-    vk::raii::DescriptorPool descriptorPool_ = nullptr;
+
     vk::raii::Image depthImage_ = nullptr;
     vk::raii::DeviceMemory depthImageMemory_ = nullptr;
     vk::raii::ImageView depthImageView_ = nullptr;

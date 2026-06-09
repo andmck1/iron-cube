@@ -25,6 +25,7 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool draw() override;
 
     protected:
+    vk::raii::DescriptorPool descriptorPool_ = nullptr;
     vk::raii::DescriptorSets descriptorSets_ = nullptr;
     vk::raii::DescriptorSetLayout descriptorSetLayout_ = nullptr;
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
@@ -46,4 +47,5 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool initDescriptorLayout();
     bool initUniformBuffers();
     bool initDescriptorSets();
+    bool createDescriptorPool();
 };

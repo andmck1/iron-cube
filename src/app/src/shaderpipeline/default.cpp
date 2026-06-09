@@ -286,17 +286,43 @@ bool DefaultVulkanShaderPipeline::initUniformBuffers()
     return true;
 }
 
+bool DefaultVulkanShaderPipeline::createDescriptorPool()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    std::vector<vk::DescriptorPoolSize> poolSizes = {
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT)
+    };
+
+    vk::DescriptorPoolCreateInfo poolInfo =
+        vk::DescriptorPoolCreateInfo{}
+            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
+            .setMaxSets(renderer->MAX_FRAMES_IN_FLIGHT)
+            .setPoolSizeCount(static_cast<uint32_t>(poolSizes.size()))
+            .setPPoolSizes(poolSizes.data());
+
+    descriptorPool_ = vk::raii::DescriptorPool(renderer->getDevice(), poolInfo);
+    return true;
+}
+
 bool DefaultVulkanShaderPipeline::initDescriptorSets()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
+    if (!createDescriptorPool())
+        return false;
+
     std::vector<vk::DescriptorSetLayout> layouts(
         renderer->MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout_
     );
     vk::DescriptorSetAllocateInfo allocInfo =
         vk::DescriptorSetAllocateInfo{}
-            .setDescriptorPool(renderer->getDescriptorPool())
+            .setDescriptorPool(descriptorPool_)
             .setDescriptorSetCount(static_cast<uint32_t>(layouts.size()))
             .setPSetLayouts(layouts.data());
 
