@@ -1,4 +1,8 @@
 #pragma once
+
+#define N_MAX_TRIANGLES 124
+#define N_MAX_VERTICES 64
+
 #ifndef SHARED_TYPES_H
 #define SHARED_TYPES_H
 
@@ -15,22 +19,41 @@ using float4 = glm::vec4;
 using float4x4 = glm::mat4;
 #endif
 
-// Matches VkVertexInputBindingDescription binding = 0
-// stride = sizeof(VertexInputType) = 32 bytes
-//   offset 0:  position (12 bytes)
-//   offset 12: tex      (8 bytes)
-//   offset 20: normal   (12 bytes)
 struct VertexInputType
 {
-    float3 position;
-    float2 tex;
-    float3 normal;
+    float4 position;
+    float4 tex;
+    float4 normal;
 };
 
 struct VertexOutputType
 {
     float4 position SEMANTIC(SV_Position);
-    float3 colour;
+    float4 colour;
+};
+
+struct MeshletTriangle
+{
+    uint8_t vertexIndex0;
+    uint8_t vertexIndex1;
+    uint8_t vertexIndex2;
+};
+
+struct Meshlet
+{
+    // These are indices to positions in Mesh (Geometry)
+    int localVertices[N_MAX_VERTICES];
+
+    // These are indices for vertices
+    MeshletTriangle triangles[N_MAX_TRIANGLES];
+};
+
+struct OptimisedMeshlet
+{
+    uint VertexOffset;
+    uint TriangleOffset;
+    uint VertexCount;
+    uint TriangleCount;
 };
 
 struct MVPBuffer
@@ -38,6 +61,12 @@ struct MVPBuffer
     float4x4 model;
     float4x4 view;
     float4x4 projection;
+};
+
+// Mental note - 32 bits in a float4 and must be in groups of 32 bits
+struct ModelData
+{
+    uint32_t nVertices;
 };
 
 #endif

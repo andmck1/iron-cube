@@ -2,30 +2,50 @@
 #include "shader/shared/buffertypes.h"
 
 ConstantBuffer<MVPBuffer> mvp;
+StructuredBuffer<VertexInputType> Vertices;
+StructuredBuffer<OptimisedMeshlet> Meshlets;
+StructuredBuffer<uint> VertexIndices;
+StructuredBuffer<uint> TriangleIndices;
 
+// TODO - use the defines for the triange and vertex limits??
 [outputtopology("triangle")]
-[numthreads(1, 1, 1)]
+[numthreads(128, 1, 1)]
 void main(
-    out indices uint3 triangles[1], out vertices VertexOutputType vertices[3]
+    uint gtid: SV_GroupThreadID, uint gid: SV_GroupID,
+    out indices uint3 triangles[128], out vertices VertexOutputType vertices[64]
 )
 {
-    SetMeshOutputCounts(3, 1);
-    triangles[0] = uint3(0, 1, 2);
+    OptimisedMeshlet m = Meshlets[gid];
+    SetMeshOutputCounts(m.VertexCount, m.TriangleCount);
 
-    float4 positions[3] = {
-        float4(0.f, -0.5f, 0.f, 1.f), float4(0.5f, 0.5f, 0.f, 1.f),
-        float4(-0.5f, 0.5f, 0.f, 1.f)
-    };
-
-    float3 colours[3] = {
-        float3(1.0, 0.0, 0.0), float3(0.0, 1.0, 0.0), float3(0.0, 0.0, 1.0)
-    };
-
-    float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, mvp.model));
-    for (int i = 0; i < 3; i++)
+    if (gtid < m.TriangleCount)
     {
-        vertices[i].position = mul(mvpMatrix, positions[i]);
-        // vertices[i].position = positions[i];
-        vertices[i].colour = colours[i];
+        //
+        // meshopt stores the triangle offset in bytes since it stores the
+        // triangle indices as 3 consecutive bytes.
+        //
+        // Since we repacked those 3 bytes to a 32-bit uint, our offset is now
+        // aligned to 4 and we can easily grab it as a uint without any
+        // additional offset math.
+        //
+        uint packed = TriangleIndices[m.TriangleOffset + gtid];
+        uint vIdx0 = (packed >> 0) & 0xFF;
+        uint vIdx1 = (packed >> 8) & 0xFF;
+        uint vIdx2 = (packed >> 16) & 0xFF;
+        triangles[gtid] = uint3(vIdx0, vIdx1, vIdx2);
+    }
+
+    if (gtid < m.VertexCount)
+    {
+        uint vertexIndex = m.VertexOffset + gtid;
+        vertexIndex = VertexIndices[vertexIndex];
+
+        float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, mvp.model));
+        vertices[gtid].position =
+            mul(mvpMatrix, Vertices[vertexIndex].position);
+
+        float4 colour =
+            float4(float(gid & 1), float(gid & 3) / 4, float(gid & 7) / 8, 1.f);
+        vertices[gtid].colour = colour;
     }
 }

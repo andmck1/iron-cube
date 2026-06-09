@@ -2,12 +2,17 @@
 
 #include "glm/ext/vector_float3.hpp"
 #include "core_buffertypes/buffertypes.h"
+#include "meshoptimizer.h"
 #include <vector>
 
 struct Geometry
 {
     std::vector<VertexInputType> vertices;
     std::vector<uint16_t> indices;
+    std::vector<meshopt_Meshlet> meshlets;
+    std::vector<uint32_t> meshletVertices;
+    std::vector<uint8_t> meshletTriangles;
+    std::vector<uint32_t> meshletTrianglesU32;
 };
 
 struct Transform

@@ -25,21 +25,40 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool draw() override;
 
     protected:
+    vk::raii::DescriptorPool descriptorPool_ = nullptr;
     vk::raii::DescriptorSets descriptorSets_ = nullptr;
     vk::raii::DescriptorSetLayout descriptorSetLayout_ = nullptr;
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
-    vk::raii::DeviceMemory vertexBufferMemory_ = nullptr;
-    vk::raii::Buffer vertexBuffer_ = nullptr;
-    vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
-    vk::raii::Buffer indexBuffer_ = nullptr;
+
+    VulkanBuffer vertexBuffer_;
+    VulkanBuffer meshletBuffer_;
+    VulkanBuffer meshletVerticesBuffer_;
+    VulkanBuffer meshletTrianglesBuffer_;
 
     std::vector<vk::raii::Buffer> uniformBuffers;
     std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
     std::vector<void *> uniformBuffersMapped;
 
+    Geometry *geometry_ = nullptr;
+
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
     bool initDescriptorLayout();
     bool initUniformBuffers();
+    bool initStorageBuffers();
     bool initDescriptorSets();
+    bool createDescriptorPool();
+
+    void addUniformBufferWrite(
+        vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
+        vk::raii::Buffer *buffer, vk::DeviceSize range,
+        std::vector<vk::WriteDescriptorSet> &descriptorWrites,
+        std::vector<vk::DescriptorBufferInfo> &bufferInfos
+    );
+    void addStorageBufferWrite(
+        vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
+        VulkanBuffer *vulkanBuffer,
+        std::vector<vk::WriteDescriptorSet> &descriptorWrites,
+        std::vector<vk::DescriptorBufferInfo> &bufferInfos
+    );
 };

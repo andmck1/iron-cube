@@ -88,11 +88,6 @@ uint32_t &VulkanRenderer::getCurrentFrameIndex()
     return currentFrameIndex_;
 }
 
-vk::raii::DescriptorPool &VulkanRenderer::getDescriptorPool()
-{
-    return descriptorPool_;
-}
-
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");
@@ -117,9 +112,7 @@ bool VulkanRenderer::init(IPlatform *platform)
     createCommandPool();
     createDepthResources();
     createCommandBuffers();
-    createDescriptorPool();
 
-    spdlog::debug("Finished creating descriptor pool");
     return true;
 }
 
@@ -516,27 +509,6 @@ bool VulkanRenderer::createDepthResources()
 
     spdlog::debug("Finished creating depth resources");
 
-    return true;
-}
-
-bool VulkanRenderer::createDescriptorPool()
-{
-    // Account for all shader pipelines that draw from this pool
-    // (default + defaultMesh = 2 pipelines * MAX_FRAMES_IN_FLIGHT sets each)
-    const uint32_t numPipelines = 2;
-    const uint32_t maxSets = MAX_FRAMES_IN_FLIGHT * numPipelines;
-    vk::DescriptorPoolSize poolSize =
-        vk::DescriptorPoolSize{}
-            .setType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(maxSets);
-    vk::DescriptorPoolCreateInfo poolInfo =
-        vk::DescriptorPoolCreateInfo{}
-            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
-            .setMaxSets(maxSets)
-            .setPoolSizeCount(1)
-            .setPPoolSizes(&poolSize);
-
-    descriptorPool_ = vk::raii::DescriptorPool(device_, poolInfo);
     return true;
 }
 

@@ -22,9 +22,12 @@ bool DefaultVulkanMeshShaderPipeline::init(
 //
 bool DefaultVulkanMeshShaderPipeline::initPipeline(Geometry *geometry)
 {
+    geometry_ = geometry;
     if (!initDescriptorLayout())
         return false;
     if (!initUniformBuffers())
+        return false;
+    if (!initStorageBuffers())
         return false;
     if (!initDescriptorSets())
         return false;
@@ -43,16 +46,18 @@ bool DefaultVulkanMeshShaderPipeline::recreateGraphicsPipeline()
 bool DefaultVulkanMeshShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down default vulkan pipeline");
-    vertexBuffer_ = nullptr;
-    vertexBufferMemory_ = nullptr;
-    indexBuffer_ = nullptr;
-    indexBufferMemory_ = nullptr;
+    vertexBuffer_ = VulkanBuffer();
+    meshletBuffer_ = VulkanBuffer();
+    meshletVerticesBuffer_ = VulkanBuffer();
+    meshletTrianglesBuffer_ = VulkanBuffer();
+
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
     spdlog::debug("Shutdown complete for default vulkan pipeline");
     return true;
 }
 
+// TODO - Break up this function
 bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
@@ -164,6 +169,7 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
+
     vk::DescriptorSetLayoutBinding mvpLayoutBinding =
         vk::DescriptorSetLayoutBinding{}
             .setBinding(0)
@@ -171,10 +177,44 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
             .setDescriptorCount(1)
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
 
+    vk::DescriptorSetLayoutBinding vertexBufferBinding =
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(1)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
+
+    vk::DescriptorSetLayoutBinding meshletBufferBinding =
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(2)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
+
+    vk::DescriptorSetLayoutBinding meshletVerticesBinding =
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(3)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
+
+    vk::DescriptorSetLayoutBinding meshletTrianglesBinding =
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(4)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
+
+    std::vector<vk::DescriptorSetLayoutBinding> bindings = {
+        mvpLayoutBinding, vertexBufferBinding, meshletBufferBinding,
+        meshletVerticesBinding, meshletTrianglesBinding
+    };
+
     vk::DescriptorSetLayoutCreateInfo layoutInfo =
-        vk::DescriptorSetLayoutCreateInfo{}.setBindingCount(1).setPBindings(
-            &mvpLayoutBinding
-        );
+        vk::DescriptorSetLayoutCreateInfo{}
+            .setBindingCount(bindings.size())
+            .setPBindings(bindings.data());
+
     descriptorSetLayout_ =
         vk::raii::DescriptorSetLayout(renderer->getDevice(), layoutInfo);
     return true;
@@ -203,17 +243,69 @@ bool DefaultVulkanMeshShaderPipeline::initUniformBuffers()
     return true;
 }
 
+bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
+{
+    vk::DeviceSize vertexBufferSize =
+        sizeof(VertexInputType) * geometry_->vertices.size();
+    vk::DeviceSize meshletBufferSize =
+        sizeof(meshopt_Meshlet) * geometry_->meshlets.size();
+    vk::DeviceSize meshletVerticesBufferSize =
+        sizeof(uint32_t) * geometry_->meshletVertices.size();
+    vk::DeviceSize meshletTrianglesBufferSize =
+        sizeof(uint32_t) * geometry_->meshletTrianglesU32.size();
+    //
+    vertexBuffer_.init(vertexBufferSize, geometry_->vertices.data());
+    meshletBuffer_.init(meshletBufferSize, geometry_->meshlets.data());
+    meshletVerticesBuffer_.init(
+        meshletVerticesBufferSize, geometry_->meshletVertices.data()
+    );
+    meshletTrianglesBuffer_.init(
+        meshletTrianglesBufferSize, geometry_->meshletTrianglesU32.data()
+    );
+    return true;
+}
+
+bool DefaultVulkanMeshShaderPipeline::createDescriptorPool()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    
+    // TODO - generalise this hardcoded *4 - can I have a vector of buffers?
+    std::vector<vk::DescriptorPoolSize> poolSizes = {
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT),
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT * 4)
+    };
+
+    vk::DescriptorPoolCreateInfo poolInfo =
+        vk::DescriptorPoolCreateInfo{}
+            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
+            .setMaxSets(renderer->MAX_FRAMES_IN_FLIGHT)
+            .setPoolSizeCount(static_cast<uint32_t>(poolSizes.size()))
+            .setPPoolSizes(poolSizes.data());
+
+    descriptorPool_ = vk::raii::DescriptorPool(renderer->getDevice(), poolInfo);
+    return true;
+}
+
 bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
+    if (!createDescriptorPool())
+        return false;
+
     std::vector<vk::DescriptorSetLayout> layouts(
         renderer->MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout_
     );
     vk::DescriptorSetAllocateInfo allocInfo =
         vk::DescriptorSetAllocateInfo{}
-            .setDescriptorPool(renderer->getDescriptorPool())
+            .setDescriptorPool(descriptorPool_)
             .setDescriptorSetCount(static_cast<uint32_t>(layouts.size()))
             .setPSetLayouts(layouts.data());
 
@@ -221,21 +313,82 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
 
     for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
     {
-        vk::DescriptorBufferInfo bufferInfo = vk::DescriptorBufferInfo{}
-                                                  .setBuffer(uniformBuffers[i])
-                                                  .setOffset(0)
-                                                  .setRange(sizeof(MVPBuffer));
-        vk::WriteDescriptorSet descriptorWrite =
-            vk::WriteDescriptorSet{}
-                .setDstSet(descriptorSets_[i])
-                .setDstBinding(0)
-                .setDstArrayElement(0)
-                .setDescriptorCount(1)
-                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                .setPBufferInfo(&bufferInfo);
-        renderer->getDevice().updateDescriptorSets(descriptorWrite, {});
+        std::vector<vk::WriteDescriptorSet> descriptorWrites;
+        std::vector<vk::DescriptorBufferInfo> bufferInfos;
+        descriptorWrites.reserve(5);
+        bufferInfos.reserve(5);
+
+        addUniformBufferWrite(
+            descriptorSets_[i], 0, &uniformBuffers[i], sizeof(MVPBuffer),
+            descriptorWrites, bufferInfos
+        );
+        addStorageBufferWrite(
+            descriptorSets_[i], 1, &vertexBuffer_, descriptorWrites, bufferInfos
+        );
+        addStorageBufferWrite(
+            descriptorSets_[i], 2, &meshletBuffer_, descriptorWrites,
+            bufferInfos
+        );
+        addStorageBufferWrite(
+            descriptorSets_[i], 3, &meshletVerticesBuffer_, descriptorWrites,
+            bufferInfos
+        );
+        addStorageBufferWrite(
+            descriptorSets_[i], 4, &meshletTrianglesBuffer_, descriptorWrites,
+            bufferInfos
+        );
+
+        renderer->getDevice().updateDescriptorSets(descriptorWrites, {});
     }
+
     return true;
+}
+
+void DefaultVulkanMeshShaderPipeline::addUniformBufferWrite(
+    vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
+    vk::raii::Buffer *buffer, vk::DeviceSize range,
+    std::vector<vk::WriteDescriptorSet> &descriptorWrites,
+    std::vector<vk::DescriptorBufferInfo> &bufferInfos
+)
+{
+    bufferInfos.emplace_back(
+        vk::DescriptorBufferInfo{}.setBuffer(*buffer).setOffset(0).setRange(
+            range
+        )
+    );
+    descriptorWrites.emplace_back(
+        vk::WriteDescriptorSet{}
+            .setDstSet(descriptorSet)
+            .setDstBinding(binding)
+            .setDstArrayElement(0)
+            .setDescriptorCount(1)
+            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+            .setPBufferInfo(&bufferInfos.back())
+    );
+}
+
+void DefaultVulkanMeshShaderPipeline::addStorageBufferWrite(
+    vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
+    VulkanBuffer *vulkanBuffer,
+    std::vector<vk::WriteDescriptorSet> &descriptorWrites,
+    std::vector<vk::DescriptorBufferInfo> &bufferInfos
+)
+{
+    bufferInfos.emplace_back(
+        vk::DescriptorBufferInfo{}
+            .setBuffer(*vulkanBuffer->getBuffer())
+            .setOffset(0)
+            .setRange(VK_WHOLE_SIZE)
+    );
+    descriptorWrites.emplace_back(
+        vk::WriteDescriptorSet{}
+            .setDstSet(descriptorSet)
+            .setDstBinding(binding)
+            .setDstArrayElement(0)
+            .setDescriptorCount(1)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setPBufferInfo(&bufferInfos.back())
+    );
 }
 
 bool DefaultVulkanMeshShaderPipeline::bind()
@@ -274,6 +427,7 @@ bool DefaultVulkanMeshShaderPipeline::update()
     const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
 
+    // MVP data
     MVPBuffer mvp{};
     mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
@@ -289,6 +443,7 @@ bool DefaultVulkanMeshShaderPipeline::update()
         uniformBuffersMapped[renderer->getCurrentFrameIndex()], &mvp,
         sizeof(mvp)
     );
+
     return true;
 }
 
@@ -297,6 +452,8 @@ bool DefaultVulkanMeshShaderPipeline::draw()
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
-    renderer->getCommandBuffer().drawMeshTasksEXT(1, 1, 1);
+    renderer->getCommandBuffer().drawMeshTasksEXT(
+        geometry_->meshlets.size(), 1, 1
+    );
     return true;
 }

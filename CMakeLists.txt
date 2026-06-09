@@ -57,6 +57,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyobjloader)
 
+FetchContent_Declare(
+    meshopt
+    GIT_REPOSITORY https://github.com/zeux/meshoptimizer.git
+    GIT_TAG HEAD
+)
+FetchContent_MakeAvailable(meshopt)
+
 # Use system Vulkan
 find_package(Vulkan REQUIRED)
 

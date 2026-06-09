@@ -191,7 +191,8 @@ bool Application::initialiseTriangle(Scene *scene)
         dynamic_cast<SceneActor *>(scene->getEntities().back().get());
 
     // geometry
-    Geometry triangleGeometry = ResourceManager::generateProceduralTriangle();
+    Geometry triangleGeometry =
+        ResourceManager::loadObj("assets/horse_statue/horse_statue_01_4k.obj");
     resourceManager_.loadGeometry("triangle", triangleGeometry);
 
     // mesh
@@ -205,7 +206,6 @@ bool Application::initialiseTriangle(Scene *scene)
 
     // mesh component
     MeshComponent *meshComponent = trianglePtr->getComponent<MeshComponent>();
-
 
     // vertex shader pipeline
     std::unique_ptr<DefaultShaderPipelineUpdateData>
@@ -379,7 +379,7 @@ void Application::mainLoop()
         timer_.tick();
         platform_.pollEvents();
         handleInput();
-    
+
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
         renderer_.beginFrame();
