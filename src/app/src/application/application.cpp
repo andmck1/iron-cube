@@ -191,7 +191,7 @@ bool Application::initialiseTriangle(Scene *scene)
         dynamic_cast<SceneActor *>(scene->getEntities().back().get());
 
     // geometry
-    Geometry triangleGeometry = ResourceManager::generateProceduralRectangle();
+    Geometry triangleGeometry = ResourceManager::generateProceduralCube();
     resourceManager_.loadGeometry("triangle", triangleGeometry);
 
     // mesh
