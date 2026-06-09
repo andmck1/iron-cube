@@ -2,6 +2,7 @@
 
 #include "core_resource/iresourcemanager.h"
 #include <spdlog/spdlog.h>
+#include <string>
 
 class ResourceManager : public IResourceManager
 {
@@ -13,6 +14,7 @@ class ResourceManager : public IResourceManager
     static Geometry generateProceduralTriangle();
     static Geometry generateProceduralRectangle();
     static Geometry generateProceduralCube();
+    static Geometry loadObj(std::string objFilePath);
 
     private:
     std::unordered_map<std::string, Geometry> geometries_;

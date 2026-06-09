@@ -252,3 +252,11 @@ Geometry ResourceManager::generateProceduralCube()
     spdlog::info("Generated procedural cube geometry");
     return geometry;
 }
+
+Geometry ResourceManager::loadObj(std::string objFilePath)
+{
+    Geometry geometry;
+
+    bool res = TriMeshh
+    
+}

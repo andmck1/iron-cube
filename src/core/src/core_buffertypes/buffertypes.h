@@ -1,4 +1,8 @@
 #pragma once
+
+#define N_MAX_TRIANGLES 124
+#define N_MAX_VERTICES 64
+
 #ifndef SHARED_TYPES_H
 #define SHARED_TYPES_H
 
@@ -26,6 +30,22 @@ struct VertexOutputType
 {
     float4 position SEMANTIC(SV_Position);
     float4 colour;
+};
+
+struct MeshletTriangle
+{
+    uint8_t vertexIndex0; 
+    uint8_t vertexIndex1; 
+    uint8_t vertexIndex2; 
+};
+
+struct Meshlet
+{
+    // These are indices to positions in Mesh (Geometry)
+    int localVertices[N_MAX_VERTICES];
+
+    // These are indices for vertices
+    MeshletTriangle triangles[N_MAX_TRIANGLES];
 };
 
 struct MVPBuffer
