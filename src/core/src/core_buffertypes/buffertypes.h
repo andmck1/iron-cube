@@ -15,11 +15,6 @@ using float4 = glm::vec4;
 using float4x4 = glm::mat4;
 #endif
 
-// Matches VkVertexInputBindingDescription binding = 0
-// stride = sizeof(VertexInputType) = 32 bytes
-//   offset 0:  position (12 bytes)
-//   offset 12: tex      (8 bytes)
-//   offset 20: normal   (12 bytes)
 struct VertexInputType
 {
     float4 position;
@@ -38,6 +33,12 @@ struct MVPBuffer
     float4x4 model;
     float4x4 view;
     float4x4 projection;
+};
+
+// Mental note - 32 bits in a float4 and must be in groups of 32 bits
+struct ModelData
+{
+    uint32_t nVertices;
 };
 
 #endif

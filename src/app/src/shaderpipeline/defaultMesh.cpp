@@ -54,6 +54,7 @@ bool DefaultVulkanMeshShaderPipeline::shutdown()
     return true;
 }
 
+// TODO - Break up this function
 bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
@@ -122,11 +123,18 @@ bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
             .setDepthBoundsTestEnable(vk::False)
             .setStencilTestEnable(vk::False);
 
+    vk::PushConstantRange pushConstantRange =
+        vk::PushConstantRange{}
+            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT)
+            .setOffset(0)
+            .setSize(sizeof(ModelData));
+
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
         vk::PipelineLayoutCreateInfo{}
             .setSetLayoutCount(1)
             .setPSetLayouts(&*descriptorSetLayout_)
-            .setPushConstantRangeCount(0);
+            .setPushConstantRangeCount(1)
+            .setPPushConstantRanges(&pushConstantRange);
 
     pipelineLayout_ =
         vk::raii::PipelineLayout(renderer->getDevice(), pipelineLayoutInfo);
@@ -332,7 +340,8 @@ bool DefaultVulkanMeshShaderPipeline::update()
 
     const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
-
+    
+    // MVP data
     MVPBuffer mvp{};
     mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
@@ -348,6 +357,16 @@ bool DefaultVulkanMeshShaderPipeline::update()
         uniformBuffersMapped[renderer->getCurrentFrameIndex()], &mvp,
         sizeof(mvp)
     );
+
+    // Model data
+    ModelData modelData = {};
+    modelData.nVertices = geometry_->vertices.size();
+
+    renderer->getCommandBuffer().pushConstants(
+        pipelineLayout_, vk::ShaderStageFlagBits::eMeshEXT, 0,
+        sizeof(ModelData), &modelData
+    );
+
     return true;
 }
 
