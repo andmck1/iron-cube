@@ -254,7 +254,7 @@ Geometry ResourceManager::generateProceduralCube()
     geometry.indices.push_back(20);
     geometry.indices.push_back(23);
     geometry.indices.push_back(22);
- 
+
     processMeshlets(&geometry);
 
     spdlog::info("Generated procedural cube geometry");
@@ -353,11 +353,12 @@ Geometry ResourceManager::loadObj(std::string objFilePath)
     return geometry;
 }
 
+// Help from chaoticbob tutorial
 void ResourceManager::processMeshlets(Geometry *geometry)
 {
     std::vector<glm::vec4> positions;
 
-    for (auto vertex : geometry->vertices)
+    for (const VertexInputType &vertex : geometry->vertices)
     {
         positions.push_back(vertex.position);
     }
@@ -374,13 +375,17 @@ void ResourceManager::processMeshlets(Geometry *geometry)
     geometry->meshletVertices.resize(maxMeshlets * kMaxVertices);
     geometry->meshletTriangles.resize(maxMeshlets * kMaxTriangles * 3);
 
+    // TODO - this feels like a hack, should make indices 32 bit generally?
+    // meshopt requires uint32_t indices, so convert from uint16_t
+    std::vector<uint32_t> indices32(
+        geometry->indices.begin(), geometry->indices.end()
+    );
+
     size_t meshletCount = meshopt_buildMeshlets(
         geometry->meshlets.data(), geometry->meshletVertices.data(),
-        geometry->meshletTriangles.data(),
-        reinterpret_cast<const uint32_t *>(geometry->indices.data()),
-        geometry->indices.size(),
+        geometry->meshletTriangles.data(), indices32.data(), indices32.size(),
         reinterpret_cast<const float *>(positions.data()), positions.size(),
-        sizeof(glm::vec3), kMaxVertices, kMaxTriangles, kConeWeight
+        sizeof(glm::vec4), kMaxVertices, kMaxTriangles, kConeWeight
     );
 
     auto &last = geometry->meshlets[meshletCount - 1];
@@ -389,4 +394,31 @@ void ResourceManager::processMeshlets(Geometry *geometry)
         last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3)
     );
     geometry->meshlets.resize(meshletCount);
+
+    // repack for gpu
+    for (auto &m : geometry->meshlets)
+    {
+        // Save triangle offset for current meshlet
+        uint32_t triangleOffset =
+            static_cast<uint32_t>(geometry->meshletTrianglesU32.size());
+
+        // Repack to uint32_t
+        for (uint32_t i = 0; i < m.triangle_count; ++i)
+        {
+            uint32_t i0 = 3 * i + 0 + m.triangle_offset;
+            uint32_t i1 = 3 * i + 1 + m.triangle_offset;
+            uint32_t i2 = 3 * i + 2 + m.triangle_offset;
+
+            uint8_t vIdx0 = geometry->meshletTriangles[i0];
+            uint8_t vIdx1 = geometry->meshletTriangles[i1];
+            uint8_t vIdx2 = geometry->meshletTriangles[i2];
+            uint32_t packed = ((static_cast<uint32_t>(vIdx0) & 0xFF) << 0) |
+                              ((static_cast<uint32_t>(vIdx1) & 0xFF) << 8) |
+                              ((static_cast<uint32_t>(vIdx2) & 0xFF) << 16);
+            geometry->meshletTrianglesU32.push_back(packed);
+        }
+
+        // Update triangle offset for current meshlet
+        m.triangle_offset = triangleOffset;
+    }
 }

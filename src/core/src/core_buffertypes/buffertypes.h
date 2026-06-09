@@ -48,6 +48,14 @@ struct Meshlet
     MeshletTriangle triangles[N_MAX_TRIANGLES];
 };
 
+struct OptimisedMeshlet
+{
+    uint VertexOffset;
+    uint TriangleOffset;
+    uint VertexCount;
+    uint TriangleCount;
+};
+
 struct MVPBuffer
 {
     float4x4 model;

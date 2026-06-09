@@ -12,6 +12,7 @@ struct Geometry
     std::vector<meshopt_Meshlet> meshlets;
     std::vector<uint32_t> meshletVertices;
     std::vector<uint8_t> meshletTriangles;
+    std::vector<uint32_t> meshletTrianglesU32;
 };
 
 struct Transform
