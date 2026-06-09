@@ -1,4 +1,6 @@
 #include "core_resource/resourcemanager.h"
+#include "meshoptimizer.h"
+#include <tiny_obj_loader.h>
 #include <spdlog/spdlog.h>
 
 bool ResourceManager::loadGeometry(const std::string &name, Geometry geometry)
@@ -61,6 +63,8 @@ Geometry ResourceManager::generateProceduralTriangle()
     geometry.indices.push_back(1);
     geometry.indices.push_back(2);
 
+    processMeshlets(&geometry);
+
     spdlog::info("Generated procedural triangle geometry");
     return geometry;
 }
@@ -94,6 +98,8 @@ Geometry ResourceManager::generateProceduralRectangle()
     geometry.indices.push_back(2);
     geometry.indices.push_back(3);
     geometry.indices.push_back(0);
+
+    processMeshlets(&geometry);
 
     spdlog::info("Generated procedural rectangle geometry");
     return geometry;
@@ -248,15 +254,139 @@ Geometry ResourceManager::generateProceduralCube()
     geometry.indices.push_back(20);
     geometry.indices.push_back(23);
     geometry.indices.push_back(22);
+ 
+    processMeshlets(&geometry);
 
     spdlog::info("Generated procedural cube geometry");
     return geometry;
 }
 
+// AI helped with this
+// Really useful example where this has just worked
 Geometry ResourceManager::loadObj(std::string objFilePath)
 {
     Geometry geometry;
 
-    bool res = TriMeshh
-    
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+
+    std::string warn, err;
+    bool res = tinyobj::LoadObj(
+        &attrib, &shapes, &materials, &warn, &err, objFilePath.c_str()
+    );
+
+    if (!warn.empty())
+    {
+        spdlog::warn("OBJ load warning for '{}': {}", objFilePath, warn);
+    }
+    if (!err.empty())
+    {
+        spdlog::error("OBJ load error for '{}': {}", objFilePath, err);
+    }
+    if (!res)
+    {
+        spdlog::error("Failed to load OBJ file: {}", objFilePath);
+        return geometry;
+    }
+
+    for (const auto &shape : shapes)
+    {
+        for (const auto &idx : shape.mesh.indices)
+        {
+            // Position
+            glm::vec3 position(0.f, 0.f, 0.f);
+            if (idx.vertex_index >= 0 &&
+                static_cast<size_t>(idx.vertex_index * 3 + 2) <
+                    attrib.vertices.size())
+            {
+                position = glm::vec3(
+                    attrib.vertices[idx.vertex_index * 3 + 0],
+                    attrib.vertices[idx.vertex_index * 3 + 1],
+                    attrib.vertices[idx.vertex_index * 3 + 2]
+                );
+            }
+
+            // Normal
+            glm::vec3 normal(0.f, 0.f, -1.f);
+            if (idx.normal_index >= 0 &&
+                static_cast<size_t>(idx.normal_index * 3 + 2) <
+                    attrib.normals.size())
+            {
+                normal = glm::vec3(
+                    attrib.normals[idx.normal_index * 3 + 0],
+                    attrib.normals[idx.normal_index * 3 + 1],
+                    attrib.normals[idx.normal_index * 3 + 2]
+                );
+            }
+
+            // Tex coord
+            glm::vec2 tex(0.f, 0.f);
+            if (idx.texcoord_index >= 0 &&
+                static_cast<size_t>(idx.texcoord_index * 2 + 1) <
+                    attrib.texcoords.size())
+            {
+                tex = glm::vec2(
+                    attrib.texcoords[idx.texcoord_index * 2 + 0],
+                    attrib.texcoords[idx.texcoord_index * 2 + 1]
+                );
+            }
+
+            geometry.vertices.push_back(
+                {glm::vec4(position.x, position.y, position.z, 1.f),
+                 glm::vec4(tex.x, tex.y, 0.f, 0.f),
+                 glm::vec4(normal.x, normal.y, normal.z, 1.f)}
+            );
+
+            geometry.indices.push_back(
+                static_cast<uint16_t>(geometry.vertices.size() - 1)
+            );
+        }
+    }
+
+    processMeshlets(&geometry);
+
+    spdlog::info(
+        "Loaded OBJ '{}': {} vertices, {} indices", objFilePath,
+        geometry.vertices.size(), geometry.indices.size()
+    );
+    return geometry;
+}
+
+void ResourceManager::processMeshlets(Geometry *geometry)
+{
+    std::vector<glm::vec4> positions;
+
+    for (auto vertex : geometry->vertices)
+    {
+        positions.push_back(vertex.position);
+    }
+
+    const size_t kMaxVertices = 64;
+    const size_t kMaxTriangles = 124;
+    const float kConeWeight = 0.0f;
+
+    const size_t maxMeshlets = meshopt_buildMeshletsBound(
+        geometry->indices.size(), kMaxVertices, kMaxTriangles
+    );
+
+    geometry->meshlets.resize(maxMeshlets);
+    geometry->meshletVertices.resize(maxMeshlets * kMaxVertices);
+    geometry->meshletTriangles.resize(maxMeshlets * kMaxTriangles * 3);
+
+    size_t meshletCount = meshopt_buildMeshlets(
+        geometry->meshlets.data(), geometry->meshletVertices.data(),
+        geometry->meshletTriangles.data(),
+        reinterpret_cast<const uint32_t *>(geometry->indices.data()),
+        geometry->indices.size(),
+        reinterpret_cast<const float *>(positions.data()), positions.size(),
+        sizeof(glm::vec3), kMaxVertices, kMaxTriangles, kConeWeight
+    );
+
+    auto &last = geometry->meshlets[meshletCount - 1];
+    geometry->meshletVertices.resize(last.vertex_offset + last.vertex_count);
+    geometry->meshletTriangles.resize(
+        last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3)
+    );
+    geometry->meshlets.resize(meshletCount);
 }

@@ -54,7 +54,7 @@ target_link_libraries(
         glm::glm
         iron-stb
         tinyobjloader
-        meshopt
+        meshoptimizer
         Vulkan::Vulkan
         yaml-cpp
 )

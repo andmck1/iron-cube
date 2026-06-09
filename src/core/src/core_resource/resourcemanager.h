@@ -17,5 +17,7 @@ class ResourceManager : public IResourceManager
     static Geometry loadObj(std::string objFilePath);
 
     private:
+    static void processMeshlets(Geometry *geometry);
+
     std::unordered_map<std::string, Geometry> geometries_;
 };

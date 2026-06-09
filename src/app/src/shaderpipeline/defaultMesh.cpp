@@ -340,7 +340,7 @@ bool DefaultVulkanMeshShaderPipeline::update()
 
     const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
-    
+
     // MVP data
     MVPBuffer mvp{};
     mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
