@@ -6,6 +6,8 @@
 #include "core_render/vulkan/shaderpipeline.h"
 #include <vulkan/vulkan_raii.hpp>
 
+// TODO - a lot shared between this and default mesh, can probably create a
+// Vulkan Shader
 class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
 {
     public:

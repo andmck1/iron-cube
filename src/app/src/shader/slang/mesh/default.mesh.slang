@@ -12,10 +12,12 @@ StructuredBuffer<uint> TriangleIndices;
 [numthreads(128, 1, 1)]
 void main(
     uint gtid: SV_GroupThreadID, uint gid: SV_GroupID,
-    out indices uint3 triangles[128], out vertices VertexOutputType vertices[64]
+    in payload Payload payload, out indices uint3 triangles[128],
+    out vertices VertexOutputType vertices[64]
 )
 {
-    OptimisedMeshlet m = Meshlets[gid];
+    uint meshletIndex = payload.MeshletIndices[gid];
+    OptimisedMeshlet m = Meshlets[meshletIndex];
     SetMeshOutputCounts(m.VertexCount, m.TriangleCount);
 
     if (gtid < m.TriangleCount)

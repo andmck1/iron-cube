@@ -3,6 +3,8 @@
 #define N_MAX_TRIANGLES 124
 #define N_MAX_VERTICES 64
 
+#define AS_GROUP_SIZE 32
+
 #ifndef SHARED_TYPES_H
 #define SHARED_TYPES_H
 
@@ -67,6 +69,11 @@ struct MVPBuffer
 struct ModelData
 {
     uint32_t nVertices;
+};
+
+struct Payload
+{
+    uint MeshletIndices[AS_GROUP_SIZE];
 };
 
 #endif

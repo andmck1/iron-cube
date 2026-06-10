@@ -116,6 +116,13 @@ bool Application::initialiseShaders()
         "defaultVertex", std::move(defaultVertexShader)
     );
 
+    VulkanShaderConfig defaultTaskShaderConfig;
+    defaultTaskShaderConfig.path = "build/shader/slang/task/default.task.spv";
+
+    std::unique_ptr<VulkanShader> defaultTaskShader =
+        std::make_unique<VulkanShader>(defaultTaskShaderConfig);
+    shaderManager_.registerShader("defaultTask", std::move(defaultTaskShader));
+
     VulkanShaderConfig defaultMeshShaderConfig;
     defaultMeshShaderConfig.path = "build/shader/slang/mesh/default.mesh.spv";
 
@@ -182,7 +189,9 @@ bool Application::initialiseEntities(Scene *scene)
             "./assets/horse_statue"
         );
         resourceManager_.loadGeometry(name, geometry);
-        Transform transform = Transform{.scale = {10.f, 10.f, 10.f}};
+        Transform transform = Transform{
+            .position = {0.f, -1.f, 0.f}, .scale = {10.f, 10.f, 10.f}
+        };
         initialiseGeometry(scene, name, transform);
     }
 

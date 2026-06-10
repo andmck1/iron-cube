@@ -15,11 +15,8 @@ bool DefaultVulkanMeshShaderPipeline::init(
     return initPipeline(geometry);
 }
 
-// TODO - you can have the vertex and index buffers in one buffer and use
-// offsets (see tutorial on index buffer)
 // TODO - you can have a separate command pool for transfer instructions (see
 // same tutorial)
-//
 bool DefaultVulkanMeshShaderPipeline::initPipeline(Geometry *geometry)
 {
     geometry_ = geometry;
@@ -66,11 +63,19 @@ bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
 
     IShaderManager *shaderManager =
         ServiceLocator::instance().get<IShaderManager>();
+    VulkanShader *defaultTaskShader =
+        dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultTask"));
     VulkanShader *defaultMeshShader =
         dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultMesh"));
     VulkanShader *defaultFragmentShader = dynamic_cast<VulkanShader *>(
         shaderManager->getShader("defaultFragment")
     );
+
+    vk::PipelineShaderStageCreateInfo taskShaderStageInfo =
+        vk::PipelineShaderStageCreateInfo{}
+            .setStage(vk::ShaderStageFlagBits::eTaskEXT)
+            .setModule(defaultTaskShader->getShaderModule())
+            .setPName("main");
 
     vk::PipelineShaderStageCreateInfo meshShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
@@ -84,8 +89,8 @@ bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
             .setModule(defaultFragmentShader->getShaderModule())
             .setPName("main");
 
-    vk::PipelineShaderStageCreateInfo shaderStages[] = {
-        meshShaderStageInfo, fragShaderStageInfo
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = {
+        taskShaderStageInfo, meshShaderStageInfo, fragShaderStageInfo
     };
 
     std::vector<vk::DynamicState> dynamicStates = {
@@ -137,8 +142,8 @@ bool DefaultVulkanMeshShaderPipeline::initGraphicsPipeline()
 
     vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo =
         vk::GraphicsPipelineCreateInfo{}
-            .setStageCount(2)
-            .setPStages(shaderStages)
+            .setStageCount(shaderStages.size())
+            .setPStages(shaderStages.data())
             .setPViewportState(&viewportState)
             .setPRasterizationState(&rasteriser)
             .setPMultisampleState(&multisampling)
@@ -452,8 +457,10 @@ bool DefaultVulkanMeshShaderPipeline::draw()
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
-    renderer->getCommandBuffer().drawMeshTasksEXT(
-        geometry_->meshlets.size(), 1, 1
-    );
+    // TODO - wonder if you want to ensure that this is a nice number? eg 256,
+    // etc
+    uint32_t threadGroupCountX =
+        static_cast<uint32_t>((geometry_->meshlets.size() / AS_GROUP_SIZE) + 1);
+    renderer->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
     return true;
 }
