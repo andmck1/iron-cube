@@ -100,7 +100,7 @@ bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly =
         renderer->getInputAssembly();
 
-    vk::PipelineShaderStageCreateInfo shaderStages[] = {
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = {
         vertexShaderStageInfo, fragShaderStageInfo
     };
 
@@ -153,8 +153,8 @@ bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
 
     vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo =
         vk::GraphicsPipelineCreateInfo{}
-            .setStageCount(2)
-            .setPStages(shaderStages)
+            .setStageCount(shaderStages.size())
+            .setPStages(shaderStages.data())
             .setPVertexInputState(&vertexInputInfo)
             .setPInputAssemblyState(&inputAssembly)
             .setPViewportState(&viewportState)
