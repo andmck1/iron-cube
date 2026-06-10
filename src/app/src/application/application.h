@@ -37,8 +37,7 @@ class Application
     bool createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
     bool initialiseEntities(Scene *scene);
-    bool initialiseCube(Scene *scene);
-    bool initialiseTriangle(Scene *scene);
+    bool initialiseGeometry(Scene *scene, std::string name);
     bool initialiseCamera(Scene *scene);
     void handleInput();
     void mainLoop();
