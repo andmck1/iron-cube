@@ -8,6 +8,7 @@ StructuredBuffer<uint> VertexIndices;
 StructuredBuffer<uint> TriangleIndices;
 
 // TODO - use the defines for the triange and vertex limits??
+[shader("mesh")]
 [outputtopology("triangle")]
 [numthreads(128, 1, 1)]
 void main(
