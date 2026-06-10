@@ -3,6 +3,7 @@
 
 groupshared Payload sPayload;
 
+[shader("task")]
 [numthreads(AS_GROUP_SIZE, 1, 1)]
 void main(
     uint gtid: SV_GroupThreadID, uint dtid: SV_DispatchThreadID,
