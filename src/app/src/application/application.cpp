@@ -16,6 +16,7 @@
 #include "shaderpipeline/default.h"
 #include "shaderpipeline/defaultMesh.h"
 
+#include <format>
 #include <iostream>
 #include <spdlog/spdlog.h>
 
@@ -173,23 +174,23 @@ bool Application::initialiseEntities(Scene *scene)
     // camera must be first for the view matrix
     initialiseCamera(scene);
 
-    {
-        // horsie
-        std::string horseName = "horsie";
-        Geometry horseGeometry = ResourceManager::loadObj(
-            "assets/horse_statue/horse_statue_01_4k.obj"
-        );
-        resourceManager_.loadGeometry(horseName, horseGeometry);
-        initialiseGeometry(scene, horseName);
-    }
-
-    // {
-    //     // cube
-    //     std::string cubeName = "cube";
-    //     Geometry cubeGeometry = ResourceManager::generateProceduralCube();
-    //     resourceManager_.loadGeometry(cubeName, cubeGeometry);
-    //     initialiseGeometry(scene, cubeName);
+   // {
+    //     // horsie
+    //     std::string horseName = "horsie";
+    //     Geometry horseGeometry = ResourceManager::loadObj(
+    //         "assets/horse_statue/horse_statue_01_4k.obj"
+    //     );
+    //     resourceManager_.loadGeometry(horseName, horseGeometry);
+    //     initialiseGeometry(scene, horseName);
     // }
+
+    {
+        // cube
+        std::string cubeName = "cube";
+        Geometry cubeGeometry = ResourceManager::generateProceduralCube();
+        resourceManager_.loadGeometry(cubeName, cubeGeometry);
+        initialiseGeometry(scene, cubeName);
+    }
 
     spdlog::info("Finished initilising entities");
     return true;
@@ -228,7 +229,7 @@ bool Application::initialiseGeometry(Scene *scene, std::string name)
         std::make_unique<DefaultVulkanShaderPipeline>();
     auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
         shaderPipelineManager_.registerShaderPipeline(
-            "actorTraditional", std::move(actorShaderPipeline),
+            std::format("{}Traditional", name), std::move(actorShaderPipeline),
             std::move(actorShaderPipelineUpdateData)
         );
     // TODO - should init reference the pointer to this update data?
@@ -250,7 +251,7 @@ bool Application::initialiseGeometry(Scene *scene, std::string name)
     auto
         [registeredMeshShaderPipeline, registeredMeshShaderPipelineUpdateData] =
             shaderPipelineManager_.registerShaderPipeline(
-                "actorMesh", std::move(actorMeshShaderPipeline),
+                std::format("{}Mesh", name), std::move(actorMeshShaderPipeline),
                 std::move(actorMeshShaderPipelineUpdateData)
             );
     // TODO - should init reference the pointer to this update data?
@@ -354,37 +355,44 @@ void Application::checkForPipelineUpdates()
     {
         IShaderPipelineManager *shaderPipelineManager =
             ServiceLocator::instance().get<IShaderPipelineManager>();
-        IShaderPipeline *shaderPipeline = nullptr;
+        std::string shaderPipelineSuffix = "";
         switch (debugLayer_->shaderTypeUpdate)
         {
         case 0:
         {
-            shaderPipeline =
-                shaderPipelineManager->getShaderPipeline("triangleTraditional");
+            shaderPipelineSuffix = "Traditional";
             break;
         }
         case 1:
         {
-            shaderPipeline =
-                shaderPipelineManager->getShaderPipeline("triangleMesh");
+            shaderPipelineSuffix = "Mesh";
             break;
         }
         default:
         {
-            shaderPipeline =
-                shaderPipelineManager->getShaderPipeline("triangleTraditional");
+            shaderPipelineSuffix = "Traditional";
             break;
         }
         }
-        if (shaderPipeline)
+        const std::vector<std::unique_ptr<Entity>> &entities =
+            sceneLayer_->scene.getEntities();
+        for (const std::unique_ptr<Entity> &entity : entities)
         {
-            const std::vector<std::unique_ptr<Entity>> &entities =
-                sceneLayer_->scene.getEntities();
-            for (const std::unique_ptr<Entity> &entity : entities)
+            MeshComponent *meshComponent =
+                entity->getComponent<MeshComponent>();
+            if (meshComponent)
             {
-                MeshComponent *meshComp = entity->getComponent<MeshComponent>();
-                if (meshComp)
-                    meshComp->setShaderPipeline(shaderPipeline);
+                IShaderPipeline *shaderPipeline = nullptr;
+                shaderPipeline = shaderPipelineManager->getShaderPipeline(
+                    std::format("{}{}", entity->getName(), shaderPipelineSuffix)
+                );
+                if (shaderPipeline)
+                {
+                    MeshComponent *meshComp =
+                        entity->getComponent<MeshComponent>();
+                    if (meshComp)
+                        meshComp->setShaderPipeline(shaderPipeline);
+                }
             }
         }
     }
