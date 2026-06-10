@@ -20,14 +20,6 @@ void main(
 
     if (gtid < m.TriangleCount)
     {
-        //
-        // meshopt stores the triangle offset in bytes since it stores the
-        // triangle indices as 3 consecutive bytes.
-        //
-        // Since we repacked those 3 bytes to a 32-bit uint, our offset is now
-        // aligned to 4 and we can easily grab it as a uint without any
-        // additional offset math.
-        //
         uint packed = TriangleIndices[m.TriangleOffset + gtid];
         uint vIdx0 = (packed >> 0) & 0xFF;
         uint vIdx1 = (packed >> 8) & 0xFF;

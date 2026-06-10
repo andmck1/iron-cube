@@ -587,7 +587,11 @@ bool VulkanRenderer::beginFrame()
             vk::PipelineStageFlagBits2::eLateFragmentTests,
         vk::ImageAspectFlagBits::eDepth
     );
-    vk::ClearValue clearColour = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    // cornflour blue
+    // vk::ClearValue clearColour =
+    //     vk::ClearColorValue(100.f / 255.f, 149.f / 255.f, 237.f / 255.f, 1.0f);
+    vk::ClearValue clearColour =
+        vk::ClearColorValue(0.25f, 0.25f, 0.25f, 1.f);
     vk::RenderingAttachmentInfo attachmentInfo =
         vk::RenderingAttachmentInfo{}
             .setImageView(swapChainImageViews_[imageIndex])

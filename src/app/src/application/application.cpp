@@ -176,27 +176,32 @@ bool Application::initialiseEntities(Scene *scene)
 
     {
         // horsie
-        std::string horseName = "horsie";
-        Geometry horseGeometry = ResourceManager::loadObj(
-            "assets/horse_statue/horse_statue_01_4k.obj", "./assets/horse_statue"
+        std::string name = "horsie";
+        Geometry geometry = ResourceManager::loadObj(
+            "assets/horse_statue/horse_statue_01_4k.obj",
+            "./assets/horse_statue"
         );
-        resourceManager_.loadGeometry(horseName, horseGeometry);
-        initialiseGeometry(scene, horseName);
+        resourceManager_.loadGeometry(name, geometry);
+        Transform transform = Transform{.scale = {10.f, 10.f, 10.f}};
+        initialiseGeometry(scene, name, transform);
     }
 
-    // {
-    //     // cube
-    //     std::string cubeName = "cube";
-    //     Geometry cubeGeometry = ResourceManager::generateProceduralCube();
-    //     resourceManager_.loadGeometry(cubeName, cubeGeometry);
-    //     initialiseGeometry(scene, cubeName);
-    // }
+    {
+        // cube
+        std::string name = "";
+        Geometry geometry = ResourceManager::generateProceduralCube();
+        resourceManager_.loadGeometry(name, geometry);
+        Transform transform = Transform{.position = {3.f, 0.f, 0.f}};
+        initialiseGeometry(scene, name, transform);
+    }
 
     spdlog::info("Finished initilising entities");
     return true;
 }
 
-bool Application::initialiseGeometry(Scene *scene, std::string name)
+bool Application::initialiseGeometry(
+    Scene *scene, std::string name, Transform transform
+)
 {
     spdlog::debug("Initialising entity: {}", name);
 
@@ -213,7 +218,9 @@ bool Application::initialiseGeometry(Scene *scene, std::string name)
         meshManager_.registerMesh(name, std::move(actorMesh));
 
     // transform component
-    auto _ = actorPtr->getComponent<TransformComponent>();
+    TransformComponent *transformComponent =
+        actorPtr->getComponent<TransformComponent>();
+    transformComponent->setTransform(transform);
 
     // mesh component
     MeshComponent *meshComponent = actorPtr->getComponent<MeshComponent>();

@@ -3,6 +3,7 @@
 #include "core_actor/camera.h"
 #include "core_common/logger.h"
 #include "core_common/timer.h"
+#include "core_common/types.h"
 #include "core_layer/debug.h"
 #include "core_layer/debuglayerdata.h"
 #include "core_layer/scene.h"
@@ -37,7 +38,8 @@ class Application
     bool createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
     bool initialiseEntities(Scene *scene);
-    bool initialiseGeometry(Scene *scene, std::string name);
+    bool
+    initialiseGeometry(Scene *scene, std::string name, Transform transform);
     bool initialiseCamera(Scene *scene);
     void handleInput();
     void mainLoop();
