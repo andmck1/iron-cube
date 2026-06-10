@@ -18,7 +18,7 @@
 #include <memory>
 #include <vector>
 
-static constexpr float MOUSE_SENSITIVITY = 0.05f;
+static constexpr float MOUSE_SENSITIVITY = 1.5f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
 
 class Application

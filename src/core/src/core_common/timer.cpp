@@ -4,6 +4,7 @@
 Timer::Timer() : lastTime_(std::chrono::steady_clock::now())
 {
     spdlog::debug("Timer initialized");
+    lastFpsUpdateTime_ = lastTime_;
     frameTimes_.reserve(MAX_N_FRAMES);
 }
 
@@ -11,8 +12,11 @@ void Timer::reset()
 {
     spdlog::debug("Timer reset");
     lastTime_ = std::chrono::steady_clock::now();
+    lastFpsUpdateTime_ = lastTime_;
     fps_ = 0.0f;
     frameTime_ = 0.0f;
+    accumulatedDelta_ = 0.0f;
+    frameCount_ = 0;
     frameTimes_.clear();
 }
 
@@ -24,20 +28,21 @@ void Timer::tick()
     lastTime_ = currentTime;
 
     frameTime_ = static_cast<float>(delta * 1000.0f);
-    fps_ = delta > 0 ? static_cast<float>(1.0f / delta) : 0.0f;
+
+    accumulatedDelta_ += static_cast<float>(delta);
+    frameCount_++;
+
+    if (accumulatedDelta_ >= FPS_UPDATE_INTERVAL)
+    {
+        fps_ = static_cast<float>(frameCount_ / accumulatedDelta_);
+        accumulatedDelta_ = 0.0f;
+        frameCount_ = 0;
+        lastFpsUpdateTime_ = currentTime;
+    }
 
     frameTimes_.push_back(frameTime_);
     if (frameTimes_.size() > MAX_N_FRAMES)
         frameTimes_.erase(frameTimes_.begin());
-
-    static int tickCount = 0;
-    if (++tickCount % 100 == 0)
-    {
-        // spdlog::debug(
-        //     "Timer tick - FPS: {:.2f}, Frame Time: {:.2f}ms", fps_,
-        //     frameTime_
-        // );
-    }
 }
 
 float Timer::getFps() const

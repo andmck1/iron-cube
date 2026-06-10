@@ -376,10 +376,16 @@ bool VulkanRenderer::createSwapChain()
         physicalDevice_.getSurfaceFormatsKHR(*surface_);
     swapChainSurfaceFormat_ = chooseSwapSurfaceFormat(availableFormats);
 
-    std::vector<vk::PresentModeKHR> availablePresentModes =
-        physicalDevice_.getSurfacePresentModesKHR(*surface_);
-    vk::PresentModeKHR presentMode =
-        chooseSwapPresentMode(availablePresentModes);
+    // Forcing off Vsync to uncap fps
+    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eMailbox;
+    // std::vector<vk::PresentModeKHR> availablePresentModes =
+    //     physicalDevice_.getSurfacePresentModesKHR(*surface_);
+    // vk::PresentModeKHR presentMode =
+    //     chooseSwapPresentMode(availablePresentModes);
+    spdlog::info(
+        "Selected present mode: {}",
+        presentMode == vk::PresentModeKHR::eMailbox ? "MAILBOX" : "FIFO"
+    );
 
     vk::SwapchainCreateInfoKHR swapChainCreateInfo =
         vk::SwapchainCreateInfoKHR{}
@@ -589,9 +595,9 @@ bool VulkanRenderer::beginFrame()
     );
     // cornflour blue
     // vk::ClearValue clearColour =
-    //     vk::ClearColorValue(100.f / 255.f, 149.f / 255.f, 237.f / 255.f, 1.0f);
-    vk::ClearValue clearColour =
-        vk::ClearColorValue(0.25f, 0.25f, 0.25f, 1.f);
+    //     vk::ClearColorValue(100.f / 255.f, 149.f / 255.f, 237.f /
+    //     255.f, 1.0f);
+    vk::ClearValue clearColour = vk::ClearColorValue(0.25f, 0.25f, 0.25f, 1.f);
     vk::RenderingAttachmentInfo attachmentInfo =
         vk::RenderingAttachmentInfo{}
             .setImageView(swapChainImageViews_[imageIndex])
