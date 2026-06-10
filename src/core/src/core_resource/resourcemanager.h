@@ -14,7 +14,7 @@ class ResourceManager : public IResourceManager
     static Geometry generateProceduralTriangle();
     static Geometry generateProceduralRectangle();
     static Geometry generateProceduralCube();
-    static Geometry loadObj(std::string objFilePath);
+    static Geometry loadObj(std::string objFilePath, std::string objBaseDir);
 
     private:
     static void processMeshlets(Geometry *geometry);

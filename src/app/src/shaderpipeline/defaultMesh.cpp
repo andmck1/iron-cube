@@ -253,7 +253,7 @@ bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
         sizeof(uint32_t) * geometry_->meshletVertices.size();
     vk::DeviceSize meshletTrianglesBufferSize =
         sizeof(uint32_t) * geometry_->meshletTrianglesU32.size();
-    //
+
     vertexBuffer_.init(vertexBufferSize, geometry_->vertices.data());
     meshletBuffer_.init(meshletBufferSize, geometry_->meshlets.data());
     meshletVerticesBuffer_.init(
@@ -270,7 +270,7 @@ bool DefaultVulkanMeshShaderPipeline::createDescriptorPool()
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
-    
+
     // TODO - generalise this hardcoded *4 - can I have a vector of buffers?
     std::vector<vk::DescriptorPoolSize> poolSizes = {
         vk::DescriptorPoolSize{}

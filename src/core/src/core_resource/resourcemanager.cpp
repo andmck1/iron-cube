@@ -263,7 +263,8 @@ Geometry ResourceManager::generateProceduralCube()
 
 // AI helped with this
 // Really useful example where this has just worked
-Geometry ResourceManager::loadObj(std::string objFilePath)
+Geometry
+ResourceManager::loadObj(std::string objFilePath, std::string objBaseDir)
 {
     Geometry geometry;
 
@@ -273,7 +274,8 @@ Geometry ResourceManager::loadObj(std::string objFilePath)
 
     std::string warn, err;
     bool res = tinyobj::LoadObj(
-        &attrib, &shapes, &materials, &warn, &err, objFilePath.c_str()
+        &attrib, &shapes, &materials, &warn, &err, objFilePath.c_str(),
+        objBaseDir.c_str()
     );
 
     if (!warn.empty())

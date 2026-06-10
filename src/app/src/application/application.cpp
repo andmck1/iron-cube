@@ -174,23 +174,23 @@ bool Application::initialiseEntities(Scene *scene)
     // camera must be first for the view matrix
     initialiseCamera(scene);
 
-   // {
-    //     // horsie
-    //     std::string horseName = "horsie";
-    //     Geometry horseGeometry = ResourceManager::loadObj(
-    //         "assets/horse_statue/horse_statue_01_4k.obj"
-    //     );
-    //     resourceManager_.loadGeometry(horseName, horseGeometry);
-    //     initialiseGeometry(scene, horseName);
-    // }
-
     {
-        // cube
-        std::string cubeName = "cube";
-        Geometry cubeGeometry = ResourceManager::generateProceduralCube();
-        resourceManager_.loadGeometry(cubeName, cubeGeometry);
-        initialiseGeometry(scene, cubeName);
+        // horsie
+        std::string horseName = "horsie";
+        Geometry horseGeometry = ResourceManager::loadObj(
+            "assets/horse_statue/horse_statue_01_4k.obj", "./assets/horse_statue"
+        );
+        resourceManager_.loadGeometry(horseName, horseGeometry);
+        initialiseGeometry(scene, horseName);
     }
+
+    // {
+    //     // cube
+    //     std::string cubeName = "cube";
+    //     Geometry cubeGeometry = ResourceManager::generateProceduralCube();
+    //     resourceManager_.loadGeometry(cubeName, cubeGeometry);
+    //     initialiseGeometry(scene, cubeName);
+    // }
 
     spdlog::info("Finished initilising entities");
     return true;
@@ -232,7 +232,7 @@ bool Application::initialiseGeometry(Scene *scene, std::string name)
             std::format("{}Traditional", name), std::move(actorShaderPipeline),
             std::move(actorShaderPipelineUpdateData)
         );
-    // TODO - should init reference the pointer to this update data?
+
     registeredShaderPipeline->init(
         registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
     );

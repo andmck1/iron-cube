@@ -64,66 +64,15 @@ bool DebugLayer::frame()
     }
 
     // Shader type
-    // TODO - use vector and .size
-    const char *shaderTypes[] = {"Traditional", "Mesh"};
+    std::vector<const char *> shaderTypes = {"Traditional", "Mesh"};
     static int selectedShaderType = 0;
     if (ImGui::Combo(
-            "Shader Type", &selectedShaderType, shaderTypes,
-            IM_ARRAYSIZE(shaderTypes)
+            "Shader Type", &selectedShaderType, shaderTypes.data(),
+            shaderTypes.size()
         ))
         shaderTypeUpdate = selectedShaderType;
     else
         shaderTypeUpdate = -1;
-
-    // // Iterate all entities with TransformComponent + MeshComponent
-    // if (debugData_->scene)
-    // {
-    //     const std::vector<std::unique_ptr<Entity>> &entities =
-    //         debugData_->scene->getEntities();
-    //     for (const std::unique_ptr<Entity> &entity : entities)
-    //     {
-    //         TransformComponent *transformComp =
-    //             entity->getComponent<TransformComponent>();
-    //         MeshComponent *meshComp = entity->getComponent<MeshComponent>();
-    //
-    //         if (!transformComp || !meshComp)
-    //             continue;
-    //
-    //         const std::string &entityName = entity->getName();
-    //
-    //         // Sync current transform from component into our local storage
-    //         auto it = entityTransforms_.find(entityName);
-    //         if (it == entityTransforms_.end())
-    //         {
-    //             entityTransforms_[entityName] =
-    //             transformComp->getTransform();
-    //         }
-    //         Transform &localTransform = entityTransforms_[entityName];
-    //
-    //         // Entity header
-    //         ImGui::Text("%s Transform", entityName.c_str());
-    //         ImGui::Separator();
-    //
-    //         std::string posId = "Position##" + entityName;
-    //         std::string rotId = "Rotation##" + entityName;
-    //         std::string scaleId = "Scale##" + entityName;
-    //
-    //         ImGui::SliderFloat3(
-    //             posId.c_str(), &localTransform.position.x, -5.0f, 5.0f
-    //         );
-    //         ImGui::SliderFloat3(
-    //             rotId.c_str(), &localTransform.rotation.x, -3.0f, 3.0f
-    //         );
-    //         ImGui::SliderFloat3(
-    //             scaleId.c_str(), &localTransform.scale.x, 0.1f, 5.0f, "%.2f"
-    //         );
-    //
-    //         // Write transform back to component
-    //         transformComp->setTransform(localTransform);
-    //
-    //         ImGui::Separator();
-    //     }
-    // }
 
     ImGui::End();
 
