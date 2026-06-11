@@ -73,7 +73,6 @@ struct SceneBuffer
     uint meshletCount;
 };
 
-
 // Mental note - 32 bits in a float4 and must be in groups of 32 bits
 struct ModelData
 {

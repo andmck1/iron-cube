@@ -17,22 +17,22 @@ void main(
     out vertices VertexOutputType vertices[64]
 )
 {
-    uint meshletIndex = payload.MeshletIndices[gid];
+    uint meshletIndex = payload.meshletIndices[gid];
     OptimisedMeshlet m = Meshlets[meshletIndex];
-    SetMeshOutputCounts(m.VertexCount, m.TriangleCount);
+    SetMeshOutputCounts(m.vertexCount, m.triangleCount);
 
-    if (gtid < m.TriangleCount)
+    if (gtid < m.triangleCount)
     {
-        uint packed = TriangleIndices[m.TriangleOffset + gtid];
+        uint packed = TriangleIndices[m.triangleOffset + gtid];
         uint vIdx0 = (packed >> 0) & 0xFF;
         uint vIdx1 = (packed >> 8) & 0xFF;
         uint vIdx2 = (packed >> 16) & 0xFF;
         triangles[gtid] = uint3(vIdx0, vIdx1, vIdx2);
     }
 
-    if (gtid < m.VertexCount)
+    if (gtid < m.vertexCount)
     {
-        uint vertexIndex = m.VertexOffset + gtid;
+        uint vertexIndex = m.vertexOffset + gtid;
         vertexIndex = VertexIndices[vertexIndex];
 
         float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, mvp.model));

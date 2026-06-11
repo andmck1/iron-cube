@@ -10,6 +10,6 @@ void main(
     uint gid: SV_GroupID
 )
 {
-    sPayload.MeshletIndices[gtid] = dtid;
+    sPayload.meshletIndices[gtid] = dtid;
     DispatchMesh(AS_GROUP_SIZE, 1, 1, sPayload);
 }
