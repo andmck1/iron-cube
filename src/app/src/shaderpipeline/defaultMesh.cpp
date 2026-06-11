@@ -374,6 +374,10 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
             descriptorSets_[i], 4, &meshletTrianglesBuffer_, descriptorWrites,
             bufferInfos
         );
+        addStorageBufferWrite(
+            descriptorSets_[i], 4, &instancesBuffer_, descriptorWrites,
+            bufferInfos
+        );
 
         renderer->getDevice().updateDescriptorSets(descriptorWrites, {});
     }
@@ -481,13 +485,11 @@ bool DefaultVulkanMeshShaderPipeline::update()
     );
 
     // instances data
-    void *pDst = nullptr;
-    CHECK_CALL(vmaMapMemory(
-        renderer.get()->Allocator, instancesBuffer.Allocation,
-        reinterpret_cast<void **>(&pDst)
-    ));
-    memcpy(pDst, instances.data(), SizeInBytes(instances));
-    vmaUnmapMemory(renderer.get()->Allocator, instancesBuffer.Allocation);
+    vk::DeviceSize instancesBufferSize =
+        sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
+    instancesBuffer_.update(
+        instancesBufferSize, defaultUpdateData.instances->data()
+    );
 
     return true;
 }

@@ -11,7 +11,7 @@ class DefaultMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     public:
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
-    std::vector<Instance> *instances;
+    std::vector<Instance> *instances = nullptr;
 };
 
 class VulkanUniformBuffer
