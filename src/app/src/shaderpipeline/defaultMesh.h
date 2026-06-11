@@ -11,6 +11,9 @@ class DefaultMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     public:
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
+    std::vector<glm::mat4x4> *instances;
+    const uint32_t kInstanceCols = 20;
+    const uint32_t kInstanceRows = 10;
 };
 
 class VulkanUniformBuffer
@@ -50,10 +53,12 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     VulkanBuffer meshletBuffer_;
     VulkanBuffer meshletVerticesBuffer_;
     VulkanBuffer meshletTrianglesBuffer_;
+    VulkanBuffer instancesBuffer_;
 
     std::vector<VulkanUniformBuffer> sceneBuffers_;
 
     Geometry *geometry_ = nullptr;
+    std::vector<glm::mat4x4> instances;
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);

@@ -6,6 +6,7 @@
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
 #include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 
 bool VulkanUniformBuffer::init(
     vk::DeviceSize bufferSize, vk::BufferUsageFlags usage,
@@ -266,15 +267,7 @@ bool DefaultVulkanMeshShaderPipeline::initUniformBuffers()
             vk::MemoryPropertyFlagBits::eHostVisible |
                 vk::MemoryPropertyFlagBits::eHostCoherent
         );
-        mvpBuffers_.emplace_back(std::move(mvpBuffer));
-
-        VulkanUniformBuffer instancesBuffer;
-        instancesBuffer.init(
-            sizeof(MVPBuffer), vk::BufferUsageFlagBits::eUniformBuffer,
-            vk::MemoryPropertyFlagBits::eHostVisible |
-                vk::MemoryPropertyFlagBits::eHostCoherent
-        );
-        instancesBuffers_.emplace_back(std::move(mvpBuffer));
+        sceneBuffers_.emplace_back(std::move(mvpBuffer));
     }
 
     return true;
@@ -299,6 +292,7 @@ bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
     meshletTrianglesBuffer_.init(
         meshletTrianglesBufferSize, geometry_->meshletTrianglesU32.data()
     );
+    instancesBuffer_.init(instancesBufferSize, );
     return true;
 }
 
@@ -476,29 +470,6 @@ bool DefaultVulkanMeshShaderPipeline::update()
     sceneData.projection[1][1] *= -1;
 
     // // instances scene data
-    float maxSpan = std::max<float>(meshBounds.Width(), meshBounds.Depth());
-    float instanceSpanX = 2.0f * maxSpan;
-    float instanceSpanZ = 4.5f * maxSpan;
-    float totalSpanX = kNumInstanceCols * instanceSpanX;
-    float totalSpanZ = kNumInstanceRows * instanceSpanZ;
-
-    for (uint32_t j = 0; j < kNumInstanceRows; ++j)
-    {
-        for (uint32_t i = 0; i < kNumInstanceCols; ++i)
-        {
-            float x =
-                i * instanceSpanX - (totalSpanX / 2.0f) + instanceSpanX / 2.0f;
-            float y = 0;
-            float z =
-                j * instanceSpanZ - (totalSpanZ / 2.0f) - 2.15f * instanceSpanZ;
-
-            uint32_t index = j * kNumInstanceCols + i;
-            float t = static_cast<float>(glfwGetTime()) + ((i ^ j + i) / 10.0f);
-            instances[index] = glm::translate(glm::vec3(x, y, z)) *
-                               glm::rotate(t, glm::vec3(0, 1, 0));
-        }
-    }
-
     memcpy(
         sceneBuffers_[renderer->getCurrentFrameIndex()].getMappedPointer(),
         &sceneData, sizeof(sceneData)

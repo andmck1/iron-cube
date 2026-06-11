@@ -20,6 +20,8 @@
 
 static constexpr float MOUSE_SENSITIVITY = 1.5f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
+static constexpr uint32_t N_INSTANCE_COLUMNS = 20;
+static constexpr uint32_t N_INSTANCE_ROWS = 10;
 
 class Application
 {
@@ -42,6 +44,8 @@ class Application
     initialiseGeometry(Scene *scene, std::string name, Transform transform);
     bool initialiseCamera(Scene *scene);
     void handleInput();
+    // TODO - should this go somewhere else?
+    void updateEntities();
     void mainLoop();
 
     void checkForPipelineUpdates();

@@ -18,6 +18,7 @@ class ResourceManager : public IResourceManager
 
     private:
     static void processMeshlets(Geometry *geometry);
+    static void calculateMeshBounds(Geometry *geometry);
 
     std::unordered_map<std::string, Geometry> geometries_;
 };
