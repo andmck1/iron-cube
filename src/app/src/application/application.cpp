@@ -359,6 +359,11 @@ void Application::mainLoop()
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
         updateEntities();
+
+        for (std::unique_ptr<ILayer> &layer : layers_)
+        {
+            layer->update();
+        }
         renderer_.beginFrame();
         for (std::unique_ptr<ILayer> &layer : layers_)
         {

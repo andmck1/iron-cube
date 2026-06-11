@@ -9,5 +9,6 @@ class SceneLayer : public ILayer
     Scene scene = Scene();
 
     bool initialise() override;
+    bool update() override;
     bool frame() override;
 };

@@ -81,3 +81,8 @@ bool DebugLayer::frame()
 
     return true;
 }
+
+bool DebugLayer::update()
+{
+    return true;
+}

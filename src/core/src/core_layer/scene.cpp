@@ -5,6 +5,7 @@
 #include "core_render/irenderer.h"
 #include <spdlog/spdlog.h>
 
+// TODO - this isn't part of core, but part of the app no?
 bool SceneLayer::initialise()
 {
     spdlog::debug("Initialising SceneLayer");
@@ -24,6 +25,21 @@ bool SceneLayer::frame()
             sceneEntity->getComponent<MeshComponent>();
         if (entityMeshComponent != nullptr)
             entityMeshComponent->render();
+    }
+    return true;
+}
+
+bool SceneLayer::update()
+{
+    IRenderer *renderer_ = ServiceLocator::instance().get<IRenderer>();
+    if (!renderer_)
+        return false;
+    for (const std::unique_ptr<Entity> &sceneEntity : scene.getEntities())
+    {
+        MeshComponent *entityMeshComponent =
+            sceneEntity->getComponent<MeshComponent>();
+        if (entityMeshComponent != nullptr)
+            entityMeshComponent->update();
     }
     return true;
 }

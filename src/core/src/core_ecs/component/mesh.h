@@ -11,6 +11,7 @@ class MeshComponent : public Component
     public:
     void setMesh(Mesh *mesh);
     void setShaderPipeline(IShaderPipeline *shaderPipeline);
+    bool update();
     bool render();
 
     Mesh *getMesh() const;

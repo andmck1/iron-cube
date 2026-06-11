@@ -21,6 +21,22 @@ IShaderPipeline *MeshComponent::getShaderPipeline() const
     return shaderPipeline_;
 }
 
+bool MeshComponent::update()
+{
+
+    spdlog::debug(
+        "Updating MeshComponent for entity: {}", getOwner()->getName()
+    );
+
+    if (!shaderPipeline_->update())
+        return false;
+    
+    spdlog::debug(
+        "Finished updating MeshComponent for entity: {}", getOwner()->getName()
+    );
+    return true;
+}
+
 bool MeshComponent::render()
 {
     spdlog::debug(
@@ -32,8 +48,6 @@ bool MeshComponent::render()
         return false;
 
     if (!shaderPipeline_->bind())
-        return false;
-    if (!shaderPipeline_->update())
         return false;
     if (!shaderPipeline_->draw())
         return false;
