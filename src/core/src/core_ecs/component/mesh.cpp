@@ -30,7 +30,7 @@ bool MeshComponent::update()
 
     if (!shaderPipeline_->update())
         return false;
-    
+
     spdlog::debug(
         "Finished updating MeshComponent for entity: {}", getOwner()->getName()
     );

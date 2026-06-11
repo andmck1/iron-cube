@@ -75,7 +75,7 @@ bool DefaultVulkanMeshShaderPipeline::shutdown()
     meshletBuffer_ = VulkanBuffer();
     meshletVerticesBuffer_ = VulkanBuffer();
     meshletTrianglesBuffer_ = VulkanBuffer();
-    instancesBuffer_ = VulkanBuffer();
+    instancesBuffers_ = std::vector<VulkanBuffer>();
 
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
@@ -285,6 +285,10 @@ bool DefaultVulkanMeshShaderPipeline::initUniformBuffers()
 
 bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
 {
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
     const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
 
@@ -307,9 +311,15 @@ bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
     meshletTrianglesBuffer_.init(
         meshletTrianglesBufferSize, geometry_->meshletTrianglesU32.data()
     );
-    instancesBuffer_.init(
-        instancesBufferSize, defaultUpdateData.instances->data()
-    );
+
+    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        VulkanBuffer instancesBuffer;
+        instancesBuffer.init(
+            instancesBufferSize, defaultUpdateData.instances->data()
+        );
+        instancesBuffers_.emplace_back(std::move(instancesBuffer));
+    }
     return true;
 }
 
@@ -386,7 +396,7 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
             bufferInfos
         );
         addStorageBufferWrite(
-            descriptorSets_[i], 5, &instancesBuffer_, descriptorWrites,
+            descriptorSets_[i], 5, &instancesBuffers_[i], descriptorWrites,
             bufferInfos
         );
 
@@ -502,7 +512,7 @@ bool DefaultVulkanMeshShaderPipeline::update()
     // instances data
     vk::DeviceSize instancesBufferSize =
         sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
-    instancesBuffer_.update(
+    instancesBuffers_[renderer->getCurrentFrameIndex()].update(
         instancesBufferSize, defaultUpdateData.instances->data()
     );
 

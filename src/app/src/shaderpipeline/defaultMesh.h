@@ -51,7 +51,7 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     VulkanBuffer meshletBuffer_;
     VulkanBuffer meshletVerticesBuffer_;
     VulkanBuffer meshletTrianglesBuffer_;
-    VulkanBuffer instancesBuffer_;
+    std::vector<VulkanBuffer> instancesBuffers_;
 
     std::vector<VulkanUniformBuffer> sceneBuffers_;
 
