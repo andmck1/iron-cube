@@ -316,8 +316,7 @@ bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
     {
         VulkanUniformBuffer instancesBuffer;
         instancesBuffer.init(
-            instancesBufferSize,
-            vk::BufferUsageFlagBits::eStorageBuffer,
+            instancesBufferSize, vk::BufferUsageFlagBits::eStorageBuffer,
             vk::MemoryPropertyFlagBits::eHostVisible |
                 vk::MemoryPropertyFlagBits::eHostCoherent
         );
