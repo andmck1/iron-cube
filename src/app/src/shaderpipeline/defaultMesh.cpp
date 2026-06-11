@@ -7,6 +7,34 @@
 #include "core_service/servicelocator.h"
 #include "glm/ext/matrix_clip_space.hpp"
 
+bool VulkanUniformBuffer::init(
+    vk::DeviceSize bufferSize, vk::BufferUsageFlags usage,
+    vk::MemoryPropertyFlags properties
+)
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    auto [buffer, bufferMem] =
+        renderer->createBuffer(bufferSize, usage, properties);
+    buffer_ = std::move(buffer);
+    bufferMemory_ = std::move(bufferMem);
+    mappedPointer_ = bufferMemory_.mapMemory(0, bufferSize);
+
+    return true;
+}
+
+vk::raii::Buffer *VulkanUniformBuffer::getBuffer()
+{
+    return &buffer_;
+}
+
+void *VulkanUniformBuffer::getMappedPointer()
+{
+    return mappedPointer_;
+}
+
 bool DefaultVulkanMeshShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
 )
@@ -232,17 +260,21 @@ bool DefaultVulkanMeshShaderPipeline::initUniformBuffers()
     );
     for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
     {
-        vk::DeviceSize bufferSize = sizeof(MVPBuffer);
-        auto [buffer, bufferMem] = renderer->createBuffer(
-            bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+        VulkanUniformBuffer mvpBuffer;
+        mvpBuffer.init(
+            sizeof(MVPBuffer), vk::BufferUsageFlagBits::eUniformBuffer,
             vk::MemoryPropertyFlagBits::eHostVisible |
                 vk::MemoryPropertyFlagBits::eHostCoherent
         );
-        uniformBuffers.emplace_back(std::move(buffer));
-        uniformBuffersMemory.emplace_back(std::move(bufferMem));
-        uniformBuffersMapped.emplace_back(
-            uniformBuffersMemory.back().mapMemory(0, bufferSize)
+        mvpBuffers_.emplace_back(std::move(mvpBuffer));
+
+        VulkanUniformBuffer instancesBuffer;
+        instancesBuffer.init(
+            sizeof(MVPBuffer), vk::BufferUsageFlagBits::eUniformBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible |
+                vk::MemoryPropertyFlagBits::eHostCoherent
         );
+        instancesBuffers_.emplace_back(std::move(mvpBuffer));
     }
 
     return true;
@@ -324,8 +356,8 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
         bufferInfos.reserve(5);
 
         addUniformBufferWrite(
-            descriptorSets_[i], 0, &uniformBuffers[i], sizeof(MVPBuffer),
-            descriptorWrites, bufferInfos
+            descriptorSets_[i], 0, mvpBuffers_[i].getBuffer(),
+            sizeof(MVPBuffer), descriptorWrites, bufferInfos
         );
         addStorageBufferWrite(
             descriptorSets_[i], 1, &vertexBuffer_, descriptorWrites, bufferInfos
@@ -432,21 +464,44 @@ bool DefaultVulkanMeshShaderPipeline::update()
     const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
 
-    // MVP data
-    MVPBuffer mvp{};
-    mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
-                     ->getTransformMatrixRef();
-    mvp.view = *defaultUpdateData.camera->getViewMatrixRef();
-    mvp.projection = glm::perspective(
+    // scene data
+    SceneBuffer sceneData{};
+    sceneData.view = *defaultUpdateData.camera->getViewMatrixRef();
+    sceneData.projection = glm::perspective(
         glm::radians(45.0f),
         static_cast<float>(renderer->getSwapChainExtent().width) /
             static_cast<float>(renderer->getSwapChainExtent().height),
         0.1f, 10.0f
     );
-    mvp.projection[1][1] *= -1;
+    sceneData.projection[1][1] *= -1;
+
+    // // instances scene data
+    float maxSpan = std::max<float>(meshBounds.Width(), meshBounds.Depth());
+    float instanceSpanX = 2.0f * maxSpan;
+    float instanceSpanZ = 4.5f * maxSpan;
+    float totalSpanX = kNumInstanceCols * instanceSpanX;
+    float totalSpanZ = kNumInstanceRows * instanceSpanZ;
+
+    for (uint32_t j = 0; j < kNumInstanceRows; ++j)
+    {
+        for (uint32_t i = 0; i < kNumInstanceCols; ++i)
+        {
+            float x =
+                i * instanceSpanX - (totalSpanX / 2.0f) + instanceSpanX / 2.0f;
+            float y = 0;
+            float z =
+                j * instanceSpanZ - (totalSpanZ / 2.0f) - 2.15f * instanceSpanZ;
+
+            uint32_t index = j * kNumInstanceCols + i;
+            float t = static_cast<float>(glfwGetTime()) + ((i ^ j + i) / 10.0f);
+            instances[index] = glm::translate(glm::vec3(x, y, z)) *
+                               glm::rotate(t, glm::vec3(0, 1, 0));
+        }
+    }
+
     memcpy(
-        uniformBuffersMapped[renderer->getCurrentFrameIndex()], &mvp,
-        sizeof(mvp)
+        sceneBuffers_[renderer->getCurrentFrameIndex()].getMappedPointer(),
+        &sceneData, sizeof(sceneData)
     );
 
     return true;
