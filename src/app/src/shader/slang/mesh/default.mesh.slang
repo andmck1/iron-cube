@@ -37,7 +37,9 @@ void main(
         vertexIndex = vertexIndices[vertexIndex];
 
         float4x4 mvpMatrix =
-            mul(scene.projection, mul(scene.view, instances[0].transform));
+            mul(scene.projection,
+                mul(scene.view,
+                    float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)));
         vertices[gtid].position =
             mul(mvpMatrix, modelVertices[vertexIndex].position);
 

@@ -75,6 +75,7 @@ bool DefaultVulkanMeshShaderPipeline::shutdown()
     meshletBuffer_ = VulkanBuffer();
     meshletVerticesBuffer_ = VulkanBuffer();
     meshletTrianglesBuffer_ = VulkanBuffer();
+    instancesBuffer_ = VulkanBuffer();
 
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
@@ -238,9 +239,16 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
             .setDescriptorCount(1)
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
 
+    vk::DescriptorSetLayoutBinding instancesBinding =
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(5)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
+
     std::vector<vk::DescriptorSetLayoutBinding> bindings = {
         mvpLayoutBinding, vertexBufferBinding, meshletBufferBinding,
-        meshletVerticesBinding, meshletTrianglesBinding
+        meshletVerticesBinding, meshletTrianglesBinding, instancesBinding
     };
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo =
@@ -315,7 +323,7 @@ bool DefaultVulkanMeshShaderPipeline::createDescriptorPool()
             .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT),
         vk::DescriptorPoolSize{}
             .setType(vk::DescriptorType::eStorageBuffer)
-            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT * 4)
+            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT * 5)
     };
 
     vk::DescriptorPoolCreateInfo poolInfo =
@@ -352,8 +360,8 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
     {
         std::vector<vk::WriteDescriptorSet> descriptorWrites;
         std::vector<vk::DescriptorBufferInfo> bufferInfos;
-        descriptorWrites.reserve(5);
-        bufferInfos.reserve(5);
+        descriptorWrites.reserve(6);
+        bufferInfos.reserve(6);
 
         addUniformBufferWrite(
             descriptorSets_[i], 0, sceneBuffers_[i].getBuffer(),
@@ -375,7 +383,7 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
             bufferInfos
         );
         addStorageBufferWrite(
-            descriptorSets_[i], 4, &instancesBuffer_, descriptorWrites,
+            descriptorSets_[i], 5, &instancesBuffer_, descriptorWrites,
             bufferInfos
         );
 
@@ -485,11 +493,11 @@ bool DefaultVulkanMeshShaderPipeline::update()
     );
 
     // instances data
-    vk::DeviceSize instancesBufferSize =
-        sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
-    instancesBuffer_.update(
-        instancesBufferSize, defaultUpdateData.instances->data()
-    );
+    // vk::DeviceSize instancesBufferSize =
+    //     sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
+    // instancesBuffer_.update(
+    //     instancesBufferSize, defaultUpdateData.instances->data()
+    // );
 
     return true;
 }
