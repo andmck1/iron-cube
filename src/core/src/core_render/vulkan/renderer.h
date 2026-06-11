@@ -37,6 +37,8 @@ class VulkanRenderer : public IRenderer
     uint32_t
     findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 
+    void waitForCurrentFrameFence();
+
     std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> createBuffer(
         vk::DeviceSize size, vk::BufferUsageFlags usage,
         vk::MemoryPropertyFlags properties

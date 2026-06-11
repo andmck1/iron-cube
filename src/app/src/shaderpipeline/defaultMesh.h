@@ -51,7 +51,7 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     VulkanBuffer meshletBuffer_;
     VulkanBuffer meshletVerticesBuffer_;
     VulkanBuffer meshletTrianglesBuffer_;
-    std::vector<VulkanBuffer> instancesBuffers_;
+    std::vector<VulkanUniformBuffer> instancesBuffers_;
 
     std::vector<VulkanUniformBuffer> sceneBuffers_;
 
@@ -75,6 +75,12 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     void addStorageBufferWrite(
         vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
         VulkanBuffer *vulkanBuffer,
+        std::vector<vk::WriteDescriptorSet> &descriptorWrites,
+        std::vector<vk::DescriptorBufferInfo> &bufferInfos
+    );
+    void addStorageBufferWrite(
+        vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
+        VulkanUniformBuffer *vulkanUniformBuffer,
         std::vector<vk::WriteDescriptorSet> &descriptorWrites,
         std::vector<vk::DescriptorBufferInfo> &bufferInfos
     );

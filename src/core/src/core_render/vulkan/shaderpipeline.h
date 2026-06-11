@@ -53,14 +53,13 @@ class VulkanBuffer
     template <typename DataType>
     bool update(vk::DeviceSize bufferSize, DataType *data)
     {
-        VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-            ServiceLocator::instance().get<IRenderer>()
-        );
-
         void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
         memcpy(stagingData, data, bufferSize);
         stagingBufferMemory_.unmapMemory();
 
+        VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+            ServiceLocator::instance().get<IRenderer>()
+        );
         renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
 
         return true;

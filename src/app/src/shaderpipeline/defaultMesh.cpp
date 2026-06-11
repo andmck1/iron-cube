@@ -75,7 +75,7 @@ bool DefaultVulkanMeshShaderPipeline::shutdown()
     meshletBuffer_ = VulkanBuffer();
     meshletVerticesBuffer_ = VulkanBuffer();
     meshletTrianglesBuffer_ = VulkanBuffer();
-    instancesBuffers_ = std::vector<VulkanBuffer>();
+    instancesBuffers_ = std::vector<VulkanUniformBuffer>();
 
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
@@ -314,9 +314,12 @@ bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
 
     for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
     {
-        VulkanBuffer instancesBuffer;
+        VulkanUniformBuffer instancesBuffer;
         instancesBuffer.init(
-            instancesBufferSize, defaultUpdateData.instances->data()
+            instancesBufferSize,
+            vk::BufferUsageFlagBits::eStorageBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible |
+                vk::MemoryPropertyFlagBits::eHostCoherent
         );
         instancesBuffers_.emplace_back(std::move(instancesBuffer));
     }
@@ -453,6 +456,30 @@ void DefaultVulkanMeshShaderPipeline::addStorageBufferWrite(
     );
 }
 
+void DefaultVulkanMeshShaderPipeline::addStorageBufferWrite(
+    vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
+    VulkanUniformBuffer *vulkanUniformBuffer,
+    std::vector<vk::WriteDescriptorSet> &descriptorWrites,
+    std::vector<vk::DescriptorBufferInfo> &bufferInfos
+)
+{
+    bufferInfos.emplace_back(
+        vk::DescriptorBufferInfo{}
+            .setBuffer(*vulkanUniformBuffer->getBuffer())
+            .setOffset(0)
+            .setRange(VK_WHOLE_SIZE)
+    );
+    descriptorWrites.emplace_back(
+        vk::WriteDescriptorSet{}
+            .setDstSet(descriptorSet)
+            .setDstBinding(binding)
+            .setDstArrayElement(0)
+            .setDescriptorCount(1)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setPBufferInfo(&bufferInfos.back())
+    );
+}
+
 bool DefaultVulkanMeshShaderPipeline::bind()
 {
     spdlog::debug("Binding shader pipeline");
@@ -512,8 +539,9 @@ bool DefaultVulkanMeshShaderPipeline::update()
     // instances data
     vk::DeviceSize instancesBufferSize =
         sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
-    instancesBuffers_[renderer->getCurrentFrameIndex()].update(
-        instancesBufferSize, defaultUpdateData.instances->data()
+    memcpy(
+        instancesBuffers_[renderer->getCurrentFrameIndex()].getMappedPointer(),
+        defaultUpdateData.instances->data(), instancesBufferSize
     );
 
     return true;

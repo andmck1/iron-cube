@@ -549,13 +549,7 @@ bool VulkanRenderer::createSyncObjects()
 bool VulkanRenderer::beginFrame()
 {
     // Wait for previous frame to finish
-    vk::Result fenceResult = device_.waitForFences(
-        *inFlightFences_[currentFrameIndex_], vk::True, UINT64_MAX
-    );
-    if (fenceResult != vk::Result::eSuccess)
-    {
-        throw std::runtime_error("failed to wait for fence!");
-    }
+    waitForCurrentFrameFence();
     device_.resetFences(*inFlightFences_[currentFrameIndex_]);
 
     // Get an image from the framebuffer now the previous frame is finished
@@ -1087,6 +1081,17 @@ bool VulkanRenderer::copyBuffer(
     );
     queue_.waitIdle();
     return true;
+}
+
+void VulkanRenderer::waitForCurrentFrameFence()
+{
+    vk::Result fenceResult = device_.waitForFences(
+        *inFlightFences_[currentFrameIndex_], vk::True, UINT64_MAX
+    );
+    if (fenceResult != vk::Result::eSuccess)
+    {
+        throw std::runtime_error("failed to wait for current frame fence!");
+    }
 }
 
 vk::Format VulkanRenderer::findSupportedFormat(
