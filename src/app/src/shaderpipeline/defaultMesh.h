@@ -11,9 +11,7 @@ class DefaultMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     public:
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
-    std::vector<glm::mat4x4> *instances;
-    const uint32_t kInstanceCols = 20;
-    const uint32_t kInstanceRows = 10;
+    std::vector<Instance> *instances;
 };
 
 class VulkanUniformBuffer

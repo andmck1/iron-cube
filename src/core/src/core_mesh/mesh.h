@@ -8,7 +8,7 @@ class Mesh
     public:
     void setGeometry(const std::string &geometryName);
     Geometry *getGeometry();
-    std::vector<glm::mat4x4> instances;
+    std::vector<Instance> instances;
 
     protected:
     std::string geometryName_;
