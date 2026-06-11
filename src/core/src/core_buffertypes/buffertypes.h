@@ -67,6 +67,7 @@ struct MVPBuffer
 
 struct SceneBuffer
 {
+    float4x4 model;
     float4x4 view;
     float4x4 projection;
     uint instanceCount;
@@ -87,6 +88,7 @@ struct ModelData
 // TODO - this name sucks
 struct Payload
 {
+    uint instanceIndices[AS_GROUP_SIZE];
     uint meshletIndices[AS_GROUP_SIZE];
 };
 

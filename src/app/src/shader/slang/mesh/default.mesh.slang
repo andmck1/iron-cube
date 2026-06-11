@@ -18,7 +18,9 @@ void main(
     out vertices VertexOutputType vertices[64]
 )
 {
+    uint instanceIndex = payload.instanceIndices[gid];
     uint meshletIndex = payload.meshletIndices[gid];
+
     OptimisedMeshlet m = meshlets[meshletIndex];
     SetMeshOutputCounts(m.vertexCount, m.triangleCount);
 
@@ -38,8 +40,7 @@ void main(
 
         float4x4 mvpMatrix =
             mul(scene.projection,
-                mul(scene.view,
-                    float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)));
+                mul(scene.view, instances[instanceIndex].transform));
         vertices[gtid].position =
             mul(mvpMatrix, modelVertices[vertexIndex].position);
 
