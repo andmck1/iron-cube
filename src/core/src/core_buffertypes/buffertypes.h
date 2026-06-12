@@ -92,6 +92,7 @@ struct ModelData
 // TODO - this name sucks
 struct Payload
 {
+    uint instanceIndices[AS_GROUP_SIZE];
     uint meshletIndices[AS_GROUP_SIZE];
 };
 

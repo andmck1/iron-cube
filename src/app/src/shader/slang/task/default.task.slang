@@ -1,6 +1,8 @@
 #include "core_buffertypes/buffertypes.h"
 #include "shader/shared/buffertypes.h"
 
+ConstantBuffer<SceneBuffer> scene;
+
 groupshared Payload sPayload;
 
 [shader("task")]
@@ -10,6 +12,19 @@ void main(
     uint gid: SV_GroupID
 )
 {
-    sPayload.meshletIndices[gtid] = dtid;
-    DispatchMesh(AS_GROUP_SIZE, 1, 1, sPayload);
+    bool visible = false;
+
+    uint instanceIndex = dtid / scene.meshletCount;
+    uint meshletIndex = dtid % scene.meshletCount;
+
+    if ((instanceIndex < scene.instanceCount) &&
+        (meshletIndex < scene.meshletCount))
+    {
+        visible = true;
+        sPayload.instanceIndices[gtid] = instanceIndex;
+        sPayload.meshletIndices[gtid] = meshletIndex;
+    }
+
+    uint visibleCount = WaveActiveCountBits(visible);
+    DispatchMesh(visibleCount, 1, 1, sPayload);
 }
