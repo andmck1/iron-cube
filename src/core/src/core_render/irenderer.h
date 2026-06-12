@@ -6,7 +6,16 @@
 
 struct PipelineStatistics
 {
+    public:
+    enum PipelineType
+    {
+        TRADITIONAL,
+        MESH
+    };
+
+    PipelineType pipelineType = PipelineType::TRADITIONAL;
     int nVertices = 0;
+    int nMeshlets = 0;
 };
 
 class IRenderer

@@ -45,3 +45,20 @@ bool SceneLayer::update()
 
     return true;
 }
+
+bool SceneLayer::end()
+{
+    IShaderPipelineManager *shaderPipelineManager =
+        ServiceLocator::instance().get<IShaderPipelineManager>();
+    if (!shaderPipelineManager)
+        return false;
+
+    for (IShaderPipeline *shaderPipeline :
+         shaderPipelineManager->getAllShaderPipelines())
+    {
+        if (!shaderPipeline->updatePipelineStatistics())
+            return false;
+    }
+
+    return true;
+}

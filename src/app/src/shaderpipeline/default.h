@@ -26,6 +26,7 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool recreateGraphicsPipeline() override;
     bool draw() override;
     PipelineStatistics getPipelineStatistics() override;
+    bool updatePipelineStatistics() override;
 
     protected:
     vk::raii::DescriptorPool descriptorPool_ = nullptr;
@@ -43,6 +44,8 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     std::vector<void *> uniformBuffersMapped;
 
     Geometry *geometry_ = nullptr;
+
+    std::array<uint64_t, 1> pipelineStatistics_ = {0};
 
     bool initGraphicsPipeline();
     bool initPipeline();

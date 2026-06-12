@@ -11,4 +11,5 @@ class SceneLayer : public ILayer
     bool initialise() override;
     bool frame() override;
     bool update() override;
+    bool end() override;
 };

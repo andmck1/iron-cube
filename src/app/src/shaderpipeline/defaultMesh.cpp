@@ -58,6 +58,8 @@ bool DefaultVulkanMeshShaderPipeline::initPipeline(Geometry *geometry)
         return false;
     if (!initGraphicsPipeline())
         return false;
+    if (!createQueryPool())
+        return false;
     return true;
 }
 
@@ -396,6 +398,28 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
     return true;
 }
 
+bool DefaultVulkanMeshShaderPipeline::createQueryPool()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    vk::QueryPoolCreateInfo queryPoolInfo =
+        vk::QueryPoolCreateInfo{}
+            .setQueryType(vk::QueryType::ePipelineStatistics)
+            .setQueryCount(1)
+            .setPipelineStatistics(
+                vk::QueryPipelineStatisticFlagBits(
+                    vk::QueryPipelineStatisticFlagBits::
+                        eTaskShaderInvocationsEXT
+                )
+            );
+
+    queryPool_ = vk::raii::QueryPool(renderer->getDevice(), queryPoolInfo);
+
+    return true;
+}
+
 void DefaultVulkanMeshShaderPipeline::addUniformBufferWrite(
     vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
     vk::raii::Buffer *buffer, vk::DeviceSize range,
@@ -476,6 +500,9 @@ bool DefaultVulkanMeshShaderPipeline::update()
         ServiceLocator::instance().get<IRenderer>()
     );
 
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+    commandBuffer.resetQueryPool(queryPool_, 0, 1);
+
     const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
 
@@ -511,6 +538,8 @@ bool DefaultVulkanMeshShaderPipeline::draw()
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+
     // TODO - wonder if you want to ensure that this is a nice number? eg 256,
     // etc
     // TODO - can't be calling this every frame
@@ -521,20 +550,26 @@ bool DefaultVulkanMeshShaderPipeline::draw()
         static_cast<uint32_t>(defaultUpdateData.instances->size());
     uint32_t threadGroupCountX =
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
+
+    commandBuffer.beginQuery(queryPool_, 0);
     renderer->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
+    commandBuffer.endQuery(queryPool_, 0);
     return true;
 }
 
 PipelineStatistics DefaultVulkanMeshShaderPipeline::getPipelineStatistics()
 {
     PipelineStatistics pipelineStatistics{};
-    std::array<uint64_t, 1> pipelineStatistics_;
-
-    // TODO - generalise
-    // vk::Result _ = queryPool_.getResults(
-    //     0, 1, 1, pipelineStatistics_.data(), sizeof(uint64_t),
-    //     vk::QueryResultFlagBits::e64
-    // );
-    // pipelineStatistics.nVertices = pipelineStatistics_[0];
+    pipelineStatistics.pipelineType = PipelineStatistics::PipelineType::MESH;
+    pipelineStatistics.nMeshlets = pipelineStatistics_[0];
     return pipelineStatistics;
+}
+
+bool DefaultVulkanMeshShaderPipeline::updatePipelineStatistics()
+{
+    vk::Result _ = queryPool_.getResults(
+        0, 1, sizeof(uint64_t), pipelineStatistics_.data(), sizeof(uint64_t),
+        vk::QueryResultFlagBits::e64
+    );
+    return true;
 }

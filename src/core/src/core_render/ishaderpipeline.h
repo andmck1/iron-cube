@@ -15,4 +15,5 @@ class IShaderPipeline
     virtual bool shutdown() = 0;
     virtual bool draw() = 0;
     virtual PipelineStatistics getPipelineStatistics() = 0;
+    virtual bool updatePipelineStatistics() = 0;
 };

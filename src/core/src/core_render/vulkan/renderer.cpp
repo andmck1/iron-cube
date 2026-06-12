@@ -323,7 +323,9 @@ bool VulkanRenderer::createLogicalDevice()
         vk::PhysicalDeviceMeshShaderFeaturesEXT>
         featureChain = {
             vk::PhysicalDeviceFeatures2{}.setFeatures(
-                vk::PhysicalDeviceFeatures{}.setFillModeNonSolid(true)
+                vk::PhysicalDeviceFeatures{}
+                    .setFillModeNonSolid(true)
+                    .setPipelineStatisticsQuery(true)
             ),
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
             vk::PhysicalDeviceVulkan13Features{}
@@ -334,6 +336,7 @@ bool VulkanRenderer::createLogicalDevice()
             vk::PhysicalDeviceMeshShaderFeaturesEXT{}
                 .setMeshShader(true)
                 .setTaskShader(true)
+                .setMeshShaderQueries(true)
         };
 
     // Enable swapchains

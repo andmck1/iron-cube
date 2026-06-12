@@ -434,9 +434,7 @@ bool DefaultVulkanShaderPipeline::createQueryPool()
             .setQueryType(vk::QueryType::ePipelineStatistics)
             .setQueryCount(1)
             .setPipelineStatistics(
-                vk::QueryPipelineStatisticFlagBits(
-                    VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT
-                )
+                vk::QueryPipelineStatisticFlagBits::eVertexShaderInvocations
             );
 
     queryPool_ = vk::raii::QueryPool(renderer->getDevice(), queryPoolInfo);
@@ -447,13 +445,18 @@ bool DefaultVulkanShaderPipeline::createQueryPool()
 PipelineStatistics DefaultVulkanShaderPipeline::getPipelineStatistics()
 {
     PipelineStatistics pipelineStatistics{};
-    std::array<uint64_t, 1> pipelineStatistics_;
-
-    // TODO - generalise
-    vk::Result _ = queryPool_.getResults(
-        0, 1, 1, pipelineStatistics_.data(), sizeof(uint64_t),
-        vk::QueryResultFlagBits::e64
-    );
+    pipelineStatistics.pipelineType =
+        PipelineStatistics::PipelineType::TRADITIONAL;
     pipelineStatistics.nVertices = pipelineStatistics_[0];
     return pipelineStatistics;
+}
+
+bool DefaultVulkanShaderPipeline::updatePipelineStatistics()
+{
+    // TODO - generalise
+    vk::Result _ = queryPool_.getResults(
+        0, 1, sizeof(uint64_t), pipelineStatistics_.data(), sizeof(uint64_t),
+        vk::QueryResultFlagBits::e64
+    );
+    return true;
 }

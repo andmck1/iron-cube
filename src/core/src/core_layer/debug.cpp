@@ -84,10 +84,20 @@ bool DebugLayer::frame()
         {
             PipelineStatistics pipelineStatistics =
                 meshComponent->getShaderPipeline()->getPipelineStatistics();
-            ImGui::Text(
-                "%s N Vertices: %d", entity->getName().c_str(),
-                pipelineStatistics.nVertices
-            );
+            switch (pipelineStatistics.pipelineType) {
+                case PipelineStatistics::PipelineType::TRADITIONAL:
+                    ImGui::Text(
+                        "%s N Vertices: %d", entity->getName().c_str(),
+                        pipelineStatistics.nVertices
+                    );
+                    break;
+                case PipelineStatistics::PipelineType::MESH:
+                    ImGui::Text(
+                        "%s N Meshlets: %d", entity->getName().c_str(),
+                        pipelineStatistics.nMeshlets
+                    );
+                    break;
+            }
         }
     }
 
@@ -100,6 +110,11 @@ bool DebugLayer::frame()
 }
 
 bool DebugLayer::update()
+{
+    return true;
+}
+
+bool DebugLayer::end()
 {
     return true;
 }
