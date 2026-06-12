@@ -112,7 +112,6 @@ bool VulkanRenderer::init(IPlatform *platform)
     createCommandPool();
     createDepthResources();
     createCommandBuffers();
-    createQueryPool();
 
     return true;
 }
@@ -547,23 +546,6 @@ bool VulkanRenderer::createSyncObjects()
     return true;
 }
 
-bool VulkanRenderer::createQueryPool()
-{
-    vk::QueryPoolCreateInfo queryPoolInfo =
-        vk::QueryPoolCreateInfo{}
-            .setQueryType(vk::QueryType::ePipelineStatistics)
-            .setQueryCount(1)
-            .setPipelineStatistics(
-                vk::QueryPipelineStatisticFlagBits(
-                    VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT
-                )
-            );
-
-    queryPool_ = vk::raii::QueryPool(device_, queryPoolInfo);
-
-    return true;
-}
-
 bool VulkanRenderer::beginFrame()
 {
     // Wait for previous frame to finish
@@ -607,14 +589,17 @@ bool VulkanRenderer::beginFrame()
             vk::PipelineStageFlagBits2::eLateFragmentTests,
         vk::ImageAspectFlagBits::eDepth
     );
-    // cornflour blue
-    // vk::ClearValue clearColour =
-    //     vk::ClearColorValue(100.f / 255.f, 149.f / 255.f, 237.f /
-    //     255.f, 1.0f);
+
+    return true;
+}
+
+bool VulkanRenderer::beginRender()
+{
+    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     vk::ClearValue clearColour = vk::ClearColorValue(0.25f, 0.25f, 0.25f, 1.f);
     vk::RenderingAttachmentInfo attachmentInfo =
         vk::RenderingAttachmentInfo{}
-            .setImageView(swapChainImageViews_[imageIndex])
+            .setImageView(swapChainImageViews_[currentImageIndex_])
             .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
@@ -637,10 +622,7 @@ bool VulkanRenderer::beginFrame()
             .setPColorAttachments(&attachmentInfo)
             .setPDepthAttachment(&depthAttachmentInfo);
 
-    commandBuffer.resetQueryPool(queryPool_, 0, 1);
     commandBuffer.beginRendering(renderingInfo);
-    commandBuffer.beginQuery(queryPool_, 0);
-
     return true;
 }
 
@@ -648,7 +630,6 @@ bool VulkanRenderer::drawFrame()
 {
     // Stop recording commands
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
-    commandBuffer.endQuery(queryPool_, 0);
     commandBuffer.endRendering();
 
     transitionImageLayout(
@@ -1108,18 +1089,6 @@ bool VulkanRenderer::copyBuffer(
     );
     queue_.waitIdle();
     return true;
-}
-
-PipelineStatistics VulkanRenderer::getPipelineStatistics()
-{
-    PipelineStatistics pipelineStatistics{};
-
-    vk::Result _ = queryPool_.getResults(
-        0, 1, 1, pipelineStatistics_.data(), sizeof(uint64_t),
-        vk::QueryResultFlagBits::e64
-    );
-    pipelineStatistics.nVertices = pipelineStatistics_[0];
-    return pipelineStatistics;
 }
 
 vk::Format VulkanRenderer::findSupportedFormat(

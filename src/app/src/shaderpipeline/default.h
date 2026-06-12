@@ -25,6 +25,7 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool shutdown() override;
     bool recreateGraphicsPipeline() override;
     bool draw() override;
+    PipelineStatistics getPipelineStatistics() override;
 
     protected:
     vk::raii::DescriptorPool descriptorPool_ = nullptr;
@@ -35,6 +36,7 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     vk::raii::Buffer vertexBuffer_ = nullptr;
     vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
     vk::raii::Buffer indexBuffer_ = nullptr;
+    vk::raii::QueryPool queryPool_ = nullptr;
 
     std::vector<vk::raii::Buffer> uniformBuffers;
     std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
@@ -50,4 +52,5 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool initUniformBuffers();
     bool initDescriptorSets();
     bool createDescriptorPool();
+    bool createQueryPool();
 };

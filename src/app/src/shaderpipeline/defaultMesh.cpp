@@ -524,3 +524,17 @@ bool DefaultVulkanMeshShaderPipeline::draw()
     renderer->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
     return true;
 }
+
+PipelineStatistics DefaultVulkanMeshShaderPipeline::getPipelineStatistics()
+{
+    PipelineStatistics pipelineStatistics{};
+    std::array<uint64_t, 1> pipelineStatistics_;
+
+    // TODO - generalise
+    // vk::Result _ = queryPool_.getResults(
+    //     0, 1, 1, pipelineStatistics_.data(), sizeof(uint64_t),
+    //     vk::QueryResultFlagBits::e64
+    // );
+    // pipelineStatistics.nVertices = pipelineStatistics_[0];
+    return pipelineStatistics;
+}

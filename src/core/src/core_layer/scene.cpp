@@ -1,6 +1,7 @@
 #include "core_layer/scene.h"
 #include "core_ecs/component/mesh.h"
 #include "core_ecs/ecs.h"
+#include "core_render/ishaderpipelinemanager.h"
 #include "core_service/servicelocator.h"
 #include "core_render/irenderer.h"
 #include <spdlog/spdlog.h>
@@ -25,5 +26,22 @@ bool SceneLayer::frame()
         if (entityMeshComponent != nullptr)
             entityMeshComponent->render();
     }
+    return true;
+}
+
+bool SceneLayer::update()
+{
+    IShaderPipelineManager *shaderPipelineManager =
+        ServiceLocator::instance().get<IShaderPipelineManager>();
+    if (!shaderPipelineManager)
+        return false;
+
+    for (IShaderPipeline *shaderPipeline :
+         shaderPipelineManager->getAllShaderPipelines())
+    {
+        if (!shaderPipeline->update())
+            return false;
+    }
+
     return true;
 }

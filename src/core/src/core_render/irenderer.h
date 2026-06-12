@@ -17,9 +17,9 @@ class IRenderer
     virtual bool init(IPlatform *platform) = 0;
 
     virtual bool beginFrame() = 0;
+    virtual bool beginRender() = 0;
     virtual bool drawFrame() = 0;
     virtual bool present() = 0;
     virtual bool shutdown() = 0;
     virtual bool renderImGui() = 0;
-    virtual PipelineStatistics getPipelineStatistics() = 0;
 };

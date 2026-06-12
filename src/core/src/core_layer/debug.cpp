@@ -1,6 +1,7 @@
 #include "core_layer/debug.h"
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
+#include "core_ecs/ecs.h"
 #include "core_render/irenderer.h"
 #include "core_render/ishaderpipelinemanager.h"
 #include "core_render/vulkan/renderer.h"
@@ -75,13 +76,30 @@ bool DebugLayer::frame()
         shaderTypeUpdate = -1;
 
     // Pipeline statistics
-    PipelineStatistics pipelineStatistics = renderer->getPipelineStatistics();
-    ImGui::Text("N Vertices: %d", pipelineStatistics.nVertices);
+    for (const std::unique_ptr<Entity> &entity :
+         debugData_->scene->getEntities())
+    {
+        MeshComponent *meshComponent = entity->getComponent<MeshComponent>();
+        if (meshComponent)
+        {
+            PipelineStatistics pipelineStatistics =
+                meshComponent->getShaderPipeline()->getPipelineStatistics();
+            ImGui::Text(
+                "%s N Vertices: %d", entity->getName().c_str(),
+                pipelineStatistics.nVertices
+            );
+        }
+    }
 
     ImGui::End();
 
     if (!renderer_->renderImGui())
         return false;
 
+    return true;
+}
+
+bool DebugLayer::update()
+{
     return true;
 }

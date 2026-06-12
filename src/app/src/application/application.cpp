@@ -353,14 +353,23 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
+        // app updates
         timer_.tick();
         platform_.pollEvents();
         handleInput();
-
+    
+        // entity updates
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
-        updateEntities();
         renderer_.beginFrame();
+        updateEntities();
+        for (std::unique_ptr<ILayer> &layer : layers_)
+        {
+            layer->update();
+        }
+    
+        // render
+        renderer_.beginRender();
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
             layer->frame();

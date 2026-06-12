@@ -32,6 +32,8 @@ bool DefaultVulkanShaderPipeline::initPipeline()
         return false;
     if (!initGraphicsPipeline())
         return false;
+    if (!createQueryPool())
+        return false;
     if (!initVertexBuffer())
         return false;
     if (!initIndexBuffer())
@@ -382,6 +384,9 @@ bool DefaultVulkanShaderPipeline::update()
         ServiceLocator::instance().get<IRenderer>()
     );
 
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+    commandBuffer.resetQueryPool(queryPool_, 0, 1);
+
     const DefaultShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultShaderPipelineUpdateData &>(*updateData_);
 
@@ -409,8 +414,46 @@ bool DefaultVulkanShaderPipeline::draw()
         ServiceLocator::instance().get<IRenderer>()
     );
 
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+    commandBuffer.beginQuery(queryPool_, 0);
     renderer->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
     );
+    commandBuffer.endQuery(queryPool_, 0);
     return true;
+}
+
+bool DefaultVulkanShaderPipeline::createQueryPool()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    vk::QueryPoolCreateInfo queryPoolInfo =
+        vk::QueryPoolCreateInfo{}
+            .setQueryType(vk::QueryType::ePipelineStatistics)
+            .setQueryCount(1)
+            .setPipelineStatistics(
+                vk::QueryPipelineStatisticFlagBits(
+                    VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT
+                )
+            );
+
+    queryPool_ = vk::raii::QueryPool(renderer->getDevice(), queryPoolInfo);
+
+    return true;
+}
+
+PipelineStatistics DefaultVulkanShaderPipeline::getPipelineStatistics()
+{
+    PipelineStatistics pipelineStatistics{};
+    std::array<uint64_t, 1> pipelineStatistics_;
+
+    // TODO - generalise
+    vk::Result _ = queryPool_.getResults(
+        0, 1, 1, pipelineStatistics_.data(), sizeof(uint64_t),
+        vk::QueryResultFlagBits::e64
+    );
+    pipelineStatistics.nVertices = pipelineStatistics_[0];
+    return pipelineStatistics;
 }

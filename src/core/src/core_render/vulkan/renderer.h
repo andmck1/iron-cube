@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 #include "core_render/irenderer.h"
@@ -16,11 +15,11 @@ class VulkanRenderer : public IRenderer
     bool init(IPlatform *platform) override;
     bool renderImGui() override;
     bool beginFrame() override;
+    bool beginRender() override;
     bool drawFrame() override;
     bool present() override;
     void waitAllFramesComplete();
     bool shutdown() override;
-    PipelineStatistics getPipelineStatistics() override;
 
     vk::raii::Device &getDevice();
     vk::raii::PhysicalDevice &getPhysicalDevice();
@@ -69,7 +68,6 @@ class VulkanRenderer : public IRenderer
     bool createCommandBuffers();
     bool createDepthResources();
     bool createSyncObjects();
-    bool createQueryPool();
 
     std::vector<const char *> getRequiredInstanceExtensions();
     bool isDeviceSuitable(vk::PhysicalDevice physicalDevice);
@@ -132,7 +130,6 @@ class VulkanRenderer : public IRenderer
     std::vector<vk::raii::ImageView> swapChainImageViews_;
     vk::raii::CommandPool commandPool_ = nullptr;
     std::vector<vk::raii::CommandBuffer> commandBuffers_;
-    vk::raii::QueryPool queryPool_ = nullptr;
 
     vk::raii::Image depthImage_ = nullptr;
     vk::raii::DeviceMemory depthImageMemory_ = nullptr;
@@ -152,7 +149,6 @@ class VulkanRenderer : public IRenderer
 
     bool wireframeMode_ = false;
 
-    std::array<uint64_t, 1> pipelineStatistics_;
 
     // TODO - consider moving this somewhere else
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly_ =

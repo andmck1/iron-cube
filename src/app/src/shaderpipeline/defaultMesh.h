@@ -40,6 +40,7 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool shutdown() override;
     bool recreateGraphicsPipeline() override;
     bool draw() override;
+    PipelineStatistics getPipelineStatistics() override;
 
     protected:
     vk::raii::DescriptorPool descriptorPool_ = nullptr;
