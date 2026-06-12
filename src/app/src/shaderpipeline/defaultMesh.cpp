@@ -513,8 +513,14 @@ bool DefaultVulkanMeshShaderPipeline::draw()
     );
     // TODO - wonder if you want to ensure that this is a nice number? eg 256,
     // etc
+    // TODO - can't be calling this every frame
+    const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
+        dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
+    uint32_t meshletCount = static_cast<uint32_t>(geometry_->meshlets.size());
+    uint32_t instanceCount =
+        static_cast<uint32_t>(defaultUpdateData.instances->size());
     uint32_t threadGroupCountX =
-        static_cast<uint32_t>((geometry_->meshlets.size() / AS_GROUP_SIZE) + 1);
+        ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
     renderer->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
     return true;
 }

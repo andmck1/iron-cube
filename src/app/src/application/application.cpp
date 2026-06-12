@@ -227,6 +227,7 @@ bool Application::initialiseGeometry(
     Mesh *registeredMesh =
         meshManager_.registerMesh(name, std::move(actorMesh));
     registeredMesh->instances.resize(N_INSTANCE_COLUMNS * N_INSTANCE_ROWS);
+    updateEntities();
 
     // transform component
     TransformComponent *transformComponent =

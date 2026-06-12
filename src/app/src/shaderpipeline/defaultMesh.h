@@ -56,7 +56,6 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     std::vector<VulkanUniformBuffer> sceneBuffers_;
 
     Geometry *geometry_ = nullptr;
-    std::vector<glm::mat4x4> instances;
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
