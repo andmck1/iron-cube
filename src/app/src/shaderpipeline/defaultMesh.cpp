@@ -497,11 +497,11 @@ bool DefaultVulkanMeshShaderPipeline::update()
     );
 
     // instances data
-    // vk::DeviceSize instancesBufferSize =
-    //     sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
-    // instancesBuffer_.update(
-    //     instancesBufferSize, defaultUpdateData.instances->data()
-    // );
+    vk::DeviceSize instancesBufferSize =
+        sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
+    instancesBuffer_.update(
+        instancesBufferSize, defaultUpdateData.instances->data()
+    );
 
     return true;
 }
