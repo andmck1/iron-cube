@@ -64,6 +64,7 @@ Geometry ResourceManager::generateProceduralTriangle()
     geometry.indices.push_back(2);
 
     processMeshlets(&geometry);
+    calculateMeshBounds(&geometry);
 
     spdlog::info("Generated procedural triangle geometry");
     return geometry;
@@ -100,6 +101,7 @@ Geometry ResourceManager::generateProceduralRectangle()
     geometry.indices.push_back(0);
 
     processMeshlets(&geometry);
+    calculateMeshBounds(&geometry);
 
     spdlog::info("Generated procedural rectangle geometry");
     return geometry;
@@ -256,6 +258,7 @@ Geometry ResourceManager::generateProceduralCube()
     geometry.indices.push_back(22);
 
     processMeshlets(&geometry);
+    calculateMeshBounds(&geometry);
 
     spdlog::info("Generated procedural cube geometry");
     return geometry;
@@ -347,6 +350,7 @@ ResourceManager::loadObj(std::string objFilePath, std::string objBaseDir)
     }
 
     processMeshlets(&geometry);
+    calculateMeshBounds(&geometry);
 
     spdlog::info(
         "Loaded OBJ '{}': {} vertices, {} indices", objFilePath,
@@ -423,4 +427,33 @@ void ResourceManager::processMeshlets(Geometry *geometry)
         // Update triangle offset for current meshlet
         m.triangle_offset = triangleOffset;
     }
+}
+
+void ResourceManager::calculateMeshBounds(Geometry *geometry)
+{
+    if (geometry->vertices.empty())
+    {
+        geometry->meshBounds = {{0.f, 0.f, 0.f}, {0.f, 0.f, 0.f}};
+        return;
+    }
+
+    glm::vec3 minCorner =
+        glm::vec3(geometry->vertices[0].position.x,
+                  geometry->vertices[0].position.y,
+                  geometry->vertices[0].position.z);
+    glm::vec3 maxCorner =
+        glm::vec3(geometry->vertices[0].position.x,
+                  geometry->vertices[0].position.y,
+                  geometry->vertices[0].position.z);
+
+    for (size_t i = 1; i < geometry->vertices.size(); ++i)
+    {
+        glm::vec3 pos = glm::vec3(
+            geometry->vertices[i].position.x, geometry->vertices[i].position.y,
+            geometry->vertices[i].position.z);
+        minCorner = glm::min(minCorner, pos);
+        maxCorner = glm::max(maxCorner, pos);
+    }
+
+    geometry->meshBounds = {minCorner, maxCorner};
 }

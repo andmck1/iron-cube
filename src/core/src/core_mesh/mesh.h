@@ -8,6 +8,7 @@ class Mesh
     public:
     void setGeometry(const std::string &geometryName);
     Geometry *getGeometry();
+    std::vector<Instance> instances;
 
     protected:
     std::string geometryName_;

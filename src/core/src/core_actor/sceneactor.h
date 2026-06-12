@@ -10,6 +10,5 @@ class SceneActor : public IActor
     {
         addComponent<MeshComponent>();
     }
-
     ~SceneActor() = default;
 };

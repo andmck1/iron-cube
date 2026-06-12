@@ -377,15 +377,11 @@ bool VulkanRenderer::createSwapChain()
     swapChainSurfaceFormat_ = chooseSwapSurfaceFormat(availableFormats);
 
     // Forcing off Vsync to uncap fps
-    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eMailbox;
+    vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate;
     // std::vector<vk::PresentModeKHR> availablePresentModes =
     //     physicalDevice_.getSurfacePresentModesKHR(*surface_);
     // vk::PresentModeKHR presentMode =
     //     chooseSwapPresentMode(availablePresentModes);
-    spdlog::info(
-        "Selected present mode: {}",
-        presentMode == vk::PresentModeKHR::eMailbox ? "MAILBOX" : "FIFO"
-    );
 
     vk::SwapchainCreateInfoKHR swapChainCreateInfo =
         vk::SwapchainCreateInfoKHR{}

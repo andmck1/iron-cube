@@ -1,13 +1,15 @@
 #include "core_buffertypes/buffertypes.h"
 #include "shader/shared/buffertypes.h"
 
-ConstantBuffer<MVPBuffer> mvp;
-StructuredBuffer<VertexInputType> Vertices;
-StructuredBuffer<OptimisedMeshlet> Meshlets;
-StructuredBuffer<uint> VertexIndices;
-StructuredBuffer<uint> TriangleIndices;
+ConstantBuffer<SceneBuffer> scene;
+StructuredBuffer<VertexInputType> modelVertices;
+StructuredBuffer<OptimisedMeshlet> meshlets;
+StructuredBuffer<uint> vertexIndices;
+StructuredBuffer<uint> triangleIndices;
+StructuredBuffer<Instance> instances;
 
 // TODO - use the defines for the triange and vertex limits??
+[shader("mesh")]
 [outputtopology("triangle")]
 [numthreads(128, 1, 1)]
 void main(
@@ -16,27 +18,31 @@ void main(
     out vertices VertexOutputType vertices[64]
 )
 {
-    uint meshletIndex = payload.MeshletIndices[gid];
-    OptimisedMeshlet m = Meshlets[meshletIndex];
-    SetMeshOutputCounts(m.VertexCount, m.TriangleCount);
+    uint instanceIndex = payload.instanceIndices[gid];
+    uint meshletIndex = payload.meshletIndices[gid];
+    OptimisedMeshlet m = meshlets[meshletIndex];
 
-    if (gtid < m.TriangleCount)
+    SetMeshOutputCounts(m.vertexCount, m.triangleCount);
+
+    if (gtid < m.triangleCount)
     {
-        uint packed = TriangleIndices[m.TriangleOffset + gtid];
+        uint packed = triangleIndices[m.triangleOffset + gtid];
         uint vIdx0 = (packed >> 0) & 0xFF;
         uint vIdx1 = (packed >> 8) & 0xFF;
         uint vIdx2 = (packed >> 16) & 0xFF;
         triangles[gtid] = uint3(vIdx0, vIdx1, vIdx2);
     }
 
-    if (gtid < m.VertexCount)
+    if (gtid < m.vertexCount)
     {
-        uint vertexIndex = m.VertexOffset + gtid;
-        vertexIndex = VertexIndices[vertexIndex];
+        uint vertexIndex = m.vertexOffset + gtid;
+        vertexIndex = vertexIndices[vertexIndex];
 
-        float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, mvp.model));
+        float4x4 mvpMatrix =
+            mul(scene.projection,
+                mul(scene.view, instances[instanceIndex].transform));
         vertices[gtid].position =
-            mul(mvpMatrix, Vertices[vertexIndex].position);
+            mul(mvpMatrix, modelVertices[vertexIndex].position);
 
         float4 colour =
             float4(float(gid & 1), float(gid & 3) / 4, float(gid & 7) / 8, 1.f);

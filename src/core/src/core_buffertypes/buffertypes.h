@@ -52,10 +52,10 @@ struct Meshlet
 
 struct OptimisedMeshlet
 {
-    uint VertexOffset;
-    uint TriangleOffset;
-    uint VertexCount;
-    uint TriangleCount;
+    uint vertexOffset;
+    uint triangleOffset;
+    uint vertexCount;
+    uint triangleCount;
 };
 
 struct MVPBuffer
@@ -65,15 +65,35 @@ struct MVPBuffer
     float4x4 projection;
 };
 
+struct SceneBuffer
+{
+    float4x4 view;
+    float4x4 projection;
+    uint instanceCount;
+    uint meshletCount;
+};
+
+struct Instance
+{
+    float4x4 transform = {
+        {1.f, 0.f, 0.f, 0.f},
+        {0.f, 1.f, 0.f, 0.f},
+        {0.f, 0.f, 1.f, 0.f},
+        {0.f, 0.f, 0.f, 1.f}
+    };
+};
+
 // Mental note - 32 bits in a float4 and must be in groups of 32 bits
 struct ModelData
 {
     uint32_t nVertices;
 };
 
+// TODO - this name sucks
 struct Payload
 {
-    uint MeshletIndices[AS_GROUP_SIZE];
+    uint instanceIndices[AS_GROUP_SIZE];
+    uint meshletIndices[AS_GROUP_SIZE];
 };
 
 #endif

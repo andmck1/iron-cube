@@ -11,6 +11,23 @@ class DefaultMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     public:
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
+    std::vector<Instance> *instances = nullptr;
+};
+
+class VulkanUniformBuffer
+{
+    public:
+    bool init(
+        vk::DeviceSize bufferSize, vk::BufferUsageFlags usage,
+        vk::MemoryPropertyFlags properties
+    );
+    vk::raii::Buffer *getBuffer();
+    void *getMappedPointer();
+
+    protected:
+    vk::raii::Buffer buffer_ = nullptr;
+    vk::raii::DeviceMemory bufferMemory_ = nullptr;
+    void *mappedPointer_ = nullptr;
 };
 
 class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
@@ -34,10 +51,9 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     VulkanBuffer meshletBuffer_;
     VulkanBuffer meshletVerticesBuffer_;
     VulkanBuffer meshletTrianglesBuffer_;
+    VulkanBuffer instancesBuffer_;
 
-    std::vector<vk::raii::Buffer> uniformBuffers;
-    std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
-    std::vector<void *> uniformBuffersMapped;
+    std::vector<VulkanUniformBuffer> sceneBuffers_;
 
     Geometry *geometry_ = nullptr;
 
