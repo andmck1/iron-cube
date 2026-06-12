@@ -43,6 +43,7 @@ class VulkanBuffer
 
         void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
         memcpy(stagingData, data, bufferSize);
+        stagingBufferMemory_.unmapMemory();
 
         renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
 
@@ -58,6 +59,7 @@ class VulkanBuffer
 
         void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
         memcpy(stagingData, data, bufferSize);
+        stagingBufferMemory_.unmapMemory();
 
         renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
 
