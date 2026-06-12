@@ -75,7 +75,12 @@ struct SceneBuffer
 
 struct Instance
 {
-    float4x4 transform;
+    float4x4 transform = {
+        {1.f, 0.f, 0.f, 0.f},
+        {0.f, 1.f, 0.f, 0.f},
+        {0.f, 0.f, 1.f, 0.f},
+        {0.f, 0.f, 0.f, 1.f}
+    };
 };
 
 // Mental note - 32 bits in a float4 and must be in groups of 32 bits
