@@ -112,6 +112,7 @@ bool VulkanRenderer::init(IPlatform *platform)
     createCommandPool();
     createDepthResources();
     createCommandBuffers();
+    createQueryPool();
 
     return true;
 }
@@ -546,6 +547,23 @@ bool VulkanRenderer::createSyncObjects()
     return true;
 }
 
+bool VulkanRenderer::createQueryPool()
+{
+    vk::QueryPoolCreateInfo queryPoolInfo =
+        vk::QueryPoolCreateInfo{}
+            .setQueryType(vk::QueryType::ePipelineStatistics)
+            .setQueryCount(1)
+            .setPipelineStatistics(
+                vk::QueryPipelineStatisticFlagBits(
+                    VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT
+                )
+            );
+
+    queryPool_ = vk::raii::QueryPool(device_, queryPoolInfo);
+
+    return true;
+}
+
 bool VulkanRenderer::beginFrame()
 {
     // Wait for previous frame to finish
@@ -619,7 +637,9 @@ bool VulkanRenderer::beginFrame()
             .setPColorAttachments(&attachmentInfo)
             .setPDepthAttachment(&depthAttachmentInfo);
 
+    commandBuffer.resetQueryPool(queryPool_, 0, 1);
     commandBuffer.beginRendering(renderingInfo);
+    commandBuffer.beginQuery(queryPool_, 0);
 
     return true;
 }
@@ -628,6 +648,7 @@ bool VulkanRenderer::drawFrame()
 {
     // Stop recording commands
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
+    commandBuffer.endQuery(queryPool_, 0);
     commandBuffer.endRendering();
 
     transitionImageLayout(
@@ -1087,6 +1108,18 @@ bool VulkanRenderer::copyBuffer(
     );
     queue_.waitIdle();
     return true;
+}
+
+PipelineStatistics VulkanRenderer::getPipelineStatistics()
+{
+    PipelineStatistics pipelineStatistics{};
+
+    vk::Result _ = queryPool_.getResults(
+        0, 1, 1, pipelineStatistics_.data(), sizeof(uint64_t),
+        vk::QueryResultFlagBits::e64
+    );
+    pipelineStatistics.nVertices = pipelineStatistics_[0];
+    return pipelineStatistics;
 }
 
 vk::Format VulkanRenderer::findSupportedFormat(

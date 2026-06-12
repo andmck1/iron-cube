@@ -2,6 +2,7 @@
 
 #include "core_layer/idebuglayerdata.h"
 #include "core_common/timer.h"
+#include "core_render/irenderer.h"
 #include "core_scene/scene.h"
 
 class DebugLayerData : public IDebugLayerData

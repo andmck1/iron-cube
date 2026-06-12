@@ -74,6 +74,10 @@ bool DebugLayer::frame()
     else
         shaderTypeUpdate = -1;
 
+    // Pipeline statistics
+    PipelineStatistics pipelineStatistics = renderer->getPipelineStatistics();
+    ImGui::Text("N Vertices: %d", pipelineStatistics.nVertices);
+
     ImGui::End();
 
     if (!renderer_->renderImGui())

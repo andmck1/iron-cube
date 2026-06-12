@@ -4,6 +4,11 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
+struct PipelineStatistics
+{
+    int nVertices = 0;
+};
+
 class IRenderer
 {
     public:
@@ -16,4 +21,5 @@ class IRenderer
     virtual bool present() = 0;
     virtual bool shutdown() = 0;
     virtual bool renderImGui() = 0;
+    virtual PipelineStatistics getPipelineStatistics() = 0;
 };
