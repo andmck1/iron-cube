@@ -47,7 +47,8 @@ bool SceneLayer::update()
 }
 
 bool SceneLayer::postRender()
-{    IShaderPipelineManager *shaderPipelineManager =
+{
+    IShaderPipelineManager *shaderPipelineManager =
         ServiceLocator::instance().get<IShaderPipelineManager>();
     if (!shaderPipelineManager)
         return false;

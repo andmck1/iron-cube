@@ -7,4 +7,3 @@ std::optional<vk::raii::Pipeline> &VulkanShaderPipeline::getGraphicsPipeline()
 {
     return graphicsPipeline_;
 }
-

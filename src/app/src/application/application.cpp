@@ -374,7 +374,7 @@ void Application::mainLoop()
         {
             layer->frame();
         }
-        
+
         renderer_.endRender();
 
         // post render updates

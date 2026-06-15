@@ -1,32 +1,5 @@
 #include "core_render/vulkan/buffer.h"
 
-bool VulkanUniformBuffer::init(
-    vk::DeviceSize bufferSize, vk::BufferUsageFlags usage,
-    vk::MemoryPropertyFlags properties
-)
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    auto [buffer, bufferMem] =
-        renderer->createBuffer(bufferSize, usage, properties);
-    buffer_ = std::move(buffer);
-    bufferMemory_ = std::move(bufferMem);
-    mappedPointer_ = bufferMemory_.mapMemory(0, bufferSize);
-
-    return true;
-}
-
-vk::raii::Buffer *VulkanUniformBuffer::getBuffer()
-{
-    return &buffer_;
-}
-
-void *VulkanUniformBuffer::getMappedPointer()
-{
-    return mappedPointer_;
-}
 vk::raii::Buffer *VulkanBuffer::getBuffer()
 {
     return &buffer_;
@@ -35,6 +8,11 @@ vk::raii::Buffer *VulkanBuffer::getBuffer()
 vk::raii::DeviceMemory *VulkanBuffer::getDeviceMemory()
 {
     return &bufferMemory_;
+}
+
+void *VulkanBuffer::getMappedPointer()
+{
+    return mappedPointer_;
 }
 
 void VulkanBuffer::copyToStaging(vk::DeviceSize size)
