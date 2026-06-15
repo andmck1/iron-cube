@@ -366,31 +366,39 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
         descriptorWrites.reserve(7);
         bufferInfos.reserve(7);
 
-        addUniformBufferWrite(
-            descriptorSets_[i], 0, sceneBuffers_[i].getBuffer(),
-            sizeof(SceneBuffer), descriptorWrites, bufferInfos
-        );
-        addStorageBufferWrite(
-            descriptorSets_[i], 1, &vertexBuffer_, descriptorWrites, bufferInfos
-        );
-        addStorageBufferWrite(
-            descriptorSets_[i], 2, &meshletBuffer_, descriptorWrites,
+        addBufferWrite(
+            descriptorSets_[i], 0, vk::DescriptorType::eUniformBuffer,
+            sceneBuffers_[i].getBuffer(), sizeof(SceneBuffer), descriptorWrites,
             bufferInfos
         );
-        addStorageBufferWrite(
-            descriptorSets_[i], 3, &meshletVerticesBuffer_, descriptorWrites,
+        addBufferWrite(
+            descriptorSets_[i], 1, vk::DescriptorType::eStorageBuffer,
+            vertexBuffer_.getBuffer(), VK_WHOLE_SIZE, descriptorWrites,
             bufferInfos
         );
-        addStorageBufferWrite(
-            descriptorSets_[i], 4, &meshletTrianglesBuffer_, descriptorWrites,
+        addBufferWrite(
+            descriptorSets_[i], 2, vk::DescriptorType::eStorageBuffer,
+            meshletBuffer_.getBuffer(), VK_WHOLE_SIZE, descriptorWrites,
             bufferInfos
         );
-        addStorageBufferWrite(
-            descriptorSets_[i], 5, &instancesBuffer_, descriptorWrites,
+        addBufferWrite(
+            descriptorSets_[i], 3, vk::DescriptorType::eStorageBuffer,
+            meshletVerticesBuffer_.getBuffer(), VK_WHOLE_SIZE, descriptorWrites,
             bufferInfos
         );
-        addStorageBufferWrite(
-            descriptorSets_[i], 6, &debugDataBuffer_, descriptorWrites,
+        addBufferWrite(
+            descriptorSets_[i], 4, vk::DescriptorType::eStorageBuffer,
+            meshletTrianglesBuffer_.getBuffer(), VK_WHOLE_SIZE,
+            descriptorWrites, bufferInfos
+        );
+        addBufferWrite(
+            descriptorSets_[i], 5, vk::DescriptorType::eStorageBuffer,
+            instancesBuffer_.getBuffer(), VK_WHOLE_SIZE, descriptorWrites,
+            bufferInfos
+        );
+        addBufferWrite(
+            descriptorSets_[i], 6, vk::DescriptorType::eStorageBuffer,
+            debugDataBuffer_.getBuffer(), VK_WHOLE_SIZE, descriptorWrites,
             bufferInfos
         );
 
@@ -422,16 +430,17 @@ bool DefaultVulkanMeshShaderPipeline::createQueryPool()
     return true;
 }
 
-void DefaultVulkanMeshShaderPipeline::addUniformBufferWrite(
+void DefaultVulkanMeshShaderPipeline::addBufferWrite(
     vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
-    vk::raii::Buffer *buffer, vk::DeviceSize range,
+    vk::DescriptorType bufferType, vk::raii::Buffer *buffer,
+    vk::DeviceSize bufferSize,
     std::vector<vk::WriteDescriptorSet> &descriptorWrites,
     std::vector<vk::DescriptorBufferInfo> &bufferInfos
 )
 {
     bufferInfos.emplace_back(
         vk::DescriptorBufferInfo{}.setBuffer(*buffer).setOffset(0).setRange(
-            range
+            bufferSize
         )
     );
     descriptorWrites.emplace_back(
@@ -440,31 +449,7 @@ void DefaultVulkanMeshShaderPipeline::addUniformBufferWrite(
             .setDstBinding(binding)
             .setDstArrayElement(0)
             .setDescriptorCount(1)
-            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-            .setPBufferInfo(&bufferInfos.back())
-    );
-}
-
-void DefaultVulkanMeshShaderPipeline::addStorageBufferWrite(
-    vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
-    VulkanBuffer *vulkanBuffer,
-    std::vector<vk::WriteDescriptorSet> &descriptorWrites,
-    std::vector<vk::DescriptorBufferInfo> &bufferInfos
-)
-{
-    bufferInfos.emplace_back(
-        vk::DescriptorBufferInfo{}
-            .setBuffer(*vulkanBuffer->getBuffer())
-            .setOffset(0)
-            .setRange(VK_WHOLE_SIZE)
-    );
-    descriptorWrites.emplace_back(
-        vk::WriteDescriptorSet{}
-            .setDstSet(descriptorSet)
-            .setDstBinding(binding)
-            .setDstArrayElement(0)
-            .setDescriptorCount(1)
-            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorType(bufferType)
             .setPBufferInfo(&bufferInfos.back())
     );
 }

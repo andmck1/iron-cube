@@ -15,7 +15,6 @@ class DefaultMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     std::vector<Instance> *instances = nullptr;
 };
 
-
 class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
 {
     public:
@@ -63,15 +62,10 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool createDescriptorPool();
     bool createQueryPool();
 
-    void addUniformBufferWrite(
+    void addBufferWrite(
         vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
-        vk::raii::Buffer *buffer, vk::DeviceSize range,
-        std::vector<vk::WriteDescriptorSet> &descriptorWrites,
-        std::vector<vk::DescriptorBufferInfo> &bufferInfos
-    );
-    void addStorageBufferWrite(
-        vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
-        VulkanBuffer *vulkanBuffer,
+        vk::DescriptorType bufferType, vk::raii::Buffer *buffer,
+        vk::DeviceSize bufferSize,
         std::vector<vk::WriteDescriptorSet> &descriptorWrites,
         std::vector<vk::DescriptorBufferInfo> &bufferInfos
     );
