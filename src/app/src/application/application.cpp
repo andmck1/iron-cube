@@ -353,29 +353,54 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
+        // app updates
         timer_.tick();
         platform_.pollEvents();
         handleInput();
 
+        // entity updates
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
-        updateEntities();
         renderer_.beginFrame();
+        updateEntities();
+        for (std::unique_ptr<ILayer> &layer : layers_)
+        {
+            layer->update();
+        }
+
+        // render
+        renderer_.beginRender();
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
             layer->frame();
         }
+        
+        renderer_.endRender();
+
+        // post render updates
+        for (std::unique_ptr<ILayer> &layer : layers_)
+        {
+            layer->postRender();
+        }
+
         renderer_.drawFrame();
         renderer_.present();
+
+        for (std::unique_ptr<ILayer> &layer : layers_)
+        {
+            layer->end();
+        }
     }
 }
 
 void Application::checkForPipelineUpdates()
 {
+    IShaderPipelineManager *shaderPipelineManager =
+        ServiceLocator::instance().get<IShaderPipelineManager>();
+    const std::vector<std::unique_ptr<Entity>> &entities =
+        sceneLayer_->scene.getEntities();
     if (debugLayer_->shaderTypeUpdate > -1)
     {
-        IShaderPipelineManager *shaderPipelineManager =
-            ServiceLocator::instance().get<IShaderPipelineManager>();
         std::string shaderPipelineSuffix = "";
         switch (debugLayer_->shaderTypeUpdate)
         {
@@ -395,8 +420,6 @@ void Application::checkForPipelineUpdates()
             break;
         }
         }
-        const std::vector<std::unique_ptr<Entity>> &entities =
-            sceneLayer_->scene.getEntities();
         for (const std::unique_ptr<Entity> &entity : entities)
         {
             MeshComponent *meshComponent =
@@ -413,6 +436,27 @@ void Application::checkForPipelineUpdates()
                         entity->getComponent<MeshComponent>();
                     if (meshComp)
                         meshComp->setShaderPipeline(shaderPipeline);
+                }
+            }
+        }
+    }
+
+    timeSincePipelineDebugQuery_ += timer_.getDeltaSeconds();
+
+    if (timeSincePipelineDebugQuery_ >= (1.f / PIPELINE_DEBUG_QUERY_FREQUENCY))
+    {
+        timeSincePipelineDebugQuery_ = 0.f;
+        for (const std::unique_ptr<Entity> &entity : entities)
+        {
+            MeshComponent *meshComponent =
+                entity->getComponent<MeshComponent>();
+            if (meshComponent)
+            {
+                IShaderPipeline *shaderPipeline =
+                    meshComponent->getShaderPipeline();
+                if (shaderPipeline)
+                {
+                    shaderPipeline->setIsDebugQuery(true);
                 }
             }
         }

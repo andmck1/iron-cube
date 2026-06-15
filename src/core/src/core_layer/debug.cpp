@@ -1,6 +1,7 @@
 #include "core_layer/debug.h"
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
+#include "core_ecs/ecs.h"
 #include "core_render/irenderer.h"
 #include "core_render/ishaderpipelinemanager.h"
 #include "core_render/vulkan/renderer.h"
@@ -74,10 +75,58 @@ bool DebugLayer::frame()
     else
         shaderTypeUpdate = -1;
 
+    // Pipeline statistics
+    for (const std::unique_ptr<Entity> &entity :
+         debugData_->scene->getEntities())
+    {
+        MeshComponent *meshComponent = entity->getComponent<MeshComponent>();
+        if (meshComponent)
+        {
+            PipelineStatistics pipelineStatistics =
+                meshComponent->getShaderPipeline()->getPipelineStatistics();
+            switch (pipelineStatistics.pipelineType)
+            {
+            case PipelineStatistics::PipelineType::TRADITIONAL:
+                ImGui::Text(
+                    "%s N Vertices: %d", entity->getName().c_str(),
+                    pipelineStatistics.nVertices
+                );
+                break;
+            case PipelineStatistics::PipelineType::MESH:
+                ImGui::Text(
+                    "%s N Task Shader Invocations: %d",
+                    entity->getName().c_str(),
+                    pipelineStatistics.nTaskShaderInvocations
+                );
+                ImGui::Text(
+                    "%s N Mesh Shader Invocations: %d",
+                    entity->getName().c_str(),
+                    pipelineStatistics.nMeshShaderInvocations
+                );
+                break;
+            }
+        }
+    }
+
     ImGui::End();
 
     if (!renderer_->renderImGui())
         return false;
 
+    return true;
+}
+
+bool DebugLayer::update()
+{
+    return true;
+}
+
+bool DebugLayer::postRender()
+{
+    return true;
+}
+
+bool DebugLayer::end()
+{
     return true;
 }

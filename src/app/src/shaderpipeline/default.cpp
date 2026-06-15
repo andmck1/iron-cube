@@ -32,6 +32,8 @@ bool DefaultVulkanShaderPipeline::initPipeline()
         return false;
     if (!initGraphicsPipeline())
         return false;
+    if (!createQueryPool())
+        return false;
     if (!initVertexBuffer())
         return false;
     if (!initIndexBuffer())
@@ -382,6 +384,11 @@ bool DefaultVulkanShaderPipeline::update()
         ServiceLocator::instance().get<IRenderer>()
     );
 
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+    bool startQuery = isDebugQuery_ && !isQuerying_;
+    if (startQuery)
+        commandBuffer.resetQueryPool(queryPool_, 0, 1);
+
     const DefaultShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultShaderPipelineUpdateData &>(*updateData_);
 
@@ -409,8 +416,73 @@ bool DefaultVulkanShaderPipeline::draw()
         ServiceLocator::instance().get<IRenderer>()
     );
 
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+    bool startQuery = isDebugQuery_ && !isQuerying_;
+    if (startQuery)
+    {
+        commandBuffer.beginQuery(queryPool_, 0);
+        isQuerying_ = true;
+    }
+
     renderer->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
     );
+
+    if (startQuery)
+        commandBuffer.endQuery(queryPool_, 0);
+
+    return true;
+}
+
+bool DefaultVulkanShaderPipeline::createQueryPool()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    vk::QueryPoolCreateInfo queryPoolInfo =
+        vk::QueryPoolCreateInfo{}
+            .setQueryType(vk::QueryType::ePipelineStatistics)
+            .setQueryCount(1)
+            .setPipelineStatistics(
+                vk::QueryPipelineStatisticFlagBits::eVertexShaderInvocations
+            );
+
+    queryPool_ = vk::raii::QueryPool(renderer->getDevice(), queryPoolInfo);
+
+    return true;
+}
+
+PipelineStatistics DefaultVulkanShaderPipeline::getPipelineStatistics()
+{
+    PipelineStatistics pipelineStatistics{};
+    pipelineStatistics.pipelineType =
+        PipelineStatistics::PipelineType::TRADITIONAL;
+    pipelineStatistics.nVertices = pipelineStatistics_[0];
+    return pipelineStatistics;
+}
+
+bool DefaultVulkanShaderPipeline::updatePipelineStatistics()
+{
+    if (!isQuerying_)
+        return false;
+
+    // TODO - generalise
+    vk::Result queryResult = queryPool_.getResults(
+        0, 1, sizeof(uint64_t), pipelineStatistics_.data(), sizeof(uint64_t),
+        vk::QueryResultFlagBits::e64
+    );
+
+    if (queryResult == vk::Result::eSuccess)
+    {
+        isQuerying_ = false;
+        isDebugQuery_ = false;
+        return true;
+    }
+    return false;
+}
+
+bool DefaultVulkanShaderPipeline::postRender()
+{
     return true;
 }

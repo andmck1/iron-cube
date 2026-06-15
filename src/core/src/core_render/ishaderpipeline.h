@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core_common/types.h"
+#include "core_render/irenderer.h"
 
 class IShaderPipeline
 {
@@ -13,4 +14,14 @@ class IShaderPipeline
     virtual bool recreateGraphicsPipeline() = 0;
     virtual bool shutdown() = 0;
     virtual bool draw() = 0;
+    virtual PipelineStatistics getPipelineStatistics() = 0;
+    virtual bool updatePipelineStatistics() = 0;
+    virtual bool postRender() = 0;
+    void setIsDebugQuery(bool isDebugQuery)
+    {
+        isDebugQuery_ = isDebugQuery;
+    };
+
+    protected:
+    bool isDebugQuery_ = false;
 };

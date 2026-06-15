@@ -323,7 +323,9 @@ bool VulkanRenderer::createLogicalDevice()
         vk::PhysicalDeviceMeshShaderFeaturesEXT>
         featureChain = {
             vk::PhysicalDeviceFeatures2{}.setFeatures(
-                vk::PhysicalDeviceFeatures{}.setFillModeNonSolid(true)
+                vk::PhysicalDeviceFeatures{}
+                    .setFillModeNonSolid(true)
+                    .setPipelineStatisticsQuery(true)
             ),
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
             vk::PhysicalDeviceVulkan13Features{}
@@ -334,6 +336,7 @@ bool VulkanRenderer::createLogicalDevice()
             vk::PhysicalDeviceMeshShaderFeaturesEXT{}
                 .setMeshShader(true)
                 .setTaskShader(true)
+                .setMeshShaderQueries(true)
         };
 
     // Enable swapchains
@@ -589,14 +592,17 @@ bool VulkanRenderer::beginFrame()
             vk::PipelineStageFlagBits2::eLateFragmentTests,
         vk::ImageAspectFlagBits::eDepth
     );
-    // cornflour blue
-    // vk::ClearValue clearColour =
-    //     vk::ClearColorValue(100.f / 255.f, 149.f / 255.f, 237.f /
-    //     255.f, 1.0f);
+
+    return true;
+}
+
+bool VulkanRenderer::beginRender()
+{
+    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     vk::ClearValue clearColour = vk::ClearColorValue(0.25f, 0.25f, 0.25f, 1.f);
     vk::RenderingAttachmentInfo attachmentInfo =
         vk::RenderingAttachmentInfo{}
-            .setImageView(swapChainImageViews_[imageIndex])
+            .setImageView(swapChainImageViews_[currentImageIndex_])
             .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
             .setLoadOp(vk::AttachmentLoadOp::eClear)
             .setStoreOp(vk::AttachmentStoreOp::eStore)
@@ -620,15 +626,19 @@ bool VulkanRenderer::beginFrame()
             .setPDepthAttachment(&depthAttachmentInfo);
 
     commandBuffer.beginRendering(renderingInfo);
+    return true;
+}
 
+bool VulkanRenderer::endRender()
+{
+    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
+    commandBuffer.endRendering();
     return true;
 }
 
 bool VulkanRenderer::drawFrame()
 {
-    // Stop recording commands
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
-    commandBuffer.endRendering();
 
     transitionImageLayout(
         swapChainImages_[currentImageIndex_],

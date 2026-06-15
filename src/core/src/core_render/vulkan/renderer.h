@@ -15,6 +15,8 @@ class VulkanRenderer : public IRenderer
     bool init(IPlatform *platform) override;
     bool renderImGui() override;
     bool beginFrame() override;
+    bool beginRender() override;
+    bool endRender() override;
     bool drawFrame() override;
     bool present() override;
     void waitAllFramesComplete();

@@ -58,6 +58,8 @@ bool DefaultVulkanMeshShaderPipeline::initPipeline(Geometry *geometry)
         return false;
     if (!initGraphicsPipeline())
         return false;
+    if (!createQueryPool())
+        return false;
     return true;
 }
 
@@ -249,9 +251,20 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
             .setDescriptorCount(1)
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT);
 
+    vk::DescriptorSetLayoutBinding debugDataBinding =
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(6)
+            .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eTaskEXT |
+                vk::ShaderStageFlagBits::eMeshEXT
+            );
+
     std::vector<vk::DescriptorSetLayoutBinding> bindings = {
         sceneLayoutBinding,     vertexBufferBinding,     meshletBufferBinding,
-        meshletVerticesBinding, meshletTrianglesBinding, instancesBinding
+        meshletVerticesBinding, meshletTrianglesBinding, instancesBinding,
+        debugDataBinding
     };
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo =
@@ -298,17 +311,47 @@ bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
         sizeof(uint32_t) * geometry_->meshletTrianglesU32.size();
     vk::DeviceSize instancesBufferSize =
         sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
+    vk::DeviceSize debugDataBufferSize =
+        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
-    vertexBuffer_.init(vertexBufferSize, geometry_->vertices.data());
-    meshletBuffer_.init(meshletBufferSize, geometry_->meshlets.data());
+    vk::BufferUsageFlagBits bufferType =
+        vk::BufferUsageFlagBits::eStorageBuffer;
+
+    vk::Flags<vk::BufferUsageFlagBits> readOnlyStagingBufferFlags =
+        vk::BufferUsageFlagBits::eTransferSrc;
+    vk::Flags<vk::BufferUsageFlagBits> readOnlyBufferFlags =
+        vk::BufferUsageFlagBits::eTransferDst;
+
+    vk::Flags<vk::BufferUsageFlagBits> rwBufferFlags =
+        vk::BufferUsageFlagBits::eTransferDst |
+        vk::BufferUsageFlagBits::eTransferSrc;
+    vk::Flags<vk::BufferUsageFlagBits> rwStagingBufferFlags =
+        vk::BufferUsageFlagBits::eTransferDst |
+        vk::BufferUsageFlagBits::eTransferSrc;
+
+    vertexBuffer_.init(
+        vertexBufferSize, geometry_->vertices.data(), bufferType,
+        readOnlyStagingBufferFlags, readOnlyBufferFlags
+    );
+    meshletBuffer_.init(
+        meshletBufferSize, geometry_->meshlets.data(), bufferType,
+        readOnlyStagingBufferFlags, readOnlyBufferFlags
+    );
     meshletVerticesBuffer_.init(
-        meshletVerticesBufferSize, geometry_->meshletVertices.data()
+        meshletVerticesBufferSize, geometry_->meshletVertices.data(),
+        bufferType, readOnlyStagingBufferFlags, readOnlyBufferFlags
     );
     meshletTrianglesBuffer_.init(
-        meshletTrianglesBufferSize, geometry_->meshletTrianglesU32.data()
+        meshletTrianglesBufferSize, geometry_->meshletTrianglesU32.data(),
+        bufferType, readOnlyStagingBufferFlags, readOnlyBufferFlags
     );
     instancesBuffer_.init(
-        instancesBufferSize, defaultUpdateData.instances->data()
+        instancesBufferSize, defaultUpdateData.instances->data(), bufferType,
+        readOnlyStagingBufferFlags, readOnlyBufferFlags
+    );
+    debugDataBuffer_.init(
+        debugDataBufferSize, debugDataBufferData_.data(), bufferType,
+        rwStagingBufferFlags, rwBufferFlags
     );
     return true;
 }
@@ -326,7 +369,7 @@ bool DefaultVulkanMeshShaderPipeline::createDescriptorPool()
             .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT),
         vk::DescriptorPoolSize{}
             .setType(vk::DescriptorType::eStorageBuffer)
-            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT * 5)
+            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT * 6)
     };
 
     vk::DescriptorPoolCreateInfo poolInfo =
@@ -363,8 +406,8 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
     {
         std::vector<vk::WriteDescriptorSet> descriptorWrites;
         std::vector<vk::DescriptorBufferInfo> bufferInfos;
-        descriptorWrites.reserve(6);
-        bufferInfos.reserve(6);
+        descriptorWrites.reserve(7);
+        bufferInfos.reserve(7);
 
         addUniformBufferWrite(
             descriptorSets_[i], 0, sceneBuffers_[i].getBuffer(),
@@ -389,9 +432,35 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorSets()
             descriptorSets_[i], 5, &instancesBuffer_, descriptorWrites,
             bufferInfos
         );
+        addStorageBufferWrite(
+            descriptorSets_[i], 6, &debugDataBuffer_, descriptorWrites,
+            bufferInfos
+        );
 
         renderer->getDevice().updateDescriptorSets(descriptorWrites, {});
     }
+
+    return true;
+}
+
+bool DefaultVulkanMeshShaderPipeline::createQueryPool()
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    vk::QueryPoolCreateInfo queryPoolInfo =
+        vk::QueryPoolCreateInfo{}
+            .setQueryType(vk::QueryType::ePipelineStatistics)
+            .setQueryCount(1)
+            .setPipelineStatistics(
+                vk::QueryPipelineStatisticFlagBits(
+                    vk::QueryPipelineStatisticFlagBits::
+                        eTaskShaderInvocationsEXT
+                )
+            );
+
+    queryPool_ = vk::raii::QueryPool(renderer->getDevice(), queryPoolInfo);
 
     return true;
 }
@@ -476,6 +545,11 @@ bool DefaultVulkanMeshShaderPipeline::update()
         ServiceLocator::instance().get<IRenderer>()
     );
 
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+    bool startQuery = isDebugQuery_ && !isQuerying_;
+    if (startQuery)
+        commandBuffer.resetQueryPool(queryPool_, 0, 1);
+
     const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultMeshShaderPipelineUpdateData &>(*updateData_);
 
@@ -503,6 +577,12 @@ bool DefaultVulkanMeshShaderPipeline::update()
         instancesBufferSize, defaultUpdateData.instances->data()
     );
 
+    // debug data
+    vk::DeviceSize debugDataBufferSize =
+        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+    debugDataBufferData_ = {DebugDataBuffer()};
+    debugDataBuffer_.update(debugDataBufferSize, debugDataBufferData_.data());
+
     return true;
 }
 
@@ -511,6 +591,8 @@ bool DefaultVulkanMeshShaderPipeline::draw()
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
+    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+
     // TODO - wonder if you want to ensure that this is a nice number? eg 256,
     // etc
     // TODO - can't be calling this every frame
@@ -521,6 +603,72 @@ bool DefaultVulkanMeshShaderPipeline::draw()
         static_cast<uint32_t>(defaultUpdateData.instances->size());
     uint32_t threadGroupCountX =
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
+
+    bool startQuery = isDebugQuery_ && !isQuerying_;
+    if (startQuery)
+    {
+        commandBuffer.beginQuery(queryPool_, 0);
+        isQuerying_ = true;
+    }
+
     renderer->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
+
+    if (startQuery)
+        commandBuffer.endQuery(queryPool_, 0);
+
     return true;
+}
+
+bool DefaultVulkanMeshShaderPipeline::postRender()
+{
+    vk::DeviceSize debugDataBufferSize =
+        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+    debugDataBuffer_.copyToStaging(debugDataBufferSize);
+    return true;
+}
+
+PipelineStatistics DefaultVulkanMeshShaderPipeline::getPipelineStatistics()
+{
+    return pipelineStatistics_;
+}
+
+bool DefaultVulkanMeshShaderPipeline::updatePipelineStatistics()
+{
+    if (!isQuerying_)
+        return false;
+
+    // TODO - generalise
+    vk::Result queryResult = queryPool_.getResults(
+        0, 1, sizeof(uint64_t), pipelineStatisticsRaw_.data(), sizeof(uint64_t),
+        vk::QueryResultFlagBits::e64
+    );
+
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    // TODO - this is a bit extreme
+    renderer->waitAllFramesComplete();
+
+    if (queryResult == vk::Result::eSuccess)
+    {
+        isQuerying_ = false;
+        isDebugQuery_ = false;
+        pipelineStatistics_.pipelineType =
+            PipelineStatistics::PipelineType::MESH;
+
+        vk::DeviceSize debugDataBufferSize =
+            sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        debugDataBuffer_.readData(
+            debugDataBufferSize, debugDataBufferData_.data()
+        );
+        pipelineStatistics_.nTaskShaderInvocations =
+            debugDataBufferData_[0].nTaskShaderInvocations;
+        pipelineStatistics_.nMeshShaderInvocations =
+            debugDataBufferData_[0].nMeshShaderInvocations;
+        // pipelineStatistics_.nTaskShaderInvocations =
+        // pipelineStatisticsRaw_[0];
+        return true;
+    }
+    return false;
 }

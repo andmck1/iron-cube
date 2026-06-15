@@ -40,22 +40,33 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool shutdown() override;
     bool recreateGraphicsPipeline() override;
     bool draw() override;
+    PipelineStatistics getPipelineStatistics() override;
+    bool updatePipelineStatistics() override;
+    bool postRender() override;
 
     protected:
     vk::raii::DescriptorPool descriptorPool_ = nullptr;
     vk::raii::DescriptorSets descriptorSets_ = nullptr;
     vk::raii::DescriptorSetLayout descriptorSetLayout_ = nullptr;
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
+    vk::raii::QueryPool queryPool_ = nullptr;
 
     VulkanBuffer vertexBuffer_;
     VulkanBuffer meshletBuffer_;
     VulkanBuffer meshletVerticesBuffer_;
     VulkanBuffer meshletTrianglesBuffer_;
     VulkanBuffer instancesBuffer_;
+    VulkanBuffer debugDataBuffer_;
 
     std::vector<VulkanUniformBuffer> sceneBuffers_;
 
     Geometry *geometry_ = nullptr;
+    std::vector<DebugDataBuffer> debugDataBufferData_ = {DebugDataBuffer()};
+
+    bool isWaitingOnQueryPool_ = false;
+    std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
+    PipelineStatistics pipelineStatistics_{};
+    bool isQuerying_ = false;
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
@@ -64,6 +75,7 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool initStorageBuffers();
     bool initDescriptorSets();
     bool createDescriptorPool();
+    bool createQueryPool();
 
     void addUniformBufferWrite(
         vk::raii::DescriptorSet &descriptorSet, uint32_t binding,

@@ -353,8 +353,9 @@ ResourceManager::loadObj(std::string objFilePath, std::string objBaseDir)
     calculateMeshBounds(&geometry);
 
     spdlog::info(
-        "Loaded OBJ '{}': {} vertices, {} indices", objFilePath,
-        geometry.vertices.size(), geometry.indices.size()
+        "Loaded OBJ '{}': {} vertices, {} indices, {} meshlets", objFilePath,
+        geometry.vertices.size(), geometry.indices.size(),
+        geometry.meshlets.size()
     );
     return geometry;
 }
@@ -437,20 +438,21 @@ void ResourceManager::calculateMeshBounds(Geometry *geometry)
         return;
     }
 
-    glm::vec3 minCorner =
-        glm::vec3(geometry->vertices[0].position.x,
-                  geometry->vertices[0].position.y,
-                  geometry->vertices[0].position.z);
-    glm::vec3 maxCorner =
-        glm::vec3(geometry->vertices[0].position.x,
-                  geometry->vertices[0].position.y,
-                  geometry->vertices[0].position.z);
+    glm::vec3 minCorner = glm::vec3(
+        geometry->vertices[0].position.x, geometry->vertices[0].position.y,
+        geometry->vertices[0].position.z
+    );
+    glm::vec3 maxCorner = glm::vec3(
+        geometry->vertices[0].position.x, geometry->vertices[0].position.y,
+        geometry->vertices[0].position.z
+    );
 
     for (size_t i = 1; i < geometry->vertices.size(); ++i)
     {
         glm::vec3 pos = glm::vec3(
             geometry->vertices[i].position.x, geometry->vertices[i].position.y,
-            geometry->vertices[i].position.z);
+            geometry->vertices[i].position.z
+        );
         minCorner = glm::min(minCorner, pos);
         maxCorner = glm::max(maxCorner, pos);
     }

@@ -12,6 +12,9 @@ class DebugLayer : public ILayer
     public:
     bool initialise() override;
     bool frame() override;
+    bool update() override;
+    bool postRender() override;
+    bool end() override;
 
     void setDebugData(DebugLayerData *debugData);
 

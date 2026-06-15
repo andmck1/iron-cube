@@ -3,6 +3,9 @@
 
 ConstantBuffer<SceneBuffer> scene;
 
+[[vk::binding(6)]]
+RWStructuredBuffer<DebugDataBuffer> debugData;
+
 groupshared Payload sPayload;
 
 [shader("task")]
@@ -12,6 +15,8 @@ void main(
     uint gid: SV_GroupID
 )
 {
+    InterlockedAdd(debugData[0].nTaskShaderInvocations, 1);
+
     bool visible = false;
 
     uint instanceIndex = dtid / scene.meshletCount;
@@ -27,4 +32,5 @@ void main(
 
     uint visibleCount = WaveActiveCountBits(visible);
     DispatchMesh(visibleCount, 1, 1, sPayload);
+
 }
