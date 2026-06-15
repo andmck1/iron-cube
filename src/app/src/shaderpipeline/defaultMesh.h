@@ -42,6 +42,7 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     bool draw() override;
     PipelineStatistics getPipelineStatistics() override;
     bool updatePipelineStatistics() override;
+    bool postRender() override;
 
     protected:
     vk::raii::DescriptorPool descriptorPool_ = nullptr;
@@ -55,10 +56,12 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
     VulkanBuffer meshletVerticesBuffer_;
     VulkanBuffer meshletTrianglesBuffer_;
     VulkanBuffer instancesBuffer_;
+    VulkanBuffer debugDataBuffer_;
 
     std::vector<VulkanUniformBuffer> sceneBuffers_;
 
     Geometry *geometry_ = nullptr;
+    std::vector<DebugDataBuffer> debugDataBufferData_ = {DebugDataBuffer()};
 
     bool isWaitingOnQueryPool_ = false;
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};

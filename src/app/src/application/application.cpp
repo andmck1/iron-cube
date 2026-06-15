@@ -374,10 +374,18 @@ void Application::mainLoop()
         {
             layer->frame();
         }
+        
+        renderer_.endRender();
+
+        // post render updates
+        for (std::unique_ptr<ILayer> &layer : layers_)
+        {
+            layer->postRender();
+        }
+
         renderer_.drawFrame();
         renderer_.present();
 
-        // post frame updates
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
             layer->end();

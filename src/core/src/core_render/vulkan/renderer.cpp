@@ -629,11 +629,16 @@ bool VulkanRenderer::beginRender()
     return true;
 }
 
-bool VulkanRenderer::drawFrame()
+bool VulkanRenderer::endRender()
 {
-    // Stop recording commands
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     commandBuffer.endRendering();
+    return true;
+}
+
+bool VulkanRenderer::drawFrame()
+{
+    vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
 
     transitionImageLayout(
         swapChainImages_[currentImageIndex_],

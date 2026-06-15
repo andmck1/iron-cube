@@ -2,6 +2,7 @@
 #include "shader/shared/buffertypes.h"
 
 ConstantBuffer<SceneBuffer> scene;
+RWStructuredBuffer<DebugDataBuffer> debugData;
 
 groupshared Payload sPayload;
 
@@ -27,4 +28,6 @@ void main(
 
     uint visibleCount = WaveActiveCountBits(visible);
     DispatchMesh(visibleCount, 1, 1, sPayload);
+
+    InterlockedAdd(debugData[0].n, 1);
 }

@@ -16,6 +16,7 @@ class VulkanRenderer : public IRenderer
     bool renderImGui() override;
     bool beginFrame() override;
     bool beginRender() override;
+    bool endRender() override;
     bool drawFrame() override;
     bool present() override;
     void waitAllFramesComplete();

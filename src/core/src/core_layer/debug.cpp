@@ -116,6 +116,11 @@ bool DebugLayer::update()
     return true;
 }
 
+bool DebugLayer::postRender()
+{
+    return true;
+}
+
 bool DebugLayer::end()
 {
     return true;

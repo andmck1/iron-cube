@@ -73,6 +73,11 @@ struct SceneBuffer
     uint meshletCount;
 };
 
+struct DebugDataBuffer
+{
+    uint n;
+};
+
 struct Instance
 {
     float4x4 transform = {

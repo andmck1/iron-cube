@@ -27,6 +27,7 @@ class IRenderer
 
     virtual bool beginFrame() = 0;
     virtual bool beginRender() = 0;
+    virtual bool endRender() = 0;
     virtual bool drawFrame() = 0;
     virtual bool present() = 0;
     virtual bool shutdown() = 0;

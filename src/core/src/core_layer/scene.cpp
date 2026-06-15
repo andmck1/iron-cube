@@ -46,6 +46,30 @@ bool SceneLayer::update()
     return true;
 }
 
+bool SceneLayer::postRender()
+{    IShaderPipelineManager *shaderPipelineManager =
+        ServiceLocator::instance().get<IShaderPipelineManager>();
+    if (!shaderPipelineManager)
+        return false;
+
+    for (const std::unique_ptr<Entity> &sceneEntity : scene.getEntities())
+    {
+        MeshComponent *entityMeshComponent =
+            sceneEntity->getComponent<MeshComponent>();
+        if (entityMeshComponent)
+        {
+            IShaderPipeline *shaderPipeline =
+                entityMeshComponent->getShaderPipeline();
+            if (!shaderPipeline)
+                return false;
+            if (!shaderPipeline->postRender())
+                return false;
+        }
+    }
+
+    return true;
+}
+
 bool SceneLayer::end()
 {
     IShaderPipelineManager *shaderPipelineManager =

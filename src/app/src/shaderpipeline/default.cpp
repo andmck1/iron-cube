@@ -481,3 +481,8 @@ bool DefaultVulkanShaderPipeline::updatePipelineStatistics()
     }
     return false;
 }
+
+bool DefaultVulkanShaderPipeline::postRender()
+{
+    return true;
+}

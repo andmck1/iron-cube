@@ -27,6 +27,7 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool draw() override;
     PipelineStatistics getPipelineStatistics() override;
     bool updatePipelineStatistics() override;
+    bool postRender() override;
 
     protected:
     vk::raii::DescriptorPool descriptorPool_ = nullptr;

@@ -20,24 +20,28 @@ class VulkanBuffer
     public:
     vk::raii::Buffer *getBuffer();
     vk::raii::DeviceMemory *getDeviceMemory();
+    void copyToStaging(vk::DeviceSize size);
 
     template <typename DataType>
-    bool init(vk::DeviceSize bufferSize, DataType *data)
+    bool init(
+        vk::DeviceSize bufferSize, DataType *data,
+        vk::BufferUsageFlagBits bufferType,
+        vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags,
+        vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags
+    )
     {
         VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
             ServiceLocator::instance().get<IRenderer>()
         );
 
         std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
-            bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+            bufferSize, stagingBufferUsageFlags,
             vk::MemoryPropertyFlagBits::eHostVisible |
                 vk::MemoryPropertyFlagBits::eHostCoherent
         );
 
         std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-            bufferSize,
-            vk::BufferUsageFlagBits::eStorageBuffer |
-                vk::BufferUsageFlagBits::eTransferDst,
+            bufferSize, bufferType | bufferUsageFlags,
             vk::MemoryPropertyFlagBits::eDeviceLocal
         );
 
@@ -62,6 +66,16 @@ class VulkanBuffer
         stagingBufferMemory_.unmapMemory();
 
         renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
+
+        return true;
+    }
+
+    template <typename DataType>
+    bool readData(vk::DeviceSize bufferSize, DataType *outputData)
+    {
+        void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
+        memcpy(outputData, stagingData, bufferSize);
+        stagingBufferMemory_.unmapMemory();
 
         return true;
     }
