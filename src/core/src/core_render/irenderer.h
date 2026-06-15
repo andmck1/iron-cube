@@ -15,7 +15,7 @@ struct PipelineStatistics
 
     PipelineType pipelineType = PipelineType::TRADITIONAL;
     int nVertices = 0;
-    int nMeshlets = 0;
+    int nTaskShaderInvocations = 0;
 };
 
 class IRenderer

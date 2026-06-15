@@ -357,7 +357,7 @@ void Application::mainLoop()
         timer_.tick();
         platform_.pollEvents();
         handleInput();
-    
+
         // entity updates
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
@@ -367,7 +367,7 @@ void Application::mainLoop()
         {
             layer->update();
         }
-    
+
         // render
         renderer_.beginRender();
         for (std::unique_ptr<ILayer> &layer : layers_)
@@ -376,7 +376,7 @@ void Application::mainLoop()
         }
         renderer_.drawFrame();
         renderer_.present();
-    
+
         // post frame updates
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
@@ -387,10 +387,12 @@ void Application::mainLoop()
 
 void Application::checkForPipelineUpdates()
 {
+    IShaderPipelineManager *shaderPipelineManager =
+        ServiceLocator::instance().get<IShaderPipelineManager>();
+    const std::vector<std::unique_ptr<Entity>> &entities =
+        sceneLayer_->scene.getEntities();
     if (debugLayer_->shaderTypeUpdate > -1)
     {
-        IShaderPipelineManager *shaderPipelineManager =
-            ServiceLocator::instance().get<IShaderPipelineManager>();
         std::string shaderPipelineSuffix = "";
         switch (debugLayer_->shaderTypeUpdate)
         {
@@ -410,8 +412,6 @@ void Application::checkForPipelineUpdates()
             break;
         }
         }
-        const std::vector<std::unique_ptr<Entity>> &entities =
-            sceneLayer_->scene.getEntities();
         for (const std::unique_ptr<Entity> &entity : entities)
         {
             MeshComponent *meshComponent =
@@ -431,6 +431,19 @@ void Application::checkForPipelineUpdates()
                 }
             }
         }
+    }
+
+    timeSincePipelineDebugQuery_ += timer_.getDeltaSeconds();
+
+    bool isPipelineDebugQuery = false;
+    if (timeSincePipelineDebugQuery_ >= (1.f / PIPELINE_DEBUG_QUERY_FREQUENCY))
+    {
+        isPipelineDebugQuery = true;
+        timeSincePipelineDebugQuery_ = 0.f;
+    }
+    for (auto shaderPipeline : shaderPipelineManager->getAllShaderPipelines())
+    {
+        shaderPipeline->setIsDebugQuery(isPipelineDebugQuery);
     }
 }
 

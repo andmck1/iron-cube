@@ -551,9 +551,11 @@ bool DefaultVulkanMeshShaderPipeline::draw()
     uint32_t threadGroupCountX =
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
 
-    commandBuffer.beginQuery(queryPool_, 0);
+    if (isDebugQuery_)
+        commandBuffer.beginQuery(queryPool_, 0);
     renderer->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
-    commandBuffer.endQuery(queryPool_, 0);
+    if (isDebugQuery_)
+        commandBuffer.endQuery(queryPool_, 0);
     return true;
 }
 
@@ -561,7 +563,7 @@ PipelineStatistics DefaultVulkanMeshShaderPipeline::getPipelineStatistics()
 {
     PipelineStatistics pipelineStatistics{};
     pipelineStatistics.pipelineType = PipelineStatistics::PipelineType::MESH;
-    pipelineStatistics.nMeshlets = pipelineStatistics_[0];
+    pipelineStatistics.nTaskShaderInvocations = pipelineStatistics_[0];
     return pipelineStatistics;
 }
 

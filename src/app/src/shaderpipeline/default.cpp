@@ -415,11 +415,13 @@ bool DefaultVulkanShaderPipeline::draw()
     );
 
     vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
-    commandBuffer.beginQuery(queryPool_, 0);
+    if (isDebugQuery_)
+        commandBuffer.beginQuery(queryPool_, 0);
     renderer->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
     );
-    commandBuffer.endQuery(queryPool_, 0);
+    if (isDebugQuery_)
+        commandBuffer.endQuery(queryPool_, 0);
     return true;
 }
 

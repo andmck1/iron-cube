@@ -16,4 +16,11 @@ class IShaderPipeline
     virtual bool draw() = 0;
     virtual PipelineStatistics getPipelineStatistics() = 0;
     virtual bool updatePipelineStatistics() = 0;
+    void setIsDebugQuery(bool isDebugQuery)
+    {
+        isDebugQuery_ = isDebugQuery;
+    };
+
+    protected:
+    bool isDebugQuery_ = false;
 };

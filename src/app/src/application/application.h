@@ -22,6 +22,7 @@ static constexpr float MOUSE_SENSITIVITY = 1.5f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
 static constexpr uint32_t N_INSTANCE_COLUMNS = 20;
 static constexpr uint32_t N_INSTANCE_ROWS = 10;
+static constexpr float PIPELINE_DEBUG_QUERY_FREQUENCY = 1.f;
 
 class Application
 {
@@ -67,4 +68,6 @@ class Application
     DebugLayerData debugLayerData_;
     Timer timer_;
     std::vector<std::unique_ptr<ILayer>> layers_;
+
+    float timeSincePipelineDebugQuery_ = 0.f;
 };
