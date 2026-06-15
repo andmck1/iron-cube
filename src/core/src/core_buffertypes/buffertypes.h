@@ -75,7 +75,7 @@ struct SceneBuffer
 
 struct DebugDataBuffer
 {
-    uint n;
+    uint32_t n = 5;
 };
 
 struct Instance

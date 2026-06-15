@@ -577,6 +577,7 @@ bool DefaultVulkanMeshShaderPipeline::update()
     // debug data
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+    debugDataBufferData_ = {DebugDataBuffer()};
     debugDataBuffer_.update(debugDataBufferSize, debugDataBufferData_.data());
 
     return true;
@@ -611,7 +612,7 @@ bool DefaultVulkanMeshShaderPipeline::draw()
 
     if (startQuery)
         commandBuffer.endQuery(queryPool_, 0);
-    
+
     return true;
 }
 
@@ -638,6 +639,13 @@ bool DefaultVulkanMeshShaderPipeline::updatePipelineStatistics()
         0, 1, sizeof(uint64_t), pipelineStatisticsRaw_.data(), sizeof(uint64_t),
         vk::QueryResultFlagBits::e64
     );
+
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+
+    // TODO - this is a bit extreme
+    renderer->waitAllFramesComplete();
 
     if (queryResult == vk::Result::eSuccess)
     {
