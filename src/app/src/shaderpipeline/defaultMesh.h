@@ -15,21 +15,6 @@ class DefaultMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     std::vector<Instance> *instances = nullptr;
 };
 
-class VulkanUniformBuffer
-{
-    public:
-    bool init(
-        vk::DeviceSize bufferSize, vk::BufferUsageFlags usage,
-        vk::MemoryPropertyFlags properties
-    );
-    vk::raii::Buffer *getBuffer();
-    void *getMappedPointer();
-
-    protected:
-    vk::raii::Buffer buffer_ = nullptr;
-    vk::raii::DeviceMemory bufferMemory_ = nullptr;
-    void *mappedPointer_ = nullptr;
-};
 
 class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
 {

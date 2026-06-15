@@ -7,34 +7,6 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-bool VulkanUniformBuffer::init(
-    vk::DeviceSize bufferSize, vk::BufferUsageFlags usage,
-    vk::MemoryPropertyFlags properties
-)
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    auto [buffer, bufferMem] =
-        renderer->createBuffer(bufferSize, usage, properties);
-    buffer_ = std::move(buffer);
-    bufferMemory_ = std::move(bufferMem);
-    mappedPointer_ = bufferMemory_.mapMemory(0, bufferSize);
-
-    return true;
-}
-
-vk::raii::Buffer *VulkanUniformBuffer::getBuffer()
-{
-    return &buffer_;
-}
-
-void *VulkanUniformBuffer::getMappedPointer()
-{
-    return mappedPointer_;
-}
-
 bool DefaultVulkanMeshShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
 )

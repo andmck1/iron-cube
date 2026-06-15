@@ -2,6 +2,22 @@
 #include "core_service/servicelocator.h"
 #include <vulkan/vulkan_raii.hpp>
 
+class VulkanUniformBuffer
+{
+    public:
+    bool init(
+        vk::DeviceSize bufferSize, vk::BufferUsageFlags usage,
+        vk::MemoryPropertyFlags properties
+    );
+    vk::raii::Buffer *getBuffer();
+    void *getMappedPointer();
+
+    protected:
+    vk::raii::Buffer buffer_ = nullptr;
+    vk::raii::DeviceMemory bufferMemory_ = nullptr;
+    void *mappedPointer_ = nullptr;
+};
+
 class VulkanBuffer
 {
     public:
@@ -73,3 +89,4 @@ class VulkanBuffer
     vk::raii::Buffer stagingBuffer_ = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory_ = nullptr;
 };
+
