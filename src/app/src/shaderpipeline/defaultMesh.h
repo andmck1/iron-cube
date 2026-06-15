@@ -4,6 +4,7 @@
 #include "core_actor/sceneactor.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "core_render/vulkan/buffer.h"
 #include <vulkan/vulkan_raii.hpp>
 
 class DefaultMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
