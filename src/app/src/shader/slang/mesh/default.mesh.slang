@@ -3,12 +3,15 @@
 
 // TODO - explicitly say each of the bindings here
 ConstantBuffer<SceneBuffer> scene;
+
+[[vk::binding(1)]]
+RWStructuredBuffer<DebugDataBuffer> debugData;
+
 StructuredBuffer<VertexInputType> modelVertices;
 StructuredBuffer<OptimisedMeshlet> meshlets;
 StructuredBuffer<uint> vertexIndices;
 StructuredBuffer<uint> triangleIndices;
 StructuredBuffer<Instance> instances;
-RWStructuredBuffer<DebugDataBuffer> debugData;
 
 // TODO - use the defines for the triange and vertex limits??
 [shader("mesh")]

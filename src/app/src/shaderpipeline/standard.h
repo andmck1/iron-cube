@@ -6,8 +6,6 @@
 #include "core_render/vulkan/shaderpipeline.h"
 #include <vulkan/vulkan_raii.hpp>
 
-// TODO - a lot shared between this and default mesh, can probably create a
-// Vulkan Shader
 class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
 {
     public:
@@ -15,7 +13,7 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
     CameraActor *camera = nullptr;
 };
 
-class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
+class StandardVulkanShaderPipeline : public VulkanShaderPipeline
 {
     public:
     bool
@@ -30,32 +28,25 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
-    vk::raii::DescriptorPool descriptorPool_ = nullptr;
-    vk::raii::DescriptorSets descriptorSets_ = nullptr;
-    vk::raii::DescriptorSetLayout descriptorSetLayout_ = nullptr;
-    vk::raii::PipelineLayout pipelineLayout_ = nullptr;
     vk::raii::DeviceMemory vertexBufferMemory_ = nullptr;
     vk::raii::Buffer vertexBuffer_ = nullptr;
     vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
     vk::raii::Buffer indexBuffer_ = nullptr;
     vk::raii::QueryPool queryPool_ = nullptr;
 
-    std::vector<vk::raii::Buffer> uniformBuffers;
-    std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
-    std::vector<void *> uniformBuffersMapped;
-
     Geometry *geometry_ = nullptr;
 
-    std::array<uint64_t, 1> pipelineStatistics_ = {0};
+    std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
+    PipelineStatistics pipelineStatistics_{};
     bool isQuerying_ = false;
 
     bool initGraphicsPipeline();
     bool initPipeline();
     bool initVertexBuffer();
     bool initIndexBuffer();
-    bool initDescriptorLayout();
-    bool initUniformBuffers();
-    bool initDescriptorSets();
-    bool createDescriptorPool();
     bool createQueryPool();
+
+    // Pure virtual hooks from base class
+    void initUniformBuffers() override;
+    void initStorageBuffers() override;
 };

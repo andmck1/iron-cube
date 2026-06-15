@@ -54,8 +54,8 @@ add_executable(
     iron-cube
     src/main.cpp
     src/application/application.cpp
-    src/shaderpipeline/default.cpp
-    src/shaderpipeline/defaultMesh.cpp
+    src/shaderpipeline/standard.cpp
+    src/shaderpipeline/instancedMesh.cpp
 )
 
 target_link_libraries(iron-cube PRIVATE iron-core)

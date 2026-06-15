@@ -88,23 +88,27 @@ bool DebugLayer::frame()
             {
             case PipelineStatistics::PipelineType::TRADITIONAL:
                 ImGui::Text(
-                    "%s N Vertices: %d", entity->getName().c_str(),
-                    pipelineStatistics.nVertices
+                    "%s VS: %d", entity->getName().c_str(),
+                    pipelineStatistics.nVertexShaderInvocations
                 );
                 break;
             case PipelineStatistics::PipelineType::MESH:
                 ImGui::Text(
-                    "%s N Task Shader Invocations: %d",
-                    entity->getName().c_str(),
+                    "%s TS: %d", entity->getName().c_str(),
                     pipelineStatistics.nTaskShaderInvocations
                 );
                 ImGui::Text(
-                    "%s N Mesh Shader Invocations: %d",
-                    entity->getName().c_str(),
+                    "%s MS: %d", entity->getName().c_str(),
                     pipelineStatistics.nMeshShaderInvocations
                 );
                 break;
+            default:
+                spdlog::warn("Pipeline type not supported for debug data");
             }
+            ImGui::Text(
+                "%s PS: %d", entity->getName().c_str(),
+                pipelineStatistics.nFragmentShaderInvocations
+            );
         }
     }
 

@@ -3,7 +3,7 @@
 
 ConstantBuffer<SceneBuffer> scene;
 
-[[vk::binding(6)]]
+[[vk::binding(1)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
 groupshared Payload sPayload;
