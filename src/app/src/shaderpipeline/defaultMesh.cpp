@@ -501,7 +501,8 @@ bool DefaultVulkanMeshShaderPipeline::update()
     );
 
     vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
-    if (!isQuerying_)
+    bool startQuery = isDebugQuery_ && !isQuerying_;
+    if (startQuery)
         commandBuffer.resetQueryPool(queryPool_, 0, 1);
 
     const DefaultMeshShaderPipelineUpdateData &defaultUpdateData =
@@ -552,10 +553,16 @@ bool DefaultVulkanMeshShaderPipeline::draw()
     uint32_t threadGroupCountX =
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
 
-    if (!isQuerying_)
+    bool startQuery = isDebugQuery_ && !isQuerying_;
+    if (startQuery)
+    {
         commandBuffer.beginQuery(queryPool_, 0);
+        isQuerying_ = true;
+    }
+
     renderer->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
-    if (!isQuerying_)
+
+    if (startQuery)
         commandBuffer.endQuery(queryPool_, 0);
     return true;
 }
@@ -567,18 +574,23 @@ PipelineStatistics DefaultVulkanMeshShaderPipeline::getPipelineStatistics()
 
 bool DefaultVulkanMeshShaderPipeline::updatePipelineStatistics()
 {
+    if (!isQuerying_)
+        return false;
+
+    // TODO - generalise
     vk::Result queryResult = queryPool_.getResults(
         0, 1, sizeof(uint64_t), pipelineStatisticsRaw_.data(), sizeof(uint64_t),
         vk::QueryResultFlagBits::e64
     );
-    if (queryResult != vk::Result::eSuccess)
-        isQuerying_ = true;
-    else
+
+    if (queryResult == vk::Result::eSuccess)
     {
         isQuerying_ = false;
+        isDebugQuery_ = false;
         pipelineStatistics_.pipelineType =
             PipelineStatistics::PipelineType::MESH;
         pipelineStatistics_.nTaskShaderInvocations = pipelineStatisticsRaw_[0];
+        return true;
     }
-    return true;
+    return false;
 }
