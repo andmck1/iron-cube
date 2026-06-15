@@ -2,10 +2,13 @@
 #include "shader/shared/buffertypes.h"
 
 ConstantBuffer<MVPBuffer> mvp;
+RWStructuredBuffer<DebugDataBuffer> debugData;
 
 [shader("vertex")]
 VertexOutputType main(VertexInputType input)
 {
+    InterlockedAdd(debugData[0].nVertexShaderInvocations, 1);
+
     VertexOutputType output;
     output.position =
         mul(mvp.projection,

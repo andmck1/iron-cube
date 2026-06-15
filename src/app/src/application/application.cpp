@@ -14,8 +14,8 @@
 #include "core_layer/debug.h"
 #include "core_common/helpers.h"
 
-#include "shaderpipeline/default.h"
-#include "shaderpipeline/defaultMesh.h"
+#include "shaderpipeline/standard.h"
+#include "shaderpipeline/instancedMesh.h"
 
 #include <format>
 #include <iostream>
@@ -244,8 +244,8 @@ bool Application::initialiseGeometry(
     actorShaderPipelineUpdateData->actor = actorPtr;
     actorShaderPipelineUpdateData->camera = camera_;
 
-    std::unique_ptr<DefaultVulkanShaderPipeline> actorShaderPipeline =
-        std::make_unique<DefaultVulkanShaderPipeline>();
+    std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
+        std::make_unique<StandardVulkanShaderPipeline>();
     auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
         shaderPipelineManager_.registerShaderPipeline(
             std::format("{}Traditional", name), std::move(actorShaderPipeline),
@@ -259,15 +259,15 @@ bool Application::initialiseGeometry(
     meshComponent->setMesh(registeredMesh);
 
     // mesh shader pipeline
-    std::unique_ptr<DefaultMeshShaderPipelineUpdateData>
+    std::unique_ptr<InstancedMeshShaderPipelineUpdateData>
         actorMeshShaderPipelineUpdateData =
-            std::make_unique<DefaultMeshShaderPipelineUpdateData>();
+            std::make_unique<InstancedMeshShaderPipelineUpdateData>();
     actorMeshShaderPipelineUpdateData->actor = actorPtr;
     actorMeshShaderPipelineUpdateData->camera = camera_;
     actorMeshShaderPipelineUpdateData->instances = &registeredMesh->instances;
 
-    std::unique_ptr<DefaultVulkanMeshShaderPipeline> actorMeshShaderPipeline =
-        std::make_unique<DefaultVulkanMeshShaderPipeline>();
+    std::unique_ptr<InstancedMeshVulkanShaderPipeline> actorMeshShaderPipeline =
+        std::make_unique<InstancedMeshVulkanShaderPipeline>();
     auto
         [registeredMeshShaderPipeline, registeredMeshShaderPipelineUpdateData] =
             shaderPipelineManager_.registerShaderPipeline(

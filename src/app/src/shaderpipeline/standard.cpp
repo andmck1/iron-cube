@@ -1,4 +1,4 @@
-#include "default.h"
+#include "shaderpipeline/standard.h"
 #include "core_buffertypes/buffertypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
@@ -8,7 +8,7 @@
 #include "core_service/servicelocator.h"
 #include "glm/ext/matrix_clip_space.hpp"
 
-bool DefaultVulkanShaderPipeline::init(
+bool StandardVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
 )
 {
@@ -22,11 +22,11 @@ bool DefaultVulkanShaderPipeline::init(
 // TODO - you can have a separate command pool for transfer instructions (see
 // same tutorial)
 //
-bool DefaultVulkanShaderPipeline::initPipeline()
+bool StandardVulkanShaderPipeline::initPipeline()
 {
+    initUniformBuffers();
+    initStorageBuffers();
     if (!initDescriptorLayout())
-        return false;
-    if (!initUniformBuffers())
         return false;
     if (!initDescriptorSets())
         return false;
@@ -41,14 +41,14 @@ bool DefaultVulkanShaderPipeline::initPipeline()
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::recreateGraphicsPipeline()
+bool StandardVulkanShaderPipeline::recreateGraphicsPipeline()
 {
     spdlog::debug("Recreating graphics pipeline");
     graphicsPipeline_ = nullptr;
     return initGraphicsPipeline();
 }
 
-bool DefaultVulkanShaderPipeline::shutdown()
+bool StandardVulkanShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down default vulkan pipeline");
     vertexBuffer_ = nullptr;
@@ -57,11 +57,33 @@ bool DefaultVulkanShaderPipeline::shutdown()
     indexBufferMemory_ = nullptr;
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
+    shutdownBuffers();
     spdlog::debug("Shutdown complete for default vulkan pipeline");
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
+void StandardVulkanShaderPipeline::initUniformBuffers()
+{
+    addUniformBuffer(
+        sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        vk::ShaderStageFlagBits::eVertex
+    );
+}
+
+void StandardVulkanShaderPipeline::initStorageBuffers()
+{
+    vk::DeviceSize debugDataBufferSize =
+        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+
+    addStorageBuffer(
+        debugDataBufferSize, debugDataBufferData_.data(),
+        vk::BufferUsageFlagBits::eStorageBuffer, true,
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
+    );
+}
+
+bool StandardVulkanShaderPipeline::initGraphicsPipeline()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -184,7 +206,7 @@ bool DefaultVulkanShaderPipeline::initGraphicsPipeline()
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::initVertexBuffer()
+bool StandardVulkanShaderPipeline::initVertexBuffer()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -214,7 +236,7 @@ bool DefaultVulkanShaderPipeline::initVertexBuffer()
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::initIndexBuffer()
+bool StandardVulkanShaderPipeline::initIndexBuffer()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -244,112 +266,7 @@ bool DefaultVulkanShaderPipeline::initIndexBuffer()
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::initDescriptorLayout()
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    vk::DescriptorSetLayoutBinding mvpLayoutBinding =
-        vk::DescriptorSetLayoutBinding{}
-            .setBinding(0)
-            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(1)
-            .setStageFlags(vk::ShaderStageFlagBits::eVertex);
-
-    vk::DescriptorSetLayoutCreateInfo layoutInfo =
-        vk::DescriptorSetLayoutCreateInfo{}.setBindingCount(1).setPBindings(
-            &mvpLayoutBinding
-        );
-    descriptorSetLayout_ =
-        vk::raii::DescriptorSetLayout(renderer->getDevice(), layoutInfo);
-    return true;
-}
-
-bool DefaultVulkanShaderPipeline::initUniformBuffers()
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        vk::DeviceSize bufferSize = sizeof(MVPBuffer);
-        auto [buffer, bufferMem] = renderer->createBuffer(
-            bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
-            vk::MemoryPropertyFlagBits::eHostVisible |
-                vk::MemoryPropertyFlagBits::eHostCoherent
-        );
-        uniformBuffers.emplace_back(std::move(buffer));
-        uniformBuffersMemory.emplace_back(std::move(bufferMem));
-        uniformBuffersMapped.emplace_back(
-            uniformBuffersMemory.back().mapMemory(0, bufferSize)
-        );
-    }
-
-    return true;
-}
-
-bool DefaultVulkanShaderPipeline::createDescriptorPool()
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    std::vector<vk::DescriptorPoolSize> poolSizes = {
-        vk::DescriptorPoolSize{}
-            .setType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT)
-    };
-
-    vk::DescriptorPoolCreateInfo poolInfo =
-        vk::DescriptorPoolCreateInfo{}
-            .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
-            .setMaxSets(renderer->MAX_FRAMES_IN_FLIGHT)
-            .setPoolSizeCount(static_cast<uint32_t>(poolSizes.size()))
-            .setPPoolSizes(poolSizes.data());
-
-    descriptorPool_ = vk::raii::DescriptorPool(renderer->getDevice(), poolInfo);
-    return true;
-}
-
-bool DefaultVulkanShaderPipeline::initDescriptorSets()
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    if (!createDescriptorPool())
-        return false;
-
-    std::vector<vk::DescriptorSetLayout> layouts(
-        renderer->MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout_
-    );
-    vk::DescriptorSetAllocateInfo allocInfo =
-        vk::DescriptorSetAllocateInfo{}
-            .setDescriptorPool(descriptorPool_)
-            .setDescriptorSetCount(static_cast<uint32_t>(layouts.size()))
-            .setPSetLayouts(layouts.data());
-
-    descriptorSets_ = renderer->getDevice().allocateDescriptorSets(allocInfo);
-
-    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        vk::DescriptorBufferInfo bufferInfo = vk::DescriptorBufferInfo{}
-                                                  .setBuffer(uniformBuffers[i])
-                                                  .setOffset(0)
-                                                  .setRange(sizeof(MVPBuffer));
-        vk::WriteDescriptorSet descriptorWrite =
-            vk::WriteDescriptorSet{}
-                .setDstSet(descriptorSets_[i])
-                .setDstBinding(0)
-                .setDstArrayElement(0)
-                .setDescriptorCount(1)
-                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                .setPBufferInfo(&bufferInfo);
-        renderer->getDevice().updateDescriptorSets(descriptorWrite, {});
-    }
-    return true;
-}
-
-bool DefaultVulkanShaderPipeline::bind()
+bool StandardVulkanShaderPipeline::bind()
 {
     spdlog::debug("Binding shader pipeline");
 
@@ -378,20 +295,16 @@ bool DefaultVulkanShaderPipeline::bind()
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::update()
+bool StandardVulkanShaderPipeline::update()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
-    bool startQuery = isDebugQuery_ && !isQuerying_;
-    if (startQuery)
-        commandBuffer.resetQueryPool(queryPool_, 0, 1);
-
     const DefaultShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultShaderPipelineUpdateData &>(*updateData_);
 
+    // MVP uniform buffer (index 0)
     MVPBuffer mvp{};
     mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
@@ -404,37 +317,35 @@ bool DefaultVulkanShaderPipeline::update()
     );
     mvp.projection[1][1] *= -1;
     memcpy(
-        uniformBuffersMapped[renderer->getCurrentFrameIndex()], &mvp,
-        sizeof(mvp)
+        uniformBuffers_[0][renderer->getCurrentFrameIndex()].getMappedPointer(),
+        &mvp, sizeof(mvp)
     );
+
+    // Debug data storage buffer (index 0, last storage buffer)
+    vk::DeviceSize debugDataBufferSize =
+        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+    debugDataBufferData_ = {DebugDataBuffer()};
+    storageBuffers_[0][renderer->getCurrentFrameIndex()].update(
+        debugDataBufferSize, debugDataBufferData_.data()
+    );
+
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::draw()
+bool StandardVulkanShaderPipeline::draw()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
-    bool startQuery = isDebugQuery_ && !isQuerying_;
-    if (startQuery)
-    {
-        commandBuffer.beginQuery(queryPool_, 0);
-        isQuerying_ = true;
-    }
-
     renderer->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
     );
 
-    if (startQuery)
-        commandBuffer.endQuery(queryPool_, 0);
-
     return true;
 }
 
-bool DefaultVulkanShaderPipeline::createQueryPool()
+bool StandardVulkanShaderPipeline::createQueryPool()
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -453,36 +364,48 @@ bool DefaultVulkanShaderPipeline::createQueryPool()
     return true;
 }
 
-PipelineStatistics DefaultVulkanShaderPipeline::getPipelineStatistics()
+bool StandardVulkanShaderPipeline::postRender()
 {
-    PipelineStatistics pipelineStatistics{};
-    pipelineStatistics.pipelineType =
-        PipelineStatistics::PipelineType::TRADITIONAL;
-    pipelineStatistics.nVertices = pipelineStatistics_[0];
-    return pipelineStatistics;
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    vk::DeviceSize debugDataBufferSize =
+        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+    storageBuffers_[0][renderer->getCurrentFrameIndex()].copyToStaging(
+        debugDataBufferSize
+    );
+    return true;
 }
 
-bool DefaultVulkanShaderPipeline::updatePipelineStatistics()
+PipelineStatistics StandardVulkanShaderPipeline::getPipelineStatistics()
 {
-    if (!isQuerying_)
-        return false;
+    return pipelineStatistics_;
+}
 
-    // TODO - generalise
-    vk::Result queryResult = queryPool_.getResults(
-        0, 1, sizeof(uint64_t), pipelineStatistics_.data(), sizeof(uint64_t),
-        vk::QueryResultFlagBits::e64
+bool StandardVulkanShaderPipeline::updatePipelineStatistics()
+{
+    if (!isDebugQuery_)
+        return false;
+    isDebugQuery_ = false;
+
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
     );
 
-    if (queryResult == vk::Result::eSuccess)
-    {
-        isQuerying_ = false;
-        isDebugQuery_ = false;
-        return true;
-    }
-    return false;
-}
+    // TODO - this is a bit extreme
+    renderer->waitAllFramesComplete();
 
-bool DefaultVulkanShaderPipeline::postRender()
-{
+    pipelineStatistics_.pipelineType =
+        PipelineStatistics::PipelineType::TRADITIONAL;
+
+    vk::DeviceSize debugDataBufferSize =
+        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+    storageBuffers_[0][renderer->getCurrentFrameIndex()].readData(
+        debugDataBufferSize, debugDataBufferData_.data()
+    );
+    pipelineStatistics_.nVertexShaderInvocations =
+        debugDataBufferData_[0].nVertexShaderInvocations;
+    pipelineStatistics_.nFragmentShaderInvocations =
+        debugDataBufferData_[0].nFragmentShaderInvocations;
     return true;
 }
