@@ -15,7 +15,7 @@ void main(
     uint gid: SV_GroupID
 )
 {
-    InterlockedAdd(debugData[0].n, 1);
+    InterlockedAdd(debugData[0].nTaskShaderInvocations, 1);
 
     bool visible = false;
 

@@ -98,6 +98,11 @@ bool DebugLayer::frame()
                     entity->getName().c_str(),
                     pipelineStatistics.nTaskShaderInvocations
                 );
+                ImGui::Text(
+                    "%s N Mesh Shader Invocations: %d",
+                    entity->getName().c_str(),
+                    pipelineStatistics.nMeshShaderInvocations
+                );
                 break;
             }
         }

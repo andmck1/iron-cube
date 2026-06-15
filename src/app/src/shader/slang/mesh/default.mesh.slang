@@ -1,12 +1,14 @@
 #include "core_buffertypes/buffertypes.h"
 #include "shader/shared/buffertypes.h"
 
+// TODO - explicitly say each of the bindings here
 ConstantBuffer<SceneBuffer> scene;
 StructuredBuffer<VertexInputType> modelVertices;
 StructuredBuffer<OptimisedMeshlet> meshlets;
 StructuredBuffer<uint> vertexIndices;
 StructuredBuffer<uint> triangleIndices;
 StructuredBuffer<Instance> instances;
+RWStructuredBuffer<DebugDataBuffer> debugData;
 
 // TODO - use the defines for the triange and vertex limits??
 [shader("mesh")]
@@ -18,6 +20,8 @@ void main(
     out vertices VertexOutputType vertices[64]
 )
 {
+    InterlockedAdd(debugData[0].nMeshShaderInvocations, 1);
+
     uint instanceIndex = payload.instanceIndices[gid];
     uint meshletIndex = payload.meshletIndices[gid];
     OptimisedMeshlet m = meshlets[meshletIndex];

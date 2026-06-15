@@ -256,7 +256,10 @@ bool DefaultVulkanMeshShaderPipeline::initDescriptorLayout()
             .setBinding(6)
             .setDescriptorType(vk::DescriptorType::eStorageBuffer)
             .setDescriptorCount(1)
-            .setStageFlags(vk::ShaderStageFlagBits::eTaskEXT);
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eTaskEXT |
+                vk::ShaderStageFlagBits::eMeshEXT
+            );
 
     std::vector<vk::DescriptorSetLayoutBinding> bindings = {
         sceneLayoutBinding,     vertexBufferBinding,     meshletBufferBinding,
@@ -659,7 +662,10 @@ bool DefaultVulkanMeshShaderPipeline::updatePipelineStatistics()
         debugDataBuffer_.readData(
             debugDataBufferSize, debugDataBufferData_.data()
         );
-        pipelineStatistics_.nTaskShaderInvocations = debugDataBufferData_[0].n;
+        pipelineStatistics_.nTaskShaderInvocations =
+            debugDataBufferData_[0].nTaskShaderInvocations;
+        pipelineStatistics_.nMeshShaderInvocations =
+            debugDataBufferData_[0].nMeshShaderInvocations;
         // pipelineStatistics_.nTaskShaderInvocations =
         // pipelineStatisticsRaw_[0];
         return true;
