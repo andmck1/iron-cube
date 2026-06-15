@@ -289,41 +289,26 @@ bool DefaultVulkanMeshShaderPipeline::initStorageBuffers()
     vk::BufferUsageFlagBits bufferType =
         vk::BufferUsageFlagBits::eStorageBuffer;
 
-    vk::Flags<vk::BufferUsageFlagBits> readOnlyStagingBufferFlags =
-        vk::BufferUsageFlagBits::eTransferSrc;
-    vk::Flags<vk::BufferUsageFlagBits> readOnlyBufferFlags =
-        vk::BufferUsageFlagBits::eTransferDst;
-
-    vk::Flags<vk::BufferUsageFlagBits> rwBufferFlags =
-        vk::BufferUsageFlagBits::eTransferDst |
-        vk::BufferUsageFlagBits::eTransferSrc;
-    vk::Flags<vk::BufferUsageFlagBits> rwStagingBufferFlags =
-        vk::BufferUsageFlagBits::eTransferDst |
-        vk::BufferUsageFlagBits::eTransferSrc;
-
     vertexBuffer_.init(
-        vertexBufferSize, geometry_->vertices.data(), bufferType,
-        readOnlyStagingBufferFlags, readOnlyBufferFlags
+        vertexBufferSize, geometry_->vertices.data(), bufferType, false
     );
     meshletBuffer_.init(
-        meshletBufferSize, geometry_->meshlets.data(), bufferType,
-        readOnlyStagingBufferFlags, readOnlyBufferFlags
+        meshletBufferSize, geometry_->meshlets.data(), bufferType, false
     );
     meshletVerticesBuffer_.init(
         meshletVerticesBufferSize, geometry_->meshletVertices.data(),
-        bufferType, readOnlyStagingBufferFlags, readOnlyBufferFlags
+        bufferType, false
     );
     meshletTrianglesBuffer_.init(
         meshletTrianglesBufferSize, geometry_->meshletTrianglesU32.data(),
-        bufferType, readOnlyStagingBufferFlags, readOnlyBufferFlags
+        bufferType, false
     );
     instancesBuffer_.init(
         instancesBufferSize, defaultUpdateData.instances->data(), bufferType,
-        readOnlyStagingBufferFlags, readOnlyBufferFlags
+        false
     );
     debugDataBuffer_.init(
-        debugDataBufferSize, debugDataBufferData_.data(), bufferType,
-        rwStagingBufferFlags, rwBufferFlags
+        debugDataBufferSize, debugDataBufferData_.data(), bufferType, true
     );
     return true;
 }
