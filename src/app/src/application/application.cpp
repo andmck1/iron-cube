@@ -435,15 +435,23 @@ void Application::checkForPipelineUpdates()
 
     timeSincePipelineDebugQuery_ += timer_.getDeltaSeconds();
 
-    bool isPipelineDebugQuery = false;
     if (timeSincePipelineDebugQuery_ >= (1.f / PIPELINE_DEBUG_QUERY_FREQUENCY))
     {
-        isPipelineDebugQuery = true;
         timeSincePipelineDebugQuery_ = 0.f;
-    }
-    for (auto shaderPipeline : shaderPipelineManager->getAllShaderPipelines())
-    {
-        shaderPipeline->setIsDebugQuery(isPipelineDebugQuery);
+        for (const std::unique_ptr<Entity> &entity : entities)
+        {
+            MeshComponent *meshComponent =
+                entity->getComponent<MeshComponent>();
+            if (meshComponent)
+            {
+                IShaderPipeline *shaderPipeline =
+                    meshComponent->getShaderPipeline();
+                if (shaderPipeline)
+                {
+                    shaderPipeline->setIsDebugQuery(true);
+                }
+            }
+        }
     }
 }
 

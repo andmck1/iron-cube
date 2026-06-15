@@ -149,7 +149,6 @@ class VulkanRenderer : public IRenderer
 
     bool wireframeMode_ = false;
 
-
     // TODO - consider moving this somewhere else
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly_ =
         vk::PipelineInputAssemblyStateCreateInfo{}.setTopology(

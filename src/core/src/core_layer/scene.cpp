@@ -53,11 +53,19 @@ bool SceneLayer::end()
     if (!shaderPipelineManager)
         return false;
 
-    for (IShaderPipeline *shaderPipeline :
-         shaderPipelineManager->getAllShaderPipelines())
+    for (const std::unique_ptr<Entity> &sceneEntity : scene.getEntities())
     {
-        if (!shaderPipeline->updatePipelineStatistics())
-            return false;
+        MeshComponent *entityMeshComponent =
+            sceneEntity->getComponent<MeshComponent>();
+        if (entityMeshComponent)
+        {
+            IShaderPipeline *shaderPipeline =
+                entityMeshComponent->getShaderPipeline();
+            if (!shaderPipeline)
+                return false;
+            if (!shaderPipeline->updatePipelineStatistics())
+                return false;
+        }
     }
 
     return true;

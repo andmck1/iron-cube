@@ -60,7 +60,10 @@ class DefaultVulkanMeshShaderPipeline : public VulkanShaderPipeline
 
     Geometry *geometry_ = nullptr;
 
-    std::array<uint64_t, 1> pipelineStatistics_ = {0};
+    bool isWaitingOnQueryPool_ = false;
+    std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
+    PipelineStatistics pipelineStatistics_{};
+    bool isQuerying_ = false;
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);

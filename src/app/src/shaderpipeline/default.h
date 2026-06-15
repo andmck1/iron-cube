@@ -46,6 +46,7 @@ class DefaultVulkanShaderPipeline : public VulkanShaderPipeline
     Geometry *geometry_ = nullptr;
 
     std::array<uint64_t, 1> pipelineStatistics_ = {0};
+    bool isQuerying_ = false;
 
     bool initGraphicsPipeline();
     bool initPipeline();
