@@ -2,6 +2,8 @@
 #include "shader/shared/buffertypes.h"
 
 ConstantBuffer<MVPBuffer> mvp;
+
+[[vk::binding(1)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
 [shader("vertex")]

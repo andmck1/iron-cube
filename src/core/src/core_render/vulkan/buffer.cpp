@@ -15,7 +15,9 @@ void *VulkanBuffer::getMappedPointer()
     return mappedPointer_;
 }
 
-void VulkanBuffer::copyToStaging(vk::DeviceSize size)
+void VulkanBuffer::copyToStaging(
+    vk::DeviceSize size, vk::Flags<vk::PipelineStageFlagBits> pipelineStages
+)
 {
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -33,8 +35,8 @@ void VulkanBuffer::copyToStaging(vk::DeviceSize size)
     };
 
     commandBuffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eTaskShaderEXT,
-        vk::PipelineStageFlagBits::eTransfer, {}, nullptr, barrier, nullptr
+        pipelineStages, vk::PipelineStageFlagBits::eTransfer, {}, nullptr,
+        barrier, nullptr
     );
 
     vk::BufferCopy copy{0, 0, size};

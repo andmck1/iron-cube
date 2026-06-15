@@ -18,7 +18,6 @@ class VulkanBuffer
 
         if (isHostVisible)
         {
-            // Host-visible path: direct mapping (old VulkanUniformBuffer)
             std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
                 bufferSize, bufferUsage,
                 vk::MemoryPropertyFlagBits::eHostVisible |
@@ -32,7 +31,6 @@ class VulkanBuffer
         }
         else
         {
-            // Device-local path: staging buffer transfer (old VulkanBuffer)
             vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags;
             vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags;
 
@@ -103,7 +101,11 @@ class VulkanBuffer
     vk::raii::Buffer *getBuffer();
     vk::raii::DeviceMemory *getDeviceMemory();
     void *getMappedPointer();
-    void copyToStaging(vk::DeviceSize size);
+    // TODO - pipeline stages is part of the buffer's state and shouldn't
+    // need to be passed in
+    void copyToStaging(
+        vk::DeviceSize size, vk::Flags<vk::PipelineStageFlagBits> pipelineStages
+    );
 
     protected:
     vk::raii::Buffer buffer_ = nullptr;

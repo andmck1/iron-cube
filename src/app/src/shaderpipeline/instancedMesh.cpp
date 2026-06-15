@@ -175,7 +175,9 @@ void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
 void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
 {
     const InstancedMeshShaderPipelineUpdateData &defaultUpdateData =
-        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(*updateData_);
+        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(
+            *updateData_
+        );
 
     vk::DeviceSize vertexBufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
@@ -215,7 +217,8 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
     );
     addStorageBuffer(
         debugDataBufferSize, debugDataBufferData_.data(), bufferType, true,
-        vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
+        vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT |
+            vk::ShaderStageFlagBits::eFragment
     );
 }
 
@@ -278,7 +281,9 @@ bool InstancedMeshVulkanShaderPipeline::update()
     commandBuffer.resetQueryPool(queryPool_, 0, 1);
 
     const InstancedMeshShaderPipelineUpdateData &defaultUpdateData =
-        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(*updateData_);
+        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(
+            *updateData_
+        );
 
     // scene data (uniform buffer index 0)
     SceneBuffer sceneData{};
@@ -324,7 +329,9 @@ bool InstancedMeshVulkanShaderPipeline::draw()
     // etc
     // TODO - can't be calling this every frame
     const InstancedMeshShaderPipelineUpdateData &defaultUpdateData =
-        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(*updateData_);
+        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(
+            *updateData_
+        );
     uint32_t meshletCount = static_cast<uint32_t>(geometry_->meshlets.size());
     uint32_t instanceCount =
         static_cast<uint32_t>(defaultUpdateData.instances->size());
@@ -344,7 +351,9 @@ bool InstancedMeshVulkanShaderPipeline::postRender()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     storageBuffers_.back()[renderer->getCurrentFrameIndex()].copyToStaging(
-        debugDataBufferSize
+        debugDataBufferSize, vk::PipelineStageFlagBits::eTaskShaderEXT |
+                                 vk::PipelineStageFlagBits::eMeshShaderEXT |
+                                 vk::PipelineStageFlagBits::eFragmentShader
     );
     return true;
 }
