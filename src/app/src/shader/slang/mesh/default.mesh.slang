@@ -1,16 +1,25 @@
 #include "core_buffertypes/buffertypes.h"
 #include "shader/shared/buffertypes.h"
 
-// TODO - explicitly say each of the bindings here
+[[vk::binding(0)]]
 ConstantBuffer<SceneBuffer> scene;
 
 [[vk::binding(1)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
+[[vk::binding(2)]]
 StructuredBuffer<VertexInputType> modelVertices;
+
+[[vk::binding(3)]]
 StructuredBuffer<OptimisedMeshlet> meshlets;
+
+[[vk::binding(4)]]
 StructuredBuffer<uint> vertexIndices;
+
+[[vk::binding(5)]]
 StructuredBuffer<uint> triangleIndices;
+
+[[vk::binding(6)]]
 StructuredBuffer<Instance> instances;
 
 // TODO - use the defines for the triange and vertex limits??

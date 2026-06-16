@@ -221,7 +221,8 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
         sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
     addStorageBuffer(
         instancesBufferSize, defaultUpdateData.instances->data(), bufferType,
-        false, vk::ShaderStageFlagBits::eMeshEXT
+        false,
+        vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize meshletBoundingSpheresBufferSize =
@@ -309,29 +310,36 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.projection[1][1] *= -1;
     sceneData.instanceCount = defaultUpdateData.instances->size();
     sceneData.meshletCount = geometry_->meshlets.size();
-    scene.Frustum.Planes[FRUSTUM_PLANE_LEFT] = {
-        frLeft.Normal, 0.0f, frLeft.Position, 0.0f
+
+    std::array<FrustumPlane, 6> frustumPlanes =
+        defaultUpdateData.camera->getFrustumPlanes();
+    FrustumCone frustumCone = defaultUpdateData.camera->getFrustumCone();
+
+    sceneData.frustum.planes[FRUSTUM_PLANE_LEFT] = {
+        frustumPlanes[0].normal, frustumPlanes[0].position
     };
-    scene.Frustum.Planes[FRUSTUM_PLANE_RIGHT] = {
-        frRight.Normal, 0.0f, frRight.Position, 0.0f
+    sceneData.frustum.planes[FRUSTUM_PLANE_RIGHT] = {
+        frustumPlanes[1].normal, frustumPlanes[1].position
     };
-    scene.Frustum.Planes[FRUSTUM_PLANE_TOP] = {
-        frTop.Normal, 0.0f, frTop.Position, 0.0f
+    sceneData.frustum.planes[FRUSTUM_PLANE_TOP] = {
+        frustumPlanes[2].normal, frustumPlanes[2].position
     };
-    scene.Frustum.Planes[FRUSTUM_PLANE_BOTTOM] = {
-        frBottom.Normal, 0.0f, frBottom.Position, 0.0f
+    sceneData.frustum.planes[FRUSTUM_PLANE_BOTTOM] = {
+        frustumPlanes[3].normal, frustumPlanes[3].position
     };
-    scene.Frustum.Planes[FRUSTUM_PLANE_NEAR] = {
-        frNear.Normal, 0.0f, frNear.Position, 0.0f
+    sceneData.frustum.planes[FRUSTUM_PLANE_NEAR] = {
+        frustumPlanes[4].normal, frustumPlanes[4].position
     };
-    scene.Frustum.Planes[FRUSTUM_PLANE_FAR] = {
-        frFar.Normal, 0.0f, frFar.Position, 0.0f
+    sceneData.frustum.planes[FRUSTUM_PLANE_FAR] = {
+        frustumPlanes[5].normal, frustumPlanes[5].position
     };
-    scene.Frustum.Sphere = camera.GetFrustumSphere();
-    scene.Frustum.Cone.Tip = frCone.Tip;
-    scene.Frustum.Cone.Height = frCone.Height;
-    scene.Frustum.Cone.Direction = frCone.Dir;
-    scene.Frustum.Cone.Angle = frCone.Angle;
+    sceneData.frustum.sphere = defaultUpdateData.camera->getFrustumSphere();
+    sceneData.frustum.cone.tip = frustumCone.tip;
+    sceneData.frustum.cone.height = frustumCone.height;
+    sceneData.frustum.cone.direction = frustumCone.direction;
+    sceneData.frustum.cone.angle = frustumCone.angle;
+    // TODO - make this settable from debug
+    sceneData.visibilityFunc = VisibilityFunc::VISIBILITY_FUNC_CONE;
 
     memcpy(
         uniformBuffers_[0][renderer->getCurrentFrameIndex()].getMappedPointer(),

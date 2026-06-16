@@ -69,6 +69,15 @@ enum
     FRUSTUM_PLANE_FAR = 5,
 };
 
+enum VisibilityFunc: uint
+{
+    VISIBILITY_FUNC_NONE = 0,
+    VISIBILITY_FUNC_PLANES = 1,
+    VISIBILITY_FUNC_SPHERE = 2,
+    VISIBILITY_FUNC_CONE = 3,
+    VISIBILITY_FUNC_CONE_AND_NEAR_PLANE = 4,
+};
+
 struct FrustumPlane
 {
     float4 normal;
@@ -104,6 +113,7 @@ struct SceneBuffer
     FrustumData frustum;
     uint instanceCount;
     uint meshletCount;
+    uint visibilityFunc;
 };
 
 struct DebugDataBuffer
