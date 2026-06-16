@@ -364,7 +364,6 @@ ResourceManager::loadObj(std::string objFilePath, std::string objBaseDir)
 void ResourceManager::processMeshlets(Geometry *geometry)
 {
     std::vector<glm::vec4> positions;
-
     for (const VertexInputType &vertex : geometry->vertices)
     {
         positions.push_back(vertex.position);
@@ -395,7 +394,7 @@ void ResourceManager::processMeshlets(Geometry *geometry)
         sizeof(glm::vec4), kMaxVertices, kMaxTriangles, kConeWeight
     );
 
-    auto &last = geometry->meshlets[meshletCount - 1];
+    meshopt_Meshlet &last = geometry->meshlets[meshletCount - 1];
     geometry->meshletVertices.resize(last.vertex_offset + last.vertex_count);
     geometry->meshletTriangles.resize(
         last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3)
@@ -403,18 +402,18 @@ void ResourceManager::processMeshlets(Geometry *geometry)
     geometry->meshlets.resize(meshletCount);
 
     // repack for gpu
-    for (auto &m : geometry->meshlets)
+    for (meshopt_Meshlet &meshlet : geometry->meshlets)
     {
         // Save triangle offset for current meshlet
         uint32_t triangleOffset =
             static_cast<uint32_t>(geometry->meshletTrianglesU32.size());
 
         // Repack to uint32_t
-        for (uint32_t i = 0; i < m.triangle_count; ++i)
+        for (uint32_t i = 0; i < meshlet.triangle_count; ++i)
         {
-            uint32_t i0 = 3 * i + 0 + m.triangle_offset;
-            uint32_t i1 = 3 * i + 1 + m.triangle_offset;
-            uint32_t i2 = 3 * i + 2 + m.triangle_offset;
+            uint32_t i0 = 3 * i + 0 + meshlet.triangle_offset;
+            uint32_t i1 = 3 * i + 1 + meshlet.triangle_offset;
+            uint32_t i2 = 3 * i + 2 + meshlet.triangle_offset;
 
             uint8_t vIdx0 = geometry->meshletTriangles[i0];
             uint8_t vIdx1 = geometry->meshletTriangles[i1];
@@ -426,7 +425,7 @@ void ResourceManager::processMeshlets(Geometry *geometry)
         }
 
         // Update triangle offset for current meshlet
-        m.triangle_offset = triangleOffset;
+        meshlet.triangle_offset = triangleOffset;
     }
 }
 
@@ -458,4 +457,25 @@ void ResourceManager::calculateMeshBounds(Geometry *geometry)
     }
 
     geometry->meshBounds = {minCorner, maxCorner};
+
+    // TODO - I use this enough to just have it as a property (poss a getter fn
+    // at least)
+    std::vector<glm::vec4> positions;
+    for (const VertexInputType &vertex : geometry->vertices)
+    {
+        positions.push_back(vertex.position);
+    }
+    for (meshopt_Meshlet &meshlet : geometry->meshlets)
+    {
+        auto bounds = meshopt_computeMeshletBounds(
+            &geometry->meshletVertices[meshlet.vertex_offset],
+            &geometry->meshletTriangles[meshlet.triangle_offset],
+            meshlet.triangle_count,
+            reinterpret_cast<const float *>(positions.data()), positions.size(),
+            sizeof(float3)
+        );
+        geometry->meshletBoundingSpheres.push_back(float4(
+            bounds.center[0], bounds.center[1], bounds.center[2], bounds.radius
+        ));
+    }
 }

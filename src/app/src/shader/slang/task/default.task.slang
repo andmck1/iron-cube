@@ -6,6 +6,9 @@ ConstantBuffer<SceneBuffer> scene;
 [[vk::binding(1)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
+[[vk::binding(7)]]
+StructuredBuffer<float4> meshletBoundingSpheres;
+
 groupshared Payload sPayload;
 
 [shader("task")]

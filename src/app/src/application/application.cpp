@@ -482,13 +482,13 @@ void Application::updateEntities()
         for (uint32_t i = 0; i < N_INSTANCE_COLUMNS; ++i)
         {
             float x =
-                i * instanceSpanX - (totalSpanX / 2.0f) + instanceSpanX / 2.0f;
+                i * instanceSpanX - (totalSpanX / 2.f) + instanceSpanX / 2.f;
             float y = 0;
             float z =
-                j * instanceSpanZ - (totalSpanZ / 2.0f) - 2.15f * instanceSpanZ;
+                j * instanceSpanZ - (totalSpanZ / 2.f) + instanceSpanZ / 2.f; 
 
             uint32_t index = j * N_INSTANCE_COLUMNS + i;
-            float t = static_cast<float>(glfwGetTime()) + ((i ^ j + i) / 10.0f);
+            float t = static_cast<float>(glfwGetTime()) + ((i ^ j + i) / 10.f);
             horseMesh->instances[index].transform =
                 glm::translate(glm::mat4(1.f), glm::vec3(x, y, z)) *
                 glm::rotate(glm::mat4(1.f), t, glm::vec3(0, 1, 0));

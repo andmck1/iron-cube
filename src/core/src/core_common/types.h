@@ -32,6 +32,7 @@ struct Geometry
     std::vector<uint32_t> meshletVertices;
     std::vector<uint8_t> meshletTriangles;
     std::vector<uint32_t> meshletTrianglesU32;
+    std::vector<glm::vec4> meshletBoundingSpheres;
     MeshBounds meshBounds;
 };
 

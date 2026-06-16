@@ -58,6 +58,38 @@ struct OptimisedMeshlet
     uint triangleCount;
 };
 
+// Some help from chaoticbob
+enum
+{
+    FRUSTUM_PLANE_LEFT = 0,
+    FRUSTUM_PLANE_RIGHT = 1,
+    FRUSTUM_PLANE_TOP = 2,
+    FRUSTUM_PLANE_BOTTOM = 3,
+    FRUSTUM_PLANE_NEAR = 4,
+    FRUSTUM_PLANE_FAR = 5,
+};
+
+struct FrustumPlane
+{
+    float4 normal;
+    float4 position;
+};
+
+struct FrustumCone
+{
+    float3 tip;
+    float height;
+    float3 direction;
+    float angle;
+};
+
+struct FrustumData
+{
+    FrustumPlane planes[6];
+    float4 sphere;
+    FrustumCone cone;
+};
+
 struct MVPBuffer
 {
     float4x4 model;
@@ -69,6 +101,7 @@ struct SceneBuffer
 {
     float4x4 view;
     float4x4 projection;
+    FrustumData frustum;
     uint instanceCount;
     uint meshletCount;
 };

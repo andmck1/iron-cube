@@ -223,6 +223,14 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
         instancesBufferSize, defaultUpdateData.instances->data(), bufferType,
         false, vk::ShaderStageFlagBits::eMeshEXT
     );
+
+    vk::DeviceSize meshletBoundingSpheresBufferSize =
+        sizeof(glm::vec4) * geometry_->meshletBoundingSpheres.size();
+    addStorageBuffer(
+        meshletBoundingSpheresBufferSize,
+        geometry_->meshletBoundingSpheres.data(), bufferType, false,
+        vk::ShaderStageFlagBits::eTaskEXT
+    );
 }
 
 bool InstancedMeshVulkanShaderPipeline::createQueryPool()
@@ -287,7 +295,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
         dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(
             *updateData_
         );
-    
+
     // TODO - hardcoded indices!!
     // scene data (uniform buffer index 0)
     SceneBuffer sceneData{};
@@ -301,6 +309,30 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.projection[1][1] *= -1;
     sceneData.instanceCount = defaultUpdateData.instances->size();
     sceneData.meshletCount = geometry_->meshlets.size();
+    scene.Frustum.Planes[FRUSTUM_PLANE_LEFT] = {
+        frLeft.Normal, 0.0f, frLeft.Position, 0.0f
+    };
+    scene.Frustum.Planes[FRUSTUM_PLANE_RIGHT] = {
+        frRight.Normal, 0.0f, frRight.Position, 0.0f
+    };
+    scene.Frustum.Planes[FRUSTUM_PLANE_TOP] = {
+        frTop.Normal, 0.0f, frTop.Position, 0.0f
+    };
+    scene.Frustum.Planes[FRUSTUM_PLANE_BOTTOM] = {
+        frBottom.Normal, 0.0f, frBottom.Position, 0.0f
+    };
+    scene.Frustum.Planes[FRUSTUM_PLANE_NEAR] = {
+        frNear.Normal, 0.0f, frNear.Position, 0.0f
+    };
+    scene.Frustum.Planes[FRUSTUM_PLANE_FAR] = {
+        frFar.Normal, 0.0f, frFar.Position, 0.0f
+    };
+    scene.Frustum.Sphere = camera.GetFrustumSphere();
+    scene.Frustum.Cone.Tip = frCone.Tip;
+    scene.Frustum.Cone.Height = frCone.Height;
+    scene.Frustum.Cone.Direction = frCone.Dir;
+    scene.Frustum.Cone.Angle = frCone.Angle;
+
     memcpy(
         uniformBuffers_[0][renderer->getCurrentFrameIndex()].getMappedPointer(),
         &sceneData, sizeof(sceneData)
