@@ -339,7 +339,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.frustum.cone.direction = frustumCone.direction;
     sceneData.frustum.cone.angle = frustumCone.angle;
     // TODO - make this settable from debug
-    sceneData.visibilityFunc = VisibilityFunc::VISIBILITY_FUNC_CONE;
+    sceneData.visibilityFunc = *defaultUpdateData.visibilityFunc;
 
     memcpy(
         uniformBuffers_[0][renderer->getCurrentFrameIndex()].getMappedPointer(),

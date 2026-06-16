@@ -149,6 +149,7 @@ void Application::initialiseDebugLayerData(Scene *scene)
 {
     debugLayerData_.scene = scene;
     debugLayerData_.timer = &timer_;
+    debugLayerData_.visibilityFunc = &visibilityFunction;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -195,15 +196,6 @@ bool Application::initialiseEntities(Scene *scene)
         };
         initialiseGeometry(scene, name, transform);
     }
-
-    // {
-    //     // cube
-    //     std::string name = "";
-    //     Geometry geometry = ResourceManager::generateProceduralCube();
-    //     resourceManager_.loadGeometry(name, geometry);
-    //     Transform transform = Transform{.position = {3.f, 0.f, 0.f}};
-    //     initialiseGeometry(scene, name, transform);
-    // }
 
     spdlog::info("Finished initilising entities");
     return true;
@@ -265,6 +257,7 @@ bool Application::initialiseGeometry(
     actorMeshShaderPipelineUpdateData->actor = actorPtr;
     actorMeshShaderPipelineUpdateData->camera = camera_;
     actorMeshShaderPipelineUpdateData->instances = &registeredMesh->instances;
+    actorMeshShaderPipelineUpdateData->visibilityFunc = &visibilityFunction;
 
     std::unique_ptr<InstancedMeshVulkanShaderPipeline> actorMeshShaderPipeline =
         std::make_unique<InstancedMeshVulkanShaderPipeline>();

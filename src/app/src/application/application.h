@@ -70,4 +70,5 @@ class Application
     std::vector<std::unique_ptr<ILayer>> layers_;
 
     float timeSincePipelineDebugQuery_ = 0.f;
+    int visibilityFunction = VisibilityFunc::VISIBILITY_FUNC_NONE;
 };

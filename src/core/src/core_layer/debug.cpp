@@ -1,5 +1,4 @@
 #include "core_layer/debug.h"
-#include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
 #include "core_ecs/ecs.h"
 #include "core_render/irenderer.h"
@@ -32,50 +31,11 @@ bool DebugLayer::frame()
             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar
     );
 
-    // FPS display
+
+    // Statistics
+    ImGui::SeparatorText("Statistics");
     ImGui::Text("FPS: %.1f", debugData_->timer->getFps());
     ImGui::Text("Frame Time: %.2f ms", debugData_->timer->getFrameTime());
-
-    // Frame time mini graph
-    const std::vector<float> &frameTimes = debugData_->timer->getFrameTimes();
-    if (!frameTimes.empty())
-    {
-        float maxTime = 33.33f;
-        ImGui::PlotLines(
-            "##FrameTime", frameTimes.data(),
-            static_cast<int>(frameTimes.size()), 0, nullptr, 0.0f, maxTime,
-            ImVec2(0.0f, 60.0f)
-        );
-    }
-
-    ImGui::Separator();
-
-    // Wireframe toggle
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    bool wireframe = renderer ? renderer->isWireframeMode() : false;
-    if (ImGui::Checkbox("Wireframe", &wireframe) && renderer)
-    {
-        renderer->setWireframeMode(wireframe);
-        IShaderPipelineManager *pipelineManager =
-            ServiceLocator::instance().get<IShaderPipelineManager>();
-        if (pipelineManager)
-            pipelineManager->recreatePipelines = true;
-    }
-
-    // Shader type
-    std::vector<const char *> shaderTypes = {"Traditional", "Mesh"};
-    static int selectedShaderType = 0;
-    if (ImGui::Combo(
-            "Shader Type", &selectedShaderType, shaderTypes.data(),
-            shaderTypes.size()
-        ))
-        shaderTypeUpdate = selectedShaderType;
-    else
-        shaderTypeUpdate = -1;
-
-    // Pipeline statistics
     for (const std::unique_ptr<Entity> &entity :
          debugData_->scene->getEntities())
     {
@@ -111,6 +71,44 @@ bool DebugLayer::frame()
             );
         }
     }
+
+    // Wireframe toggle
+    ImGui::SeparatorText("Render");
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    bool wireframe = renderer ? renderer->isWireframeMode() : false;
+    if (ImGui::Checkbox("Wireframe", &wireframe) && renderer)
+    {
+        renderer->setWireframeMode(wireframe);
+        IShaderPipelineManager *pipelineManager =
+            ServiceLocator::instance().get<IShaderPipelineManager>();
+        if (pipelineManager)
+            pipelineManager->recreatePipelines = true;
+    }
+
+    // Shader type
+    ImGui::SeparatorText("Shader");
+    std::vector<const char *> shaderTypes = {"Traditional", "Mesh"};
+    static int selectedShaderType = 0;
+    if (ImGui::Combo(
+            "Shader Type", &selectedShaderType, shaderTypes.data(),
+            shaderTypes.size()
+        ))
+        shaderTypeUpdate = selectedShaderType;
+    else
+        shaderTypeUpdate = -1;
+
+
+    // Culling controls
+    ImGui::SeparatorText("Culling");
+    std::vector<const char *> cullingFunctions = {
+        "None", "Planes", "Sphere", "Cone", "Cone and Near Plane"
+    };
+    ImGui::Combo(
+        "Culling Function", debugData_->visibilityFunc,
+        cullingFunctions.data(), cullingFunctions.size()
+    );
 
     ImGui::End();
 

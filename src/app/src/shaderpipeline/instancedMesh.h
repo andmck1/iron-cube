@@ -12,6 +12,7 @@ class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
     std::vector<Instance> *instances = nullptr;
+    int *visibilityFunc = nullptr;
 };
 
 class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
