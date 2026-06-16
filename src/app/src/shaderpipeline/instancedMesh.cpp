@@ -316,22 +316,28 @@ bool InstancedMeshVulkanShaderPipeline::update()
     FrustumCone frustumCone = defaultUpdateData.camera->getFrustumCone();
 
     sceneData.frustum.planes[FRUSTUM_PLANE_LEFT] = {
-        frustumPlanes[0].normal, frustumPlanes[0].position
+        frustumPlanes[FRUSTUM_PLANE_LEFT].normal,
+        frustumPlanes[FRUSTUM_PLANE_LEFT].position
     };
     sceneData.frustum.planes[FRUSTUM_PLANE_RIGHT] = {
-        frustumPlanes[1].normal, frustumPlanes[1].position
+        frustumPlanes[FRUSTUM_PLANE_RIGHT].normal,
+        frustumPlanes[FRUSTUM_PLANE_RIGHT].position
     };
     sceneData.frustum.planes[FRUSTUM_PLANE_TOP] = {
-        frustumPlanes[2].normal, frustumPlanes[2].position
+        frustumPlanes[FRUSTUM_PLANE_TOP].normal,
+        frustumPlanes[FRUSTUM_PLANE_TOP].position
     };
     sceneData.frustum.planes[FRUSTUM_PLANE_BOTTOM] = {
-        frustumPlanes[3].normal, frustumPlanes[3].position
+        frustumPlanes[FRUSTUM_PLANE_BOTTOM].normal,
+        frustumPlanes[FRUSTUM_PLANE_BOTTOM].position
     };
     sceneData.frustum.planes[FRUSTUM_PLANE_NEAR] = {
-        frustumPlanes[4].normal, frustumPlanes[4].position
+        frustumPlanes[FRUSTUM_PLANE_NEAR].normal,
+        frustumPlanes[FRUSTUM_PLANE_NEAR].position
     };
     sceneData.frustum.planes[FRUSTUM_PLANE_FAR] = {
-        frustumPlanes[5].normal, frustumPlanes[5].position
+        frustumPlanes[FRUSTUM_PLANE_FAR].normal,
+        frustumPlanes[FRUSTUM_PLANE_FAR].position
     };
     sceneData.frustum.sphere = defaultUpdateData.camera->getFrustumSphere();
     sceneData.frustum.cone.tip = frustumCone.tip;

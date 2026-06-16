@@ -86,41 +86,18 @@ float SignedPointPlaneDistance(float3 P, float3 planeN, float3 planeP)
 
 bool VisibleFrustumPlanes(float4 sphere)
 {
-    float d0 = SignedPointPlaneDistance(
-        sphere.xyz, scene.frustum.planes[0].normal.xyz,
-        scene.frustum.planes[0].position.xyz
-    );
-    float d1 = SignedPointPlaneDistance(
-        sphere.xyz, scene.frustum.planes[1].normal.xyz,
-        scene.frustum.planes[1].position.xyz
-    );
-    float d2 = SignedPointPlaneDistance(
-        sphere.xyz, scene.frustum.planes[2].normal.xyz,
-        scene.frustum.planes[2].position.xyz
-    );
-    float d3 = SignedPointPlaneDistance(
-        sphere.xyz, scene.frustum.planes[3].normal.xyz,
-        scene.frustum.planes[3].position.xyz
-    );
-    float d4 = SignedPointPlaneDistance(
-        sphere.xyz, scene.frustum.planes[4].normal.xyz,
-        scene.frustum.planes[4].position.xyz
-    );
-    float d5 = SignedPointPlaneDistance(
-        sphere.xyz, scene.frustum.planes[5].normal.xyz,
-        scene.frustum.planes[5].position.xyz
-    );
+    float radius = sphere.w;
 
-    // Determine if we're on the positive half space of frustum planes
-    bool pos0 = (d0 >= 0);
-    bool pos1 = (d1 >= 0);
-    bool pos2 = (d2 >= 0);
-    bool pos3 = (d3 >= 0);
-    bool pos4 = (d4 >= 0);
-    bool pos5 = (d5 >= 0);
-
-    bool inside = pos0 && pos1 && pos2 && pos3 && pos4 && pos5;
-    return inside;
+    for (int i = 0; i < 6; i++)
+    {
+        float d = SignedPointPlaneDistance(
+            sphere.xyz, scene.frustum.planes[0].normal.xyz,
+            scene.frustum.planes[0].position.xyz
+        );
+        if (d < -radius)
+            return false;
+    }
+    return true;
 }
 
 bool VisibleFrustumSphere(float4 sphere)
@@ -134,6 +111,7 @@ bool VisibleFrustumSphere(float4 sphere)
 
 bool VisibleFrustumCone(float4 sphere)
 {
+    // TODO - clean up naming conventions
     // Cone and sphere are within intersectable range
     float3 v0 = sphere.xyz - scene.frustum.cone.tip;
     float d0 = dot(v0, scene.frustum.cone.direction);
