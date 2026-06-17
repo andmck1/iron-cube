@@ -219,7 +219,9 @@ bool Application::initialiseGeometry(
     actorMesh.setGeometry(name);
     Mesh *registeredMesh =
         meshManager_.registerMesh(name, std::move(actorMesh));
-    registeredMesh->instances.resize(N_INSTANCE_COLUMNS * N_INSTANCE_ROWS);
+    registeredMesh->instances.resize(
+        N_INSTANCE_COLUMNS * N_INSTANCE_LAYERS * N_INSTANCE_ROWS
+    );
     updateEntities();
 
     // transform component
@@ -464,35 +466,51 @@ void Application::updateEntities()
 {
     Mesh *horseMesh = meshManager_.getMesh("horsie");
     float maxSpan = std::max<float>(
-        horseMesh->getGeometry()->meshBounds.getWidth(),
-        horseMesh->getGeometry()->meshBounds.getDepth()
+        std::max<float>(
+            horseMesh->getGeometry()->meshBounds.getWidth(),
+            horseMesh->getGeometry()->meshBounds.getDepth()
+        ),
+        horseMesh->getGeometry()->meshBounds.getHeight()
     );
     float instanceSpanX = 2.0f * maxSpan;
-    float instanceSpanZ = 4.5f * maxSpan;
+    float instanceSpanY = 2.0f * maxSpan;
+    float instanceSpanZ = 2.0f * maxSpan;
     float totalSpanX = N_INSTANCE_COLUMNS * instanceSpanX;
+    float totalSpanY = N_INSTANCE_LAYERS * instanceSpanY;
     float totalSpanZ = N_INSTANCE_ROWS * instanceSpanZ;
-    for (uint32_t j = 0; j < N_INSTANCE_ROWS; ++j)
+
+    for (uint32_t rowIndex = 0; rowIndex < N_INSTANCE_ROWS; ++rowIndex)
     {
-        for (uint32_t i = 0; i < N_INSTANCE_COLUMNS; ++i)
+        for (uint32_t layerIndex = 0; layerIndex < N_INSTANCE_LAYERS;
+             ++layerIndex)
         {
-            float x =
-                i * instanceSpanX - (totalSpanX / 2.f) + instanceSpanX / 2.f;
-            float y = 0;
-            float z =
-                j * instanceSpanZ - (totalSpanZ / 2.f) + instanceSpanZ / 2.f;
+            for (uint32_t columnIndex = 0; columnIndex < N_INSTANCE_COLUMNS;
+                 ++columnIndex)
+            {
+                float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
+                          instanceSpanX / 2.f;
+                float y = layerIndex * instanceSpanY - (totalSpanY / 2.f) +
+                          instanceSpanY / 2.f;
+                float z = rowIndex * instanceSpanZ - (totalSpanZ / 2.f) +
+                          instanceSpanZ / 2.f;
 
-            uint32_t index = j * N_INSTANCE_COLUMNS + i;
-            float t = static_cast<float>(glfwGetTime()) + ((i ^ j + i) / 10.f);
-            glm::mat4x4 rotationMatrix;
-            if (isAnimationOn_)
-                rotationMatrix =
-                    glm::rotate(glm::mat4(1.f), t, glm::vec3(0, 1, 0));
-            else
-                rotationMatrix = glm::identity<glm::mat4x4>();
+                uint32_t index =
+                    (layerIndex * N_INSTANCE_COLUMNS) +
+                    (rowIndex * N_INSTANCE_LAYERS * N_INSTANCE_COLUMNS) +
+                    columnIndex;
+                float t = static_cast<float>(glfwGetTime()) +
+                          ((columnIndex ^ rowIndex + columnIndex) / 10.f);
+                glm::mat4x4 rotationMatrix;
+                if (isAnimationOn_)
+                    rotationMatrix =
+                        glm::rotate(glm::mat4(1.f), t, glm::vec3(0, 1, 0));
+                else
+                    rotationMatrix = glm::identity<glm::mat4x4>();
 
-            horseMesh->instances[index].transform =
-                glm::translate(glm::mat4(1.f), glm::vec3(x, y, z)) *
-                rotationMatrix;
+                horseMesh->instances[index].transform =
+                    glm::translate(glm::mat4(1.f), glm::vec3(x, y, z)) *
+                    rotationMatrix;
+            }
         }
     }
 }
