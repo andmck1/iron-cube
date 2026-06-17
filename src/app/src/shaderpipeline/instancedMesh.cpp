@@ -301,12 +301,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
     // scene data (uniform buffer index 0)
     SceneBuffer sceneData{};
     sceneData.view = *defaultUpdateData.camera->getViewMatrixRef();
-    sceneData.projection = glm::perspective(
-        glm::radians(45.0f),
-        static_cast<float>(renderer->getSwapChainExtent().width) /
-            static_cast<float>(renderer->getSwapChainExtent().height),
-        0.1f, 10.0f
-    );
+    sceneData.projection = *defaultUpdateData.camera->getProjectionMatrixRef();
     sceneData.projection[1][1] *= -1;
     sceneData.instanceCount = defaultUpdateData.instances->size();
     sceneData.meshletCount = geometry_->meshlets.size();

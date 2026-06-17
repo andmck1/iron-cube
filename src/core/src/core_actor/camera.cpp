@@ -6,7 +6,6 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/trigonometric.hpp"
-#include "glm/gtc/matrix_access.hpp"
 #include <cmath>
 
 const glm::mat4x4 &CameraActor::getViewMatrix()
@@ -19,6 +18,18 @@ glm::mat4x4 *CameraActor::getViewMatrixRef()
 {
     updateViewMatrix();
     return &viewMatrix_;
+}
+
+const glm::mat4x4 &CameraActor::getProjectionMatrix()
+{
+    updateProjectionMatrix();
+    return projectionMatrix_;
+}
+
+glm::mat4x4 *CameraActor::getProjectionMatrixRef()
+{
+    updateProjectionMatrix();
+    return &projectionMatrix_;
 }
 
 const glm::mat4x4 &CameraActor::getViewProjectionMatrix()
@@ -76,29 +87,7 @@ FrustumCone CameraActor::getFrustumCone(bool fitFarClip)
 
     if (fitFarClip)
     {
-        const glm::mat4x4 &vp = getViewProjectionMatrix();
-        glm::mat4x4 invVp = glm::inverse(vp);
-
-        glm::vec3 csFarTl = {-1.0f, 1.0f, 1.0f};
-        glm::vec3 csFarBl = {-1.0f, -1.0f, 1.0f};
-        glm::vec3 csFarBr = {1.0f, -1.0f, 1.0f};
-        glm::vec3 csFarTr = {1.0f, 1.0f, 1.0f};
-
-        glm::vec4 farTl = invVp * glm::vec4(csFarTl, 1.0f);
-        glm::vec4 farBl = invVp * glm::vec4(csFarBl, 1.0f);
-        glm::vec4 farBr = invVp * glm::vec4(csFarBr, 1.0f);
-        glm::vec4 farTr = invVp * glm::vec4(csFarTr, 1.0f);
-
-        farTl /= farTl.w;
-        farBl /= farBl.w;
-        farBr /= farBr.w;
-        farTr /= farTr.w;
-
-        glm::vec3 farCenter = (glm::vec3(farTl) + glm::vec3(farBl) +
-                               glm::vec3(farBr) + glm::vec3(farTr)) /
-                              4.0f;
-        float r = glm::distance(farCenter, glm::vec3(farTl));
-        cone.angle = 2.0f * std::atan(r / farClip_);
+        cone.angle = atan(5.f / (sqrtf(2.f) * farClip_));
     }
 
     return cone;
@@ -206,6 +195,6 @@ glm::vec4 CameraActor::getFrustumSphere()
         }
     }
 
-    glm::vec3 sphereCenter = eyePosition + viewDirection * (maxDistance / 2.0f);
-    return glm::vec4(sphereCenter, maxDistance / 2.0f);
+    glm::vec3 sphereCentre = eyePosition + viewDirection * (maxDistance / 2.0f);
+    return glm::vec4(sphereCentre, maxDistance / 2.0f);
 }

@@ -13,6 +13,8 @@ class CameraActor : public IActor
 
     const glm::mat4x4 &getViewMatrix();
     glm::mat4x4 *getViewMatrixRef();
+    const glm::mat4x4 &getProjectionMatrix();
+    glm::mat4x4 *getProjectionMatrixRef();
     const glm::mat4x4 &getViewProjectionMatrix();
     FrustumCone getFrustumCone(bool fitFarClip = true);
     std::array<FrustumPlane, 6> getFrustumPlanes();

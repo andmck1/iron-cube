@@ -311,12 +311,7 @@ bool StandardVulkanShaderPipeline::update()
     mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
     mvp.view = *defaultUpdateData.camera->getViewMatrixRef();
-    mvp.projection = glm::perspective(
-        glm::radians(45.0f),
-        static_cast<float>(renderer->getSwapChainExtent().width) /
-            static_cast<float>(renderer->getSwapChainExtent().height),
-        0.1f, 10.0f
-    );
+    mvp.projection = *defaultUpdateData.camera->getProjectionMatrixRef();
     mvp.projection[1][1] *= -1;
     memcpy(
         uniformBuffers_[0][renderer->getCurrentFrameIndex()].getMappedPointer(),
