@@ -43,6 +43,8 @@ bool DebugLayer::frame()
         {
             PipelineStatistics pipelineStatistics =
                 meshComponent->getShaderPipeline()->getPipelineStatistics();
+
+            // Pipeline statistics
             switch (pipelineStatistics.pipelineType)
             {
             case PipelineStatistics::PipelineType::TRADITIONAL:
@@ -68,10 +70,26 @@ bool DebugLayer::frame()
                 "%s PS: %d", entity->getName().c_str(),
                 pipelineStatistics.nFragmentShaderInvocations
             );
+
+            uint nInstances = meshComponent->getMesh()->instances.size();
+            uint nMeshlets =
+                meshComponent->getMesh()->getGeometry()->meshlets.size();
+            uint nVertices =
+                meshComponent->getMesh()->getGeometry()->meshletVertices.size();
+            ImGui::Text("N Instances: %d", nInstances);
+            ImGui::Text("N Vertices per Instance: %d", nVertices);
+            ImGui::Text("N Total Vertices: %d", nVertices * nInstances);
+
+            if (pipelineStatistics.pipelineType ==
+                PipelineStatistics::PipelineType::MESH)
+            {
+                ImGui::Text("N Meshlets per Instance: %d", nMeshlets);
+                ImGui::Text("N Total Meshlets: %d", nMeshlets * nInstances);
+            }
         }
     }
 
-    // Render  
+    // Render
     ImGui::SeparatorText("Render");
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
