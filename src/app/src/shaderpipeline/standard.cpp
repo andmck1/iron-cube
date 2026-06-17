@@ -312,7 +312,6 @@ bool StandardVulkanShaderPipeline::update()
                      ->getTransformMatrixRef();
     mvp.view = *defaultUpdateData.camera->getViewMatrixRef();
     mvp.projection = *defaultUpdateData.camera->getProjectionMatrixRef();
-    mvp.projection[1][1] *= -1;
     memcpy(
         uniformBuffers_[0][renderer->getCurrentFrameIndex()].getMappedPointer(),
         &mvp, sizeof(mvp)

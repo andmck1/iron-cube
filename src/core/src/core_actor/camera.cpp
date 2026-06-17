@@ -67,6 +67,7 @@ void CameraActor::updateProjectionMatrix()
     projectionMatrix_ = glm::perspective(
         glm::radians(vertFovDegrees_), aspect_, nearClip_, farClip_
     );
+    projectionMatrix_[1][1] *= -1.0f;
 }
 
 // Some help from chaotic bob here
@@ -81,15 +82,23 @@ FrustumCone CameraActor::getFrustumCone(bool fitFarClip)
     cone.tip = transformComponent->getPosition();
     cone.direction = viewDirection;
     cone.height = farClip_;
-    cone.angle = glm::radians(
-        (aspect_ > 1.0f) ? (vertFovDegrees_ * aspect_) : vertFovDegrees_
-    );
+
+    float vFovRad = glm::radians(vertFovDegrees_);
+    float hFovRad = 2.0f * std::atan(std::tan(vFovRad / 2.0f) * aspect_);
+
+    float halfV = vFovRad / 2.0f;
+    float halfH = hFovRad / 2.0f;
+    cone.angle =
+        std::acos(std::cos(halfV) * std::cos(halfH));
 
     if (fitFarClip)
     {
-        cone.angle = atan(5.f / (sqrtf(2.f) * farClip_));
+        float farHalfH = std::tan(halfH) * farClip_;
+        float farHalfV = std::tan(halfV) * farClip_;
+        float farCornerDist =
+            std::sqrt(farHalfH * farHalfH + farHalfV * farHalfV);
+        cone.angle = std::atan2(farCornerDist, farClip_);
     }
-
     return cone;
 }
 

@@ -20,9 +20,9 @@
 
 static constexpr float MOUSE_SENSITIVITY = 1.5f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
-static constexpr uint32_t N_INSTANCE_COLUMNS = 50;
-static constexpr uint32_t N_INSTANCE_ROWS = 1;
-static constexpr uint32_t N_INSTANCE_LAYERS = 50;
+static constexpr uint32_t N_INSTANCE_COLUMNS = 10;
+static constexpr uint32_t N_INSTANCE_ROWS = 40;
+static constexpr uint32_t N_INSTANCE_LAYERS = 20;
 static constexpr float PIPELINE_DEBUG_QUERY_FREQUENCY = 1.f;
 
 class Application

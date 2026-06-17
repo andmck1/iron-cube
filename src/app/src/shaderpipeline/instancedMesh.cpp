@@ -302,7 +302,6 @@ bool InstancedMeshVulkanShaderPipeline::update()
     SceneBuffer sceneData{};
     sceneData.view = *defaultUpdateData.camera->getViewMatrixRef();
     sceneData.projection = *defaultUpdateData.camera->getProjectionMatrixRef();
-    sceneData.projection[1][1] *= -1;
     sceneData.instanceCount = defaultUpdateData.instances->size();
     sceneData.meshletCount = geometry_->meshlets.size();
 

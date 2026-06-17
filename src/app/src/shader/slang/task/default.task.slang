@@ -31,6 +31,7 @@ void main(
     if ((instanceIndex < scene.instanceCount) &&
         (meshletIndex < scene.meshletCount))
     {
+
         float4x4 model = instances[instanceIndex].transform;
         // Don't multiply w (which is radius here) by transform
         float4 meshletBoundingSphere =
@@ -99,7 +100,6 @@ bool VisibleFrustumPlanes(float4 sphere)
 
 bool VisibleFrustumSphere(float4 sphere)
 {
-    // Intersection or inside with frustum sphere
     bool inside =
         (distance(sphere.xyz, scene.frustum.sphere.xyz) <
          (sphere.w + scene.frustum.sphere.w));
@@ -108,22 +108,24 @@ bool VisibleFrustumSphere(float4 sphere)
 
 bool VisibleFrustumCone(float4 sphere)
 {
-    // TODO - clean up naming conventions
-    // Cone and sphere are within intersectable range
-    float3 v0 = sphere.xyz - scene.frustum.cone.tip;
-    float d0 = dot(v0, scene.frustum.cone.direction);
-    bool i0 = (d0 <= (scene.frustum.cone.height + sphere.w));
+    // float3 coneDir = { 0.f, 0.f, 1.f };
+    // float3 coneTip = { 0.f, 0.f, -3.f };
+    // float coneHeight = 10.f;
+    // float coneAngle = 3.141f/ 10.f; 
+    float3 coneDir = scene.frustum.cone.direction.xyz; 
+    float3 coneTip = scene.frustum.cone.tip.xyz; 
+    float coneHeight = scene.frustum.cone.height.x; 
+    float coneAngle = scene.frustum.cone.angle.x; 
+    float coneRadius = coneHeight * tan(coneAngle);
 
-    float cs = cos(scene.frustum.cone.angle * 0.5);
-    float sn = sin(scene.frustum.cone.angle * 0.5);
-    float a = dot(v0, scene.frustum.cone.direction);
-    float b = a * sn / cs;
-    float c = sqrt(dot(v0, v0) - (a * a));
-    float d = c - b;
-    float e = d * cs;
-    bool i1 = (e < sphere.w);
+    float pointDistance = dot(sphere.xyz - coneTip, coneDir);
+    if ((pointDistance > coneHeight) || (pointDistance < 0.f))
+        return false;
 
-    return i0 && i1;
+    float coneRadiusAtPoint = (pointDistance / coneHeight) * coneRadius;
+    float pointConeCentreDistance =
+        length((sphere.xyz - coneTip) - (pointDistance * coneDir));
+    return (pointConeCentreDistance < (coneRadiusAtPoint + sphere.w));
 }
 
 bool VisibleFrustumConeAndNearPlane(float4 sphere)

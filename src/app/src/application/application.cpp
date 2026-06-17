@@ -290,8 +290,8 @@ bool Application::initialiseCamera(Scene *scene)
     // transform component
     TransformComponent *transformComponent =
         camera->getComponent<TransformComponent>();
-    transformComponent->moveTo(0.f, 0.f, 3.f);
-    transformComponent->rotateBy(0.f, 3.141f, 0.f);
+    transformComponent->moveTo(0.f, 0.f, -3.f);
+    transformComponent->rotateBy(0.f, 0.f, 0.f);
 
     scene->addEntity(std::move(camera));
     camera_ = dynamic_cast<CameraActor *>(scene->getEntities().back().get());
@@ -495,9 +495,8 @@ void Application::updateEntities()
                           instanceSpanZ / 2.f;
 
                 uint32_t index =
-                    (layerIndex * N_INSTANCE_COLUMNS) +
-                    (rowIndex * N_INSTANCE_LAYERS * N_INSTANCE_COLUMNS) +
-                    columnIndex;
+                    (layerIndex * N_INSTANCE_ROWS * N_INSTANCE_COLUMNS) +
+                    (rowIndex * N_INSTANCE_COLUMNS) + columnIndex;
                 float t = static_cast<float>(glfwGetTime()) +
                           ((columnIndex ^ rowIndex + columnIndex) / 10.f);
                 glm::mat4x4 rotationMatrix;

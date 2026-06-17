@@ -46,7 +46,7 @@ class CameraActor : public IActor
     glm::mat4x4 viewProjectionMatrix_;
 
     // TODO - add setters/init for these
-    float vertFovDegrees_ = 45.0f;
+    float vertFovDegrees_ = 45.f;
     float nearClip_ = 0.1f;
     float farClip_ = 10.0f;
     float aspect_ = 16.0f / 9.0f;
