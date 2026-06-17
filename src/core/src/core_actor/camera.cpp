@@ -106,107 +106,42 @@ FrustumCone CameraActor::getFrustumCone(bool fitFarClip)
 
 std::array<FrustumPlane, 6> CameraActor::getFrustumPlanes()
 {
-    // TODO - clean up chaotic bob code
     std::array<FrustumPlane, 6> planes;
+    const glm::mat4x4 &viewProjectionMatrix =
+        glm::transpose(getViewProjectionMatrix());
 
-    auto &viewProjectionMatrix = getViewProjectionMatrix();
-    auto inverseVPMatrix = glm::inverse(viewProjectionMatrix);
+    // https://gamedev.stackexchange.com/questions/156743/finding-the-normals-of-the-planes-of-a-view-frustum
+    planes[FRUSTUM_PLANE_NEAR].coefficients =
+        viewProjectionMatrix[2] + viewProjectionMatrix[3];
 
-    TransformComponent *transformComponent = getComponent<TransformComponent>();
-    glm::mat4x4 cameraRotation = transformComponent->getRotationMatrix();
-    glm::vec3 viewDirection =
-        glm::vec3(cameraRotation * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));
+    planes[FRUSTUM_PLANE_FAR].coefficients =
+        viewProjectionMatrix[3] - viewProjectionMatrix[2];
 
-    auto csNearTL = glm::vec3(-1, 1, -1);
-    auto csNearBL = glm::vec3(-1, -1, -1);
-    auto csNearBR = glm::vec3(1, -1, -1);
-    auto csNearTR = glm::vec3(1, 1, -1);
+    planes[FRUSTUM_PLANE_BOTTOM].coefficients =
+        viewProjectionMatrix[1] + viewProjectionMatrix[3];
 
-    auto csFarTL = glm::vec3(-1, 1, 1);
-    auto csFarBL = glm::vec3(-1, -1, 1);
-    auto csFarBR = glm::vec3(1, -1, 1);
-    auto csFarTR = glm::vec3(1, 1, 1);
+    planes[FRUSTUM_PLANE_TOP].coefficients =
+        viewProjectionMatrix[3] + viewProjectionMatrix[1];
 
-    auto nearTL = inverseVPMatrix * glm::vec4(csNearTL, 1.0f);
-    auto nearBL = inverseVPMatrix * glm::vec4(csNearBL, 1.0f);
-    auto nearBR = inverseVPMatrix * glm::vec4(csNearBR, 1.0f);
-    auto nearTR = inverseVPMatrix * glm::vec4(csNearTR, 1.0f);
+    planes[FRUSTUM_PLANE_LEFT].coefficients =
+        viewProjectionMatrix[0] + viewProjectionMatrix[3];
 
-    auto farTL = inverseVPMatrix * glm::vec4(csFarTL, 1.0f);
-    auto farBL = inverseVPMatrix * glm::vec4(csFarBL, 1.0f);
-    auto farBR = inverseVPMatrix * glm::vec4(csFarBR, 1.0f);
-    auto farTR = inverseVPMatrix * glm::vec4(csFarTR, 1.0f);
+    planes[FRUSTUM_PLANE_RIGHT].coefficients =
+        viewProjectionMatrix[3] + viewProjectionMatrix[0];
 
-    nearTL /= nearTL.w;
-    nearBL /= nearBL.w;
-    nearBR /= nearBR.w;
-    nearTR /= nearTR.w;
-
-    farTL /= farTL.w;
-    farBL /= farBL.w;
-    farBR /= farBR.w;
-    farTR /= farTR.w;
-    
+    // Normalise each plane so that the distance computed in the shader is
+    // meaningful
+    for (auto &plane : planes)
     {
-        auto nearH = glm::vec3(nearTL + nearBL) / 2.0f;
-        auto farH = glm::vec3(farTL + farBL) / 2.0f;
-        auto u = glm::normalize(farH - nearH);
-        auto v = glm::normalize(glm::vec3(nearTL - nearBL));
-        auto w = glm::cross(u, v);
-        w = glm::normalize(w);
-
-        planes[FRUSTUM_PLANE_LEFT].normal = glm::vec4(w, 0.f);
-        planes[FRUSTUM_PLANE_LEFT].position =
-            glm::vec4((nearH + farH) / 2.f, 1.f);
-    }
-
-    {
-        auto nearH = glm::vec3(nearTR + nearBR) / 2.0f;
-        auto farH = glm::vec3(farTR + farBR) / 2.0f;
-        auto u = glm::normalize(farH - nearH);
-        auto v = glm::normalize(glm::vec3(nearBL - nearTL));
-        auto w = glm::cross(u, v);
-        w = glm::normalize(w);
-
-        planes[FRUSTUM_PLANE_RIGHT].normal = glm::vec4(w, 0.f);
-        planes[FRUSTUM_PLANE_RIGHT].position =
-            glm::vec4((nearH + farH) / 2.f, 1.f);
-    }
-
-    {
-        auto nearH = glm::vec3(nearTL + nearTR) / 2.0f;
-        auto farH = glm::vec3(farTL + farTR) / 2.0f;
-        auto u = glm::normalize(farH - nearH);
-        auto v = glm::normalize(glm::vec3(nearTR - nearTL));
-        auto w = glm::cross(u, v);
-        w = glm::normalize(w);
-
-        planes[FRUSTUM_PLANE_TOP].normal = glm::vec4(w, 0.f);
-        planes[FRUSTUM_PLANE_TOP].position =
-            glm::vec4((nearH + farH) / 2.f, 1.f);
-    }
-
-    {
-        auto nearH = glm::vec3(nearBL + nearBR) / 2.0f;
-        auto farH = glm::vec3(farBL + farBR) / 2.0f;
-        auto u = glm::normalize(farH - nearH);
-        auto v = glm::normalize(glm::vec3(nearBL - nearBR));
-        auto w = glm::cross(u, v);
-        w = glm::normalize(w);
-
-        planes[FRUSTUM_PLANE_BOTTOM].normal = glm::vec4(w, 0.f);
-        planes[FRUSTUM_PLANE_BOTTOM].position =
-            glm::vec4((nearH + farH) / 2.f, 1.f);
-    }
-
-    {
-        planes[FRUSTUM_PLANE_NEAR].normal = glm::vec4(viewDirection, 0.f);
-        planes[FRUSTUM_PLANE_NEAR].position = (nearTL + nearBR) / 2.f;
-    }
-
-    {
-        planes[FRUSTUM_PLANE_FAR].normal = -glm::vec4(viewDirection, 0.f);
-        planes[FRUSTUM_PLANE_FAR].position = (farTL + farBR) / 2.f;
+        float length = glm::length(
+            glm::vec3(
+                plane.coefficients.x, plane.coefficients.y, plane.coefficients.z
+            )
+        );
+        if (length > 0.0f)
+        {
+            plane.coefficients /= length;
+        }
     }
 
     return planes;

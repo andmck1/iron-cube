@@ -149,7 +149,8 @@ void Application::initialiseDebugLayerData(Scene *scene)
 {
     debugLayerData_.scene = scene;
     debugLayerData_.timer = &timer_;
-    debugLayerData_.visibilityFunc = &visibilityFunction;
+    debugLayerData_.visibilityFunc = &visibilityFunction_;
+    debugLayerData_.isAnimationOn = &isAnimationOn_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -257,7 +258,7 @@ bool Application::initialiseGeometry(
     actorMeshShaderPipelineUpdateData->actor = actorPtr;
     actorMeshShaderPipelineUpdateData->camera = camera_;
     actorMeshShaderPipelineUpdateData->instances = &registeredMesh->instances;
-    actorMeshShaderPipelineUpdateData->visibilityFunc = &visibilityFunction;
+    actorMeshShaderPipelineUpdateData->visibilityFunc = &visibilityFunction_;
 
     std::unique_ptr<InstancedMeshVulkanShaderPipeline> actorMeshShaderPipeline =
         std::make_unique<InstancedMeshVulkanShaderPipeline>();
@@ -478,13 +479,20 @@ void Application::updateEntities()
                 i * instanceSpanX - (totalSpanX / 2.f) + instanceSpanX / 2.f;
             float y = 0;
             float z =
-                j * instanceSpanZ - (totalSpanZ / 2.f) + instanceSpanZ / 2.f; 
+                j * instanceSpanZ - (totalSpanZ / 2.f) + instanceSpanZ / 2.f;
 
             uint32_t index = j * N_INSTANCE_COLUMNS + i;
             float t = static_cast<float>(glfwGetTime()) + ((i ^ j + i) / 10.f);
+            glm::mat4x4 rotationMatrix;
+            if (isAnimationOn_)
+                rotationMatrix =
+                    glm::rotate(glm::mat4(1.f), t, glm::vec3(0, 1, 0));
+            else
+                rotationMatrix = glm::identity<glm::mat4x4>();
+
             horseMesh->instances[index].transform =
                 glm::translate(glm::mat4(1.f), glm::vec3(x, y, z)) *
-                glm::rotate(glm::mat4(1.f), t, glm::vec3(0, 1, 0));
+                rotationMatrix;
         }
     }
 }

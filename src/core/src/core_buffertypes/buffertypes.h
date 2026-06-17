@@ -69,7 +69,7 @@ enum
     FRUSTUM_PLANE_FAR = 5,
 };
 
-enum VisibilityFunc: uint
+enum VisibilityFunc : uint
 {
     VISIBILITY_FUNC_NONE = 0,
     VISIBILITY_FUNC_PLANES = 1,
@@ -80,8 +80,7 @@ enum VisibilityFunc: uint
 
 struct FrustumPlane
 {
-    float4 normal;
-    float4 position;
+    float4 coefficients;
 };
 
 struct FrustumCone

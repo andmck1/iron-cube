@@ -31,7 +31,6 @@ bool DebugLayer::frame()
             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar
     );
 
-
     // Statistics
     ImGui::SeparatorText("Statistics");
     ImGui::Text("FPS: %.1f", debugData_->timer->getFps());
@@ -72,7 +71,7 @@ bool DebugLayer::frame()
         }
     }
 
-    // Wireframe toggle
+    // Render  
     ImGui::SeparatorText("Render");
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -86,6 +85,7 @@ bool DebugLayer::frame()
         if (pipelineManager)
             pipelineManager->recreatePipelines = true;
     }
+    ImGui::Checkbox("Are Animations On?", debugData_->isAnimationOn);
 
     // Shader type
     ImGui::SeparatorText("Shader");
@@ -99,15 +99,14 @@ bool DebugLayer::frame()
     else
         shaderTypeUpdate = -1;
 
-
     // Culling controls
     ImGui::SeparatorText("Culling");
     std::vector<const char *> cullingFunctions = {
         "None", "Planes", "Sphere", "Cone", "Cone and Near Plane"
     };
     ImGui::Combo(
-        "Culling Function", debugData_->visibilityFunc,
-        cullingFunctions.data(), cullingFunctions.size()
+        "Culling Function", debugData_->visibilityFunc, cullingFunctions.data(),
+        cullingFunctions.size()
     );
 
     ImGui::End();

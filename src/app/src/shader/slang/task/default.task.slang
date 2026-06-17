@@ -77,24 +77,21 @@ void main(
     DispatchMesh(visibleCount, 1, 1, sPayload);
 }
 
-// chaoticbob help
-float SignedPointPlaneDistance(float3 P, float3 planeN, float3 planeP)
+float pointPlaneDistance(float4 testPoint, float4 planeEquation)
 {
-    float d = dot(normalize(planeN), P - planeP);
-    return d;
+    float planeDistance =
+        dot(testPoint.xyz, planeEquation.xyz) + planeEquation.w;
+    return planeDistance;
 };
 
+// chaoticbob help
 bool VisibleFrustumPlanes(float4 sphere)
 {
-    float radius = sphere.w;
-
     for (int i = 0; i < 6; i++)
     {
-        float d = SignedPointPlaneDistance(
-            sphere.xyz, scene.frustum.planes[0].normal.xyz,
-            scene.frustum.planes[0].position.xyz
-        );
-        if (d < -radius)
+        float planeDistance =
+            pointPlaneDistance(sphere, scene.frustum.planes[i].coefficients);
+        if (planeDistance < -sphere.w)
             return false;
     }
     return true;
@@ -134,11 +131,10 @@ bool VisibleFrustumConeAndNearPlane(float4 sphere)
     bool i0 = VisibleFrustumCone(sphere);
 
     FrustumPlane frNear = scene.frustum.planes[FRUSTUM_PLANE_NEAR];
-    float d0 = SignedPointPlaneDistance(
-        sphere.xyz, frNear.normal.xyz, frNear.position.xyz
-    );
-    bool i1 = (abs(d0) < sphere.w); // Intersects with near plane
-    bool i2 = (d0 > 0);             // On positive half space of near plane
+
+    float planeDistance = pointPlaneDistance(sphere, frNear.coefficients);
+    bool i1 = (abs(planeDistance) < sphere.w); // Intersects with near plane
+    bool i2 = (planeDistance > 0); // On positive half space of near plane
 
     return i0 && (i1 || i2);
 }

@@ -47,7 +47,6 @@ bool SceneLayer::update()
         }
     }
 
-
     return true;
 }
 

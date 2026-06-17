@@ -315,36 +315,16 @@ bool InstancedMeshVulkanShaderPipeline::update()
         defaultUpdateData.camera->getFrustumPlanes();
     FrustumCone frustumCone = defaultUpdateData.camera->getFrustumCone();
 
-    sceneData.frustum.planes[FRUSTUM_PLANE_LEFT] = {
-        frustumPlanes[FRUSTUM_PLANE_LEFT].normal,
-        frustumPlanes[FRUSTUM_PLANE_LEFT].position
-    };
-    sceneData.frustum.planes[FRUSTUM_PLANE_RIGHT] = {
-        frustumPlanes[FRUSTUM_PLANE_RIGHT].normal,
-        frustumPlanes[FRUSTUM_PLANE_RIGHT].position
-    };
-    sceneData.frustum.planes[FRUSTUM_PLANE_TOP] = {
-        frustumPlanes[FRUSTUM_PLANE_TOP].normal,
-        frustumPlanes[FRUSTUM_PLANE_TOP].position
-    };
-    sceneData.frustum.planes[FRUSTUM_PLANE_BOTTOM] = {
-        frustumPlanes[FRUSTUM_PLANE_BOTTOM].normal,
-        frustumPlanes[FRUSTUM_PLANE_BOTTOM].position
-    };
-    sceneData.frustum.planes[FRUSTUM_PLANE_NEAR] = {
-        frustumPlanes[FRUSTUM_PLANE_NEAR].normal,
-        frustumPlanes[FRUSTUM_PLANE_NEAR].position
-    };
-    sceneData.frustum.planes[FRUSTUM_PLANE_FAR] = {
-        frustumPlanes[FRUSTUM_PLANE_FAR].normal,
-        frustumPlanes[FRUSTUM_PLANE_FAR].position
-    };
+    for (int planeIndex = 0; planeIndex < 6; planeIndex++)
+    {
+        sceneData.frustum.planes[planeIndex] = frustumPlanes[planeIndex];
+    }
+
     sceneData.frustum.sphere = defaultUpdateData.camera->getFrustumSphere();
     sceneData.frustum.cone.tip = frustumCone.tip;
     sceneData.frustum.cone.height = frustumCone.height;
     sceneData.frustum.cone.direction = frustumCone.direction;
     sceneData.frustum.cone.angle = frustumCone.angle;
-    // TODO - make this settable from debug
     sceneData.visibilityFunc = *defaultUpdateData.visibilityFunc;
 
     memcpy(

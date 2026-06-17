@@ -11,4 +11,5 @@ class DebugLayerData : public IDebugLayerData
     Scene *scene;
     Timer *timer;
     int *visibilityFunc;
+    bool *isAnimationOn;
 };
