@@ -2,11 +2,9 @@
 #include "core_buffertypes/buffertypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
-#include "core_render/vulkan/helpers.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
-#include "glm/ext/matrix_clip_space.hpp"
 
 bool StandardVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
@@ -66,7 +64,6 @@ void StandardVulkanShaderPipeline::initUniformBuffers()
 {
     addUniformBuffer(
         sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
-        vk::BufferUsageFlagBits::eUniformBuffer,
         vk::ShaderStageFlagBits::eVertex
     );
 }
@@ -76,9 +73,8 @@ void StandardVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
-    addStorageBuffer(
+    addStorageRWBuffer(
         debugDataBufferSize, debugDataBufferData_.data(),
-        vk::BufferUsageFlagBits::eStorageBuffer, true,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
     );
 }
@@ -327,7 +323,7 @@ bool StandardVulkanShaderPipeline::update()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].update(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -373,7 +369,7 @@ bool StandardVulkanShaderPipeline::postRender()
     );
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].copyToStaging(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
                                  vk::PipelineStageFlagBits::eFragmentShader
     );
@@ -403,7 +399,7 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =

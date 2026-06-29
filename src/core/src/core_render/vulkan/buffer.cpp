@@ -1,4 +1,6 @@
 #include "core_render/vulkan/buffer.h"
+#include "core_render/vulkan/renderer.h"
+#include "core_service/servicelocator.h"
 
 void VulkanBufferBase::update(vk::DeviceSize bufferSize, void *data)
 {
@@ -23,10 +25,12 @@ vk::raii::DeviceMemory *VulkanBufferBase::getDeviceMemory()
 }
 
 void VulkanBufferIndex::init(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 
 )
 {
+    stageFlags = stageFlags_; 
+
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
@@ -52,10 +56,12 @@ void VulkanBufferIndex::init(
 }
 
 void VulkanBufferVertex::init(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 
 )
 {
+    stageFlags = stageFlags_; 
+
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
@@ -81,9 +87,11 @@ void VulkanBufferVertex::init(
 }
 
 void VulkanBufferUniform::init(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 )
 {
+    stageFlags = stageFlags_; 
+
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
@@ -100,64 +108,24 @@ void VulkanBufferUniform::init(
     }
 }
 
-void VulkanBufferStorage::init(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+void VulkanBufferStorageBase::init(
+    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 )
 {
+    stageFlags = stageFlags_; 
+
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags;
-    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags;
-
-    stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst;
-
     std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
-        bufferSize, stagingBufferUsageFlags,
+        bufferSize, stagingBufferUsageFlags_,
         vk::MemoryPropertyFlagBits::eHostVisible |
             vk::MemoryPropertyFlagBits::eHostCoherent
     );
 
     std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eStorageBuffer | bufferUsageFlags,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    if (data)
-    {
-        void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
-        memcpy(stagingData, data, bufferSize);
-        stagingBufferMemory_.unmapMemory();
-        renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
-    }
-}
-
-void VulkanBufferRWStorage::init(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
-)
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags;
-    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags;
-
-    stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
-                              vk::BufferUsageFlagBits::eTransferSrc;
-    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
-                       vk::BufferUsageFlagBits::eTransferSrc;
-
-    std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
-        bufferSize, stagingBufferUsageFlags,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-
-    std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eStorageBuffer | bufferUsageFlags,
+        bufferSize, vk::BufferUsageFlagBits::eStorageBuffer | bufferUsageFlags_,
         vk::MemoryPropertyFlagBits::eDeviceLocal
     );
 

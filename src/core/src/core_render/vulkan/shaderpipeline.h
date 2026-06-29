@@ -3,8 +3,6 @@
 #include "core_common/types.h"
 #include "core_render/ishaderpipeline.h"
 #include "core_render/vulkan/buffer.h"
-#include "core_render/vulkan/renderer.h"
-#include "core_service/servicelocator.h"
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
@@ -24,56 +22,28 @@ class VulkanShaderPipeline : public IShaderPipeline
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
 
     // Buffer infrastructure
-    std::vector<std::vector<VulkanBuffer>> uniformBuffers_;
-    std::vector<std::vector<VulkanBuffer>> storageBuffers_;
-    std::vector<vk::ShaderStageFlags> uniformBufferStageFlags_;
-    std::vector<vk::ShaderStageFlags> storageBufferStageFlags_;
-    std::vector<bool> storageBufferIsReadWrite_;
+    std::vector<std::vector<VulkanBufferUniform>> uniformBuffers_;
+    std::vector<std::vector<VulkanBufferRStorage>> storageRBuffers_;
+    std::vector<std::vector<VulkanBufferRWStorage>> storageRWBuffers_;
 
     // Debug data (always the last storage buffer)
     std::vector<DebugDataBuffer> debugDataBufferData_ = {DebugDataBuffer()};
 
     // Template helpers for buffer registration
-    template <typename DataType>
     void addUniformBuffer(
-        vk::DeviceSize bufferSize, DataType *data,
-        vk::BufferUsageFlagBits bufferType,
+        vk::DeviceSize bufferSize, void *data,
         vk::ShaderStageFlags stageFlags = vk::ShaderStageFlagBits::eAll
-    )
-    {
-        VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-            ServiceLocator::instance().get<IRenderer>()
-        );
-        uniformBuffers_.push_back({});
-        uniformBufferStageFlags_.push_back(stageFlags);
-        for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            VulkanBuffer newBuffer;
-            newBuffer.init(bufferSize, data, bufferType, true, false);
-            uniformBuffers_.back().emplace_back(std::move(newBuffer));
-        }
-    }
+    );
 
-    template <typename DataType>
-    void addStorageBuffer(
-        vk::DeviceSize bufferSize, DataType *data,
-        vk::BufferUsageFlagBits bufferType, bool isReadWrite,
+    void addStorageRBuffer(
+        vk::DeviceSize bufferSize, void *data,
         vk::ShaderStageFlags stageFlags = vk::ShaderStageFlagBits::eAll
-    )
-    {
-        VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-            ServiceLocator::instance().get<IRenderer>()
-        );
-        storageBuffers_.push_back({});
-        storageBufferStageFlags_.push_back(stageFlags);
-        storageBufferIsReadWrite_.push_back(isReadWrite);
-        for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            VulkanBuffer newBuffer;
-            newBuffer.init(bufferSize, data, bufferType, false, isReadWrite);
-            storageBuffers_.back().emplace_back(std::move(newBuffer));
-        }
-    }
+    );
+
+    void addStorageRWBuffer(
+        vk::DeviceSize bufferSize, void *data,
+        vk::ShaderStageFlags stageFlags = vk::ShaderStageFlagBits::eAll
+    );
 
     // Shared descriptor methods
     void addBufferWrite(

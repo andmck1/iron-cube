@@ -66,7 +66,6 @@ void InstancedVertexVulkanShaderPipeline::initUniformBuffers()
 {
     addUniformBuffer(
         sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
-        vk::BufferUsageFlagBits::eUniformBuffer,
         vk::ShaderStageFlagBits::eVertex
     );
 }
@@ -76,9 +75,8 @@ void InstancedVertexVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
-    addStorageBuffer(
+    addStorageRWBuffer(
         debugDataBufferSize, debugDataBufferData_.data(),
-        vk::BufferUsageFlagBits::eStorageBuffer, true,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
     );
 }
@@ -407,7 +405,7 @@ bool InstancedVertexVulkanShaderPipeline::update()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].update(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -439,7 +437,7 @@ bool InstancedVertexVulkanShaderPipeline::postRender()
     );
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].copyToStaging(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
                                  vk::PipelineStageFlagBits::eFragmentShader
     );
@@ -469,7 +467,7 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =
