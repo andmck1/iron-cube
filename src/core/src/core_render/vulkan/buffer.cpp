@@ -1,5 +1,17 @@
 #include "core_render/vulkan/buffer.h"
 
+void VulkanBufferBase::update(vk::DeviceSize bufferSize, void *data)
+{
+    void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
+    memcpy(stagingData, data, bufferSize);
+    stagingBufferMemory_.unmapMemory();
+
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
+}
+
 vk::raii::Buffer *VulkanBufferBase::getBuffer()
 {
     return &buffer_;
@@ -39,10 +51,6 @@ void VulkanBufferIndex::init(
     renderer->copyBuffer(stagingBuffer, buffer_, bufferSize);
 }
 
-void VulkanBufferIndex::update()
-{
-}
-
 void VulkanBufferVertex::init(
     vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
 
@@ -72,10 +80,6 @@ void VulkanBufferVertex::init(
     renderer->copyBuffer(stagingBuffer, buffer_, bufferSize);
 }
 
-void VulkanBufferVertex::update()
-{
-}
-
 void VulkanBufferUniform::init(
     vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
 )
@@ -84,62 +88,16 @@ void VulkanBufferUniform::init(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    if (isHostVisible)
+    std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
+        bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+        vk::MemoryPropertyFlagBits::eHostVisible |
+            vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+    mappedPointer_ = bufferMemory_.mapMemory(0, bufferSize);
+    if (data)
     {
-        std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-            bufferSize, bufferUsage,
-            vk::MemoryPropertyFlagBits::eHostVisible |
-                vk::MemoryPropertyFlagBits::eHostCoherent
-        );
-        mappedPointer_ = bufferMemory_.mapMemory(0, bufferSize);
-        if (data)
-        {
-            memcpy(mappedPointer_, data, bufferSize);
-        }
+        memcpy(mappedPointer_, data, bufferSize);
     }
-    else
-    {
-        vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags;
-        vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags;
-
-        if (isReadWrite)
-        {
-            stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
-                                      vk::BufferUsageFlagBits::eTransferSrc;
-            bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
-                               vk::BufferUsageFlagBits::eTransferSrc;
-        }
-        else
-        {
-            stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-            bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst;
-        }
-
-        std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
-            bufferSize, stagingBufferUsageFlags,
-            vk::MemoryPropertyFlagBits::eHostVisible |
-                vk::MemoryPropertyFlagBits::eHostCoherent
-        );
-
-        std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-            bufferSize, bufferUsage | bufferUsageFlags,
-            vk::MemoryPropertyFlagBits::eDeviceLocal
-        );
-
-        if (data)
-        {
-            void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
-            memcpy(stagingData, data, bufferSize);
-            stagingBufferMemory_.unmapMemory();
-            renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
-        }
-    }
-
-    return true;
-}
-
-void VulkanBufferUniform::update()
-{
 }
 
 void VulkanBufferStorage::init(
@@ -150,62 +108,30 @@ void VulkanBufferStorage::init(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    if (isHostVisible)
+    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags;
+    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags;
+
+    stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
+    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst;
+
+    std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
+        bufferSize, stagingBufferUsageFlags,
+        vk::MemoryPropertyFlagBits::eHostVisible |
+            vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+
+    std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
+        bufferSize, vk::BufferUsageFlagBits::eStorageBuffer | bufferUsageFlags,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+    );
+
+    if (data)
     {
-        std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-            bufferSize, bufferUsage,
-            vk::MemoryPropertyFlagBits::eHostVisible |
-                vk::MemoryPropertyFlagBits::eHostCoherent
-        );
-        mappedPointer_ = bufferMemory_.mapMemory(0, bufferSize);
-        if (data)
-        {
-            memcpy(mappedPointer_, data, bufferSize);
-        }
+        void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
+        memcpy(stagingData, data, bufferSize);
+        stagingBufferMemory_.unmapMemory();
+        renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
     }
-    else
-    {
-        vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags;
-        vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags;
-
-        if (isReadWrite)
-        {
-            stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
-                                      vk::BufferUsageFlagBits::eTransferSrc;
-            bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
-                               vk::BufferUsageFlagBits::eTransferSrc;
-        }
-        else
-        {
-            stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-            bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst;
-        }
-
-        std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
-            bufferSize, stagingBufferUsageFlags,
-            vk::MemoryPropertyFlagBits::eHostVisible |
-                vk::MemoryPropertyFlagBits::eHostCoherent
-        );
-
-        std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-            bufferSize, bufferUsage | bufferUsageFlags,
-            vk::MemoryPropertyFlagBits::eDeviceLocal
-        );
-
-        if (data)
-        {
-            void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
-            memcpy(stagingData, data, bufferSize);
-            stagingBufferMemory_.unmapMemory();
-            renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
-        }
-    }
-
-    return true;
-}
-
-void VulkanBufferStorage::update()
-{
 }
 
 void VulkanBufferRWStorage::init(
@@ -216,62 +142,32 @@ void VulkanBufferRWStorage::init(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    if (isHostVisible)
+    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags;
+    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags;
+
+    stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
+                              vk::BufferUsageFlagBits::eTransferSrc;
+    bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
+                       vk::BufferUsageFlagBits::eTransferSrc;
+
+    std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
+        bufferSize, stagingBufferUsageFlags,
+        vk::MemoryPropertyFlagBits::eHostVisible |
+            vk::MemoryPropertyFlagBits::eHostCoherent
+    );
+
+    std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
+        bufferSize, vk::BufferUsageFlagBits::eStorageBuffer | bufferUsageFlags,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+    );
+
+    if (data)
     {
-        std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-            bufferSize, bufferUsage,
-            vk::MemoryPropertyFlagBits::eHostVisible |
-                vk::MemoryPropertyFlagBits::eHostCoherent
-        );
-        mappedPointer_ = bufferMemory_.mapMemory(0, bufferSize);
-        if (data)
-        {
-            memcpy(mappedPointer_, data, bufferSize);
-        }
+        void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
+        memcpy(stagingData, data, bufferSize);
+        stagingBufferMemory_.unmapMemory();
+        renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
     }
-    else
-    {
-        vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags;
-        vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags;
-
-        if (isReadWrite)
-        {
-            stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
-                                      vk::BufferUsageFlagBits::eTransferSrc;
-            bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst |
-                               vk::BufferUsageFlagBits::eTransferSrc;
-        }
-        else
-        {
-            stagingBufferUsageFlags = vk::BufferUsageFlagBits::eTransferSrc;
-            bufferUsageFlags = vk::BufferUsageFlagBits::eTransferDst;
-        }
-
-        std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
-            bufferSize, stagingBufferUsageFlags,
-            vk::MemoryPropertyFlagBits::eHostVisible |
-                vk::MemoryPropertyFlagBits::eHostCoherent
-        );
-
-        std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-            bufferSize, bufferUsage | bufferUsageFlags,
-            vk::MemoryPropertyFlagBits::eDeviceLocal
-        );
-
-        if (data)
-        {
-            void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
-            memcpy(stagingData, data, bufferSize);
-            stagingBufferMemory_.unmapMemory();
-            renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
-        }
-    }
-
-    return true;
-}
-
-void VulkanBufferRWStorage::update()
-{
 }
 
 void VulkanBufferRWStorage::copyToStaging(

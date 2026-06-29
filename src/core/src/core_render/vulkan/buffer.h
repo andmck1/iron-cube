@@ -8,7 +8,7 @@ class VulkanBufferBase
     virtual void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) = 0;
-    virtual void update() = 0;
+    void update(vk::DeviceSize bufferSize, void *data);
     vk::raii::Buffer *getBuffer();
     vk::raii::DeviceMemory *getDeviceMemory();
 
@@ -24,7 +24,6 @@ class VulkanBufferIndex : VulkanBufferBase
     void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) override;
-    void update() override;
 };
 
 class VulkanBufferVertex : VulkanBufferBase
@@ -32,7 +31,6 @@ class VulkanBufferVertex : VulkanBufferBase
     void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) override;
-    void update() override;
 };
 
 class VulkanBufferUniform : VulkanBufferBase
@@ -40,7 +38,6 @@ class VulkanBufferUniform : VulkanBufferBase
     void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) override;
-    void update() override;
 
     void *getMappedPointer();
 
@@ -53,7 +50,6 @@ class VulkanBufferStorage : VulkanBufferBase
     void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) override;
-    void update() override;
 };
 
 class VulkanBufferRWStorage : VulkanBufferBase
@@ -61,10 +57,11 @@ class VulkanBufferRWStorage : VulkanBufferBase
     void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) override;
-    void update() override;
 
     void readData(vk::DeviceSize bufferSize, void *outputData);
-    void copyToStaging();
+    void copyToStaging(
+        vk::DeviceSize size, vk::Flags<vk::PipelineStageFlagBits> pipelineStages
+    );
 };
 
 class VulkanBufferTEMP
