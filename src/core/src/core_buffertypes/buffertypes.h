@@ -28,6 +28,17 @@ struct VertexInputType
     float4 normal;
 };
 
+struct InstancedVertexInputType
+{
+    float4 position;
+    float4 tex;
+    float4 normal;
+
+    float4 instancePosition;
+    float4 instanceRotation;
+    float4 instanceScale;
+};
+
 struct VertexOutputType
 {
     float4 position SEMANTIC(SV_Position);
@@ -58,6 +69,46 @@ struct OptimisedMeshlet
     uint triangleCount;
 };
 
+// Some help from chaoticbob
+enum
+{
+    FRUSTUM_PLANE_LEFT = 0,
+    FRUSTUM_PLANE_RIGHT = 1,
+    FRUSTUM_PLANE_TOP = 2,
+    FRUSTUM_PLANE_BOTTOM = 3,
+    FRUSTUM_PLANE_NEAR = 4,
+    FRUSTUM_PLANE_FAR = 5,
+};
+
+enum VisibilityFunc : uint
+{
+    VISIBILITY_FUNC_NONE = 0,
+    VISIBILITY_FUNC_PLANES = 1,
+    VISIBILITY_FUNC_SPHERE = 2,
+    VISIBILITY_FUNC_CONE = 3,
+    VISIBILITY_FUNC_CONE_AND_NEAR_PLANE = 4,
+};
+
+struct FrustumPlane
+{
+    float4 coefficients;
+};
+
+struct FrustumCone
+{
+    float3 tip;
+    float height;
+    float3 direction;
+    float angle;
+};
+
+struct FrustumData
+{
+    FrustumPlane planes[6];
+    float4 sphere;
+    FrustumCone cone;
+};
+
 struct MVPBuffer
 {
     float4x4 model;
@@ -69,8 +120,10 @@ struct SceneBuffer
 {
     float4x4 view;
     float4x4 projection;
+    FrustumData frustum;
     uint instanceCount;
     uint meshletCount;
+    uint visibilityFunc;
 };
 
 struct DebugDataBuffer
@@ -83,12 +136,9 @@ struct DebugDataBuffer
 
 struct Instance
 {
-    float4x4 transform = {
-        {1.f, 0.f, 0.f, 0.f},
-        {0.f, 1.f, 0.f, 0.f},
-        {0.f, 0.f, 1.f, 0.f},
-        {0.f, 0.f, 0.f, 1.f}
-    };
+    float4 position;
+    float4 rotation;
+    float4 scale;
 };
 
 // Mental note - 32 bits in a float4 and must be in groups of 32 bits

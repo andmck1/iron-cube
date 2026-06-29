@@ -12,6 +12,7 @@ class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
     std::vector<Instance> *instances = nullptr;
+    int *visibilityFunc = nullptr;
 };
 
 class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
@@ -29,20 +30,18 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
-    vk::raii::QueryPool queryPool_ = nullptr;
-
     Geometry *geometry_ = nullptr;
 
-    bool isWaitingOnQueryPool_ = false;
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
     PipelineStatistics pipelineStatistics_{};
-    bool isQuerying_ = false;
+
+    uint sceneDataUniformBufferIndex_ = 0;
+    uint debugDataStorageRWBufferIndex_ = 0;
+    uint instancesStorageRBufferIndex_ = 0;
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
-    bool createQueryPool();
 
-    // Pure virtual hooks from base class
     void initUniformBuffers() override;
     void initStorageBuffers() override;
 };

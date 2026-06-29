@@ -15,6 +15,7 @@
 #include "core_common/helpers.h"
 
 #include "shaderpipeline/standard.h"
+#include "shaderpipeline/instancedVertex.h"
 #include "shaderpipeline/instancedMesh.h"
 
 #include <format>
@@ -117,6 +118,16 @@ bool Application::initialiseShaders()
         "defaultVertex", std::move(defaultVertexShader)
     );
 
+    VulkanShaderConfig instancedVertexShaderConfig;
+    instancedVertexShaderConfig.path =
+        "build/shader/slang/vertex/instanced.vert.spv";
+
+    std::unique_ptr<VulkanShader> instancedVertexShader =
+        std::make_unique<VulkanShader>(instancedVertexShaderConfig);
+    shaderManager_.registerShader(
+        "instancedVertex", std::move(instancedVertexShader)
+    );
+
     VulkanShaderConfig defaultTaskShaderConfig;
     defaultTaskShaderConfig.path = "build/shader/slang/task/default.task.spv";
 
@@ -149,6 +160,8 @@ void Application::initialiseDebugLayerData(Scene *scene)
 {
     debugLayerData_.scene = scene;
     debugLayerData_.timer = &timer_;
+    debugLayerData_.visibilityFunc = &visibilityFunction_;
+    debugLayerData_.isAnimationOn = &isAnimationOn_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -196,15 +209,6 @@ bool Application::initialiseEntities(Scene *scene)
         initialiseGeometry(scene, name, transform);
     }
 
-    // {
-    //     // cube
-    //     std::string name = "";
-    //     Geometry geometry = ResourceManager::generateProceduralCube();
-    //     resourceManager_.loadGeometry(name, geometry);
-    //     Transform transform = Transform{.position = {3.f, 0.f, 0.f}};
-    //     initialiseGeometry(scene, name, transform);
-    // }
-
     spdlog::info("Finished initilising entities");
     return true;
 }
@@ -226,7 +230,9 @@ bool Application::initialiseGeometry(
     actorMesh.setGeometry(name);
     Mesh *registeredMesh =
         meshManager_.registerMesh(name, std::move(actorMesh));
-    registeredMesh->instances.resize(N_INSTANCE_COLUMNS * N_INSTANCE_ROWS);
+    registeredMesh->instances.resize(
+        N_INSTANCE_COLUMNS * N_INSTANCE_LAYERS * N_INSTANCE_ROWS
+    );
     updateEntities();
 
     // transform component
@@ -237,47 +243,83 @@ bool Application::initialiseGeometry(
     // mesh component
     MeshComponent *meshComponent = actorPtr->getComponent<MeshComponent>();
 
-    // vertex shader pipeline
-    std::unique_ptr<DefaultShaderPipelineUpdateData>
-        actorShaderPipelineUpdateData =
-            std::make_unique<DefaultShaderPipelineUpdateData>();
-    actorShaderPipelineUpdateData->actor = actorPtr;
-    actorShaderPipelineUpdateData->camera = camera_;
+    // TODO - generalise
+    {
+        // vertex shader pipeline
+        std::unique_ptr<DefaultShaderPipelineUpdateData>
+            actorShaderPipelineUpdateData =
+                std::make_unique<DefaultShaderPipelineUpdateData>();
+        actorShaderPipelineUpdateData->actor = actorPtr;
+        actorShaderPipelineUpdateData->camera = camera_;
 
-    std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
-        std::make_unique<StandardVulkanShaderPipeline>();
-    auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
-        shaderPipelineManager_.registerShaderPipeline(
-            std::format("{}Traditional", name), std::move(actorShaderPipeline),
-            std::move(actorShaderPipelineUpdateData)
-        );
-
-    registeredShaderPipeline->init(
-        registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
-    );
-    meshComponent->setShaderPipeline(registeredShaderPipeline);
-    meshComponent->setMesh(registeredMesh);
-
-    // mesh shader pipeline
-    std::unique_ptr<InstancedMeshShaderPipelineUpdateData>
-        actorMeshShaderPipelineUpdateData =
-            std::make_unique<InstancedMeshShaderPipelineUpdateData>();
-    actorMeshShaderPipelineUpdateData->actor = actorPtr;
-    actorMeshShaderPipelineUpdateData->camera = camera_;
-    actorMeshShaderPipelineUpdateData->instances = &registeredMesh->instances;
-
-    std::unique_ptr<InstancedMeshVulkanShaderPipeline> actorMeshShaderPipeline =
-        std::make_unique<InstancedMeshVulkanShaderPipeline>();
-    auto
-        [registeredMeshShaderPipeline, registeredMeshShaderPipelineUpdateData] =
+        std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
+            std::make_unique<StandardVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
             shaderPipelineManager_.registerShaderPipeline(
-                std::format("{}Mesh", name), std::move(actorMeshShaderPipeline),
-                std::move(actorMeshShaderPipelineUpdateData)
+                std::format("{}DefaultVertex", name),
+                std::move(actorShaderPipeline),
+                std::move(actorShaderPipelineUpdateData)
             );
-    // TODO - should init reference the pointer to this update data?
-    registeredMeshShaderPipeline->init(
-        registeredMesh->getGeometry(), registeredMeshShaderPipelineUpdateData
-    );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+        meshComponent->setShaderPipeline(registeredShaderPipeline);
+        meshComponent->setMesh(registeredMesh);
+    }
+    {
+        // instanced vertex shader pipeline
+        std::unique_ptr<InstancedVertexShaderPipelineUpdateData>
+            actorInstancedShaderPipelineUpdateData =
+                std::make_unique<InstancedVertexShaderPipelineUpdateData>();
+        actorInstancedShaderPipelineUpdateData->actor = actorPtr;
+        actorInstancedShaderPipelineUpdateData->camera = camera_;
+        actorInstancedShaderPipelineUpdateData->instances =
+            &registeredMesh->instances;
+
+        std::unique_ptr<InstancedVertexVulkanShaderPipeline>
+            actorInstancedShaderPipeline =
+                std::make_unique<InstancedVertexVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("{}InstancedVertex", name),
+                std::move(actorInstancedShaderPipeline),
+                std::move(actorInstancedShaderPipelineUpdateData)
+            );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+    }
+    {
+        // mesh shader pipeline
+        std::unique_ptr<InstancedMeshShaderPipelineUpdateData>
+            actorMeshShaderPipelineUpdateData =
+                std::make_unique<InstancedMeshShaderPipelineUpdateData>();
+        actorMeshShaderPipelineUpdateData->actor = actorPtr;
+        actorMeshShaderPipelineUpdateData->camera = camera_;
+        actorMeshShaderPipelineUpdateData->instances =
+            &registeredMesh->instances;
+        actorMeshShaderPipelineUpdateData->visibilityFunc =
+            &visibilityFunction_;
+
+        std::unique_ptr<InstancedMeshVulkanShaderPipeline>
+            actorMeshShaderPipeline =
+                std::make_unique<InstancedMeshVulkanShaderPipeline>();
+        auto
+            [registeredMeshShaderPipeline,
+             registeredMeshShaderPipelineUpdateData] =
+                shaderPipelineManager_.registerShaderPipeline(
+                    std::format("{}Mesh", name),
+                    std::move(actorMeshShaderPipeline),
+                    std::move(actorMeshShaderPipelineUpdateData)
+                );
+        // TODO - should init reference the pointer to this update data?
+        registeredMeshShaderPipeline->init(
+            registeredMesh->getGeometry(),
+            registeredMeshShaderPipelineUpdateData
+        );
+    }
 
     spdlog::debug("Finished initialising triangle entity");
     return true;
@@ -294,8 +336,8 @@ bool Application::initialiseCamera(Scene *scene)
     // transform component
     TransformComponent *transformComponent =
         camera->getComponent<TransformComponent>();
-    transformComponent->moveTo(0.f, 0.f, 3.f);
-    transformComponent->rotateBy(0.f, 3.141f, 0.f);
+    transformComponent->moveTo(0.f, 0.f, -3.f);
+    transformComponent->rotateBy(0.f, 0.f, 0.f);
 
     scene->addEntity(std::move(camera));
     camera_ = dynamic_cast<CameraActor *>(scene->getEntities().back().get());
@@ -406,17 +448,22 @@ void Application::checkForPipelineUpdates()
         {
         case 0:
         {
-            shaderPipelineSuffix = "Traditional";
+            shaderPipelineSuffix = "DefaultVertex";
             break;
         }
         case 1:
+        {
+            shaderPipelineSuffix = "InstancedVertex";
+            break;
+        }
+        case 2:
         {
             shaderPipelineSuffix = "Mesh";
             break;
         }
         default:
         {
-            shaderPipelineSuffix = "Traditional";
+            shaderPipelineSuffix = "DefaultVertex";
             break;
         }
         }
@@ -470,28 +517,50 @@ void Application::updateEntities()
 {
     Mesh *horseMesh = meshManager_.getMesh("horsie");
     float maxSpan = std::max<float>(
-        horseMesh->getGeometry()->meshBounds.getWidth(),
-        horseMesh->getGeometry()->meshBounds.getDepth()
+        std::max<float>(
+            horseMesh->getGeometry()->meshBounds.getWidth(),
+            horseMesh->getGeometry()->meshBounds.getDepth()
+        ),
+        horseMesh->getGeometry()->meshBounds.getHeight()
     );
     float instanceSpanX = 2.0f * maxSpan;
-    float instanceSpanZ = 4.5f * maxSpan;
+    float instanceSpanY = 2.0f * maxSpan;
+    float instanceSpanZ = 2.0f * maxSpan;
     float totalSpanX = N_INSTANCE_COLUMNS * instanceSpanX;
+    float totalSpanY = N_INSTANCE_LAYERS * instanceSpanY;
     float totalSpanZ = N_INSTANCE_ROWS * instanceSpanZ;
-    for (uint32_t j = 0; j < N_INSTANCE_ROWS; ++j)
-    {
-        for (uint32_t i = 0; i < N_INSTANCE_COLUMNS; ++i)
-        {
-            float x =
-                i * instanceSpanX - (totalSpanX / 2.0f) + instanceSpanX / 2.0f;
-            float y = 0;
-            float z =
-                j * instanceSpanZ - (totalSpanZ / 2.0f) - 2.15f * instanceSpanZ;
 
-            uint32_t index = j * N_INSTANCE_COLUMNS + i;
-            float t = static_cast<float>(glfwGetTime()) + ((i ^ j + i) / 10.0f);
-            horseMesh->instances[index].transform =
-                glm::translate(glm::mat4(1.f), glm::vec3(x, y, z)) *
-                glm::rotate(glm::mat4(1.f), t, glm::vec3(0, 1, 0));
+    for (uint32_t rowIndex = 0; rowIndex < N_INSTANCE_ROWS; ++rowIndex)
+    {
+        for (uint32_t layerIndex = 0; layerIndex < N_INSTANCE_LAYERS;
+             ++layerIndex)
+        {
+            for (uint32_t columnIndex = 0; columnIndex < N_INSTANCE_COLUMNS;
+                 ++columnIndex)
+            {
+                float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
+                          instanceSpanX / 2.f;
+                float y = layerIndex * instanceSpanY - (totalSpanY / 2.f) +
+                          instanceSpanY / 2.f;
+                float z = rowIndex * instanceSpanZ - (totalSpanZ / 2.f) +
+                          instanceSpanZ / 2.f;
+
+                uint32_t index =
+                    (layerIndex * N_INSTANCE_ROWS * N_INSTANCE_COLUMNS) +
+                    (rowIndex * N_INSTANCE_COLUMNS) + columnIndex;
+                float t = static_cast<float>(glfwGetTime()) +
+                          ((columnIndex ^ rowIndex + columnIndex) / 10.f);
+                glm::vec4 rotationVector;
+                if (isAnimationOn_)
+                    rotationVector = glm::vec4(0.0, t, 0.0, 1.0);
+                else
+                    rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+                horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
+                horseMesh->instances[index].rotation = rotationVector;
+                horseMesh->instances[index].scale =
+                    glm::vec4(1.0, 1.0, 1.0, 1.0);
+            }
         }
     }
 }

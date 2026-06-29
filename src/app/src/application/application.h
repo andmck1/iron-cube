@@ -20,8 +20,9 @@
 
 static constexpr float MOUSE_SENSITIVITY = 1.5f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
-static constexpr uint32_t N_INSTANCE_COLUMNS = 20;
+static constexpr uint32_t N_INSTANCE_COLUMNS = 10;
 static constexpr uint32_t N_INSTANCE_ROWS = 10;
+static constexpr uint32_t N_INSTANCE_LAYERS = 10;
 static constexpr float PIPELINE_DEBUG_QUERY_FREQUENCY = 1.f;
 
 class Application
@@ -70,4 +71,6 @@ class Application
     std::vector<std::unique_ptr<ILayer>> layers_;
 
     float timeSincePipelineDebugQuery_ = 0.f;
+    int visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
+    bool isAnimationOn_ = false;
 };

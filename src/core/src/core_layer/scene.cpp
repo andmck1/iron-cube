@@ -31,16 +31,20 @@ bool SceneLayer::frame()
 
 bool SceneLayer::update()
 {
-    IShaderPipelineManager *shaderPipelineManager =
-        ServiceLocator::instance().get<IShaderPipelineManager>();
-    if (!shaderPipelineManager)
-        return false;
-
-    for (IShaderPipeline *shaderPipeline :
-         shaderPipelineManager->getAllShaderPipelines())
+    // TODO - add active flag to pipelines? Entities can share pipelines
+    for (const std::unique_ptr<Entity> &sceneEntity : scene.getEntities())
     {
-        if (!shaderPipeline->update())
-            return false;
+        MeshComponent *entityMeshComponent =
+            sceneEntity->getComponent<MeshComponent>();
+        if (entityMeshComponent)
+        {
+            IShaderPipeline *shaderPipeline =
+                entityMeshComponent->getShaderPipeline();
+            if (!shaderPipeline)
+                return false;
+            if (!shaderPipeline->update())
+                return false;
+        }
     }
 
     return true;

@@ -16,24 +16,6 @@ inline void vulkanCheck(VkResult result, const char *message)
     }
 }
 
-// TODO - move this somewhere else, need to generalise the vertex logic
-static vk::VertexInputBindingDescription getVertexBindingDescription()
-{
-    return {0, sizeof(VertexInputType), vk::VertexInputRate::eVertex};
-}
-
-static std::array<vk::VertexInputAttributeDescription, 3>
-getVertexAttributeDescriptions()
-{
-    return {
-        {{0, 0, vk::Format::eR32G32B32Sfloat,
-          offsetof(VertexInputType, position)},
-         {1, 0, vk::Format::eR32G32Sfloat, offsetof(VertexInputType, tex)},
-         {2, 0, vk::Format::eR32G32B32Sfloat,
-          offsetof(VertexInputType, normal)}}
-    };
-}
-
 static bool hasStencilComponent(vk::Format format)
 {
     return format == vk::Format::eD32SfloatS8Uint ||
