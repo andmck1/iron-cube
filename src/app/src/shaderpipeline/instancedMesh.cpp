@@ -165,6 +165,7 @@ void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
         sizeof(SceneBuffer), static_cast<SceneBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
+    sceneDataUniformBufferIndex_ = 0;
 }
 
 void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
@@ -174,12 +175,15 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
             *updateData_
         );
 
+    // TODO - this indices are still hardcoded....they need to be consistently
+    // defined somehow
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     addStorageRWBuffer(
         debugDataBufferSize, debugDataBufferData_.data(),
         vk::ShaderStageFlagBits::eAll
     );
+    debugDataStorageRWBufferIndex_ = 0;
 
     vk::DeviceSize vertexBufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
@@ -215,6 +219,7 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
         instancesBufferSize, defaultUpdateData.instances->data(),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
+    instancesStorageRBufferIndex_ = 4;
 
     vk::DeviceSize meshletBoundingSpheresBufferSize =
         sizeof(glm::vec4) * geometry_->meshletBoundingSpheres.size();
@@ -263,8 +268,6 @@ bool InstancedMeshVulkanShaderPipeline::update()
             *updateData_
         );
 
-    // TODO - hardcoded indices!!
-    // scene data (uniform buffer index 0)
     SceneBuffer sceneData{};
     sceneData.view = *defaultUpdateData.camera->getViewMatrixRef();
     sceneData.projection = *defaultUpdateData.camera->getProjectionMatrixRef();
@@ -288,23 +291,29 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.visibilityFunc = *defaultUpdateData.visibilityFunc;
 
     memcpy(
-        uniformBuffers_[0][renderer->getCurrentFrameIndex()].getMappedPointer(),
+        uniformBuffers_[sceneDataUniformBufferIndex_]
+                       [renderer->getCurrentFrameIndex()]
+                           .getMappedPointer(),
         &sceneData, sizeof(sceneData)
     );
 
-    // instances data (storage buffer index 4)
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * defaultUpdateData.instances->size();
-    storageRBuffers_[4][renderer->getCurrentFrameIndex()].update(
-        instancesBufferSize, defaultUpdateData.instances->data()
-    );
+    storageRBuffers_[instancesStorageRBufferIndex_]
+                    [renderer->getCurrentFrameIndex()]
+                        .update(
+                            instancesBufferSize,
+                            defaultUpdateData.instances->data()
+                        );
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
-    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].update(
-        debugDataBufferSize, debugDataBufferData_.data()
-    );
+    storageRWBuffers_[debugDataStorageRWBufferIndex_]
+                     [renderer->getCurrentFrameIndex()]
+                         .update(
+                             debugDataBufferSize, debugDataBufferData_.data()
+                         );
 
     return true;
 }
@@ -366,7 +375,7 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
     renderer->waitAllFramesComplete();
 
     pipelineStatistics_.pipelineType = PipelineStatistics::PipelineType::MESH;
-    
+
     // TODO - debug buffer should be it's own allocation tbh, or I track it as
     // a pointer
     vk::DeviceSize debugDataBufferSize =

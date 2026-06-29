@@ -35,6 +35,10 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
     PipelineStatistics pipelineStatistics_{};
 
+    uint sceneDataUniformBufferIndex_ = 0;
+    uint debugDataStorageRWBufferIndex_ = 0;
+    uint instancesStorageRBufferIndex_ = 0;
+
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
 
