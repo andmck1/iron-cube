@@ -32,10 +32,15 @@ void main(
         (meshletIndex < scene.meshletCount))
     {
 
-        float4x4 model = instances[instanceIndex].transform;
+        // TODO - I do this twice!
+        float4x4 modelMatrix = modelMatrix(
+            instances[instanceIndex].position,
+            instances[instanceIndex].rotation, instances[instanceIndex].scale
+        );
         // Don't multiply w (which is radius here) by transform
         float4 meshletBoundingSphere =
-            mul(model, float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
+            mul(modelMatrix,
+                float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
         meshletBoundingSphere.w = meshletBoundingSpheres[meshletIndex].w;
 
         switch (scene.visibilityFunc)
@@ -111,11 +116,11 @@ bool VisibleFrustumCone(float4 sphere)
     // float3 coneDir = { 0.f, 0.f, 1.f };
     // float3 coneTip = { 0.f, 0.f, -3.f };
     // float coneHeight = 10.f;
-    // float coneAngle = 3.141f/ 10.f; 
-    float3 coneDir = scene.frustum.cone.direction.xyz; 
-    float3 coneTip = scene.frustum.cone.tip.xyz; 
-    float coneHeight = scene.frustum.cone.height.x; 
-    float coneAngle = scene.frustum.cone.angle.x; 
+    // float coneAngle = 3.141f/ 10.f;
+    float3 coneDir = scene.frustum.cone.direction.xyz;
+    float3 coneTip = scene.frustum.cone.tip.xyz;
+    float coneHeight = scene.frustum.cone.height.x;
+    float coneAngle = scene.frustum.cone.angle.x;
     float coneRadius = coneHeight * tan(coneAngle);
 
     float pointDistance = dot(sphere.xyz - coneTip, coneDir);
@@ -139,4 +144,25 @@ bool VisibleFrustumConeAndNearPlane(float4 sphere)
     bool i2 = (planeDistance > 0); // On positive half space of near plane
 
     return i0 && (i1 || i2);
+}
+
+// TODO - define column/row major so is always consistent
+float4x4 modelMatrix(float4 T, float4 R, float4 S)
+{
+    float cx = cos(R.x), sx = sin(R.x);
+    float cy = cos(R.y), sy = sin(R.y);
+    float cz = cos(R.z), sz = sin(R.z);
+
+    return float4x4(
+        // row 0
+        S.x * (cy * cz), S.y * (cy * sz), S.z * (-sy), T.x,
+        // row 1
+        S.x * (sx * sy * cz - cx * sz), S.y * (sx * sy * sz + cx * cz),
+        S.z * (sx * cy), T.y,
+        // row 2
+        S.x * (cx * sy * cz + sx * sz), S.y * (cx * sy * sz - sx * cz),
+        S.z * (cx * cy), T.z,
+        // row 3
+        0, 0, 0, 1.0
+    );
 }

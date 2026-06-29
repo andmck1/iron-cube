@@ -9,7 +9,6 @@ class Mesh
     void setGeometry(const std::string &geometryName);
     Geometry *getGeometry();
     std::vector<Instance> instances;
-    std::vector<InstanceVector> instanceVectors;
 
     protected:
     std::string geometryName_;

@@ -4,7 +4,6 @@
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
-#include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
 bool InstancedMeshVulkanShaderPipeline::init(
@@ -328,7 +327,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
 
     // instances data (storage buffer index 4)
     vk::DeviceSize instancesBufferSize =
-        sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
+        sizeof(Instance) * defaultUpdateData.instances->size();
     storageBuffers_[5][renderer->getCurrentFrameIndex()].update(
         instancesBufferSize, defaultUpdateData.instances->data()
     );

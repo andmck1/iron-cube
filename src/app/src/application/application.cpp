@@ -233,9 +233,6 @@ bool Application::initialiseGeometry(
     registeredMesh->instances.resize(
         N_INSTANCE_COLUMNS * N_INSTANCE_LAYERS * N_INSTANCE_ROWS
     );
-    registeredMesh->instanceVectors.resize(
-        N_INSTANCE_COLUMNS * N_INSTANCE_LAYERS * N_INSTANCE_ROWS
-    );
     updateEntities();
 
     // transform component
@@ -278,7 +275,7 @@ bool Application::initialiseGeometry(
         actorInstancedShaderPipelineUpdateData->actor = actorPtr;
         actorInstancedShaderPipelineUpdateData->camera = camera_;
         actorInstancedShaderPipelineUpdateData->instances =
-            &registeredMesh->instanceVectors;
+            &registeredMesh->instances;
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -560,14 +557,10 @@ void Application::updateEntities()
                 else
                     rotationMatrix = glm::identity<glm::mat4x4>();
 
-                horseMesh->instances[index].transform =
-                    glm::translate(glm::mat4(1.f), glm::vec3(x, y, z)) *
-                    rotationMatrix;
-                horseMesh->instanceVectors[index].position =
-                    glm::vec4(x, y, z, 1.0);
-                horseMesh->instanceVectors[index].rotation =
+                horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
+                horseMesh->instances[index].rotation =
                     glm::vec4(0.0, t, 0.0, 1.0);
-                horseMesh->instanceVectors[index].scale =
+                horseMesh->instances[index].scale =
                     glm::vec4(1.0, 1.0, 1.0, 1.0);
             }
         }

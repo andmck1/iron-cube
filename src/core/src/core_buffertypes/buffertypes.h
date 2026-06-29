@@ -136,16 +136,6 @@ struct DebugDataBuffer
 
 struct Instance
 {
-    float4x4 transform = {
-        {1.f, 0.f, 0.f, 0.f},
-        {0.f, 1.f, 0.f, 0.f},
-        {0.f, 0.f, 1.f, 0.f},
-        {0.f, 0.f, 0.f, 1.f}
-    };
-};
-
-struct InstanceVector
-{
     float4 position;
     float4 rotation;
     float4 scale;

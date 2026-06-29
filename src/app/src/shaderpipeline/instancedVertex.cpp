@@ -117,7 +117,7 @@ bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
             .setInputRate(vk::VertexInputRate::eVertex),
         vk::VertexInputBindingDescription{}
             .setBinding(1)
-            .setStride(sizeof(InstanceVector))
+            .setStride(sizeof(Instance))
             .setInputRate(vk::VertexInputRate::eInstance),
     };
     std::array<vk::VertexInputAttributeDescription, 6> attributeDescriptions = {
@@ -142,17 +142,17 @@ bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
             .setBinding(1)
             .setLocation(3)
             .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(InstanceVector, position)),
+            .setOffset(offsetof(Instance, position)),
         vk::VertexInputAttributeDescription{}
             .setBinding(1)
             .setLocation(4)
             .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(InstanceVector, rotation)),
+            .setOffset(offsetof(Instance, rotation)),
         vk::VertexInputAttributeDescription{}
             .setBinding(1)
             .setLocation(5)
             .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(InstanceVector, scale)),
+            .setOffset(offsetof(Instance, scale)),
     };
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
         vk::PipelineVertexInputStateCreateInfo{}
@@ -324,26 +324,18 @@ bool InstancedVertexVulkanShaderPipeline::initInstanceBuffer()
             *updateData_
         );
 
-    vk::DeviceSize bufferSize = sizeof(InstancedVertexInputType) *
-                                instancedVertexUpdateData.instances->size();
+    vk::DeviceSize bufferSize =
+        sizeof(Instance) * instancedVertexUpdateData.instances->size();
     auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible |
             vk::MemoryPropertyFlagBits::eHostCoherent
     );
 
-    std::vector<InstancedVertexInputType> instanceData = {};
-    for (auto instance : *instancedVertexUpdateData.instances)
-    {
-        instanceData.push_back({});
-        InstancedVertexInputType &currentInstance = instanceData.back();
-        currentInstance.instancePosition = instance.position;
-        currentInstance.instanceRotation = instance.rotation;
-        currentInstance.instanceScale = instance.scale;
-    }
-
     void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, instanceData.data(), bufferSize);
+    memcpy(
+        dataStaging, instancedVertexUpdateData.instances->data(), bufferSize
+    );
     stagingBufferMemory.unmapMemory();
 
     std::tie(instanceBuffer_, instanceBufferMemory_) = renderer->createBuffer(
