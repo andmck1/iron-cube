@@ -48,6 +48,6 @@ class CameraActor : public IActor
     // TODO - add setters/init for these
     float vertFovDegrees_ = 45.f;
     float nearClip_ = 0.1f;
-    float farClip_ = 10.0f;
+    float farClip_ = 100.0f;
     float aspect_ = 16.0f / 9.0f;
 };

@@ -41,25 +41,42 @@ bool VulkanShaderPipeline::initDescriptorLayout()
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
     uint32_t bindingIndex = 0;
 
-    for (const auto &stageFlags : uniformBufferStageFlags_)
+    // TODO - duplicated code here
+    for (const std::vector<VulkanBufferUniform> &frameBuffers : uniformBuffers_)
     {
+        const VulkanBufferUniform &buffer = frameBuffers.front();
         bindings.emplace_back(
             vk::DescriptorSetLayoutBinding{}
                 .setBinding(bindingIndex++)
                 .setDescriptorType(vk::DescriptorType::eUniformBuffer)
                 .setDescriptorCount(1)
-                .setStageFlags(stageFlags)
+                .setStageFlags(buffer.stageFlags)
         );
     }
 
-    for (const auto &stageFlags : storageBufferStageFlags_)
+    for (const std::vector<VulkanBufferRWStorage> &frameBuffers :
+         storageRWBuffers_)
     {
+        const VulkanBufferRWStorage &buffer = frameBuffers.front();
         bindings.emplace_back(
             vk::DescriptorSetLayoutBinding{}
                 .setBinding(bindingIndex++)
                 .setDescriptorType(vk::DescriptorType::eStorageBuffer)
                 .setDescriptorCount(1)
-                .setStageFlags(stageFlags)
+                .setStageFlags(buffer.stageFlags)
+        );
+    }
+
+    for (const std::vector<VulkanBufferRStorage> &frameBuffers :
+         storageRBuffers_)
+    {
+        const VulkanBufferRStorage &buffer = frameBuffers.front();
+        bindings.emplace_back(
+            vk::DescriptorSetLayoutBinding{}
+                .setBinding(bindingIndex++)
+                .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                .setDescriptorCount(1)
+                .setStageFlags(buffer.stageFlags)
         );
     }
 
@@ -90,13 +107,16 @@ bool VulkanShaderPipeline::createDescriptorPool()
                 )
         );
     }
-    if (storageBuffers_.size() > 0)
+
+    uint totalNStorageBuffers =
+        storageRBuffers_.size() + storageRWBuffers_.size();
+    if (totalNStorageBuffers > 0)
     {
         poolSizes.emplace_back(
             vk::DescriptorPoolSize{}
                 .setType(vk::DescriptorType::eStorageBuffer)
                 .setDescriptorCount(
-                    renderer->MAX_FRAMES_IN_FLIGHT * storageBuffers_.size()
+                    renderer->MAX_FRAMES_IN_FLIGHT * totalNStorageBuffers
                 )
         );
     }
@@ -137,7 +157,9 @@ bool VulkanShaderPipeline::initDescriptorSets()
         std::vector<vk::WriteDescriptorSet> descriptorWrites;
         std::vector<vk::DescriptorBufferInfo> bufferInfos;
 
-        size_t totalBuffers = uniformBuffers_.size() + storageBuffers_.size();
+        uint totalNStorageBuffers =
+            storageRBuffers_.size() + storageRWBuffers_.size();
+        size_t totalBuffers = uniformBuffers_.size() + totalNStorageBuffers;
         descriptorWrites.reserve(totalBuffers);
         bufferInfos.reserve(totalBuffers);
 
@@ -154,13 +176,23 @@ bool VulkanShaderPipeline::initDescriptorSets()
             );
         }
 
-        for (size_t bufferIndex = 0; bufferIndex < storageBuffers_.size();
+        for (size_t bufferIndex = 0; bufferIndex < storageRWBuffers_.size();
              bufferIndex++)
         {
             addBufferWrite(
                 descriptorSets_[frameIndex], bindingIndex++,
                 vk::DescriptorType::eStorageBuffer,
-                storageBuffers_[bufferIndex][frameIndex].getBuffer(),
+                storageRWBuffers_[bufferIndex][frameIndex].getBuffer(),
+                VK_WHOLE_SIZE, descriptorWrites, bufferInfos
+            );
+        }
+        for (size_t bufferIndex = 0; bufferIndex < storageRBuffers_.size();
+             bufferIndex++)
+        {
+            addBufferWrite(
+                descriptorSets_[frameIndex], bindingIndex++,
+                vk::DescriptorType::eStorageBuffer,
+                storageRBuffers_[bufferIndex][frameIndex].getBuffer(),
                 VK_WHOLE_SIZE, descriptorWrites, bufferInfos
             );
         }
@@ -174,5 +206,54 @@ bool VulkanShaderPipeline::initDescriptorSets()
 void VulkanShaderPipeline::shutdownBuffers()
 {
     uniformBuffers_.clear();
-    storageBuffers_.clear();
+    storageRBuffers_.clear();
+    storageRWBuffers_.clear();
+}
+
+void VulkanShaderPipeline::addUniformBuffer(
+    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+)
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    uniformBuffers_.push_back({});
+    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        VulkanBufferUniform newBuffer;
+        newBuffer.init(bufferSize, data, stageFlags);
+        uniformBuffers_.back().emplace_back(std::move(newBuffer));
+    }
+}
+
+void VulkanShaderPipeline::addStorageRBuffer(
+    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+)
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    storageRBuffers_.push_back({});
+    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        VulkanBufferRStorage newBuffer;
+        newBuffer.init(bufferSize, data, stageFlags);
+        storageRBuffers_.back().emplace_back(std::move(newBuffer));
+    }
+}
+
+void VulkanShaderPipeline::addStorageRWBuffer(
+    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+)
+{
+    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    storageRWBuffers_.push_back({});
+    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        VulkanBufferRWStorage newBuffer;
+        newBuffer.init(bufferSize, data, stageFlags);
+        storageRWBuffers_.back().emplace_back(std::move(newBuffer));
+    }
 }

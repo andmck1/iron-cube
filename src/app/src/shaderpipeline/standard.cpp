@@ -2,11 +2,9 @@
 #include "core_buffertypes/buffertypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
-#include "core_render/vulkan/helpers.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
-#include "glm/ext/matrix_clip_space.hpp"
 
 bool StandardVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
@@ -51,10 +49,6 @@ bool StandardVulkanShaderPipeline::recreateGraphicsPipeline()
 bool StandardVulkanShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down default vulkan pipeline");
-    vertexBuffer_ = nullptr;
-    vertexBufferMemory_ = nullptr;
-    indexBuffer_ = nullptr;
-    indexBufferMemory_ = nullptr;
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
     shutdownBuffers();
@@ -66,7 +60,6 @@ void StandardVulkanShaderPipeline::initUniformBuffers()
 {
     addUniformBuffer(
         sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
-        vk::BufferUsageFlagBits::eUniformBuffer,
         vk::ShaderStageFlagBits::eVertex
     );
 }
@@ -76,10 +69,9 @@ void StandardVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
-    addStorageBuffer(
+    addStorageRWBuffer(
         debugDataBufferSize, debugDataBufferData_.data(),
-        vk::BufferUsageFlagBits::eStorageBuffer, true,
-        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
+        vk::ShaderStageFlagBits::eAll
     );
 }
 
@@ -109,9 +101,16 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
             .setModule(defaultFragmentShader->getShaderModule())
             .setPName("main");
 
-    vk::VertexInputBindingDescription bindingDescription =
-        getVertexBindingDescription();
-    auto attributeDescriptions = getVertexAttributeDescriptions();
+    vk::VertexInputBindingDescription bindingDescription = {
+        0, sizeof(VertexInputType), vk::VertexInputRate::eVertex
+    };
+    std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions = {
+        {{0, 0, vk::Format::eR32G32B32Sfloat,
+          offsetof(VertexInputType, position)},
+         {1, 0, vk::Format::eR32G32Sfloat, offsetof(VertexInputType, tex)},
+         {2, 0, vk::Format::eR32G32B32Sfloat,
+          offsetof(VertexInputType, normal)}}
+    };
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
         vk::PipelineVertexInputStateCreateInfo{}
             .setVertexBindingDescriptionCount(1)
@@ -206,65 +205,19 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
     return true;
 }
 
-// TODO - use addBuffer
 bool StandardVulkanShaderPipeline::initVertexBuffer()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    const std::vector<VertexInputType> &vertices = geometry_->vertices;
-
+    std::vector<VertexInputType> &vertices = geometry_->vertices;
     vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertices.size();
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, vertices.data(), bufferSize);
-    stagingBufferMemory.unmapMemory();
-
-    std::tie(vertexBuffer_, vertexBufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eVertexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    renderer->copyBuffer(stagingBuffer, vertexBuffer_, bufferSize);
-
+    vertexBuffer_.init(bufferSize, vertices.data());
     return true;
 }
 
-// TODO - use addBuffer
 bool StandardVulkanShaderPipeline::initIndexBuffer()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    const std::vector<uint16_t> &indices = geometry_->indices;
-
+    std::vector<uint16_t> &indices = geometry_->indices;
     vk::DeviceSize bufferSize = sizeof(uint16_t) * indices.size();
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, indices.data(), bufferSize);
-    stagingBufferMemory.unmapMemory();
-
-    std::tie(indexBuffer_, indexBufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eIndexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    renderer->copyBuffer(stagingBuffer, indexBuffer_, bufferSize);
-
+    indexBuffer_.init(bufferSize, indices.data());
     return true;
 }
 
@@ -282,8 +235,10 @@ bool StandardVulkanShaderPipeline::bind()
     commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
     );
-    commandBuffer.bindVertexBuffers(0, *vertexBuffer_, {0});
-    commandBuffer.bindIndexBuffer(*indexBuffer_, 0, vk::IndexType::eUint16);
+    commandBuffer.bindVertexBuffers(0, **vertexBuffer_.getBuffer(), {0});
+    commandBuffer.bindIndexBuffer(
+        **indexBuffer_.getBuffer(), 0, vk::IndexType::eUint16
+    );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
         *descriptorSets_[renderer->getCurrentFrameIndex()], nullptr
@@ -305,7 +260,8 @@ bool StandardVulkanShaderPipeline::update()
 
     const DefaultShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultShaderPipelineUpdateData &>(*updateData_);
-
+    
+    // TODO - update hardcoded indices in all pipelines
     // MVP uniform buffer (index 0)
     MVPBuffer mvp{};
     mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
@@ -320,7 +276,7 @@ bool StandardVulkanShaderPipeline::update()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].update(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -366,7 +322,7 @@ bool StandardVulkanShaderPipeline::postRender()
     );
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].copyToStaging(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
                                  vk::PipelineStageFlagBits::eFragmentShader
     );
@@ -396,7 +352,7 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =

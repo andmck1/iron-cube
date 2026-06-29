@@ -28,10 +28,8 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
-    vk::raii::DeviceMemory vertexBufferMemory_ = nullptr;
-    vk::raii::Buffer vertexBuffer_ = nullptr;
-    vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
-    vk::raii::Buffer indexBuffer_ = nullptr;
+    VulkanBufferVertex vertexBuffer_;
+    VulkanBufferIndex indexBuffer_;
     vk::raii::QueryPool queryPool_ = nullptr;
 
     Geometry *geometry_ = nullptr;
@@ -42,11 +40,10 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
 
     bool initGraphicsPipeline();
     bool initPipeline();
-    bool initVertexBuffer();
     bool initIndexBuffer();
+    bool initVertexBuffer();
     bool createQueryPool();
 
-    // Pure virtual hooks from base class
     void initUniformBuffers() override;
     void initStorageBuffers() override;
 };

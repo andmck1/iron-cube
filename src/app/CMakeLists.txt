@@ -55,6 +55,7 @@ add_executable(
     src/main.cpp
     src/application/application.cpp
     src/shaderpipeline/standard.cpp
+    src/shaderpipeline/instancedVertex.cpp
     src/shaderpipeline/instancedMesh.cpp
 )
 
