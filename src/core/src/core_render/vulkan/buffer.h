@@ -2,7 +2,72 @@
 #include "core_service/servicelocator.h"
 #include <vulkan/vulkan_raii.hpp>
 
-class VulkanBuffer
+class VulkanBufferBase
+{
+    public:
+    virtual void init(
+        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    ) = 0;
+    virtual void update() = 0;
+    vk::raii::Buffer *getBuffer();
+    vk::raii::DeviceMemory *getDeviceMemory();
+
+    protected:
+    vk::raii::Buffer buffer_ = nullptr;
+    vk::raii::DeviceMemory bufferMemory_ = nullptr;
+    vk::raii::Buffer stagingBuffer_ = nullptr;
+    vk::raii::DeviceMemory stagingBufferMemory_ = nullptr;
+};
+
+class VulkanBufferIndex : VulkanBufferBase
+{
+    void init(
+        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    ) override;
+    void update() override;
+};
+
+class VulkanBufferVertex : VulkanBufferBase
+{
+    void init(
+        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    ) override;
+    void update() override;
+};
+
+class VulkanBufferUniform : VulkanBufferBase
+{
+    void init(
+        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    ) override;
+    void update() override;
+
+    void *getMappedPointer();
+
+    protected:
+    void *mappedPointer_ = nullptr;
+};
+
+class VulkanBufferStorage : VulkanBufferBase
+{
+    void init(
+        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    ) override;
+    void update() override;
+};
+
+class VulkanBufferRWStorage : VulkanBufferBase
+{
+    void init(
+        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    ) override;
+    void update() override;
+
+    void readData(vk::DeviceSize bufferSize, void *outputData);
+    void copyToStaging();
+};
+
+class VulkanBufferTEMP
 {
     public:
     template <typename DataType>
