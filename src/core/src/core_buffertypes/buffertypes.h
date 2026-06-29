@@ -28,6 +28,17 @@ struct VertexInputType
     float4 normal;
 };
 
+struct InstancedVertexInputType
+{
+    float4 position;
+    float4 tex;
+    float4 normal;
+
+    float4 instancePosition;
+    float4 instanceRotation;
+    float4 instanceScale;
+};
+
 struct VertexOutputType
 {
     float4 position SEMANTIC(SV_Position);
@@ -131,6 +142,13 @@ struct Instance
         {0.f, 0.f, 1.f, 0.f},
         {0.f, 0.f, 0.f, 1.f}
     };
+};
+
+struct InstanceVector
+{
+    float4 position;
+    float4 rotation;
+    float4 scale;
 };
 
 // Mental note - 32 bits in a float4 and must be in groups of 32 bits

@@ -109,9 +109,16 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
             .setModule(defaultFragmentShader->getShaderModule())
             .setPName("main");
 
-    vk::VertexInputBindingDescription bindingDescription =
-        getVertexBindingDescription();
-    auto attributeDescriptions = getVertexAttributeDescriptions();
+    vk::VertexInputBindingDescription bindingDescription = {
+        0, sizeof(VertexInputType), vk::VertexInputRate::eVertex
+    };
+    std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions = {
+        {{0, 0, vk::Format::eR32G32B32Sfloat,
+          offsetof(VertexInputType, position)},
+         {1, 0, vk::Format::eR32G32Sfloat, offsetof(VertexInputType, tex)},
+         {2, 0, vk::Format::eR32G32B32Sfloat,
+          offsetof(VertexInputType, normal)}}
+    };
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
         vk::PipelineVertexInputStateCreateInfo{}
             .setVertexBindingDescriptionCount(1)

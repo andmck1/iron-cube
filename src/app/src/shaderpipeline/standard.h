@@ -42,11 +42,10 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
 
     bool initGraphicsPipeline();
     bool initPipeline();
-    bool initVertexBuffer();
     bool initIndexBuffer();
+    bool initVertexBuffer();
     bool createQueryPool();
 
-    // Pure virtual hooks from base class
     void initUniformBuffers() override;
     void initStorageBuffers() override;
 };

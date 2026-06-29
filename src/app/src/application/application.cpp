@@ -15,6 +15,7 @@
 #include "core_common/helpers.h"
 
 #include "shaderpipeline/standard.h"
+#include "shaderpipeline/instancedVertex.h"
 #include "shaderpipeline/instancedMesh.h"
 
 #include <format>
@@ -115,6 +116,16 @@ bool Application::initialiseShaders()
         std::make_unique<VulkanShader>(defaultVertexShaderConfig);
     shaderManager_.registerShader(
         "defaultVertex", std::move(defaultVertexShader)
+    );
+
+    VulkanShaderConfig instancedVertexShaderConfig;
+    instancedVertexShaderConfig.path =
+        "build/shader/slang/vertex/instanced.vert.spv";
+
+    std::unique_ptr<VulkanShader> instancedVertexShader =
+        std::make_unique<VulkanShader>(instancedVertexShaderConfig);
+    shaderManager_.registerShader(
+        "instancedVertex", std::move(instancedVertexShader)
     );
 
     VulkanShaderConfig defaultTaskShaderConfig;
@@ -222,6 +233,9 @@ bool Application::initialiseGeometry(
     registeredMesh->instances.resize(
         N_INSTANCE_COLUMNS * N_INSTANCE_LAYERS * N_INSTANCE_ROWS
     );
+    registeredMesh->instanceVectors.resize(
+        N_INSTANCE_COLUMNS * N_INSTANCE_LAYERS * N_INSTANCE_ROWS
+    );
     updateEntities();
 
     // transform component
@@ -232,48 +246,83 @@ bool Application::initialiseGeometry(
     // mesh component
     MeshComponent *meshComponent = actorPtr->getComponent<MeshComponent>();
 
-    // vertex shader pipeline
-    std::unique_ptr<DefaultShaderPipelineUpdateData>
-        actorShaderPipelineUpdateData =
-            std::make_unique<DefaultShaderPipelineUpdateData>();
-    actorShaderPipelineUpdateData->actor = actorPtr;
-    actorShaderPipelineUpdateData->camera = camera_;
+    // TODO - generalise
+    {
+        // vertex shader pipeline
+        std::unique_ptr<DefaultShaderPipelineUpdateData>
+            actorShaderPipelineUpdateData =
+                std::make_unique<DefaultShaderPipelineUpdateData>();
+        actorShaderPipelineUpdateData->actor = actorPtr;
+        actorShaderPipelineUpdateData->camera = camera_;
 
-    std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
-        std::make_unique<StandardVulkanShaderPipeline>();
-    auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
-        shaderPipelineManager_.registerShaderPipeline(
-            std::format("{}Traditional", name), std::move(actorShaderPipeline),
-            std::move(actorShaderPipelineUpdateData)
-        );
-
-    registeredShaderPipeline->init(
-        registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
-    );
-    meshComponent->setShaderPipeline(registeredShaderPipeline);
-    meshComponent->setMesh(registeredMesh);
-
-    // mesh shader pipeline
-    std::unique_ptr<InstancedMeshShaderPipelineUpdateData>
-        actorMeshShaderPipelineUpdateData =
-            std::make_unique<InstancedMeshShaderPipelineUpdateData>();
-    actorMeshShaderPipelineUpdateData->actor = actorPtr;
-    actorMeshShaderPipelineUpdateData->camera = camera_;
-    actorMeshShaderPipelineUpdateData->instances = &registeredMesh->instances;
-    actorMeshShaderPipelineUpdateData->visibilityFunc = &visibilityFunction_;
-
-    std::unique_ptr<InstancedMeshVulkanShaderPipeline> actorMeshShaderPipeline =
-        std::make_unique<InstancedMeshVulkanShaderPipeline>();
-    auto
-        [registeredMeshShaderPipeline, registeredMeshShaderPipelineUpdateData] =
+        std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
+            std::make_unique<StandardVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
             shaderPipelineManager_.registerShaderPipeline(
-                std::format("{}Mesh", name), std::move(actorMeshShaderPipeline),
-                std::move(actorMeshShaderPipelineUpdateData)
+                std::format("{}DefaultVertex", name),
+                std::move(actorShaderPipeline),
+                std::move(actorShaderPipelineUpdateData)
             );
-    // TODO - should init reference the pointer to this update data?
-    registeredMeshShaderPipeline->init(
-        registeredMesh->getGeometry(), registeredMeshShaderPipelineUpdateData
-    );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+        meshComponent->setShaderPipeline(registeredShaderPipeline);
+        meshComponent->setMesh(registeredMesh);
+    }
+    {
+        // instanced vertex shader pipeline
+        std::unique_ptr<InstancedVertexShaderPipelineUpdateData>
+            actorInstancedShaderPipelineUpdateData =
+                std::make_unique<InstancedVertexShaderPipelineUpdateData>();
+        actorInstancedShaderPipelineUpdateData->actor = actorPtr;
+        actorInstancedShaderPipelineUpdateData->camera = camera_;
+        actorInstancedShaderPipelineUpdateData->instances =
+            &registeredMesh->instanceVectors;
+
+        std::unique_ptr<InstancedVertexVulkanShaderPipeline>
+            actorInstancedShaderPipeline =
+                std::make_unique<InstancedVertexVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("{}InstancedVertex", name),
+                std::move(actorInstancedShaderPipeline),
+                std::move(actorInstancedShaderPipelineUpdateData)
+            );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+    }
+    {
+        // mesh shader pipeline
+        std::unique_ptr<InstancedMeshShaderPipelineUpdateData>
+            actorMeshShaderPipelineUpdateData =
+                std::make_unique<InstancedMeshShaderPipelineUpdateData>();
+        actorMeshShaderPipelineUpdateData->actor = actorPtr;
+        actorMeshShaderPipelineUpdateData->camera = camera_;
+        actorMeshShaderPipelineUpdateData->instances =
+            &registeredMesh->instances;
+        actorMeshShaderPipelineUpdateData->visibilityFunc =
+            &visibilityFunction_;
+
+        std::unique_ptr<InstancedMeshVulkanShaderPipeline>
+            actorMeshShaderPipeline =
+                std::make_unique<InstancedMeshVulkanShaderPipeline>();
+        auto
+            [registeredMeshShaderPipeline,
+             registeredMeshShaderPipelineUpdateData] =
+                shaderPipelineManager_.registerShaderPipeline(
+                    std::format("{}Mesh", name),
+                    std::move(actorMeshShaderPipeline),
+                    std::move(actorMeshShaderPipelineUpdateData)
+                );
+        // TODO - should init reference the pointer to this update data?
+        registeredMeshShaderPipeline->init(
+            registeredMesh->getGeometry(),
+            registeredMeshShaderPipelineUpdateData
+        );
+    }
 
     spdlog::debug("Finished initialising triangle entity");
     return true;
@@ -402,17 +451,22 @@ void Application::checkForPipelineUpdates()
         {
         case 0:
         {
-            shaderPipelineSuffix = "Traditional";
+            shaderPipelineSuffix = "DefaultVertex";
             break;
         }
         case 1:
+        {
+            shaderPipelineSuffix = "InstancedVertex";
+            break;
+        }
+        case 2:
         {
             shaderPipelineSuffix = "Mesh";
             break;
         }
         default:
         {
-            shaderPipelineSuffix = "Traditional";
+            shaderPipelineSuffix = "DefaultVertex";
             break;
         }
         }
@@ -509,6 +563,12 @@ void Application::updateEntities()
                 horseMesh->instances[index].transform =
                     glm::translate(glm::mat4(1.f), glm::vec3(x, y, z)) *
                     rotationMatrix;
+                horseMesh->instanceVectors[index].position =
+                    glm::vec4(x, y, z, 1.0);
+                horseMesh->instanceVectors[index].rotation =
+                    glm::vec4(0.0, t, 0.0, 1.0);
+                horseMesh->instanceVectors[index].scale =
+                    glm::vec4(1.0, 1.0, 1.0, 1.0);
             }
         }
     }

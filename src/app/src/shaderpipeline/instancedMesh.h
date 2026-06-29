@@ -43,7 +43,6 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     bool initPipeline(Geometry *geometry);
     bool createQueryPool();
 
-    // Pure virtual hooks from base class
     void initUniformBuffers() override;
     void initStorageBuffers() override;
 };
