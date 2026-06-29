@@ -29,12 +29,9 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
-    vk::raii::DeviceMemory vertexBufferMemory_ = nullptr;
-    vk::raii::Buffer vertexBuffer_ = nullptr;
-    vk::raii::DeviceMemory indexBufferMemory_ = nullptr;
-    vk::raii::Buffer indexBuffer_ = nullptr;
-    vk::raii::DeviceMemory instanceBufferMemory_ = nullptr;
-    vk::raii::Buffer instanceBuffer_ = nullptr;
+    VulkanBufferVertex vertexBuffer_;
+    VulkanBufferIndex indexBuffer_;
+    VulkanBufferVertex instanceBuffer_;
 
     Geometry *geometry_ = nullptr;
 

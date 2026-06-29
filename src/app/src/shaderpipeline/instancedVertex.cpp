@@ -49,12 +49,6 @@ bool InstancedVertexVulkanShaderPipeline::recreateGraphicsPipeline()
 bool InstancedVertexVulkanShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down instanced vulkan pipeline");
-    vertexBuffer_ = nullptr;
-    vertexBufferMemory_ = nullptr;
-    indexBuffer_ = nullptr;
-    indexBufferMemory_ = nullptr;
-    instanceBufferMemory_ = nullptr;
-    instanceBuffer_ = nullptr;
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
     shutdownBuffers();
@@ -77,7 +71,7 @@ void InstancedVertexVulkanShaderPipeline::initStorageBuffers()
 
     addStorageRWBuffer(
         debugDataBufferSize, debugDataBufferData_.data(),
-        vk::ShaderStageFlagBits::eAll 
+        vk::ShaderStageFlagBits::eAll
     );
 }
 
@@ -249,74 +243,24 @@ bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
     return true;
 }
 
-// TODO - use addBuffer
 bool InstancedVertexVulkanShaderPipeline::initVertexBuffer()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    const std::vector<VertexInputType> &vertices = geometry_->vertices;
-
+    std::vector<VertexInputType> &vertices = geometry_->vertices;
     vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertices.size();
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, vertices.data(), bufferSize);
-    stagingBufferMemory.unmapMemory();
-
-    std::tie(vertexBuffer_, vertexBufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eVertexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    renderer->copyBuffer(stagingBuffer, vertexBuffer_, bufferSize);
-
+    vertexBuffer_.init(bufferSize, vertices.data());
     return true;
 }
 
-// TODO - use addBuffer
 bool InstancedVertexVulkanShaderPipeline::initIndexBuffer()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    const std::vector<uint16_t> &indices = geometry_->indices;
-
+    std::vector<uint16_t> &indices = geometry_->indices;
     vk::DeviceSize bufferSize = sizeof(uint16_t) * indices.size();
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, indices.data(), bufferSize);
-    stagingBufferMemory.unmapMemory();
-
-    std::tie(indexBuffer_, indexBufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eIndexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    renderer->copyBuffer(stagingBuffer, indexBuffer_, bufferSize);
-
+    indexBuffer_.init(bufferSize, indices.data());
     return true;
 }
 
-// TODO - use addBuffer
 bool InstancedVertexVulkanShaderPipeline::initInstanceBuffer()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
     const InstancedVertexShaderPipelineUpdateData &instancedVertexUpdateData =
         dynamic_cast<const InstancedVertexShaderPipelineUpdateData &>(
             *updateData_
@@ -324,26 +268,9 @@ bool InstancedVertexVulkanShaderPipeline::initInstanceBuffer()
 
     vk::DeviceSize bufferSize =
         sizeof(Instance) * instancedVertexUpdateData.instances->size();
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
+    instanceBuffer_.init(
+        bufferSize, instancedVertexUpdateData.instances->data()
     );
-
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(
-        dataStaging, instancedVertexUpdateData.instances->data(), bufferSize
-    );
-    stagingBufferMemory.unmapMemory();
-
-    std::tie(instanceBuffer_, instanceBufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eVertexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    renderer->copyBuffer(stagingBuffer, instanceBuffer_, bufferSize);
 
     return true;
 }
@@ -362,9 +289,11 @@ bool InstancedVertexVulkanShaderPipeline::bind()
     commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
     );
-    commandBuffer.bindVertexBuffers(0, *vertexBuffer_, {0});
-    commandBuffer.bindIndexBuffer(*indexBuffer_, 0, vk::IndexType::eUint16);
-    commandBuffer.bindVertexBuffers(1, *instanceBuffer_, {0});
+    commandBuffer.bindVertexBuffers(0, **vertexBuffer_.getBuffer(), {0});
+    commandBuffer.bindIndexBuffer(
+        **indexBuffer_.getBuffer(), 0, vk::IndexType::eUint16
+    );
+    commandBuffer.bindVertexBuffers(1, **instanceBuffer_.getBuffer(), {0});
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
         *descriptorSets_[renderer->getCurrentFrameIndex()], nullptr

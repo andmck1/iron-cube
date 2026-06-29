@@ -225,6 +225,7 @@ void VulkanShaderPipeline::addUniformBuffer(
         uniformBuffers_.back().emplace_back(std::move(newBuffer));
     }
 }
+
 void VulkanShaderPipeline::addStorageRBuffer(
     vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
 )

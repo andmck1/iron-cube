@@ -24,12 +24,8 @@ vk::raii::DeviceMemory *VulkanBufferBase::getDeviceMemory()
     return &bufferMemory_;
 }
 
-void VulkanBufferIndex::init(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
-
-)
+void VulkanBufferSingleStageBase::init(vk::DeviceSize bufferSize, void *data)
 {
-    stageFlags = stageFlags_; 
 
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -46,40 +42,7 @@ void VulkanBufferIndex::init(
     stagingBufferMemory.unmapMemory();
 
     std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eIndexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
-        vk::MemoryPropertyFlagBits::eDeviceLocal
-    );
-
-    renderer->copyBuffer(stagingBuffer, buffer_, bufferSize);
-}
-
-void VulkanBufferVertex::init(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
-
-)
-{
-    stageFlags = stageFlags_; 
-
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, data, bufferSize);
-    stagingBufferMemory.unmapMemory();
-
-    std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-        bufferSize,
-        vk::BufferUsageFlagBits::eVertexBuffer |
-            vk::BufferUsageFlagBits::eTransferDst,
+        bufferSize, bufferUsageFlags_ | vk::BufferUsageFlagBits::eTransferDst,
         vk::MemoryPropertyFlagBits::eDeviceLocal
     );
 
@@ -90,7 +53,7 @@ void VulkanBufferUniform::init(
     vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 )
 {
-    stageFlags = stageFlags_; 
+    stageFlags = stageFlags_;
 
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
@@ -112,7 +75,7 @@ void VulkanBufferStorageBase::init(
     vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 )
 {
-    stageFlags = stageFlags_; 
+    stageFlags = stageFlags_;
 
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()

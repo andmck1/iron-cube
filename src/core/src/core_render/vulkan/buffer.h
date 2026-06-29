@@ -3,13 +3,9 @@
 class VulkanBufferBase
 {
     public:
-    virtual void init(
-        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
-    ) = 0;
     void update(vk::DeviceSize bufferSize, void *data);
     vk::raii::Buffer *getBuffer();
     vk::raii::DeviceMemory *getDeviceMemory();
-    vk::ShaderStageFlags stageFlags = vk::ShaderStageFlagBits::eAll;
 
     protected:
     vk::raii::Buffer buffer_ = nullptr;
@@ -18,23 +14,47 @@ class VulkanBufferBase
     vk::raii::DeviceMemory stagingBufferMemory_ = nullptr;
 };
 
-class VulkanBufferIndex : public VulkanBufferBase
+class VulkanBufferSingleStageBase : public VulkanBufferBase
 {
     public:
-    void init(
-        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
-    ) override;
+    VulkanBufferSingleStageBase(vk::Flags<vk::BufferUsageFlagBits> bufferFlags)
+        : bufferUsageFlags_(bufferFlags)
+    {
+    }
+    void init(vk::DeviceSize bufferSize, void *data);
+
+    protected:
+    const vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_;
 };
 
-class VulkanBufferVertex : public VulkanBufferBase
+class VulkanBufferIndex : public VulkanBufferSingleStageBase
 {
     public:
-    void init(
-        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
-    ) override;
+    VulkanBufferIndex()
+        : VulkanBufferSingleStageBase(vk::BufferUsageFlagBits::eIndexBuffer)
+    {
+    }
 };
 
-class VulkanBufferUniform : public VulkanBufferBase
+class VulkanBufferVertex : public VulkanBufferSingleStageBase
+{
+    public:
+    VulkanBufferVertex()
+        : VulkanBufferSingleStageBase(vk::BufferUsageFlagBits::eVertexBuffer)
+    {
+    }
+};
+
+class VulkanBufferMultiStageBase : public VulkanBufferBase
+{
+    public:
+    virtual void init(
+        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
+    ) = 0;
+    vk::ShaderStageFlags stageFlags = vk::ShaderStageFlagBits::eAll;
+};
+
+class VulkanBufferUniform : public VulkanBufferMultiStageBase
 {
     public:
     void init(
@@ -47,7 +67,7 @@ class VulkanBufferUniform : public VulkanBufferBase
     void *mappedPointer_ = nullptr;
 };
 
-class VulkanBufferStorageBase : public VulkanBufferBase
+class VulkanBufferStorageBase : public VulkanBufferMultiStageBase
 {
     public:
     VulkanBufferStorageBase(
@@ -62,8 +82,8 @@ class VulkanBufferStorageBase : public VulkanBufferBase
     ) override;
 
     protected:
-    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_;
-    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_;
+    const vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_;
+    const vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_;
 };
 
 class VulkanBufferRStorage : public VulkanBufferStorageBase
