@@ -76,15 +76,21 @@ bool DebugLayer::frame()
                 meshComponent->getMesh()->getGeometry()->meshlets.size();
             uint nVertices =
                 meshComponent->getMesh()->getGeometry()->meshletVertices.size();
-            ImGui::Text("N Instances: %d", nInstances);
-            ImGui::Text("N Vertices per Instance: %d", nVertices);
-            ImGui::Text("N Total Vertices: %d", nVertices * nInstances);
+            ImGui::Text("N Instances: %.3e", (double) nInstances);
+            ImGui::Text("N Vertices per Instance: %.3e", (double) nVertices);
+            ImGui::Text(
+                "N Total Vertices: %.3e", (double((nVertices * nInstances)))
+            );
 
             if (pipelineStatistics.pipelineType ==
                 PipelineStatistics::PipelineType::MESH)
             {
-                ImGui::Text("N Meshlets per Instance: %d", nMeshlets);
-                ImGui::Text("N Total Meshlets: %d", nMeshlets * nInstances);
+                ImGui::Text(
+                    "N Meshlets per Instance: %.3e", (double) nMeshlets
+                );
+                ImGui::Text(
+                    "N Total Meshlets: %.3e", (double((nMeshlets * nInstances)))
+                );
             }
         }
     }
