@@ -260,7 +260,8 @@ bool StandardVulkanShaderPipeline::update()
 
     const DefaultShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const DefaultShaderPipelineUpdateData &>(*updateData_);
-
+    
+    // TODO - update hardcoded indices in all pipelines
     // MVP uniform buffer (index 0)
     MVPBuffer mvp{};
     mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()

@@ -1,3 +1,4 @@
+// TODO - intense levels of abstraction here?
 #include "core_render/vulkan/buffer.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_service/servicelocator.h"
@@ -24,6 +25,8 @@ vk::raii::DeviceMemory *VulkanBufferBase::getDeviceMemory()
     return &bufferMemory_;
 }
 
+// TODO - I'm using staging buffer here for vertex and index, which I don't want
+// to do as they're static and this wastes memory
 void VulkanBufferSingleStageBase::init(vk::DeviceSize bufferSize, void *data)
 {
 
@@ -31,22 +34,24 @@ void VulkanBufferSingleStageBase::init(vk::DeviceSize bufferSize, void *data)
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    auto [stagingBuffer, stagingBufferMemory] = renderer->createBuffer(
+    std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible |
             vk::MemoryPropertyFlagBits::eHostCoherent
     );
 
-    void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
-    memcpy(dataStaging, data, bufferSize);
-    stagingBufferMemory.unmapMemory();
-
     std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
-        bufferSize, bufferUsageFlags_ | vk::BufferUsageFlagBits::eTransferDst,
+        bufferSize, vk::BufferUsageFlagBits::eTransferDst | bufferUsageFlags_,
         vk::MemoryPropertyFlagBits::eDeviceLocal
     );
 
-    renderer->copyBuffer(stagingBuffer, buffer_, bufferSize);
+    if (data)
+    {
+        void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
+        memcpy(stagingData, data, bufferSize);
+        stagingBufferMemory_.unmapMemory();
+        renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
+    }
 }
 
 void VulkanBufferUniform::init(

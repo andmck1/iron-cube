@@ -290,6 +290,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.frustum.cone.angle = frustumCone.angle;
     sceneData.visibilityFunc = *defaultUpdateData.visibilityFunc;
 
+    // TODO - put this in buffer no?
     memcpy(
         uniformBuffers_[sceneDataUniformBufferIndex_]
                        [renderer->getCurrentFrameIndex()]

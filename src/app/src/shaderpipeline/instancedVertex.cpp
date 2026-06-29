@@ -331,6 +331,12 @@ bool InstancedVertexVulkanShaderPipeline::update()
         &mvp, sizeof(mvp)
     );
 
+    vk::DeviceSize instanceBufferSize =
+        sizeof(Instance) * instancedVertexUpdateData.instances->size();
+    instanceBuffer_.update(
+        instanceBufferSize, instancedVertexUpdateData.instances->data()
+    );
+
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};

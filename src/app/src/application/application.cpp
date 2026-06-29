@@ -550,16 +550,14 @@ void Application::updateEntities()
                     (rowIndex * N_INSTANCE_COLUMNS) + columnIndex;
                 float t = static_cast<float>(glfwGetTime()) +
                           ((columnIndex ^ rowIndex + columnIndex) / 10.f);
-                glm::mat4x4 rotationMatrix;
+                glm::vec4 rotationVector;
                 if (isAnimationOn_)
-                    rotationMatrix =
-                        glm::rotate(glm::mat4(1.f), t, glm::vec3(0, 1, 0));
+                    rotationVector = glm::vec4(0.0, t, 0.0, 1.0);
                 else
-                    rotationMatrix = glm::identity<glm::mat4x4>();
+                    rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
                 horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
-                horseMesh->instances[index].rotation =
-                    glm::vec4(0.0, t, 0.0, 1.0);
+                horseMesh->instances[index].rotation = rotationVector;
                 horseMesh->instances[index].scale =
                     glm::vec4(1.0, 1.0, 1.0, 1.0);
             }

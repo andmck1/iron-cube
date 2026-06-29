@@ -109,7 +109,7 @@ bool DebugLayer::frame()
         if (pipelineManager)
             pipelineManager->recreatePipelines = true;
     }
-    ImGui::Checkbox("Are Animations On?", debugData_->isAnimationOn);
+    ImGui::Checkbox("Animate?", debugData_->isAnimationOn);
 
     // Shader type
     ImGui::SeparatorText("Shader");
