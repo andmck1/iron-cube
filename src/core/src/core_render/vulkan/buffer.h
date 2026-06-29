@@ -50,39 +50,64 @@ class VulkanBufferUniform : public VulkanBufferBase
 class VulkanBufferStorageBase : public VulkanBufferBase
 {
     public:
+    VulkanBufferStorageBase(
+        vk::Flags<vk::BufferUsageFlagBits> stagingFlags,
+        vk::Flags<vk::BufferUsageFlagBits> bufferFlags
+    )
+        : stagingBufferUsageFlags_(stagingFlags), bufferUsageFlags_(bufferFlags)
+    {
+    }
     void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) override;
 
     protected:
-    const vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_;
-    const vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_;
+    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_;
+    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_;
 };
 
 class VulkanBufferRStorage : public VulkanBufferStorageBase
 {
+    public:
+    VulkanBufferRStorage()
+        : VulkanBufferStorageBase(
+              vk::BufferUsageFlagBits::eTransferSrc,
+              vk::BufferUsageFlagBits::eTransferDst |
+                  vk::BufferUsageFlagBits::eStorageBuffer
+          )
+    {
+    }
+
     protected:
-    const vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_ =
-        vk::BufferUsageFlagBits::eTransferDst |
+    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_ =
         vk::BufferUsageFlagBits::eTransferSrc;
-    const vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_ =
-        vk::BufferUsageFlagBits::eTransferDst |
-        vk::BufferUsageFlagBits::eTransferSrc;
+    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_ =
+        vk::BufferUsageFlagBits::eTransferDst;
 };
 
 class VulkanBufferRWStorage : public VulkanBufferStorageBase
 {
     public:
+    VulkanBufferRWStorage()
+        : VulkanBufferStorageBase(
+              vk::BufferUsageFlagBits::eTransferDst |
+                  vk::BufferUsageFlagBits::eTransferSrc,
+              vk::BufferUsageFlagBits::eTransferDst |
+                  vk::BufferUsageFlagBits::eTransferSrc |
+                  vk::BufferUsageFlagBits::eStorageBuffer
+          )
+    {
+    }
     void readData(vk::DeviceSize bufferSize, void *outputData);
     void copyToStaging(
         vk::DeviceSize size, vk::Flags<vk::PipelineStageFlagBits> pipelineStages
     );
 
     protected:
-    const vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_ =
+    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_ =
         vk::BufferUsageFlagBits::eTransferDst |
         vk::BufferUsageFlagBits::eTransferSrc;
-    const vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_ =
+    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_ =
         vk::BufferUsageFlagBits::eTransferDst |
         vk::BufferUsageFlagBits::eTransferSrc;
 };

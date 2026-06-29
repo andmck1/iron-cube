@@ -77,7 +77,7 @@ void InstancedVertexVulkanShaderPipeline::initStorageBuffers()
 
     addStorageRWBuffer(
         debugDataBufferSize, debugDataBufferData_.data(),
-        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
+        vk::ShaderStageFlagBits::eAll 
     );
 }
 

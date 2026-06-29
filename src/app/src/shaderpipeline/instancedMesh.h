@@ -30,8 +30,6 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
-    vk::raii::QueryPool queryPool_ = nullptr;
-
     Geometry *geometry_ = nullptr;
 
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};

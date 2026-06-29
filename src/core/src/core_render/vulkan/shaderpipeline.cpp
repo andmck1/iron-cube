@@ -54,19 +54,6 @@ bool VulkanShaderPipeline::initDescriptorLayout()
         );
     }
 
-    for (const std::vector<VulkanBufferRStorage> &frameBuffers :
-         storageRBuffers_)
-    {
-        const VulkanBufferRStorage &buffer = frameBuffers.front();
-        bindings.emplace_back(
-            vk::DescriptorSetLayoutBinding{}
-                .setBinding(bindingIndex++)
-                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                .setDescriptorCount(1)
-                .setStageFlags(buffer.stageFlags)
-        );
-    }
-
     for (const std::vector<VulkanBufferRWStorage> &frameBuffers :
          storageRWBuffers_)
     {
@@ -74,7 +61,20 @@ bool VulkanShaderPipeline::initDescriptorLayout()
         bindings.emplace_back(
             vk::DescriptorSetLayoutBinding{}
                 .setBinding(bindingIndex++)
-                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                .setDescriptorCount(1)
+                .setStageFlags(buffer.stageFlags)
+        );
+    }
+
+    for (const std::vector<VulkanBufferRStorage> &frameBuffers :
+         storageRBuffers_)
+    {
+        const VulkanBufferRStorage &buffer = frameBuffers.front();
+        bindings.emplace_back(
+            vk::DescriptorSetLayoutBinding{}
+                .setBinding(bindingIndex++)
+                .setDescriptorType(vk::DescriptorType::eStorageBuffer)
                 .setDescriptorCount(1)
                 .setStageFlags(buffer.stageFlags)
         );
@@ -182,17 +182,17 @@ bool VulkanShaderPipeline::initDescriptorSets()
             addBufferWrite(
                 descriptorSets_[frameIndex], bindingIndex++,
                 vk::DescriptorType::eStorageBuffer,
-                storageRBuffers_[bufferIndex][frameIndex].getBuffer(),
+                storageRWBuffers_[bufferIndex][frameIndex].getBuffer(),
                 VK_WHOLE_SIZE, descriptorWrites, bufferInfos
             );
         }
-        for (size_t bufferIndex = storageRWBuffers_.size();
-             bufferIndex < totalNStorageBuffers; bufferIndex++)
+        for (size_t bufferIndex = 0; bufferIndex < storageRBuffers_.size();
+             bufferIndex++)
         {
             addBufferWrite(
                 descriptorSets_[frameIndex], bindingIndex++,
                 vk::DescriptorType::eStorageBuffer,
-                storageRWBuffers_[bufferIndex][frameIndex].getBuffer(),
+                storageRBuffers_[bufferIndex][frameIndex].getBuffer(),
                 VK_WHOLE_SIZE, descriptorWrites, bufferInfos
             );
         }

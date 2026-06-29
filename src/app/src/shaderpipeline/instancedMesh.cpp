@@ -4,7 +4,6 @@
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
-#include "glm/ext/matrix_float4x4.hpp"
 
 bool InstancedMeshVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
@@ -179,8 +178,7 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     addStorageRWBuffer(
         debugDataBufferSize, debugDataBufferData_.data(),
-        vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT |
-            vk::ShaderStageFlagBits::eFragment
+        vk::ShaderStageFlagBits::eAll
     );
 
     vk::DeviceSize vertexBufferSize =
@@ -212,7 +210,7 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
     );
 
     vk::DeviceSize instancesBufferSize =
-        sizeof(glm::mat4x4) * defaultUpdateData.instances->size();
+        sizeof(Instance) * defaultUpdateData.instances->size();
     addStorageRBuffer(
         instancesBufferSize, defaultUpdateData.instances->data(),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
@@ -260,9 +258,6 @@ bool InstancedMeshVulkanShaderPipeline::update()
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
-    commandBuffer.resetQueryPool(queryPool_, 0, 1);
-
     const InstancedMeshShaderPipelineUpdateData &defaultUpdateData =
         dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(
             *updateData_
@@ -300,15 +295,14 @@ bool InstancedMeshVulkanShaderPipeline::update()
     // instances data (storage buffer index 4)
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * defaultUpdateData.instances->size();
-    storageRBuffers_[5][renderer->getCurrentFrameIndex()].update(
+    storageRBuffers_[4][renderer->getCurrentFrameIndex()].update(
         instancesBufferSize, defaultUpdateData.instances->data()
     );
 
-    // debug data (storage buffer index 5, last)
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
-    storageRBuffers_.front()[renderer->getCurrentFrameIndex()].update(
+    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -372,7 +366,9 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
     renderer->waitAllFramesComplete();
 
     pipelineStatistics_.pipelineType = PipelineStatistics::PipelineType::MESH;
-
+    
+    // TODO - debug buffer should be it's own allocation tbh, or I track it as
+    // a pointer
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
