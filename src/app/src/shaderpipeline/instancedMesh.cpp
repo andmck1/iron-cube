@@ -278,7 +278,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
 
     std::array<FrustumPlane, 6> frustumPlanes =
         defaultUpdateData.camera->getFrustumPlanes();
-    FrustumCone frustumCone = defaultUpdateData.camera->getFrustumCone();
+    FrustumCone frustumCone = defaultUpdateData.camera->getFrustumCone(true);
 
     for (int planeIndex = 0; planeIndex < 6; planeIndex++)
     {

@@ -110,6 +110,12 @@ bool DebugLayer::frame()
         if (pipelineManager)
             pipelineManager->recreatePipelines = true;
     }
+    ImGui::SliderFloat(
+        "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 50.0
+    );
+
+    // Mesh
+    ImGui::SeparatorText("Mesh");
     ImGui::Checkbox("Animate?", debugData_->isAnimationOn);
     ImGui::SliderInt(
         "N Instance Rows", debugData_->nInstanceRows, 1, MAX_N_INSTANCE_ROWS

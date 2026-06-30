@@ -164,6 +164,7 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.nInstanceRows = &nInstanceRows;
     debugLayerData_.nInstanceColumns = &nInstanceColumns;
     debugLayerData_.nInstanceLayers = &nInstanceLayers;
+    debugLayerData_.cameraFarPlane = &camera_->farClip_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -171,7 +172,6 @@ bool Application::createAndInitialiseLayers()
     layers_.push_back(std::make_unique<SceneLayer>());
     sceneLayer_ = dynamic_cast<SceneLayer *>(layers_.back().get());
 
-    initialiseDebugLayerData(&sceneLayer_->scene);
     layers_.push_back(std::make_unique<DebugLayer>());
     debugLayer_ = dynamic_cast<DebugLayer *>(layers_.back().get());
     debugLayer_->setDebugData(&debugLayerData_);
@@ -187,6 +187,7 @@ bool Application::createAndInitialiseLayers()
     }
     if (!initialiseEntities(&sceneLayer_->scene))
         return false;
+    initialiseDebugLayerData(&sceneLayer_->scene);
 
     return true;
 }
