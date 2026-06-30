@@ -22,7 +22,10 @@ void main(
     uint gid: SV_GroupID
 )
 {
-    InterlockedAdd(debugData[0].nTaskShaderInvocations, 1);
+    if (debugData[0].isDebugQueryOn > 0)
+    {
+        InterlockedAdd(debugData[0].nTaskShaderInvocations, 1);
+    }
 
     bool visible = false;
 

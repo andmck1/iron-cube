@@ -161,10 +161,11 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.timer = &timer_;
     debugLayerData_.visibilityFunc = &visibilityFunction_;
     debugLayerData_.isAnimationOn = &isAnimationOn_;
-    debugLayerData_.nInstanceRows = &nInstanceRows;
-    debugLayerData_.nInstanceColumns = &nInstanceColumns;
-    debugLayerData_.nInstanceLayers = &nInstanceLayers;
+    debugLayerData_.nInstanceRows = &nInstanceRows_;
+    debugLayerData_.nInstanceColumns = &nInstanceColumns_;
+    debugLayerData_.nInstanceLayers = &nInstanceLayers_;
     debugLayerData_.cameraFarPlane = &camera_->farClip_;
+    debugLayerData_.isDebugStatsOn = &isDebugQueryOn_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -490,21 +491,16 @@ void Application::checkForPipelineUpdates()
 
     timeSincePipelineDebugQuery_ += timer_.getDeltaSeconds();
 
-    if (timeSincePipelineDebugQuery_ >= (1.f / PIPELINE_DEBUG_QUERY_FREQUENCY))
+    for (const std::unique_ptr<Entity> &entity : entities)
     {
-        timeSincePipelineDebugQuery_ = 0.f;
-        for (const std::unique_ptr<Entity> &entity : entities)
+        MeshComponent *meshComponent = entity->getComponent<MeshComponent>();
+        if (meshComponent)
         {
-            MeshComponent *meshComponent =
-                entity->getComponent<MeshComponent>();
-            if (meshComponent)
+            IShaderPipeline *shaderPipeline =
+                meshComponent->getShaderPipeline();
+            if (shaderPipeline)
             {
-                IShaderPipeline *shaderPipeline =
-                    meshComponent->getShaderPipeline();
-                if (shaderPipeline)
-                {
-                    shaderPipeline->setIsDebugQuery(true);
-                }
+                shaderPipeline->setIsDebugQuery(isDebugQueryOn_);
             }
         }
     }
@@ -517,7 +513,7 @@ void Application::updateEntities()
 {
     Mesh *horseMesh = meshManager_.getMesh("horsie");
     horseMesh->instances.resize(
-        nInstanceColumns * nInstanceLayers * nInstanceRows
+        nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
     );
     float maxSpan = std::max<float>(
         std::max<float>(
@@ -529,16 +525,16 @@ void Application::updateEntities()
     float instanceSpanX = 2.0f * maxSpan;
     float instanceSpanY = 2.0f * maxSpan;
     float instanceSpanZ = 2.0f * maxSpan;
-    float totalSpanX = nInstanceColumns * instanceSpanX;
-    float totalSpanY = nInstanceLayers * instanceSpanY;
-    float totalSpanZ = nInstanceRows * instanceSpanZ;
+    float totalSpanX = nInstanceColumns_ * instanceSpanX;
+    float totalSpanY = nInstanceLayers_ * instanceSpanY;
+    float totalSpanZ = nInstanceRows_ * instanceSpanZ;
 
-    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows; ++rowIndex)
+    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows_; ++rowIndex)
     {
-        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers;
+        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers_;
              ++layerIndex)
         {
-            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns;
+            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns_;
                  ++columnIndex)
             {
                 float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
@@ -549,8 +545,8 @@ void Application::updateEntities()
                           instanceSpanZ / 2.f;
 
                 uint32_t index =
-                    (layerIndex * nInstanceRows * nInstanceColumns) +
-                    (rowIndex * nInstanceColumns) + columnIndex;
+                    (layerIndex * nInstanceRows_ * nInstanceColumns_) +
+                    (rowIndex * nInstanceColumns_) + columnIndex;
                 float t = static_cast<float>(glfwGetTime()) +
                           ((columnIndex ^ rowIndex + columnIndex) / 10.f);
                 glm::vec4 rotationVector;

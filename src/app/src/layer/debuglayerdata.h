@@ -15,4 +15,5 @@ class DebugLayerData
     int *nInstanceColumns;
     int *nInstanceLayers;
     float *cameraFarPlane;
+    bool *isDebugStatsOn;
 };

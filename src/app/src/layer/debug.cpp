@@ -36,75 +36,81 @@ bool DebugLayer::frame()
     ImGui::SeparatorText("Statistics");
     ImGui::Text("FPS: %.1f", debugData_->timer->getFps());
     ImGui::Text("Frame Time: %.2f ms", debugData_->timer->getFrameTime());
-    for (const std::unique_ptr<Entity> &entity :
-         debugData_->scene->getEntities())
+    ImGui::Checkbox("Collect Pipeline Stats?", debugData_->isDebugStatsOn);
+    if (*debugData_->isDebugStatsOn)
     {
-        MeshComponent *meshComponent = entity->getComponent<MeshComponent>();
-        if (meshComponent)
+        for (const std::unique_ptr<Entity> &entity :
+             debugData_->scene->getEntities())
         {
-            PipelineStatistics pipelineStatistics =
-                meshComponent->getShaderPipeline()->getPipelineStatistics();
-
-            // Pipeline statistics
-            switch (pipelineStatistics.pipelineType)
+            MeshComponent *meshComponent =
+                entity->getComponent<MeshComponent>();
+            if (meshComponent)
             {
-            case PipelineStatistics::PipelineType::TRADITIONAL:
-                ImGui::Text(
-                    "%s VS: %d", entity->getName().c_str(),
-                    pipelineStatistics.nVertexShaderInvocations
-                );
-                break;
-            case PipelineStatistics::PipelineType::MESH:
-                ImGui::Text(
-                    "%s TS: %d", entity->getName().c_str(),
-                    pipelineStatistics.nTaskShaderInvocations
-                );
-                ImGui::Text(
-                    "%s MS: %d", entity->getName().c_str(),
-                    pipelineStatistics.nMeshShaderInvocations
-                );
-                break;
-            default:
-                spdlog::warn("Pipeline type not supported for debug data");
-            }
-            ImGui::Text(
-                "%s PS: %d", entity->getName().c_str(),
-                pipelineStatistics.nFragmentShaderInvocations
-            );
+                PipelineStatistics pipelineStatistics =
+                    meshComponent->getShaderPipeline()->getPipelineStatistics();
 
-            uint nInstances = meshComponent->getMesh()->instances.size();
-            uint nMeshlets =
-                meshComponent->getMesh()->getGeometry()->meshlets.size();
-            uint nVertices =
-                meshComponent->getMesh()->getGeometry()->meshletVertices.size();
-            ImGui::Text("N Instances: %.3e", (double) nInstances);
-            ImGui::Text("N Vertices per Instance: %.3e", (double) nVertices);
-            ImGui::Text(
-                "N Total Vertices: %.3e", (double((nVertices * nInstances)))
-            );
+                // Pipeline statistics
+                switch (pipelineStatistics.pipelineType)
+                {
+                case PipelineStatistics::PipelineType::TRADITIONAL:
+                    ImGui::Text(
+                        "%s VS: %.3e", entity->getName().c_str(),
+                        (double) pipelineStatistics.nVertexShaderInvocations
+                    );
+                    break;
+                case PipelineStatistics::PipelineType::MESH:
+                    ImGui::Text(
+                        "%s TS: %.3e", entity->getName().c_str(),
+                        (double) pipelineStatistics.nTaskShaderInvocations
+                    );
+                    ImGui::Text(
+                        "%s MS: %.3e", entity->getName().c_str(),
+                        (double) pipelineStatistics.nMeshShaderInvocations
+                    );
+                    break;
+                default:
+                    spdlog::warn("Pipeline type not supported for debug data");
+                }
+                ImGui::Text(
+                    "%s PS: %d", entity->getName().c_str(),
+                    pipelineStatistics.nFragmentShaderInvocations
+                );
 
-            if (pipelineStatistics.pipelineType ==
-                PipelineStatistics::PipelineType::MESH)
-            {
+                uint nInstances = meshComponent->getMesh()->instances.size();
+                uint nMeshlets =
+                    meshComponent->getMesh()->getGeometry()->meshlets.size();
+                uint nVertices = meshComponent->getMesh()
+                                     ->getGeometry()
+                                     ->meshletVertices.size();
+                ImGui::Text("N Instances: %.3e", (double) nInstances);
                 ImGui::Text(
-                    "N Meshlets per Instance: %.3e", (double) nMeshlets
+                    "N Vertices per Instance: %.3e", (double) nVertices
                 );
                 ImGui::Text(
-                    "N Total Meshlets: %.3e", (double((nMeshlets * nInstances)))
+                    "N Total Vertices: %.3e", (double((nVertices * nInstances)))
                 );
+
+                if (pipelineStatistics.pipelineType ==
+                    PipelineStatistics::PipelineType::MESH)
+                {
+                    ImGui::Text(
+                        "N Meshlets per Instance: %.3e", (double) nMeshlets
+                    );
+                    ImGui::Text(
+                        "N Total Meshlets: %.3e",
+                        (double((nMeshlets * nInstances)))
+                    );
+                }
             }
         }
     }
 
     // Render
     ImGui::SeparatorText("Render");
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    bool wireframe = renderer ? renderer->isWireframeMode() : false;
-    if (ImGui::Checkbox("Wireframe", &wireframe) && renderer)
+    bool wireframe = renderer_ ? renderer_->isWireframeMode() : false;
+    if (ImGui::Checkbox("Wireframe", &wireframe))
     {
-        renderer->setWireframeMode(wireframe);
+        renderer_->setWireframeMode(wireframe);
         IShaderPipelineManager *pipelineManager =
             ServiceLocator::instance().get<IShaderPipelineManager>();
         if (pipelineManager)

@@ -10,7 +10,11 @@ bool InstancedMeshVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
 )
 {
-    updateData_ = updateData;
+    renderer_ = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    updateData_ =
+        dynamic_cast<InstancedMeshShaderPipelineUpdateData *>(updateData);
     return initPipeline(geometry);
 }
 
@@ -48,9 +52,6 @@ bool InstancedMeshVulkanShaderPipeline::shutdown()
 // TODO - Break up this function
 bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
 
     IShaderManager *shaderManager =
         ServiceLocator::instance().get<IShaderManager>();
@@ -99,13 +100,13 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
             .setScissorCount(1);
 
     vk::PipelineRasterizationStateCreateInfo rasteriser =
-        renderer->getRasteriser();
+        renderer_->getRasteriser();
 
     vk::PipelineMultisampleStateCreateInfo multisampling =
-        renderer->getMultisampling();
+        renderer_->getMultisampling();
 
     vk::PipelineColorBlendAttachmentState colourBlendAttachment =
-        renderer->getColourBlendAttachment();
+        renderer_->getColourBlendAttachment();
 
     vk::PipelineColorBlendStateCreateInfo colourBlending =
         vk::PipelineColorBlendStateCreateInfo{}
@@ -129,7 +130,7 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
             .setPushConstantRangeCount(0);
 
     pipelineLayout_ =
-        vk::raii::PipelineLayout(renderer->getDevice(), pipelineLayoutInfo);
+        vk::raii::PipelineLayout(renderer_->getDevice(), pipelineLayoutInfo);
 
     vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo =
         vk::GraphicsPipelineCreateInfo{}
@@ -145,7 +146,7 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
             .setRenderPass(nullptr);
 
     vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo =
-        renderer->getPipelineRendereringCreateInfo();
+        renderer_->getPipelineRendereringCreateInfo();
 
     vk::StructureChain<
         vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo>
@@ -154,7 +155,7 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
         };
 
     graphicsPipeline_ = vk::raii::Pipeline(
-        renderer->getDevice(), nullptr,
+        renderer_->getDevice(), nullptr,
         pipelineCreateInfoChain.get<vk::GraphicsPipelineCreateInfo>()
     );
     return true;
@@ -171,11 +172,6 @@ void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
 
 void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
 {
-    const InstancedMeshShaderPipelineUpdateData &defaultUpdateData =
-        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(
-            *updateData_
-        );
-
     // TODO - this indices are still hardcoded....they need to be consistently
     // defined somehow
     vk::DeviceSize debugDataBufferSize =
@@ -218,7 +214,7 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
         MAX_N_INSTANCE_ROWS;
     addStorageRBuffer(
-        instancesBufferSize, defaultUpdateData.instances->data(),
+        instancesBufferSize, updateData_->instances->data(),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     instancesStorageRBufferIndex_ = 4;
@@ -236,21 +232,17 @@ bool InstancedMeshVulkanShaderPipeline::bind()
 {
     spdlog::debug("Binding shader pipeline");
 
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
-    vk::Extent2D &swapChainExtent = renderer->getSwapChainExtent();
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    vk::Extent2D &swapChainExtent = renderer_->getSwapChainExtent();
 
     commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
     );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
-        *descriptorSets_[renderer->getCurrentFrameIndex()], nullptr
+        *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
     );
-    commandBuffer.setViewport(0, renderer->getViewport());
+    commandBuffer.setViewport(0, renderer_->getViewport());
     commandBuffer.setScissor(
         0, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent)
     );
@@ -261,59 +253,50 @@ bool InstancedMeshVulkanShaderPipeline::bind()
 
 bool InstancedMeshVulkanShaderPipeline::update()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    const InstancedMeshShaderPipelineUpdateData &defaultUpdateData =
-        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(
-            *updateData_
-        );
-
     SceneBuffer sceneData{};
-    sceneData.view = *defaultUpdateData.camera->getViewMatrixRef();
-    sceneData.projection = *defaultUpdateData.camera->getProjectionMatrixRef();
-    sceneData.instanceCount = defaultUpdateData.instances->size();
+    sceneData.view = *updateData_->camera->getViewMatrixRef();
+    sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
+    sceneData.instanceCount = updateData_->instances->size();
     sceneData.meshletCount = geometry_->meshlets.size();
 
     std::array<FrustumPlane, 6> frustumPlanes =
-        defaultUpdateData.camera->getFrustumPlanes();
-    FrustumCone frustumCone = defaultUpdateData.camera->getFrustumCone(true);
+        updateData_->camera->getFrustumPlanes();
+    FrustumCone frustumCone = updateData_->camera->getFrustumCone(true);
 
     for (int planeIndex = 0; planeIndex < 6; planeIndex++)
     {
         sceneData.frustum.planes[planeIndex] = frustumPlanes[planeIndex];
     }
 
-    sceneData.frustum.sphere = defaultUpdateData.camera->getFrustumSphere();
+    sceneData.frustum.sphere = updateData_->camera->getFrustumSphere();
     sceneData.frustum.cone.tip = frustumCone.tip;
     sceneData.frustum.cone.height = frustumCone.height;
     sceneData.frustum.cone.direction = frustumCone.direction;
     sceneData.frustum.cone.angle = frustumCone.angle;
-    sceneData.visibilityFunc = *defaultUpdateData.visibilityFunc;
+    sceneData.visibilityFunc = *updateData_->visibilityFunc;
 
     // TODO - put this in buffer no?
     memcpy(
         uniformBuffers_[sceneDataUniformBufferIndex_]
-                       [renderer->getCurrentFrameIndex()]
+                       [renderer_->getCurrentFrameIndex()]
                            .getMappedPointer(),
         &sceneData, sizeof(sceneData)
     );
 
     vk::DeviceSize instancesBufferSize =
-        sizeof(Instance) * defaultUpdateData.instances->size();
+        sizeof(Instance) * updateData_->instances->size();
     storageRBuffers_[instancesStorageRBufferIndex_]
-                    [renderer->getCurrentFrameIndex()]
+                    [renderer_->getCurrentFrameIndex()]
                         .update(
-                            instancesBufferSize,
-                            defaultUpdateData.instances->data()
+                            instancesBufferSize, updateData_->instances->data()
                         );
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
+    debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
     storageRWBuffers_[debugDataStorageRWBufferIndex_]
-                     [renderer->getCurrentFrameIndex()]
+                     [renderer_->getCurrentFrameIndex()]
                          .update(
                              debugDataBufferSize, debugDataBufferData_.data()
                          );
@@ -323,35 +306,24 @@ bool InstancedMeshVulkanShaderPipeline::update()
 
 bool InstancedMeshVulkanShaderPipeline::draw()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
     // TODO - wonder if you want to ensure that this is a nice number? eg 256,
     // etc
-    // TODO - can't be calling this every frame
-    const InstancedMeshShaderPipelineUpdateData &defaultUpdateData =
-        dynamic_cast<const InstancedMeshShaderPipelineUpdateData &>(
-            *updateData_
-        );
     uint32_t meshletCount = static_cast<uint32_t>(geometry_->meshlets.size());
     uint32_t instanceCount =
-        static_cast<uint32_t>(defaultUpdateData.instances->size());
+        static_cast<uint32_t>(updateData_->instances->size());
     uint32_t threadGroupCountX =
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
 
-    renderer->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
+    renderer_->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
 
     return true;
 }
 
 bool InstancedMeshVulkanShaderPipeline::postRender()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].copyToStaging(
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eTaskShaderEXT |
                                  vk::PipelineStageFlagBits::eMeshShaderEXT |
                                  vk::PipelineStageFlagBits::eFragmentShader
@@ -368,14 +340,6 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
 {
     if (!isDebugQuery_)
         return true;
-    isDebugQuery_ = false;
-
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    // TODO - this is a bit extreme
-    renderer->waitAllFramesComplete();
 
     pipelineStatistics_.pipelineType = PipelineStatistics::PipelineType::MESH;
 
@@ -383,7 +347,7 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
     // a pointer
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nTaskShaderInvocations =

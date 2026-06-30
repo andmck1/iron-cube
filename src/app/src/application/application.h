@@ -20,7 +20,6 @@
 
 static constexpr float MOUSE_SENSITIVITY = 1.5f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
-static constexpr float PIPELINE_DEBUG_QUERY_FREQUENCY = 1.f;
 
 class Application
 {
@@ -70,7 +69,8 @@ class Application
     float timeSincePipelineDebugQuery_ = 0.f;
     int visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
     bool isAnimationOn_ = false;
-    int nInstanceRows = 1;
-    int nInstanceColumns = 1;
-    int nInstanceLayers = 1;
+    int nInstanceRows_ = 1;
+    int nInstanceColumns_ = 1;
+    int nInstanceLayers_ = 1;
+    bool isDebugQueryOn_ = true;
 };

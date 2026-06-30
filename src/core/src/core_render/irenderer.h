@@ -35,4 +35,6 @@ class IRenderer
     virtual bool present() = 0;
     virtual bool shutdown() = 0;
     virtual bool renderImGui() = 0;
+    virtual bool isWireframeMode() const = 0;
+    virtual void setWireframeMode(bool enabled) = 0;
 };

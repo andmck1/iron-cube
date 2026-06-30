@@ -33,7 +33,10 @@ void main(
     out vertices VertexOutputType vertices[64]
 )
 {
-    InterlockedAdd(debugData[0].nMeshShaderInvocations, 1);
+    if (debugData[0].isDebugQueryOn > 0)
+    {
+        InterlockedAdd(debugData[0].nMeshShaderInvocations, 1);
+    }
 
     uint instanceIndex = payload.instanceIndices[gid];
     uint meshletIndex = payload.meshletIndices[gid];

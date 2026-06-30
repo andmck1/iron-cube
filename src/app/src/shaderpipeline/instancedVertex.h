@@ -29,16 +29,6 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
-    VulkanBufferVertex vertexBuffer_;
-    VulkanBufferIndex indexBuffer_;
-    VulkanBufferVertex instanceBuffer_;
-
-    Geometry *geometry_ = nullptr;
-
-    std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
-    PipelineStatistics pipelineStatistics_{};
-    bool isQuerying_ = false;
-
     bool initGraphicsPipeline();
     bool initPipeline();
     bool initIndexBuffer();
@@ -47,4 +37,14 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
 
     void initUniformBuffers() override;
     void initStorageBuffers() override;
+
+    VulkanBufferVertex vertexBuffer_;
+    VulkanBufferIndex indexBuffer_;
+    VulkanBufferVertex instanceBuffer_;
+
+    Geometry *geometry_ = nullptr;
+
+    std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
+    PipelineStatistics pipelineStatistics_{};
+    InstancedVertexShaderPipelineUpdateData *updateData_ = nullptr;
 };

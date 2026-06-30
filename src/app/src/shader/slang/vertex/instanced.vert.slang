@@ -11,7 +11,10 @@ RWStructuredBuffer<DebugDataBuffer> debugData;
 [shader("vertex")]
 VertexOutputType main(InstancedVertexInputType input)
 {
-    InterlockedAdd(debugData[0].nVertexShaderInvocations, 1);
+    if (debugData[0].isDebugQueryOn > 0)
+    {
+        InterlockedAdd(debugData[0].nVertexShaderInvocations, 1);
+    }
 
     VertexOutputType output;
 

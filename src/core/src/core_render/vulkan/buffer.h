@@ -1,3 +1,4 @@
+#include "core_render/vulkan/renderer.h"
 #include <vulkan/vulkan_raii.hpp>
 
 class VulkanBufferBase
@@ -12,6 +13,7 @@ class VulkanBufferBase
     vk::raii::DeviceMemory bufferMemory_ = nullptr;
     vk::raii::Buffer stagingBuffer_ = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory_ = nullptr;
+    VulkanRenderer *renderer_ = nullptr;
 };
 
 class VulkanBufferSingleStageBase : public VulkanBufferBase
