@@ -5,7 +5,6 @@
 #include "core_render/ishaderpipelinemanager.h"
 #include "core_render/vulkan/shader.h"
 #include "core_platform/iinput.h"
-#include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
 #include "core_service/servicelocator.h"
@@ -162,6 +161,9 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.timer = &timer_;
     debugLayerData_.visibilityFunc = &visibilityFunction_;
     debugLayerData_.isAnimationOn = &isAnimationOn_;
+    debugLayerData_.nInstanceRows = &nInstanceRows;
+    debugLayerData_.nInstanceColumns = &nInstanceColumns;
+    debugLayerData_.nInstanceLayers = &nInstanceLayers;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -231,7 +233,7 @@ bool Application::initialiseGeometry(
     Mesh *registeredMesh =
         meshManager_.registerMesh(name, std::move(actorMesh));
     registeredMesh->instances.resize(
-        N_INSTANCE_COLUMNS * N_INSTANCE_LAYERS * N_INSTANCE_ROWS
+        nInstanceColumns * nInstanceLayers * nInstanceRows
     );
     updateEntities();
 
@@ -526,16 +528,16 @@ void Application::updateEntities()
     float instanceSpanX = 2.0f * maxSpan;
     float instanceSpanY = 2.0f * maxSpan;
     float instanceSpanZ = 2.0f * maxSpan;
-    float totalSpanX = N_INSTANCE_COLUMNS * instanceSpanX;
-    float totalSpanY = N_INSTANCE_LAYERS * instanceSpanY;
-    float totalSpanZ = N_INSTANCE_ROWS * instanceSpanZ;
+    float totalSpanX = nInstanceColumns * instanceSpanX;
+    float totalSpanY = nInstanceLayers * instanceSpanY;
+    float totalSpanZ = nInstanceRows * instanceSpanZ;
 
-    for (uint32_t rowIndex = 0; rowIndex < N_INSTANCE_ROWS; ++rowIndex)
+    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows; ++rowIndex)
     {
-        for (uint32_t layerIndex = 0; layerIndex < N_INSTANCE_LAYERS;
+        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers;
              ++layerIndex)
         {
-            for (uint32_t columnIndex = 0; columnIndex < N_INSTANCE_COLUMNS;
+            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns;
                  ++columnIndex)
             {
                 float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
@@ -546,8 +548,8 @@ void Application::updateEntities()
                           instanceSpanZ / 2.f;
 
                 uint32_t index =
-                    (layerIndex * N_INSTANCE_ROWS * N_INSTANCE_COLUMNS) +
-                    (rowIndex * N_INSTANCE_COLUMNS) + columnIndex;
+                    (layerIndex * nInstanceRows * nInstanceColumns) +
+                    (rowIndex * nInstanceColumns) + columnIndex;
                 float t = static_cast<float>(glfwGetTime()) +
                           ((columnIndex ^ rowIndex + columnIndex) / 10.f);
                 glm::vec4 rotationVector;

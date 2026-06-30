@@ -12,4 +12,7 @@ class DebugLayerData : public IDebugLayerData
     Timer *timer;
     int *visibilityFunc;
     bool *isAnimationOn;
+    int *nInstanceRows;
+    int *nInstanceColumns;
+    int *nInstanceLayers;
 };

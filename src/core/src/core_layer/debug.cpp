@@ -1,3 +1,4 @@
+#include "helpers/globals.h"
 #include "core_layer/debug.h"
 #include "core_ecs/component/mesh.h"
 #include "core_ecs/ecs.h"
@@ -110,6 +111,9 @@ bool DebugLayer::frame()
             pipelineManager->recreatePipelines = true;
     }
     ImGui::Checkbox("Animate?", debugData_->isAnimationOn);
+    ImGui::SliderInt("N Instance Rows", debugData_->nInstanceRows, 0, 20);
+    ImGui::SliderInt("N Instance Columns", debugData_->nInstanceColumns, 0, 20);
+    ImGui::SliderInt("N Instance Layers", debugData_->nInstanceLayers, 0, 20);
 
     // Shader type
     ImGui::SeparatorText("Shader");
