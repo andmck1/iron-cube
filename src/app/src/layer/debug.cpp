@@ -111,9 +111,17 @@ bool DebugLayer::frame()
             pipelineManager->recreatePipelines = true;
     }
     ImGui::Checkbox("Animate?", debugData_->isAnimationOn);
-    ImGui::SliderInt("N Instance Rows", debugData_->nInstanceRows, 0, 20);
-    ImGui::SliderInt("N Instance Columns", debugData_->nInstanceColumns, 0, 20);
-    ImGui::SliderInt("N Instance Layers", debugData_->nInstanceLayers, 0, 20);
+    ImGui::SliderInt(
+        "N Instance Rows", debugData_->nInstanceRows, 1, MAX_N_INSTANCE_ROWS
+    );
+    ImGui::SliderInt(
+        "N Instance Columns", debugData_->nInstanceColumns, 1,
+        MAX_N_INSTANCE_COLS
+    );
+    ImGui::SliderInt(
+        "N Instance Layers", debugData_->nInstanceLayers, 1,
+        MAX_N_INSTANCE_LAYERS
+    );
 
     // Shader type
     ImGui::SeparatorText("Shader");

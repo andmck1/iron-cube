@@ -5,6 +5,7 @@
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
+#include "helpers/globals.h"
 
 bool InstancedVertexVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
@@ -266,8 +267,8 @@ bool InstancedVertexVulkanShaderPipeline::initInstanceBuffer()
             *updateData_
         );
 
-    vk::DeviceSize bufferSize =
-        sizeof(Instance) * instancedVertexUpdateData.instances->size();
+    vk::DeviceSize bufferSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
+                                MAX_N_INSTANCE_LAYERS * MAX_N_INSTANCE_ROWS;
     instanceBuffer_.init(
         bufferSize, instancedVertexUpdateData.instances->data()
     );

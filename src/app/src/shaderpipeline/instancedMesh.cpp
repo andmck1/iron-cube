@@ -4,6 +4,7 @@
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
 #include "core_service/servicelocator.h"
+#include "helpers/globals.h"
 
 bool InstancedMeshVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
@@ -214,7 +215,8 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
     );
 
     vk::DeviceSize instancesBufferSize =
-        sizeof(Instance) * defaultUpdateData.instances->size();
+        sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
+        MAX_N_INSTANCE_ROWS;
     addStorageRBuffer(
         instancesBufferSize, defaultUpdateData.instances->data(),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT

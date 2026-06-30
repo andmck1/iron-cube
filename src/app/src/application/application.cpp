@@ -232,9 +232,6 @@ bool Application::initialiseGeometry(
     actorMesh.setGeometry(name);
     Mesh *registeredMesh =
         meshManager_.registerMesh(name, std::move(actorMesh));
-    registeredMesh->instances.resize(
-        nInstanceColumns * nInstanceLayers * nInstanceRows
-    );
     updateEntities();
 
     // transform component
@@ -518,6 +515,9 @@ void Application::checkForPipelineUpdates()
 void Application::updateEntities()
 {
     Mesh *horseMesh = meshManager_.getMesh("horsie");
+    horseMesh->instances.resize(
+        nInstanceColumns * nInstanceLayers * nInstanceRows
+    );
     float maxSpan = std::max<float>(
         std::max<float>(
             horseMesh->getGeometry()->meshBounds.getWidth(),
