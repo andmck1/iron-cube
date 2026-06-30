@@ -1,0 +1,27 @@
+// TODO - define column/row major so is always consistent
+float4x4 modelMatrix(float4 transform, float4 rotation, float4 scale)
+{
+    float cosX = cos(rotation.x);
+    float cosY = cos(rotation.y);
+    float cosZ = cos(rotation.z);
+
+    float sinX = sin(rotation.x);
+    float sinY = sin(rotation.y);
+    float sinZ = sin(rotation.z);
+
+    return float4x4(
+        // row1
+        scale.x * (cosY * cosZ), scale.y * (cosY * sinZ), scale.z * (-sinY),
+        transform.x,
+        // row 2
+        scale.x * (sinX * sinY * cosZ - cosX * sinZ),
+        scale.y * (sinX * sinY * sinZ + cosX * cosZ), scale.z * (sinX * cosY),
+        transform.y,
+        // row 3
+        scale.x * (cosX * sinY * cosZ + sinX * sinZ),
+        scale.y * (cosX * sinY * sinZ - sinX * cosZ), scale.z * (cosX * cosY),
+        transform.z,
+        // row 4
+        0.0, 0.0, 0.0, 1.0
+    );
+}

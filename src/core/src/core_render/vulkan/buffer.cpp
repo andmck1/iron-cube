@@ -9,10 +9,7 @@ void VulkanBufferBase::update(vk::DeviceSize bufferSize, void *data)
     memcpy(stagingData, data, bufferSize);
     stagingBufferMemory_.unmapMemory();
 
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
+    renderer_->copyBuffer(stagingBuffer_, buffer_, bufferSize);
 }
 
 vk::raii::Buffer *VulkanBufferBase::getBuffer()
@@ -30,17 +27,17 @@ vk::raii::DeviceMemory *VulkanBufferBase::getDeviceMemory()
 void VulkanBufferSingleStageBase::init(vk::DeviceSize bufferSize, void *data)
 {
 
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+    renderer_ = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
+    std::tie(stagingBuffer_, stagingBufferMemory_) = renderer_->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible |
             vk::MemoryPropertyFlagBits::eHostCoherent
     );
 
-    std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
+    std::tie(buffer_, bufferMemory_) = renderer_->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eTransferDst | bufferUsageFlags_,
         vk::MemoryPropertyFlagBits::eDeviceLocal
     );
@@ -50,7 +47,7 @@ void VulkanBufferSingleStageBase::init(vk::DeviceSize bufferSize, void *data)
         void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
         memcpy(stagingData, data, bufferSize);
         stagingBufferMemory_.unmapMemory();
-        renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
+        renderer_->copyBuffer(stagingBuffer_, buffer_, bufferSize);
     }
 }
 
@@ -60,11 +57,11 @@ void VulkanBufferUniform::init(
 {
     stageFlags = stageFlags_;
 
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+    renderer_ = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
+    std::tie(buffer_, bufferMemory_) = renderer_->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
         vk::MemoryPropertyFlagBits::eHostVisible |
             vk::MemoryPropertyFlagBits::eHostCoherent
@@ -82,17 +79,17 @@ void VulkanBufferStorageBase::init(
 {
     stageFlags = stageFlags_;
 
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+    renderer_ = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    std::tie(stagingBuffer_, stagingBufferMemory_) = renderer->createBuffer(
+    std::tie(stagingBuffer_, stagingBufferMemory_) = renderer_->createBuffer(
         bufferSize, stagingBufferUsageFlags_,
         vk::MemoryPropertyFlagBits::eHostVisible |
             vk::MemoryPropertyFlagBits::eHostCoherent
     );
 
-    std::tie(buffer_, bufferMemory_) = renderer->createBuffer(
+    std::tie(buffer_, bufferMemory_) = renderer_->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eStorageBuffer | bufferUsageFlags_,
         vk::MemoryPropertyFlagBits::eDeviceLocal
     );
@@ -102,7 +99,7 @@ void VulkanBufferStorageBase::init(
         void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
         memcpy(stagingData, data, bufferSize);
         stagingBufferMemory_.unmapMemory();
-        renderer->copyBuffer(stagingBuffer_, buffer_, bufferSize);
+        renderer_->copyBuffer(stagingBuffer_, buffer_, bufferSize);
     }
 }
 
@@ -110,10 +107,10 @@ void VulkanBufferRWStorage::copyToStaging(
     vk::DeviceSize size, vk::Flags<vk::PipelineStageFlagBits> pipelineStages
 )
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
+    renderer_ = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
-    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
     vk::BufferMemoryBarrier barrier{
         vk::AccessFlagBits::eShaderWrite,

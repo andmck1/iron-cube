@@ -21,6 +21,8 @@ class VulkanRenderer : public IRenderer
     bool present() override;
     void waitAllFramesComplete();
     bool shutdown() override;
+    bool isWireframeMode() const override;
+    void setWireframeMode(bool enabled) override;
 
     vk::raii::Device &getDevice();
     vk::raii::PhysicalDevice &getPhysicalDevice();
@@ -30,8 +32,6 @@ class VulkanRenderer : public IRenderer
     vk::Viewport getViewport();
     vk::PipelineInputAssemblyStateCreateInfo getInputAssembly();
     vk::PipelineRasterizationStateCreateInfo getRasteriser();
-    bool isWireframeMode() const;
-    void setWireframeMode(bool enabled);
     vk::PipelineMultisampleStateCreateInfo getMultisampling();
     vk::PipelineColorBlendAttachmentState getColourBlendAttachment();
     vk::PipelineRenderingCreateInfo getPipelineRendereringCreateInfo();

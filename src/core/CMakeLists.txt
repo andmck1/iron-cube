@@ -14,9 +14,7 @@ add_library(
     src/core_ecs/component/mesh.cpp
     src/core_ecs/component/transform.cpp
     src/core_ecs/ecs.cpp
-    src/core_layer/debug.cpp
-    src/core_layer/debuglayerdata.cpp
-    src/core_layer/scene.cpp
+
     src/core_mesh/mesh.cpp
     src/core_mesh/meshmanager.cpp
     src/core_platform/linux/inputglfw.cpp

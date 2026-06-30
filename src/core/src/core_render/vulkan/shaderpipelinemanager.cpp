@@ -48,6 +48,7 @@ bool ShaderPipelineManager::checkForUpdates()
 {
     if (recreatePipelines)
     {
+        // TODO - get rid of dynamic cast
         VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
             ServiceLocator::instance().get<IRenderer>()
         );

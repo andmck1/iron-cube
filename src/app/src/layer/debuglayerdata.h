@@ -1,10 +1,9 @@
 #pragma once
 
-#include "core_layer/idebuglayerdata.h"
 #include "core_common/timer.h"
 #include "core_scene/scene.h"
 
-class DebugLayerData : public IDebugLayerData
+class DebugLayerData
 {
     public:
     DebugLayerData() = default;
@@ -12,4 +11,9 @@ class DebugLayerData : public IDebugLayerData
     Timer *timer;
     int *visibilityFunc;
     bool *isAnimationOn;
+    int *nInstanceRows;
+    int *nInstanceColumns;
+    int *nInstanceLayers;
+    float *cameraFarPlane;
+    bool *isDebugStatsOn;
 };

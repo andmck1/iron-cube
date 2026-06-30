@@ -28,22 +28,20 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
+    bool initGraphicsPipeline();
+    bool initPipeline();
+    bool initIndexBuffer();
+    bool initVertexBuffer();
+
+    void initUniformBuffers() override;
+    void initStorageBuffers() override;
+
     VulkanBufferVertex vertexBuffer_;
     VulkanBufferIndex indexBuffer_;
-    vk::raii::QueryPool queryPool_ = nullptr;
+    DefaultShaderPipelineUpdateData *updateData_ = nullptr;
 
     Geometry *geometry_ = nullptr;
 
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
     PipelineStatistics pipelineStatistics_{};
-    bool isQuerying_ = false;
-
-    bool initGraphicsPipeline();
-    bool initPipeline();
-    bool initIndexBuffer();
-    bool initVertexBuffer();
-    bool createQueryPool();
-
-    void initUniformBuffers() override;
-    void initStorageBuffers() override;
 };

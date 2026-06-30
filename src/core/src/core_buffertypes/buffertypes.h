@@ -128,7 +128,8 @@ struct SceneBuffer
 
 struct DebugDataBuffer
 {
-    uint32_t nVertexShaderInvocations = 5;
+    uint32_t isDebugQueryOn = 0;
+    uint32_t nVertexShaderInvocations = 0;
     uint32_t nTaskShaderInvocations = 0;
     uint32_t nMeshShaderInvocations = 0;
     uint32_t nFragmentShaderInvocations = 0;

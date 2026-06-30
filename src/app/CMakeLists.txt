@@ -54,6 +54,9 @@ add_executable(
     iron-cube
     src/main.cpp
     src/application/application.cpp
+    src/layer/debug.cpp
+    src/layer/debuglayerdata.cpp
+    src/layer/scene.cpp
     src/shaderpipeline/standard.cpp
     src/shaderpipeline/instancedVertex.cpp
     src/shaderpipeline/instancedMesh.cpp

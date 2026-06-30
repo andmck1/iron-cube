@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core_render/irenderer.h"
-#include "core_layer/debuglayerdata.h"
+#include "layer/debuglayerdata.h"
 #include "core_layer/ilayer.h"
 #include "core_common/types.h"
 #include <string>

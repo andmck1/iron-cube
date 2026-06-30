@@ -34,6 +34,7 @@ void VulkanShaderPipeline::addBufferWrite(
 
 bool VulkanShaderPipeline::initDescriptorLayout()
 {
+    // TODO - can I get rid of repeated dynamic cast here?
     VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );

@@ -44,4 +44,6 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
 
     void initUniformBuffers() override;
     void initStorageBuffers() override;
+
+    InstancedMeshShaderPipelineUpdateData *updateData_ = nullptr;
 };

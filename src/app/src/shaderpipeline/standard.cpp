@@ -1,6 +1,5 @@
 #include "shaderpipeline/standard.h"
 #include "core_buffertypes/buffertypes.h"
-#include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
@@ -10,8 +9,11 @@ bool StandardVulkanShaderPipeline::init(
     Geometry *geometry, ShaderPipelineUpdateData *updateData
 )
 {
+    renderer_ = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    updateData_ = dynamic_cast<DefaultShaderPipelineUpdateData *>(updateData);
     geometry_ = geometry;
-    updateData_ = updateData;
     return initPipeline();
 }
 
@@ -29,8 +31,6 @@ bool StandardVulkanShaderPipeline::initPipeline()
     if (!initDescriptorSets())
         return false;
     if (!initGraphicsPipeline())
-        return false;
-    if (!createQueryPool())
         return false;
     if (!initVertexBuffer())
         return false;
@@ -77,9 +77,6 @@ void StandardVulkanShaderPipeline::initStorageBuffers()
 
 bool StandardVulkanShaderPipeline::initGraphicsPipeline()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
 
     IShaderManager *shaderManager =
         ServiceLocator::instance().get<IShaderManager>();
@@ -121,7 +118,7 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
             .setPVertexAttributeDescriptions(attributeDescriptions.data());
 
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly =
-        renderer->getInputAssembly();
+        renderer_->getInputAssembly();
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = {
         vertexShaderStageInfo, fragShaderStageInfo
@@ -142,13 +139,13 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
             .setScissorCount(1);
 
     vk::PipelineRasterizationStateCreateInfo rasteriser =
-        renderer->getRasteriser();
+        renderer_->getRasteriser();
 
     vk::PipelineMultisampleStateCreateInfo multisampling =
-        renderer->getMultisampling();
+        renderer_->getMultisampling();
 
     vk::PipelineColorBlendAttachmentState colourBlendAttachment =
-        renderer->getColourBlendAttachment();
+        renderer_->getColourBlendAttachment();
 
     vk::PipelineColorBlendStateCreateInfo colourBlending =
         vk::PipelineColorBlendStateCreateInfo{}
@@ -172,7 +169,7 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
             .setPushConstantRangeCount(0);
 
     pipelineLayout_ =
-        vk::raii::PipelineLayout(renderer->getDevice(), pipelineLayoutInfo);
+        vk::raii::PipelineLayout(renderer_->getDevice(), pipelineLayoutInfo);
 
     vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo =
         vk::GraphicsPipelineCreateInfo{}
@@ -190,7 +187,7 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
             .setRenderPass(nullptr);
 
     vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo =
-        renderer->getPipelineRendereringCreateInfo();
+        renderer_->getPipelineRendereringCreateInfo();
 
     vk::StructureChain<
         vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo>
@@ -199,7 +196,7 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
         };
 
     graphicsPipeline_ = vk::raii::Pipeline(
-        renderer->getDevice(), nullptr,
+        renderer_->getDevice(), nullptr,
         pipelineCreateInfoChain.get<vk::GraphicsPipelineCreateInfo>()
     );
     return true;
@@ -225,12 +222,8 @@ bool StandardVulkanShaderPipeline::bind()
 {
     spdlog::debug("Binding shader pipeline");
 
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    vk::raii::CommandBuffer &commandBuffer = renderer->getCommandBuffer();
-    vk::Extent2D &swapChainExtent = renderer->getSwapChainExtent();
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    vk::Extent2D &swapChainExtent = renderer_->getSwapChainExtent();
 
     commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
@@ -241,9 +234,9 @@ bool StandardVulkanShaderPipeline::bind()
     );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
-        *descriptorSets_[renderer->getCurrentFrameIndex()], nullptr
+        *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
     );
-    commandBuffer.setViewport(0, renderer->getViewport());
+    commandBuffer.setViewport(0, renderer_->getViewport());
     commandBuffer.setScissor(
         0, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent)
     );
@@ -254,29 +247,25 @@ bool StandardVulkanShaderPipeline::bind()
 
 bool StandardVulkanShaderPipeline::update()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
 
-    const DefaultShaderPipelineUpdateData &defaultUpdateData =
-        dynamic_cast<const DefaultShaderPipelineUpdateData &>(*updateData_);
-    
     // TODO - update hardcoded indices in all pipelines
     // MVP uniform buffer (index 0)
     MVPBuffer mvp{};
-    mvp.model = *defaultUpdateData.actor->getComponent<TransformComponent>()
+    mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
-    mvp.view = *defaultUpdateData.camera->getViewMatrixRef();
-    mvp.projection = *defaultUpdateData.camera->getProjectionMatrixRef();
+    mvp.view = *updateData_->camera->getViewMatrixRef();
+    mvp.projection = *updateData_->camera->getProjectionMatrixRef();
     memcpy(
-        uniformBuffers_[0][renderer->getCurrentFrameIndex()].getMappedPointer(),
+        uniformBuffers_[0][renderer_->getCurrentFrameIndex()]
+            .getMappedPointer(),
         &mvp, sizeof(mvp)
     );
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
-    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].update(
+    debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -285,44 +274,20 @@ bool StandardVulkanShaderPipeline::update()
 
 bool StandardVulkanShaderPipeline::draw()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    renderer->getCommandBuffer().drawIndexed(
+    renderer_->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
     );
 
     return true;
 }
 
-bool StandardVulkanShaderPipeline::createQueryPool()
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    vk::QueryPoolCreateInfo queryPoolInfo =
-        vk::QueryPoolCreateInfo{}
-            .setQueryType(vk::QueryType::ePipelineStatistics)
-            .setQueryCount(1)
-            .setPipelineStatistics(
-                vk::QueryPipelineStatisticFlagBits::eVertexShaderInvocations
-            );
-
-    queryPool_ = vk::raii::QueryPool(renderer->getDevice(), queryPoolInfo);
-
-    return true;
-}
-
 bool StandardVulkanShaderPipeline::postRender()
 {
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
+    if (!isDebugQuery_)
+        return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].copyToStaging(
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
                                  vk::PipelineStageFlagBits::eFragmentShader
     );
@@ -338,21 +303,13 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
 {
     if (!isDebugQuery_)
         return false;
-    isDebugQuery_ = false;
-
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    // TODO - this is a bit extreme
-    renderer->waitAllFramesComplete();
 
     pipelineStatistics_.pipelineType =
         PipelineStatistics::PipelineType::TRADITIONAL;
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer->getCurrentFrameIndex()].readData(
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =

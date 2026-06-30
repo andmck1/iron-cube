@@ -46,11 +46,10 @@ vk::PipelineInputAssemblyStateCreateInfo VulkanRenderer::getInputAssembly()
 
 vk::PipelineRasterizationStateCreateInfo VulkanRenderer::getRasteriser()
 {
-    vk::PipelineRasterizationStateCreateInfo result = rasteriser_;
-    result.setPolygonMode(
+    rasteriser_.setPolygonMode(
         wireframeMode_ ? vk::PolygonMode::eLine : vk::PolygonMode::eFill
     );
-    return result;
+    return rasteriser_;
 }
 
 bool VulkanRenderer::isWireframeMode() const

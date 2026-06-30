@@ -4,9 +4,9 @@
 #include "core_common/logger.h"
 #include "core_common/timer.h"
 #include "core_common/types.h"
-#include "core_layer/debug.h"
-#include "core_layer/debuglayerdata.h"
-#include "core_layer/scene.h"
+#include "layer/debug.h"
+#include "layer/debuglayerdata.h"
+#include "layer/scene.h"
 #include "core_platform/linux/platform.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shadermanager.h"
@@ -20,10 +20,6 @@
 
 static constexpr float MOUSE_SENSITIVITY = 1.5f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
-static constexpr uint32_t N_INSTANCE_COLUMNS = 10;
-static constexpr uint32_t N_INSTANCE_ROWS = 10;
-static constexpr uint32_t N_INSTANCE_LAYERS = 10;
-static constexpr float PIPELINE_DEBUG_QUERY_FREQUENCY = 1.f;
 
 class Application
 {
@@ -73,4 +69,8 @@ class Application
     float timeSincePipelineDebugQuery_ = 0.f;
     int visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
     bool isAnimationOn_ = false;
+    int nInstanceRows_ = 1;
+    int nInstanceColumns_ = 1;
+    int nInstanceLayers_ = 1;
+    bool isDebugQueryOn_ = true;
 };

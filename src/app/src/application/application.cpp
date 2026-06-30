@@ -5,13 +5,12 @@
 #include "core_render/ishaderpipelinemanager.h"
 #include "core_render/vulkan/shader.h"
 #include "core_platform/iinput.h"
-#include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
 #include "core_service/servicelocator.h"
 #include "core_config/config.h"
-#include "core_layer/scene.h"
-#include "core_layer/debug.h"
+#include "layer/scene.h"
+#include "layer/debug.h"
 #include "core_common/helpers.h"
 
 #include "shaderpipeline/standard.h"
@@ -162,6 +161,11 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.timer = &timer_;
     debugLayerData_.visibilityFunc = &visibilityFunction_;
     debugLayerData_.isAnimationOn = &isAnimationOn_;
+    debugLayerData_.nInstanceRows = &nInstanceRows_;
+    debugLayerData_.nInstanceColumns = &nInstanceColumns_;
+    debugLayerData_.nInstanceLayers = &nInstanceLayers_;
+    debugLayerData_.cameraFarPlane = &camera_->farClip_;
+    debugLayerData_.isDebugStatsOn = &isDebugQueryOn_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -169,7 +173,6 @@ bool Application::createAndInitialiseLayers()
     layers_.push_back(std::make_unique<SceneLayer>());
     sceneLayer_ = dynamic_cast<SceneLayer *>(layers_.back().get());
 
-    initialiseDebugLayerData(&sceneLayer_->scene);
     layers_.push_back(std::make_unique<DebugLayer>());
     debugLayer_ = dynamic_cast<DebugLayer *>(layers_.back().get());
     debugLayer_->setDebugData(&debugLayerData_);
@@ -185,6 +188,7 @@ bool Application::createAndInitialiseLayers()
     }
     if (!initialiseEntities(&sceneLayer_->scene))
         return false;
+    initialiseDebugLayerData(&sceneLayer_->scene);
 
     return true;
 }
@@ -230,9 +234,6 @@ bool Application::initialiseGeometry(
     actorMesh.setGeometry(name);
     Mesh *registeredMesh =
         meshManager_.registerMesh(name, std::move(actorMesh));
-    registeredMesh->instances.resize(
-        N_INSTANCE_COLUMNS * N_INSTANCE_LAYERS * N_INSTANCE_ROWS
-    );
     updateEntities();
 
     // transform component
@@ -490,21 +491,16 @@ void Application::checkForPipelineUpdates()
 
     timeSincePipelineDebugQuery_ += timer_.getDeltaSeconds();
 
-    if (timeSincePipelineDebugQuery_ >= (1.f / PIPELINE_DEBUG_QUERY_FREQUENCY))
+    for (const std::unique_ptr<Entity> &entity : entities)
     {
-        timeSincePipelineDebugQuery_ = 0.f;
-        for (const std::unique_ptr<Entity> &entity : entities)
+        MeshComponent *meshComponent = entity->getComponent<MeshComponent>();
+        if (meshComponent)
         {
-            MeshComponent *meshComponent =
-                entity->getComponent<MeshComponent>();
-            if (meshComponent)
+            IShaderPipeline *shaderPipeline =
+                meshComponent->getShaderPipeline();
+            if (shaderPipeline)
             {
-                IShaderPipeline *shaderPipeline =
-                    meshComponent->getShaderPipeline();
-                if (shaderPipeline)
-                {
-                    shaderPipeline->setIsDebugQuery(true);
-                }
+                shaderPipeline->setIsDebugQuery(isDebugQueryOn_);
             }
         }
     }
@@ -516,6 +512,9 @@ void Application::checkForPipelineUpdates()
 void Application::updateEntities()
 {
     Mesh *horseMesh = meshManager_.getMesh("horsie");
+    horseMesh->instances.resize(
+        nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
+    );
     float maxSpan = std::max<float>(
         std::max<float>(
             horseMesh->getGeometry()->meshBounds.getWidth(),
@@ -526,16 +525,16 @@ void Application::updateEntities()
     float instanceSpanX = 2.0f * maxSpan;
     float instanceSpanY = 2.0f * maxSpan;
     float instanceSpanZ = 2.0f * maxSpan;
-    float totalSpanX = N_INSTANCE_COLUMNS * instanceSpanX;
-    float totalSpanY = N_INSTANCE_LAYERS * instanceSpanY;
-    float totalSpanZ = N_INSTANCE_ROWS * instanceSpanZ;
+    float totalSpanX = nInstanceColumns_ * instanceSpanX;
+    float totalSpanY = nInstanceLayers_ * instanceSpanY;
+    float totalSpanZ = nInstanceRows_ * instanceSpanZ;
 
-    for (uint32_t rowIndex = 0; rowIndex < N_INSTANCE_ROWS; ++rowIndex)
+    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows_; ++rowIndex)
     {
-        for (uint32_t layerIndex = 0; layerIndex < N_INSTANCE_LAYERS;
+        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers_;
              ++layerIndex)
         {
-            for (uint32_t columnIndex = 0; columnIndex < N_INSTANCE_COLUMNS;
+            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns_;
                  ++columnIndex)
             {
                 float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
@@ -546,8 +545,8 @@ void Application::updateEntities()
                           instanceSpanZ / 2.f;
 
                 uint32_t index =
-                    (layerIndex * N_INSTANCE_ROWS * N_INSTANCE_COLUMNS) +
-                    (rowIndex * N_INSTANCE_COLUMNS) + columnIndex;
+                    (layerIndex * nInstanceRows_ * nInstanceColumns_) +
+                    (rowIndex * nInstanceColumns_) + columnIndex;
                 float t = static_cast<float>(glfwGetTime()) +
                           ((columnIndex ^ rowIndex + columnIndex) / 10.f);
                 glm::vec4 rotationVector;
