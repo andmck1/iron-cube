@@ -321,6 +321,8 @@ bool InstancedMeshVulkanShaderPipeline::draw()
 
 bool InstancedMeshVulkanShaderPipeline::postRender()
 {
+    if (!isDebugQuery_)
+        return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
