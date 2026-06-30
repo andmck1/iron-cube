@@ -1,5 +1,5 @@
 #include "helpers/globals.h"
-#include "core_layer/debug.h"
+#include "layer/debug.h"
 #include "core_ecs/component/mesh.h"
 #include "core_ecs/ecs.h"
 #include "core_render/irenderer.h"

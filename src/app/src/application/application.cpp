@@ -9,8 +9,8 @@
 #include "core_mesh/mesh.h"
 #include "core_service/servicelocator.h"
 #include "core_config/config.h"
-#include "core_layer/scene.h"
-#include "core_layer/debug.h"
+#include "layer/scene.h"
+#include "layer/debug.h"
 #include "core_common/helpers.h"
 
 #include "shaderpipeline/standard.h"
