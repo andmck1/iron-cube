@@ -1,4 +1,5 @@
 #include "core_buffertypes/buffertypes.h"
+#include "shader/shared/helpers.slangh"
 #include "shader/shared/buffertypes.h"
 
 ConstantBuffer<SceneBuffer> scene;
@@ -144,25 +145,4 @@ bool VisibleFrustumConeAndNearPlane(float4 sphere)
     bool i2 = (planeDistance > 0); // On positive half space of near plane
 
     return i0 && (i1 || i2);
-}
-
-// TODO - define column/row major so is always consistent
-float4x4 modelMatrix(float4 T, float4 R, float4 S)
-{
-    float cx = cos(R.x), sx = sin(R.x);
-    float cy = cos(R.y), sy = sin(R.y);
-    float cz = cos(R.z), sz = sin(R.z);
-
-    return float4x4(
-        // row 0
-        S.x * (cy * cz), S.y * (cy * sz), S.z * (-sy), T.x,
-        // row 1
-        S.x * (sx * sy * cz - cx * sz), S.y * (sx * sy * sz + cx * cz),
-        S.z * (sx * cy), T.y,
-        // row 2
-        S.x * (cx * sy * cz + sx * sz), S.y * (cx * sy * sz - sx * cz),
-        S.z * (cx * cy), T.z,
-        // row 3
-        0, 0, 0, 1.0
-    );
 }

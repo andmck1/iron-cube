@@ -1,4 +1,5 @@
 #include "core_buffertypes/buffertypes.h"
+#include "shader/shared/helpers.slangh"
 #include "shader/shared/buffertypes.h"
 
 ConstantBuffer<MVPBuffer> mvp;
