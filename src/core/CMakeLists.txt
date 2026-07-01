@@ -14,7 +14,6 @@ add_library(
     src/core_ecs/component/mesh.cpp
     src/core_ecs/component/transform.cpp
     src/core_ecs/ecs.cpp
-
     src/core_mesh/mesh.cpp
     src/core_mesh/meshmanager.cpp
     src/core_platform/linux/inputglfw.cpp
@@ -56,4 +55,5 @@ target_link_libraries(
         meshoptimizer
         Vulkan::Vulkan
         yaml-cpp
+        NVML::NVML
 )
