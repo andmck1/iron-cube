@@ -90,13 +90,13 @@ bool DebugLayer::frame()
                         debugData_->timer->getFrameTime() * 100;
 
                     ImGui::Text(
-                        "Pipeline Update Time (ms): %.2f", pipelineUpdateTime
+                        "Pipeline Update Time (ms): %.0f", pipelineUpdateTime
                     );
                     ImGui::Text(
-                        "Pipeline Draw Time (ms): %.2f", pipelineDrawTime
+                        "Pipeline Draw Time (ms): %.0f", pipelineDrawTime
                     );
                     ImGui::Text(
-                        "%% GPU time of frame time: %.2f%%",
+                        "%% GPU time of frame time: %.0f%%",
                         percentGPUTimeOfTotalFrameTime
                     );
                     switch (pipelineStatistics.pipelineType)
