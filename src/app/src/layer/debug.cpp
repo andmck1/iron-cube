@@ -71,7 +71,7 @@ bool DebugLayer::frame()
             if (ImGui::BeginTable(
                     "gpuStats", 4,
                     ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-                        ImGuiTableFlags_SizingStretchSame
+                        ImGuiTableFlags_SizingFixedFit
                 ))
             {
                 ImGui::TableSetupColumn("Device");
@@ -142,7 +142,7 @@ bool DebugLayer::frame()
                     if (ImGui::BeginTable(
                             "pipelineStats", 2,
                             ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-                                ImGuiTableFlags_SizingStretchSame
+                                ImGuiTableFlags_SizingFixedFit
                         ))
                     {
                         ImGui::TableSetupColumn("Metric");

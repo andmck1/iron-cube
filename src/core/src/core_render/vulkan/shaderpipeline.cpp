@@ -1,6 +1,5 @@
 #include "core_render/vulkan/shaderpipeline.h"
 #include "core_render/vulkan/renderer.h"
-#include "core_service/servicelocator.h"
 #include <spdlog/spdlog.h>
 
 std::optional<vk::raii::Pipeline> &VulkanShaderPipeline::getGraphicsPipeline()
@@ -42,44 +41,26 @@ bool VulkanShaderPipeline::initDescriptorLayout()
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
     uint32_t bindingIndex = 0;
 
-    // TODO - duplicated code here
-    for (const std::vector<VulkanBufferUniform> &frameBuffers : uniformBuffers_)
-    {
-        const VulkanBufferUniform &buffer = frameBuffers.front();
-        bindings.emplace_back(
-            vk::DescriptorSetLayoutBinding{}
-                .setBinding(bindingIndex++)
-                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                .setDescriptorCount(1)
-                .setStageFlags(buffer.stageFlags)
-        );
-    }
-
-    for (const std::vector<VulkanBufferRWStorage> &frameBuffers :
-         storageRWBuffers_)
-    {
-        const VulkanBufferRWStorage &buffer = frameBuffers.front();
-        bindings.emplace_back(
-            vk::DescriptorSetLayoutBinding{}
-                .setBinding(bindingIndex++)
-                .setDescriptorType(vk::DescriptorType::eStorageBuffer)
-                .setDescriptorCount(1)
-                .setStageFlags(buffer.stageFlags)
-        );
-    }
-
-    for (const std::vector<VulkanBufferRStorage> &frameBuffers :
-         storageRBuffers_)
-    {
-        const VulkanBufferRStorage &buffer = frameBuffers.front();
-        bindings.emplace_back(
-            vk::DescriptorSetLayoutBinding{}
-                .setBinding(bindingIndex++)
-                .setDescriptorType(vk::DescriptorType::eStorageBuffer)
-                .setDescriptorCount(1)
-                .setStageFlags(buffer.stageFlags)
-        );
-    }
+    initBufferDescriptorLayout<VulkanBufferUniform>(
+        uniformBuffers_, bindingIndex, vk::DescriptorType::eUniformBuffer,
+        &bindings
+    );
+    initBufferDescriptorLayout<VulkanBufferStaticRWStorage>(
+        staticStorageRWBuffers_, bindingIndex,
+        vk::DescriptorType::eStorageBuffer, &bindings
+    );
+    initBufferDescriptorLayout<VulkanBufferStaticRStorage>(
+        staticStorageRBuffers_, bindingIndex,
+        vk::DescriptorType::eStorageBuffer, &bindings
+    );
+    initBufferDescriptorLayout<VulkanBufferDynamicRWStorage>(
+        dynamicStorageRWBuffers_, bindingIndex,
+        vk::DescriptorType::eStorageBuffer, &bindings
+    );
+    initBufferDescriptorLayout<VulkanBufferDynamicRStorage>(
+        dynamicStorageRBuffers_, bindingIndex,
+        vk::DescriptorType::eStorageBuffer, &bindings
+    );
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo =
         vk::DescriptorSetLayoutCreateInfo{}
@@ -110,7 +91,8 @@ bool VulkanShaderPipeline::createDescriptorPool()
     }
 
     uint totalNStorageBuffers =
-        storageRBuffers_.size() + storageRWBuffers_.size();
+        staticStorageRBuffers_.size() + staticStorageRWBuffers_.size() +
+        dynamicStorageRBuffers_.size() + dynamicStorageRWBuffers_.size();
     if (totalNStorageBuffers > 0)
     {
         poolSizes.emplace_back(
@@ -159,44 +141,38 @@ bool VulkanShaderPipeline::initDescriptorSets()
         std::vector<vk::DescriptorBufferInfo> bufferInfos;
 
         uint totalNStorageBuffers =
-            storageRBuffers_.size() + storageRWBuffers_.size();
+            staticStorageRBuffers_.size() + staticStorageRWBuffers_.size() +
+            dynamicStorageRBuffers_.size() + dynamicStorageRWBuffers_.size();
         size_t totalBuffers = uniformBuffers_.size() + totalNStorageBuffers;
         descriptorWrites.reserve(totalBuffers);
         bufferInfos.reserve(totalBuffers);
 
         uint32_t bindingIndex = 0;
 
-        for (size_t bufferIndex = 0; bufferIndex < uniformBuffers_.size();
-             bufferIndex++)
-        {
-            addBufferWrite(
-                descriptorSets_[frameIndex], bindingIndex++,
-                vk::DescriptorType::eUniformBuffer,
-                uniformBuffers_[bufferIndex][frameIndex].getBuffer(),
-                VK_WHOLE_SIZE, descriptorWrites, bufferInfos
-            );
-        }
-
-        for (size_t bufferIndex = 0; bufferIndex < storageRWBuffers_.size();
-             bufferIndex++)
-        {
-            addBufferWrite(
-                descriptorSets_[frameIndex], bindingIndex++,
-                vk::DescriptorType::eStorageBuffer,
-                storageRWBuffers_[bufferIndex][frameIndex].getBuffer(),
-                VK_WHOLE_SIZE, descriptorWrites, bufferInfos
-            );
-        }
-        for (size_t bufferIndex = 0; bufferIndex < storageRBuffers_.size();
-             bufferIndex++)
-        {
-            addBufferWrite(
-                descriptorSets_[frameIndex], bindingIndex++,
-                vk::DescriptorType::eStorageBuffer,
-                storageRBuffers_[bufferIndex][frameIndex].getBuffer(),
-                VK_WHOLE_SIZE, descriptorWrites, bufferInfos
-            );
-        }
+        initBufferDescriptorSet<VulkanBufferUniform>(
+            uniformBuffers_, frameIndex, vk::DescriptorType::eUniformBuffer,
+            bindingIndex, &descriptorWrites, &bufferInfos
+        );
+        initBufferDescriptorSet<VulkanBufferStaticRWStorage>(
+            staticStorageRWBuffers_, frameIndex,
+            vk::DescriptorType::eStorageBuffer, bindingIndex, &descriptorWrites,
+            &bufferInfos
+        );
+        initBufferDescriptorSet<VulkanBufferStaticRStorage>(
+            staticStorageRBuffers_, frameIndex,
+            vk::DescriptorType::eStorageBuffer, bindingIndex, &descriptorWrites,
+            &bufferInfos
+        );
+        initBufferDescriptorSet<VulkanBufferDynamicRWStorage>(
+            dynamicStorageRWBuffers_, frameIndex,
+            vk::DescriptorType::eStorageBuffer, bindingIndex, &descriptorWrites,
+            &bufferInfos
+        );
+        initBufferDescriptorSet<VulkanBufferDynamicRStorage>(
+            dynamicStorageRBuffers_, frameIndex,
+            vk::DescriptorType::eStorageBuffer, bindingIndex, &descriptorWrites,
+            &bufferInfos
+        );
 
         renderer->getDevice().updateDescriptorSets(descriptorWrites, {});
     }
@@ -207,54 +183,8 @@ bool VulkanShaderPipeline::initDescriptorSets()
 void VulkanShaderPipeline::shutdownBuffers()
 {
     uniformBuffers_.clear();
-    storageRBuffers_.clear();
-    storageRWBuffers_.clear();
-}
-
-void VulkanShaderPipeline::addUniformBuffer(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
-)
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    uniformBuffers_.push_back({});
-    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        VulkanBufferUniform newBuffer;
-        newBuffer.init(bufferSize, data, stageFlags);
-        uniformBuffers_.back().emplace_back(std::move(newBuffer));
-    }
-}
-
-void VulkanShaderPipeline::addStorageRBuffer(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
-)
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    storageRBuffers_.push_back({});
-    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        VulkanBufferRStorage newBuffer;
-        newBuffer.init(bufferSize, data, stageFlags);
-        storageRBuffers_.back().emplace_back(std::move(newBuffer));
-    }
-}
-
-void VulkanShaderPipeline::addStorageRWBuffer(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
-)
-{
-    VulkanRenderer *renderer = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-    storageRWBuffers_.push_back({});
-    for (size_t i = 0; i < renderer->MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        VulkanBufferRWStorage newBuffer;
-        newBuffer.init(bufferSize, data, stageFlags);
-        storageRWBuffers_.back().emplace_back(std::move(newBuffer));
-    }
+    staticStorageRWBuffers_.clear();
+    staticStorageRBuffers_.clear();
+    dynamicStorageRWBuffers_.clear();
+    dynamicStorageRBuffers_.clear();
 }

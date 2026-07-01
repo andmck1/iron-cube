@@ -63,8 +63,8 @@ bool InstancedVertexVulkanShaderPipeline::shutdown()
 
 void InstancedVertexVulkanShaderPipeline::initUniformBuffers()
 {
-    addUniformBuffer(
-        sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
+    addBuffer<VulkanBufferUniform>(
+        uniformBuffers_, sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
 }
@@ -74,9 +74,9 @@ void InstancedVertexVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
-    addStorageRWBuffer(
-        debugDataBufferSize, debugDataBufferData_.data(),
-        vk::ShaderStageFlagBits::eAll
+    addBuffer<VulkanBufferStaticRWStorage>(
+        staticStorageRWBuffers_, debugDataBufferSize,
+        debugDataBufferData_.data(), vk::ShaderStageFlagBits::eAll
     );
 }
 
@@ -322,7 +322,7 @@ bool InstancedVertexVulkanShaderPipeline::update()
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
+    staticStorageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -354,7 +354,7 @@ bool InstancedVertexVulkanShaderPipeline::postRender()
         return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
+    staticStorageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
                                  vk::PipelineStageFlagBits::eFragmentShader
     );
@@ -376,7 +376,7 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
+    staticStorageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =
