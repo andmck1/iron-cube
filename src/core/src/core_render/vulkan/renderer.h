@@ -23,6 +23,7 @@ class VulkanRenderer : public IRenderer
     bool shutdown() override;
     bool isWireframeMode() const override;
     void setWireframeMode(bool enabled) override;
+    float getFrameWaitTime() override;
 
     vk::raii::Device &getDevice();
     vk::raii::PhysicalDevice &getPhysicalDevice();
@@ -204,4 +205,6 @@ class VulkanRenderer : public IRenderer
 
     // Unlikely I'll ever want to turn these off
     bool enableValidationLayers_ = true;
+
+    float frameWaitTime_;
 };

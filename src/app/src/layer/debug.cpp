@@ -123,11 +123,11 @@ bool DebugLayer::frame()
                         meshComponent->getShaderPipeline()->updateTime * 1000.0;
                     float pipelineDrawTime =
                         meshComponent->getShaderPipeline()->drawTime * 1000.0;
+                    float fenceWaitTime =
+                        renderer_->getFrameWaitTime() * 1000.0;
                     float percentGPUTimeOfTotalFrameTime =
-                        ((meshComponent->getShaderPipeline()->updateTime *
-                          1000.0) +
-                         (meshComponent->getShaderPipeline()->drawTime *
-                          1000.0)) /
+                        (pipelineUpdateTime + pipelineDrawTime +
+                         fenceWaitTime) /
                         debugData_->timer->getFrameTime() * 100;
 
                     uint nInstances =
@@ -160,6 +160,12 @@ bool DebugLayer::frame()
                         ImGui::Text("Pipeline Draw Time (ms)");
                         ImGui::TableSetColumnIndex(1);
                         ImGui::Text("%.0f", pipelineDrawTime);
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("Fence Wait Time (ms)");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%.0f", fenceWaitTime);
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);

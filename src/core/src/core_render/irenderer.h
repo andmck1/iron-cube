@@ -37,4 +37,5 @@ class IRenderer
     virtual bool renderImGui() = 0;
     virtual bool isWireframeMode() const = 0;
     virtual void setWireframeMode(bool enabled) = 0;
+    virtual float getFrameWaitTime() = 0;
 };
