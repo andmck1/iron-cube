@@ -88,8 +88,7 @@ FrustumCone CameraActor::getFrustumCone(bool fitFarClip)
 
     float halfV = vFovRad / 2.0f;
     float halfH = hFovRad / 2.0f;
-    cone.angle =
-        std::acos(std::cos(halfV) * std::cos(halfH));
+    cone.angle = std::acos(std::cos(halfV) * std::cos(halfH));
 
     if (fitFarClip)
     {

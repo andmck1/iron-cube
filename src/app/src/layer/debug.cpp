@@ -37,8 +37,30 @@ bool DebugLayer::frame()
     if (ImGui::CollapsingHeader("Statistics"))
     {
         ImGui::SeparatorText("Render Time");
-        ImGui::Text("FPS: %.1f", debugData_->timer->getFps());
-        ImGui::Text("Frame Time: %.2f ms", debugData_->timer->getFrameTime());
+        if (ImGui::BeginTable(
+                "renderTime", 2,
+                ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                    ImGuiTableFlags_SizingFixedFit
+            ))
+        {
+            ImGui::TableSetupColumn("Metric");
+            ImGui::TableSetupColumn("Value");
+            ImGui::TableHeadersRow();
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("FPS");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%.1f", debugData_->timer->getFps());
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Frame Time");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%.2f ms", debugData_->timer->getFrameTime());
+
+            ImGui::EndTable();
+        }
 
         ImGui::Checkbox(
             "Collect GPU and Pipeline Stats?", debugData_->isDebugStatsOn
@@ -46,23 +68,42 @@ bool DebugLayer::frame()
         if (*debugData_->isDebugStatsOn)
         {
             ImGui::SeparatorText("GPU");
-            for (GPUStats gpuDeviceStats : *debugData_->gpuStats)
+            if (ImGui::BeginTable(
+                    "gpuStats", 4,
+                    ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                        ImGuiTableFlags_SizingStretchSame
+                ))
             {
-                ImGui::Text("GPU Device: %s", gpuDeviceStats.name.c_str());
-                ImGui::Text(
-                    "GPU %% Time Kernels Busy: %d%%",
-                    gpuDeviceStats.utilisation.percent_kernel_executing
-                );
-                ImGui::Text(
-                    "GPU %% Time Memory RW Busy: %d%%",
-                    gpuDeviceStats.utilisation.percent_memoryrw_busy
-                );
-                ImGui::Text(
-                    "GPU Memory Utilisation: %.2f/%.2f (%.2f)%%",
-                    gpuDeviceStats.memory.used,
-                    (gpuDeviceStats.memory.free + gpuDeviceStats.memory.used),
-                    gpuDeviceStats.memory.percent_utilisation
-                );
+                ImGui::TableSetupColumn("Device");
+                ImGui::TableSetupColumn("Kernel Busy %%");
+                ImGui::TableSetupColumn("Memory RW Busy %%");
+                ImGui::TableSetupColumn("Memory Usage");
+                ImGui::TableHeadersRow();
+
+                for (GPUStats gpuDeviceStats : *debugData_->gpuStats)
+                {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("%s", gpuDeviceStats.name.c_str());
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text(
+                        "%d%%",
+                        gpuDeviceStats.utilisation.percent_kernel_executing
+                    );
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::Text(
+                        "%d%%", gpuDeviceStats.utilisation.percent_memoryrw_busy
+                    );
+                    ImGui::TableSetColumnIndex(3);
+                    ImGui::Text(
+                        "%.2f/%.2f (%.2f)%%", gpuDeviceStats.memory.used,
+                        (gpuDeviceStats.memory.free +
+                         gpuDeviceStats.memory.used),
+                        gpuDeviceStats.memory.percent_utilisation
+                    );
+                }
+
+                ImGui::EndTable();
             }
 
             ImGui::SeparatorText("Pipeline");
@@ -89,44 +130,6 @@ bool DebugLayer::frame()
                           1000.0)) /
                         debugData_->timer->getFrameTime() * 100;
 
-                    ImGui::Text(
-                        "Pipeline Update Time (ms): %.0f", pipelineUpdateTime
-                    );
-                    ImGui::Text(
-                        "Pipeline Draw Time (ms): %.0f", pipelineDrawTime
-                    );
-                    ImGui::Text(
-                        "%% GPU time of frame time: %.0f%%",
-                        percentGPUTimeOfTotalFrameTime
-                    );
-                    switch (pipelineStatistics.pipelineType)
-                    {
-                    case PipelineStatistics::PipelineType::TRADITIONAL:
-                        ImGui::Text(
-                            "%s VS: %.3e", entity->getName().c_str(),
-                            (double) pipelineStatistics.nVertexShaderInvocations
-                        );
-                        break;
-                    case PipelineStatistics::PipelineType::MESH:
-                        ImGui::Text(
-                            "%s TS: %.3e", entity->getName().c_str(),
-                            (double) pipelineStatistics.nTaskShaderInvocations
-                        );
-                        ImGui::Text(
-                            "%s MS: %.3e", entity->getName().c_str(),
-                            (double) pipelineStatistics.nMeshShaderInvocations
-                        );
-                        break;
-                    default:
-                        spdlog::warn(
-                            "Pipeline type not supported for debug data"
-                        );
-                    }
-                    ImGui::Text(
-                        "%s PS: %d", entity->getName().c_str(),
-                        pipelineStatistics.nFragmentShaderInvocations
-                    );
-
                     uint nInstances =
                         meshComponent->getMesh()->instances.size();
                     uint nMeshlets = meshComponent->getMesh()
@@ -135,24 +138,154 @@ bool DebugLayer::frame()
                     uint nVertices = meshComponent->getMesh()
                                          ->getGeometry()
                                          ->meshletVertices.size();
-                    ImGui::Text("N Instances: %.3e", (double) nInstances);
-                    ImGui::Text(
-                        "N Vertices per Instance: %.3e", (double) nVertices
-                    );
-                    ImGui::Text(
-                        "N Total Vertices: %.3e",
-                        (double((nVertices * nInstances)))
-                    );
 
-                    if (pipelineStatistics.pipelineType ==
-                        PipelineStatistics::PipelineType::MESH)
+                    if (ImGui::BeginTable(
+                            "pipelineStats", 2,
+                            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                                ImGuiTableFlags_SizingStretchSame
+                        ))
                     {
-                        ImGui::Text(
-                            "N Meshlets per Instance: %.3e", (double) nMeshlets
-                        );
-                        ImGui::Text(
-                            "N Total Meshlets: %.3e",
-                            (double((nMeshlets * nInstances)))
+                        ImGui::TableSetupColumn("Metric");
+                        ImGui::TableSetupColumn("Value");
+                        ImGui::TableHeadersRow();
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("Pipeline Update Time (ms)");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%.0f", pipelineUpdateTime);
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("Pipeline Draw Time (ms)");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%.0f", pipelineDrawTime);
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("%% GPU Time of Frame");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%.0f%%", percentGPUTimeOfTotalFrameTime);
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("N Instances");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%.3e", (double) nInstances);
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("N Vertices per Instance");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%.3e", (double) nVertices);
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("N Total Vertices");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%.3e", (double((nVertices * nInstances))));
+
+                        if (pipelineStatistics.pipelineType ==
+                            PipelineStatistics::PipelineType::MESH)
+                        {
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("N Meshlets per Instance");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text("%.3e", (double) nMeshlets);
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("Total Meshlets");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%.3e", (double((nMeshlets * nInstances)))
+                            );
+                        }
+
+                        ImGui::EndTable();
+                    }
+
+                    switch (pipelineStatistics.pipelineType)
+                    {
+                    case PipelineStatistics::PipelineType::TRADITIONAL:
+                        if (ImGui::BeginTable(
+                                "shaderInvocationsTraditional", 2,
+                                ImGuiTableFlags_Borders |
+                                    ImGuiTableFlags_RowBg |
+                                    ImGuiTableFlags_SizingFixedFit
+                            ))
+                        {
+                            ImGui::TableSetupColumn("Shader");
+                            ImGui::TableSetupColumn("Invocations");
+                            ImGui::TableHeadersRow();
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("%s VS", entity->getName().c_str());
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%.3e", (double) pipelineStatistics
+                                            .nVertexShaderInvocations
+                            );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("%s PS", entity->getName().c_str());
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%d",
+                                pipelineStatistics.nFragmentShaderInvocations
+                            );
+
+                            ImGui::EndTable();
+                        }
+                        break;
+                    case PipelineStatistics::PipelineType::MESH:
+                        if (ImGui::BeginTable(
+                                "shaderInvocationsMesh", 2,
+                                ImGuiTableFlags_Borders |
+                                    ImGuiTableFlags_RowBg |
+                                    ImGuiTableFlags_SizingFixedFit
+                            ))
+                        {
+                            ImGui::TableSetupColumn("Shader");
+                            ImGui::TableSetupColumn("Invocations");
+                            ImGui::TableHeadersRow();
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("%s TS", entity->getName().c_str());
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%.3e", (double) pipelineStatistics
+                                            .nTaskShaderInvocations
+                            );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("%s MS", entity->getName().c_str());
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%.3e", (double) pipelineStatistics
+                                            .nMeshShaderInvocations
+                            );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("%s PS", entity->getName().c_str());
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%d",
+                                pipelineStatistics.nFragmentShaderInvocations
+                            );
+
+                            ImGui::EndTable();
+                        }
+                        break;
+                    default:
+                        spdlog::warn(
+                            "Pipeline type not supported for debug data"
                         );
                     }
                 }

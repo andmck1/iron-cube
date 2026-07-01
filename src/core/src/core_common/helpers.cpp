@@ -45,7 +45,7 @@ std::vector<GPUStats> queryGPUStats()
         stats[0].memory.total =
             (float) memory.total / (float) (1024 * 1024 * 1024);
         stats[0].memory.percent_utilisation =
-            (float) (memory.used) / (float) (memory.free + memory.used);
+            (float) (memory.used) / (float) (memory.free + memory.used) * 100.0;
         nvmlUtilization_t utilisation;
         nvmlDeviceGetUtilizationRates(device, &utilisation);
         stats[0].utilisation.percent_kernel_executing = utilisation.gpu;
