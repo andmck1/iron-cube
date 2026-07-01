@@ -45,21 +45,13 @@ bool VulkanShaderPipeline::initDescriptorLayout()
         uniformBuffers_, bindingIndex, vk::DescriptorType::eUniformBuffer,
         &bindings
     );
-    initBufferDescriptorLayout<VulkanBufferStaticRWStorage>(
-        staticStorageRWBuffers_, bindingIndex,
-        vk::DescriptorType::eStorageBuffer, &bindings
+    initBufferDescriptorLayout<VulkanBufferRWStorage>(
+        storageRWBuffers_, bindingIndex, vk::DescriptorType::eStorageBuffer,
+        &bindings
     );
-    initBufferDescriptorLayout<VulkanBufferStaticRStorage>(
-        staticStorageRBuffers_, bindingIndex,
-        vk::DescriptorType::eStorageBuffer, &bindings
-    );
-    initBufferDescriptorLayout<VulkanBufferDynamicRWStorage>(
-        dynamicStorageRWBuffers_, bindingIndex,
-        vk::DescriptorType::eStorageBuffer, &bindings
-    );
-    initBufferDescriptorLayout<VulkanBufferDynamicRStorage>(
-        dynamicStorageRBuffers_, bindingIndex,
-        vk::DescriptorType::eStorageBuffer, &bindings
+    initBufferDescriptorLayout<VulkanBufferRStorage>(
+        storageRBuffers_, bindingIndex, vk::DescriptorType::eStorageBuffer,
+        &bindings
     );
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo =
@@ -91,8 +83,7 @@ bool VulkanShaderPipeline::createDescriptorPool()
     }
 
     uint totalNStorageBuffers =
-        staticStorageRBuffers_.size() + staticStorageRWBuffers_.size() +
-        dynamicStorageRBuffers_.size() + dynamicStorageRWBuffers_.size();
+        storageRBuffers_.size() + storageRWBuffers_.size();
     if (totalNStorageBuffers > 0)
     {
         poolSizes.emplace_back(
@@ -141,8 +132,7 @@ bool VulkanShaderPipeline::initDescriptorSets()
         std::vector<vk::DescriptorBufferInfo> bufferInfos;
 
         uint totalNStorageBuffers =
-            staticStorageRBuffers_.size() + staticStorageRWBuffers_.size() +
-            dynamicStorageRBuffers_.size() + dynamicStorageRWBuffers_.size();
+            storageRBuffers_.size() + storageRWBuffers_.size();
         size_t totalBuffers = uniformBuffers_.size() + totalNStorageBuffers;
         descriptorWrites.reserve(totalBuffers);
         bufferInfos.reserve(totalBuffers);
@@ -153,25 +143,13 @@ bool VulkanShaderPipeline::initDescriptorSets()
             uniformBuffers_, frameIndex, vk::DescriptorType::eUniformBuffer,
             bindingIndex, &descriptorWrites, &bufferInfos
         );
-        initBufferDescriptorSet<VulkanBufferStaticRWStorage>(
-            staticStorageRWBuffers_, frameIndex,
-            vk::DescriptorType::eStorageBuffer, bindingIndex, &descriptorWrites,
-            &bufferInfos
+        initBufferDescriptorSet<VulkanBufferRWStorage>(
+            storageRWBuffers_, frameIndex, vk::DescriptorType::eStorageBuffer,
+            bindingIndex, &descriptorWrites, &bufferInfos
         );
-        initBufferDescriptorSet<VulkanBufferStaticRStorage>(
-            staticStorageRBuffers_, frameIndex,
-            vk::DescriptorType::eStorageBuffer, bindingIndex, &descriptorWrites,
-            &bufferInfos
-        );
-        initBufferDescriptorSet<VulkanBufferDynamicRWStorage>(
-            dynamicStorageRWBuffers_, frameIndex,
-            vk::DescriptorType::eStorageBuffer, bindingIndex, &descriptorWrites,
-            &bufferInfos
-        );
-        initBufferDescriptorSet<VulkanBufferDynamicRStorage>(
-            dynamicStorageRBuffers_, frameIndex,
-            vk::DescriptorType::eStorageBuffer, bindingIndex, &descriptorWrites,
-            &bufferInfos
+        initBufferDescriptorSet<VulkanBufferRStorage>(
+            storageRBuffers_, frameIndex, vk::DescriptorType::eStorageBuffer,
+            bindingIndex, &descriptorWrites, &bufferInfos
         );
 
         renderer->getDevice().updateDescriptorSets(descriptorWrites, {});
@@ -183,8 +161,6 @@ bool VulkanShaderPipeline::initDescriptorSets()
 void VulkanShaderPipeline::shutdownBuffers()
 {
     uniformBuffers_.clear();
-    staticStorageRWBuffers_.clear();
-    staticStorageRBuffers_.clear();
-    dynamicStorageRWBuffers_.clear();
-    dynamicStorageRBuffers_.clear();
+    storageRWBuffers_.clear();
+    storageRBuffers_.clear();
 }

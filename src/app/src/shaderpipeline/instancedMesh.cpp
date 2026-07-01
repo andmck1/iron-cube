@@ -177,45 +177,45 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
     // defined somehow
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    addBuffer<VulkanBufferStaticRWStorage>(
-        staticStorageRWBuffers_, debugDataBufferSize,
+    addBuffer<VulkanBufferRWStorage>(
+        storageRWBuffers_, debugDataBufferSize,
         debugDataBufferData_.data(), vk::ShaderStageFlagBits::eAll
     );
     debugDataStorageRWBufferIndex_ = 0;
 
     vk::DeviceSize vertexBufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
-    addBuffer<VulkanBufferStaticRStorage>(
-        staticStorageRBuffers_, vertexBufferSize, geometry_->vertices.data(),
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, vertexBufferSize, geometry_->vertices.data(),
         vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize meshletBufferSize =
         sizeof(meshopt_Meshlet) * geometry_->meshlets.size();
-    addBuffer<VulkanBufferStaticRStorage>(
-        staticStorageRBuffers_, meshletBufferSize, geometry_->meshlets.data(),
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, meshletBufferSize, geometry_->meshlets.data(),
         vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize meshletVerticesBufferSize =
         sizeof(uint32_t) * geometry_->meshletVertices.size();
-    addBuffer<VulkanBufferStaticRStorage>(
-        staticStorageRBuffers_, meshletVerticesBufferSize,
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, meshletVerticesBufferSize,
         geometry_->meshletVertices.data(), vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize meshletTrianglesBufferSize =
         sizeof(uint32_t) * geometry_->meshletTrianglesU32.size();
-    addBuffer<VulkanBufferStaticRStorage>(
-        staticStorageRBuffers_, meshletTrianglesBufferSize,
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, meshletTrianglesBufferSize,
         geometry_->meshletTrianglesU32.data(), vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
         MAX_N_INSTANCE_ROWS;
-    addBuffer<VulkanBufferStaticRStorage>(
-        staticStorageRBuffers_, instancesBufferSize,
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, instancesBufferSize,
         updateData_->instances->data(),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
@@ -223,8 +223,8 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
 
     vk::DeviceSize meshletBoundingSpheresBufferSize =
         sizeof(glm::vec4) * geometry_->meshletBoundingSpheres.size();
-    addBuffer<VulkanBufferStaticRStorage>(
-        staticStorageRBuffers_, meshletBoundingSpheresBufferSize,
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, meshletBoundingSpheresBufferSize,
         geometry_->meshletBoundingSpheres.data(),
         vk::ShaderStageFlagBits::eTaskEXT
     );
@@ -290,7 +290,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
     // This takes up most of the frame time
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * updateData_->instances->size();
-    staticStorageRBuffers_[instancesStorageRBufferIndex_]
+    storageRBuffers_[instancesStorageRBufferIndex_]
                     [renderer_->getCurrentFrameIndex()]
                         .update(
                             instancesBufferSize, updateData_->instances->data()
@@ -300,7 +300,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    staticStorageRWBuffers_[debugDataStorageRWBufferIndex_]
+    storageRWBuffers_[debugDataStorageRWBufferIndex_]
                      [renderer_->getCurrentFrameIndex()]
                          .update(
                              debugDataBufferSize, debugDataBufferData_.data()
@@ -338,7 +338,7 @@ bool InstancedMeshVulkanShaderPipeline::postRender()
         return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    staticStorageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eTaskShaderEXT |
                                  vk::PipelineStageFlagBits::eMeshShaderEXT |
                                  vk::PipelineStageFlagBits::eFragmentShader
@@ -362,7 +362,7 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
     // a pointer
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    staticStorageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nTaskShaderInvocations =

@@ -96,13 +96,8 @@ class VulkanShaderPipeline : public IShaderPipeline
     vk::raii::PipelineLayout pipelineLayout_ = nullptr;
 
     std::vector<std::vector<VulkanBufferUniform>> uniformBuffers_;
-    std::vector<std::vector<VulkanBufferStaticRStorage>> staticStorageRBuffers_;
-    std::vector<std::vector<VulkanBufferStaticRWStorage>>
-        staticStorageRWBuffers_;
-    std::vector<std::vector<VulkanBufferDynamicRStorage>>
-        dynamicStorageRBuffers_;
-    std::vector<std::vector<VulkanBufferDynamicRWStorage>>
-        dynamicStorageRWBuffers_;
+    std::vector<std::vector<VulkanBufferRStorage>> storageRBuffers_;
+    std::vector<std::vector<VulkanBufferRWStorage>> storageRWBuffers_;
 
     std::vector<DebugDataBuffer> debugDataBufferData_ = {DebugDataBuffer()};
 };

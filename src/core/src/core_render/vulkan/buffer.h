@@ -69,34 +69,10 @@ class VulkanBufferUniform : public VulkanBufferMultiStageBase
     void *mappedPointer_ = nullptr;
 };
 
-class VulkanBufferDynamicStorageBase : public VulkanBufferMultiStageBase
+class VulkanBufferStorageBase : public VulkanBufferMultiStageBase
 {
     public:
-    VulkanBufferDynamicStorageBase(
-        vk::Flags<vk::BufferUsageFlagBits> stagingFlags,
-        vk::Flags<vk::BufferUsageFlagBits> bufferFlags
-    )
-        : stagingBufferUsageFlags_(stagingFlags), bufferUsageFlags_(bufferFlags)
-    {
-    }
-    void init(
-        vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
-    ) override;
-
-    void update(vk::DeviceSize bufferSize, void *data);
-
-    void *getMappedPointer();
-
-    protected:
-    void *mappedPointer_ = nullptr;
-    const vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_;
-    const vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_;
-};
-
-class VulkanBufferStaticStorageBase : public VulkanBufferMultiStageBase
-{
-    public:
-    VulkanBufferStaticStorageBase(
+    VulkanBufferStorageBase(
         vk::Flags<vk::BufferUsageFlagBits> stagingFlags,
         vk::Flags<vk::BufferUsageFlagBits> bufferFlags
     )
@@ -112,11 +88,11 @@ class VulkanBufferStaticStorageBase : public VulkanBufferMultiStageBase
     const vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_;
 };
 
-class VulkanBufferStaticRStorage : public VulkanBufferStaticStorageBase
+class VulkanBufferRStorage : public VulkanBufferStorageBase
 {
     public:
-    VulkanBufferStaticRStorage()
-        : VulkanBufferStaticStorageBase(
+    VulkanBufferRStorage()
+        : VulkanBufferStorageBase(
               vk::BufferUsageFlagBits::eTransferSrc,
               vk::BufferUsageFlagBits::eTransferDst |
                   vk::BufferUsageFlagBits::eStorageBuffer
@@ -131,57 +107,11 @@ class VulkanBufferStaticRStorage : public VulkanBufferStaticStorageBase
         vk::BufferUsageFlagBits::eTransferDst;
 };
 
-class VulkanBufferStaticRWStorage : public VulkanBufferStaticStorageBase
+class VulkanBufferRWStorage : public VulkanBufferStorageBase
 {
     public:
-    VulkanBufferStaticRWStorage()
-        : VulkanBufferStaticStorageBase(
-              vk::BufferUsageFlagBits::eTransferDst |
-                  vk::BufferUsageFlagBits::eTransferSrc,
-              vk::BufferUsageFlagBits::eTransferDst |
-                  vk::BufferUsageFlagBits::eTransferSrc |
-                  vk::BufferUsageFlagBits::eStorageBuffer
-          )
-    {
-    }
-    void readData(vk::DeviceSize bufferSize, void *outputData);
-    void copyToStaging(
-        vk::DeviceSize size, vk::Flags<vk::PipelineStageFlagBits> pipelineStages
-    );
-
-    protected:
-    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_ =
-        vk::BufferUsageFlagBits::eTransferDst |
-        vk::BufferUsageFlagBits::eTransferSrc;
-    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_ =
-        vk::BufferUsageFlagBits::eTransferDst |
-        vk::BufferUsageFlagBits::eTransferSrc;
-};
-
-class VulkanBufferDynamicRStorage : public VulkanBufferDynamicStorageBase
-{
-    public:
-    VulkanBufferDynamicRStorage()
-        : VulkanBufferDynamicStorageBase(
-              vk::BufferUsageFlagBits::eTransferSrc,
-              vk::BufferUsageFlagBits::eTransferDst |
-                  vk::BufferUsageFlagBits::eStorageBuffer
-          )
-    {
-    }
-
-    protected:
-    vk::Flags<vk::BufferUsageFlagBits> stagingBufferUsageFlags_ =
-        vk::BufferUsageFlagBits::eTransferSrc;
-    vk::Flags<vk::BufferUsageFlagBits> bufferUsageFlags_ =
-        vk::BufferUsageFlagBits::eTransferDst;
-};
-
-class VulkanBufferDynamicRWStorage : public VulkanBufferDynamicStorageBase
-{
-    public:
-    VulkanBufferDynamicRWStorage()
-        : VulkanBufferDynamicStorageBase(
+    VulkanBufferRWStorage()
+        : VulkanBufferStorageBase(
               vk::BufferUsageFlagBits::eTransferDst |
                   vk::BufferUsageFlagBits::eTransferSrc,
               vk::BufferUsageFlagBits::eTransferDst |

@@ -73,33 +73,7 @@ void VulkanBufferUniform::init(
     }
 }
 
-void VulkanBufferDynamicStorageBase::init(
-    vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
-)
-{
-    stageFlags = stageFlags_;
-    renderer_ = dynamic_cast<VulkanRenderer *>(
-        ServiceLocator::instance().get<IRenderer>()
-    );
-
-    std::tie(buffer_, bufferMemory_) = renderer_->createBuffer(
-        bufferSize, vk::BufferUsageFlagBits::eStorageBuffer | bufferUsageFlags_,
-        vk::MemoryPropertyFlagBits::eHostVisible |
-            vk::MemoryPropertyFlagBits::eHostCoherent
-    );
-    mappedPointer_ = bufferMemory_.mapMemory(0, bufferSize);
-    if (data)
-        memcpy(mappedPointer_, data, bufferSize);
-}
-
-void VulkanBufferDynamicStorageBase::update(
-    vk::DeviceSize bufferSize, void *data
-)
-{
-    memcpy(mappedPointer_, data, bufferSize);
-}
-
-void VulkanBufferStaticStorageBase::init(
+void VulkanBufferStorageBase::init(
     vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 )
 {
@@ -129,7 +103,7 @@ void VulkanBufferStaticStorageBase::init(
     }
 }
 
-void VulkanBufferStaticRWStorage::copyToStaging(
+void VulkanBufferRWStorage::copyToStaging(
     vk::DeviceSize size, vk::Flags<vk::PipelineStageFlagBits> pipelineStages
 )
 {
@@ -172,7 +146,7 @@ void VulkanBufferStaticRWStorage::copyToStaging(
     );
 }
 
-void VulkanBufferStaticRWStorage::readData(
+void VulkanBufferRWStorage::readData(
     vk::DeviceSize bufferSize, void *outputData
 )
 {

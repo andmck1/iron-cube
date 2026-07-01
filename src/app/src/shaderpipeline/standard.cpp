@@ -69,8 +69,8 @@ void StandardVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
-    addBuffer<VulkanBufferStaticRWStorage>(
-        staticStorageRWBuffers_, debugDataBufferSize,
+    addBuffer<VulkanBufferRWStorage>(
+        storageRWBuffers_, debugDataBufferSize,
         debugDataBufferData_.data(), vk::ShaderStageFlagBits::eAll
     );
 }
@@ -266,7 +266,7 @@ bool StandardVulkanShaderPipeline::update()
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    staticStorageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -297,7 +297,7 @@ bool StandardVulkanShaderPipeline::postRender()
         return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    staticStorageRWBuffers_.front()[renderer_->getCurrentFrameIndex()]
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()]
         .copyToStaging(
             debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
                                      vk::PipelineStageFlagBits::eFragmentShader
@@ -320,7 +320,7 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    staticStorageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =
