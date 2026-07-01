@@ -78,6 +78,27 @@ bool DebugLayer::frame()
                             ->getPipelineStatistics();
 
                     // Pipeline statistics
+                    float pipelineUpdateTime =
+                        meshComponent->getShaderPipeline()->updateTime * 1000.0;
+                    float pipelineDrawTime =
+                        meshComponent->getShaderPipeline()->drawTime * 1000.0;
+                    float percentGPUTimeOfTotalFrameTime =
+                        ((meshComponent->getShaderPipeline()->updateTime *
+                          1000.0) +
+                         (meshComponent->getShaderPipeline()->drawTime *
+                          1000.0)) /
+                        debugData_->timer->getFrameTime() * 100;
+
+                    ImGui::Text(
+                        "Pipeline Update Time (ms): %.2f", pipelineUpdateTime
+                    );
+                    ImGui::Text(
+                        "Pipeline Draw Time (ms): %.2f", pipelineDrawTime
+                    );
+                    ImGui::Text(
+                        "%% GPU time of frame time: %.2f%%",
+                        percentGPUTimeOfTotalFrameTime
+                    );
                     switch (pipelineStatistics.pipelineType)
                     {
                     case PipelineStatistics::PipelineType::TRADITIONAL:

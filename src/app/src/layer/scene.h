@@ -12,5 +12,5 @@ class SceneLayer : public ILayer
     bool frame() override;
     bool update() override;
     bool postRender() override;
-    bool end() override;
+    bool end() override;   
 };

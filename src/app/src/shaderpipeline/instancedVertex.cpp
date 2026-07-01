@@ -300,6 +300,8 @@ bool InstancedVertexVulkanShaderPipeline::bind()
 
 bool InstancedVertexVulkanShaderPipeline::update()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     // MVP uniform buffer (index 0)
     MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
@@ -324,15 +326,24 @@ bool InstancedVertexVulkanShaderPipeline::update()
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
+    updateTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
+
     return true;
 }
 
 bool InstancedVertexVulkanShaderPipeline::draw()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     renderer_->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()),
         updateData_->instances->size(), 0, 0, 0
     );
+    drawTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
 
     return true;
 }

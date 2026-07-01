@@ -22,6 +22,9 @@ class IShaderPipeline
         isDebugQuery_ = isDebugQuery;
     };
 
+    float updateTime = 0.f;
+    float drawTime = 0.f;
+
     protected:
     bool isDebugQuery_ = false;
 };

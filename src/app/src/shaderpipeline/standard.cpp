@@ -247,6 +247,7 @@ bool StandardVulkanShaderPipeline::bind()
 
 bool StandardVulkanShaderPipeline::update()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
 
     // TODO - update hardcoded indices in all pipelines
     // MVP uniform buffer (index 0)
@@ -269,14 +270,23 @@ bool StandardVulkanShaderPipeline::update()
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
+    updateTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
+
     return true;
 }
 
 bool StandardVulkanShaderPipeline::draw()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     renderer_->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
     );
+    drawTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
 
     return true;
 }

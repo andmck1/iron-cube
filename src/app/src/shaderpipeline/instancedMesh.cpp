@@ -253,6 +253,8 @@ bool InstancedMeshVulkanShaderPipeline::bind()
 
 bool InstancedMeshVulkanShaderPipeline::update()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     SceneBuffer sceneData{};
     sceneData.view = *updateData_->camera->getViewMatrixRef();
     sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
@@ -301,12 +303,16 @@ bool InstancedMeshVulkanShaderPipeline::update()
                              debugDataBufferSize, debugDataBufferData_.data()
                          );
 
+    updateTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
     return true;
 }
 
 bool InstancedMeshVulkanShaderPipeline::draw()
 {
-    // TODO - wonder if you want to ensure that this is a nice number? eg 256,
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     // etc
     uint32_t meshletCount = static_cast<uint32_t>(geometry_->meshlets.size());
     uint32_t instanceCount =
@@ -315,7 +321,11 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
 
     renderer_->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
+    // TODO - wonder if you want to ensure that this is a nice number? eg 256,
 
+    drawTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
     return true;
 }
 
