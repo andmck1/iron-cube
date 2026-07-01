@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core_actor/camera.h"
+#include "core_common/helpers.h"
 #include "core_common/logger.h"
 #include "core_common/timer.h"
 #include "core_common/types.h"
@@ -20,6 +21,7 @@
 
 static constexpr float MOUSE_SENSITIVITY = 1.5f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
+static constexpr float GPU_STATS_QUERY_FREQUENCY = 1.f;
 
 class Application
 {
@@ -66,11 +68,12 @@ class Application
     Timer timer_;
     std::vector<std::unique_ptr<ILayer>> layers_;
 
-    float timeSincePipelineDebugQuery_ = 0.f;
+    float timeSinceGPUStatsQuery_ = 0.f;
     int visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
     bool isAnimationOn_ = false;
     int nInstanceRows_ = 1;
     int nInstanceColumns_ = 1;
     int nInstanceLayers_ = 1;
     bool isDebugQueryOn_ = true;
+    std::vector<GPUStats> gpuStats_ = {};
 };

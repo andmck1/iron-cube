@@ -1,7 +1,9 @@
 #pragma once
 
+#include "core_common/helpers.h"
 #include "core_common/timer.h"
 #include "core_scene/scene.h"
+#include <vector>
 
 class DebugLayerData
 {
@@ -16,4 +18,5 @@ class DebugLayerData
     int *nInstanceLayers;
     float *cameraFarPlane;
     bool *isDebugStatsOn;
+    std::vector<GPUStats> *gpuStats;
 };

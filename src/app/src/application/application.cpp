@@ -166,6 +166,7 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.nInstanceLayers = &nInstanceLayers_;
     debugLayerData_.cameraFarPlane = &camera_->farClip_;
     debugLayerData_.isDebugStatsOn = &isDebugQueryOn_;
+    debugLayerData_.gpuStats = &gpuStats_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -489,8 +490,6 @@ void Application::checkForPipelineUpdates()
         }
     }
 
-    timeSincePipelineDebugQuery_ += timer_.getDeltaSeconds();
-
     for (const std::unique_ptr<Entity> &entity : entities)
     {
         MeshComponent *meshComponent = entity->getComponent<MeshComponent>();
@@ -502,6 +501,16 @@ void Application::checkForPipelineUpdates()
             {
                 shaderPipeline->setIsDebugQuery(isDebugQueryOn_);
             }
+        }
+    }
+
+    timeSinceGPUStatsQuery_ += timer_.getDeltaSeconds();
+    if (isDebugQueryOn_)
+    {
+        if (timeSinceGPUStatsQuery_ > 1.0 / GPU_STATS_QUERY_FREQUENCY)
+        {
+            timeSinceGPUStatsQuery_ = 0.f;
+            gpuStats_ = queryGPUStats();
         }
     }
 }

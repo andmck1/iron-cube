@@ -78,5 +78,30 @@ FetchContent_Declare(
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 FetchContent_MakeAvailable(yaml-cpp)
 
+find_library(
+    NVML_LIBRARY
+    NAMES nvidia-ml
+    REQUIRED
+)
+
+find_path(
+    NVML_INCLUDE_DIR
+    NAMES nvml.h
+    PATHS /opt/cuda/include /opt/cuda/targets/x86_64-linux/include
+    NO_DEFAULT_PATH
+    REQUIRED
+)
+
+message(STATUS "NVML library: ${NVML_LIBRARY}")
+message(STATUS "NVML include dir: ${NVML_INCLUDE_DIR}")
+
+add_library(NVML::NVML UNKNOWN IMPORTED)
+set_target_properties(
+    NVML::NVML
+    PROPERTIES
+        IMPORTED_LOCATION "${NVML_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${NVML_INCLUDE_DIR}"
+)
+
 add_subdirectory(src/core)
 add_subdirectory(src/app)
