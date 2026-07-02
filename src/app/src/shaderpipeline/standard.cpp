@@ -58,8 +58,8 @@ bool StandardVulkanShaderPipeline::shutdown()
 
 void StandardVulkanShaderPipeline::initUniformBuffers()
 {
-    addUniformBuffer(
-        sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
+    addBuffer<VulkanBufferUniform>(
+        uniformBuffers_, sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
 }
@@ -69,8 +69,8 @@ void StandardVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
-    addStorageRWBuffer(
-        debugDataBufferSize, debugDataBufferData_.data(),
+    addBuffer<VulkanBufferRWStorage>(
+        storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
         vk::ShaderStageFlagBits::eAll
     );
 }
@@ -247,6 +247,7 @@ bool StandardVulkanShaderPipeline::bind()
 
 bool StandardVulkanShaderPipeline::update()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
 
     // TODO - update hardcoded indices in all pipelines
     // MVP uniform buffer (index 0)
@@ -255,12 +256,11 @@ bool StandardVulkanShaderPipeline::update()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
-    memcpy(
-        uniformBuffers_[0][renderer_->getCurrentFrameIndex()]
-            .getMappedPointer(),
-        &mvp, sizeof(mvp)
+    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
+        sizeof(mvp), &mvp
     );
 
+    updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
@@ -269,14 +269,23 @@ bool StandardVulkanShaderPipeline::update()
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
+    updateTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
+
     return true;
 }
 
 bool StandardVulkanShaderPipeline::draw()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     renderer_->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
     );
+    drawTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
 
     return true;
 }

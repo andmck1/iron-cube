@@ -23,6 +23,7 @@ class VulkanRenderer : public IRenderer
     bool shutdown() override;
     bool isWireframeMode() const override;
     void setWireframeMode(bool enabled) override;
+    float getFrameWaitTime() override;
 
     vk::raii::Device &getDevice();
     vk::raii::PhysicalDevice &getPhysicalDevice();
@@ -139,7 +140,7 @@ class VulkanRenderer : public IRenderer
     std::vector<vk::raii::Semaphore> presentCompleteSemaphores_;
     std::vector<vk::raii::Semaphore> renderFinishedSemaphores_;
     std::vector<vk::raii::Fence> inFlightFences_;
-    uint32_t currentFrameIndex_ = 0;
+    uint32_t currentFrameIndex_ = MAX_FRAMES_IN_FLIGHT - 1;
 
     ImGuiContext *imguiContext_ = nullptr;
     vk::raii::DescriptorPool imguiDescriptorPool_ = nullptr;
@@ -204,4 +205,6 @@ class VulkanRenderer : public IRenderer
 
     // Unlikely I'll ever want to turn these off
     bool enableValidationLayers_ = true;
+
+    float frameWaitTime_;
 };

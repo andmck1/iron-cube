@@ -63,8 +63,8 @@ bool InstancedVertexVulkanShaderPipeline::shutdown()
 
 void InstancedVertexVulkanShaderPipeline::initUniformBuffers()
 {
-    addUniformBuffer(
-        sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
+    addBuffer<VulkanBufferUniform>(
+        uniformBuffers_, sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
 }
@@ -74,8 +74,8 @@ void InstancedVertexVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
-    addStorageRWBuffer(
-        debugDataBufferSize, debugDataBufferData_.data(),
+    addBuffer<VulkanBufferRWStorage>(
+        storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
         vk::ShaderStageFlagBits::eAll
     );
 }
@@ -300,22 +300,23 @@ bool InstancedVertexVulkanShaderPipeline::bind()
 
 bool InstancedVertexVulkanShaderPipeline::update()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     // MVP uniform buffer (index 0)
     MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
-    memcpy(
-        uniformBuffers_[0][renderer_->getCurrentFrameIndex()]
-            .getMappedPointer(),
-        &mvp, sizeof(mvp)
+    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
+        sizeof(mvp), &mvp
     );
 
     vk::DeviceSize instanceBufferSize =
         sizeof(Instance) * updateData_->instances->size();
     instanceBuffer_.update(instanceBufferSize, updateData_->instances->data());
 
+    updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
@@ -324,15 +325,24 @@ bool InstancedVertexVulkanShaderPipeline::update()
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
+    updateTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
+
     return true;
 }
 
 bool InstancedVertexVulkanShaderPipeline::draw()
 {
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     renderer_->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(geometry_->indices.size()),
         updateData_->instances->size(), 0, 0, 0
     );
+    drawTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
 
     return true;
 }

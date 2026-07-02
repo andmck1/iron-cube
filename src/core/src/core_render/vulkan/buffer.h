@@ -9,6 +9,12 @@ class VulkanBufferBase
     vk::raii::DeviceMemory *getDeviceMemory();
 
     protected:
+    void copyBuffer(
+        vk::raii::Buffer &fromBuffer, vk::raii::Buffer &toBuffer,
+        vk::raii::DeviceMemory &fromBufferMemory, vk::DeviceSize bufferSize,
+        void *data
+    );
+
     vk::raii::Buffer buffer_ = nullptr;
     vk::raii::DeviceMemory bufferMemory_ = nullptr;
     vk::raii::Buffer stagingBuffer_ = nullptr;
@@ -62,6 +68,7 @@ class VulkanBufferUniform : public VulkanBufferMultiStageBase
     void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) override;
+    void update(vk::DeviceSize bufferSize, void *data);
 
     void *getMappedPointer();
 

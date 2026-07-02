@@ -405,7 +405,9 @@ void Application::mainLoop()
         // entity updates
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
+
         renderer_.beginFrame();
+
         updateEntities();
         for (std::unique_ptr<ILayer> &layer : layers_)
         {

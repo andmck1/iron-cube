@@ -163,8 +163,9 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
 
 void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
 {
-    addUniformBuffer(
-        sizeof(SceneBuffer), static_cast<SceneBuffer *>(nullptr),
+    addBuffer<VulkanBufferUniform>(
+        uniformBuffers_, sizeof(SceneBuffer),
+        static_cast<SceneBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     sceneDataUniformBufferIndex_ = 0;
@@ -176,53 +177,53 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
     // defined somehow
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    addStorageRWBuffer(
-        debugDataBufferSize, debugDataBufferData_.data(),
+    addBuffer<VulkanBufferRWStorage>(
+        storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
         vk::ShaderStageFlagBits::eAll
     );
     debugDataStorageRWBufferIndex_ = 0;
 
     vk::DeviceSize vertexBufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
-    addStorageRBuffer(
-        vertexBufferSize, geometry_->vertices.data(),
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, vertexBufferSize, geometry_->vertices.data(),
         vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize meshletBufferSize =
         sizeof(meshopt_Meshlet) * geometry_->meshlets.size();
-    addStorageRBuffer(
-        meshletBufferSize, geometry_->meshlets.data(),
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, meshletBufferSize, geometry_->meshlets.data(),
         vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize meshletVerticesBufferSize =
         sizeof(uint32_t) * geometry_->meshletVertices.size();
-    addStorageRBuffer(
-        meshletVerticesBufferSize, geometry_->meshletVertices.data(),
-        vk::ShaderStageFlagBits::eMeshEXT
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, meshletVerticesBufferSize,
+        geometry_->meshletVertices.data(), vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize meshletTrianglesBufferSize =
         sizeof(uint32_t) * geometry_->meshletTrianglesU32.size();
-    addStorageRBuffer(
-        meshletTrianglesBufferSize, geometry_->meshletTrianglesU32.data(),
-        vk::ShaderStageFlagBits::eMeshEXT
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, meshletTrianglesBufferSize,
+        geometry_->meshletTrianglesU32.data(), vk::ShaderStageFlagBits::eMeshEXT
     );
 
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
         MAX_N_INSTANCE_ROWS;
-    addStorageRBuffer(
-        instancesBufferSize, updateData_->instances->data(),
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, instancesBufferSize, updateData_->instances->data(),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     instancesStorageRBufferIndex_ = 4;
 
     vk::DeviceSize meshletBoundingSpheresBufferSize =
         sizeof(glm::vec4) * geometry_->meshletBoundingSpheres.size();
-    addStorageRBuffer(
-        meshletBoundingSpheresBufferSize,
+    addBuffer<VulkanBufferRStorage>(
+        storageRBuffers_, meshletBoundingSpheresBufferSize,
         geometry_->meshletBoundingSpheres.data(),
         vk::ShaderStageFlagBits::eTaskEXT
     );
@@ -253,6 +254,8 @@ bool InstancedMeshVulkanShaderPipeline::bind()
 
 bool InstancedMeshVulkanShaderPipeline::update()
 {
+
+    std::chrono::time_point now = std::chrono::steady_clock::now();
     SceneBuffer sceneData{};
     sceneData.view = *updateData_->camera->getViewMatrixRef();
     sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
@@ -275,14 +278,11 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.frustum.cone.angle = frustumCone.angle;
     sceneData.visibilityFunc = *updateData_->visibilityFunc;
 
-    // TODO - put this in buffer no?
-    memcpy(
-        uniformBuffers_[sceneDataUniformBufferIndex_]
-                       [renderer_->getCurrentFrameIndex()]
-                           .getMappedPointer(),
-        &sceneData, sizeof(sceneData)
+    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
+        sizeof(sceneData), &sceneData
     );
 
+    // This takes up most of the frame time
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * updateData_->instances->size();
     storageRBuffers_[instancesStorageRBufferIndex_]
@@ -291,6 +291,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
                             instancesBufferSize, updateData_->instances->data()
                         );
 
+    updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
@@ -301,12 +302,16 @@ bool InstancedMeshVulkanShaderPipeline::update()
                              debugDataBufferSize, debugDataBufferData_.data()
                          );
 
+    updateTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
     return true;
 }
 
 bool InstancedMeshVulkanShaderPipeline::draw()
 {
-    // TODO - wonder if you want to ensure that this is a nice number? eg 256,
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
     // etc
     uint32_t meshletCount = static_cast<uint32_t>(geometry_->meshlets.size());
     uint32_t instanceCount =
@@ -315,7 +320,11 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
 
     renderer_->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
+    // TODO - wonder if you want to ensure that this is a nice number? eg 256,
 
+    drawTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
     return true;
 }
 

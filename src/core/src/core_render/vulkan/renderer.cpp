@@ -87,6 +87,11 @@ uint32_t &VulkanRenderer::getCurrentFrameIndex()
     return currentFrameIndex_;
 }
 
+float VulkanRenderer::getFrameWaitTime()
+{
+    return frameWaitTime_;
+}
+
 bool VulkanRenderer::init(IPlatform *platform)
 {
     spdlog::debug("Initialising Vulkan renderer");
@@ -553,9 +558,15 @@ bool VulkanRenderer::createSyncObjects()
 bool VulkanRenderer::beginFrame()
 {
     // Wait for previous frame to finish
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+    currentFrameIndex_ = (currentFrameIndex_ + 1) % MAX_FRAMES_IN_FLIGHT;
     vk::Result fenceResult = device_.waitForFences(
         *inFlightFences_[currentFrameIndex_], vk::True, UINT64_MAX
     );
+    frameWaitTime_ =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
+
     if (fenceResult != vk::Result::eSuccess)
     {
         throw std::runtime_error("failed to wait for fence!");
@@ -686,7 +697,6 @@ bool VulkanRenderer::present()
             .setPImageIndices(&currentImageIndex_)
             .setPResults(nullptr);
     auto _ = queue_.presentKHR(presentInfoKHR);
-    currentFrameIndex_ = (currentFrameIndex_ + 1) % MAX_FRAMES_IN_FLIGHT;
 
     return true;
 }

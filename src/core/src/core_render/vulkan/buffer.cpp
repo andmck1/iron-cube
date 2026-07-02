@@ -5,11 +5,7 @@
 
 void VulkanBufferBase::update(vk::DeviceSize bufferSize, void *data)
 {
-    void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
-    memcpy(stagingData, data, bufferSize);
-    stagingBufferMemory_.unmapMemory();
-
-    renderer_->copyBuffer(stagingBuffer_, buffer_, bufferSize);
+    copyBuffer(stagingBuffer_, buffer_, stagingBufferMemory_, bufferSize, data);
 }
 
 vk::raii::Buffer *VulkanBufferBase::getBuffer()
@@ -20,6 +16,57 @@ vk::raii::Buffer *VulkanBufferBase::getBuffer()
 vk::raii::DeviceMemory *VulkanBufferBase::getDeviceMemory()
 {
     return &bufferMemory_;
+}
+
+void VulkanBufferBase::copyBuffer(
+    vk::raii::Buffer &fromBuffer, vk::raii::Buffer &toBuffer,
+    vk::raii::DeviceMemory &fromBufferMemory, vk::DeviceSize bufferSize,
+    void *data
+)
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    void *bufferData = fromBufferMemory.mapMemory(0, bufferSize);
+    memcpy(bufferData, data, bufferSize);
+    fromBufferMemory.unmapMemory();
+
+    vk::BufferMemoryBarrier barrier{
+        vk::AccessFlagBits::eHostWrite,
+        vk::AccessFlagBits::eTransferRead,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        fromBuffer,
+        0,
+        VK_WHOLE_SIZE
+    };
+
+    commandBuffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eHost, vk::PipelineStageFlagBits::eTransfer,
+        {}, nullptr, barrier, nullptr
+    );
+
+    vk::BufferCopy copy{0, 0, bufferSize};
+
+    // TODO - I don't need this for all copies, only ones that use this buffer
+    // later
+    commandBuffer.copyBuffer(fromBuffer, toBuffer, copy);
+
+    vk::BufferMemoryBarrier barrier2{
+        vk::AccessFlagBits::eTransferWrite,
+        vk::AccessFlagBits::eShaderRead |
+            vk::AccessFlagBits::eVertexAttributeRead,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        toBuffer,
+        0,
+        VK_WHOLE_SIZE
+    };
+
+    commandBuffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::PipelineStageFlagBits::eVertexInput |
+            vk::PipelineStageFlagBits::eVertexShader,
+        {}, nullptr, barrier2, nullptr
+    );
 }
 
 // TODO - I'm using staging buffer here for vertex and index, which I don't want
@@ -73,6 +120,11 @@ void VulkanBufferUniform::init(
     }
 }
 
+void VulkanBufferUniform::update(vk::DeviceSize bufferSize, void *data)
+{
+    memcpy(mappedPointer_, data, bufferSize);
+}
+
 void VulkanBufferStorageBase::init(
     vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 )
@@ -103,6 +155,7 @@ void VulkanBufferStorageBase::init(
     }
 }
 
+// TODO - copied code here
 void VulkanBufferRWStorage::copyToStaging(
     vk::DeviceSize size, vk::Flags<vk::PipelineStageFlagBits> pipelineStages
 )
