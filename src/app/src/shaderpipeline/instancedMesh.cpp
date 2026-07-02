@@ -296,6 +296,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
                             instancesBufferSize, updateData_->instances->data()
                         );
 
+    updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};

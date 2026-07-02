@@ -432,11 +432,13 @@ void Application::mainLoop()
         renderer_.drawFrame();
         renderer_.present();
 
-        // update end of frame scene changes
-        for (std::unique_ptr<ILayer> &layer : layers_)
-        {
-            layer->end();
-        }
+        // TODO - This function calls update pipeline statistics, which needs to
+        // be in shader pipeline update (before debug data update)
+        //
+        // (std::unique_ptr<ILayer> &layer: layers_)
+        // {
+        //     layer->end();
+        // }
     }
 }
 

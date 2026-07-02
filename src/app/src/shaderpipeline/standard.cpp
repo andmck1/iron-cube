@@ -262,6 +262,7 @@ bool StandardVulkanShaderPipeline::update()
         &mvp, sizeof(mvp)
     );
 
+    updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
