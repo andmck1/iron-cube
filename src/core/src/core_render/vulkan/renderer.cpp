@@ -559,6 +559,7 @@ bool VulkanRenderer::beginFrame()
 {
     // Wait for previous frame to finish
     std::chrono::time_point now = std::chrono::steady_clock::now();
+    currentFrameIndex_ = (currentFrameIndex_ + 1) % MAX_FRAMES_IN_FLIGHT;
     vk::Result fenceResult = device_.waitForFences(
         *inFlightFences_[currentFrameIndex_], vk::True, UINT64_MAX
     );
@@ -696,7 +697,6 @@ bool VulkanRenderer::present()
             .setPImageIndices(&currentImageIndex_)
             .setPResults(nullptr);
     auto _ = queue_.presentKHR(presentInfoKHR);
-    currentFrameIndex_ = (currentFrameIndex_ + 1) % MAX_FRAMES_IN_FLIGHT;
 
     return true;
 }

@@ -140,7 +140,7 @@ class VulkanRenderer : public IRenderer
     std::vector<vk::raii::Semaphore> presentCompleteSemaphores_;
     std::vector<vk::raii::Semaphore> renderFinishedSemaphores_;
     std::vector<vk::raii::Fence> inFlightFences_;
-    uint32_t currentFrameIndex_ = 0;
+    uint32_t currentFrameIndex_ = MAX_FRAMES_IN_FLIGHT - 1;
 
     ImGuiContext *imguiContext_ = nullptr;
     vk::raii::DescriptorPool imguiDescriptorPool_ = nullptr;
