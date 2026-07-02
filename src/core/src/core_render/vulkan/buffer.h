@@ -68,6 +68,7 @@ class VulkanBufferUniform : public VulkanBufferMultiStageBase
     void init(
         vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags
     ) override;
+    void update(vk::DeviceSize bufferSize, void *data);
 
     void *getMappedPointer();
 

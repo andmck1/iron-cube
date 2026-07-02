@@ -178,8 +178,8 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     addBuffer<VulkanBufferRWStorage>(
-        storageRWBuffers_, debugDataBufferSize,
-        debugDataBufferData_.data(), vk::ShaderStageFlagBits::eAll
+        storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
+        vk::ShaderStageFlagBits::eAll
     );
     debugDataStorageRWBufferIndex_ = 0;
 
@@ -215,8 +215,7 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
         MAX_N_INSTANCE_ROWS;
     addBuffer<VulkanBufferRStorage>(
-        storageRBuffers_, instancesBufferSize,
-        updateData_->instances->data(),
+        storageRBuffers_, instancesBufferSize, updateData_->instances->data(),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     instancesStorageRBufferIndex_ = 4;
@@ -279,12 +278,8 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.frustum.cone.angle = frustumCone.angle;
     sceneData.visibilityFunc = *updateData_->visibilityFunc;
 
-    // TODO - put this in buffer no?
-    memcpy(
-        uniformBuffers_[sceneDataUniformBufferIndex_]
-                       [renderer_->getCurrentFrameIndex()]
-                           .getMappedPointer(),
-        &sceneData, sizeof(sceneData)
+    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
+        sizeof(sceneData), &sceneData
     );
 
     // This takes up most of the frame time

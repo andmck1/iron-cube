@@ -120,6 +120,11 @@ void VulkanBufferUniform::init(
     }
 }
 
+void VulkanBufferUniform::update(vk::DeviceSize bufferSize, void *data)
+{
+    memcpy(mappedPointer_, data, bufferSize);
+}
+
 void VulkanBufferStorageBase::init(
     vk::DeviceSize bufferSize, void *data, vk::ShaderStageFlags stageFlags_
 )

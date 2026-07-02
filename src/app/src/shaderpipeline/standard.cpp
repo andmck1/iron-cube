@@ -70,8 +70,8 @@ void StandardVulkanShaderPipeline::initStorageBuffers()
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
 
     addBuffer<VulkanBufferRWStorage>(
-        storageRWBuffers_, debugDataBufferSize,
-        debugDataBufferData_.data(), vk::ShaderStageFlagBits::eAll
+        storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
+        vk::ShaderStageFlagBits::eAll
     );
 }
 
@@ -256,10 +256,8 @@ bool StandardVulkanShaderPipeline::update()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
-    memcpy(
-        uniformBuffers_[0][renderer_->getCurrentFrameIndex()]
-            .getMappedPointer(),
-        &mvp, sizeof(mvp)
+    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
+        sizeof(mvp), &mvp
     );
 
     updatePipelineStatistics();
@@ -298,11 +296,10 @@ bool StandardVulkanShaderPipeline::postRender()
         return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()]
-        .copyToStaging(
-            debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
-                                     vk::PipelineStageFlagBits::eFragmentShader
-        );
+    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
+        debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
+                                 vk::PipelineStageFlagBits::eFragmentShader
+    );
     return true;
 }
 

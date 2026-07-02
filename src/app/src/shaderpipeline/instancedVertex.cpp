@@ -308,10 +308,8 @@ bool InstancedVertexVulkanShaderPipeline::update()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
-    memcpy(
-        uniformBuffers_[0][renderer_->getCurrentFrameIndex()]
-            .getMappedPointer(),
-        &mvp, sizeof(mvp)
+    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
+        sizeof(mvp), &mvp
     );
 
     vk::DeviceSize instanceBufferSize =
