@@ -137,7 +137,11 @@ bool DebugLayer::frame()
                                          ->meshlets.size();
                     uint nVertices = meshComponent->getMesh()
                                          ->getGeometry()
-                                         ->meshletVertices.size();
+                                         ->indices.size();
+                    uint nTriangles = meshComponent->getMesh()
+                                          ->getGeometry()
+                                          ->indices.size() /
+                                      3 * nInstances;
 
                     if (ImGui::BeginTable(
                             "pipelineStats", 2,
@@ -191,6 +195,12 @@ bool DebugLayer::frame()
                         ImGui::TableSetColumnIndex(1);
                         ImGui::Text("%.3e", (double((nVertices * nInstances))));
 
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("N Total Triangles");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%.3e", (double) nTriangles);
+
                         if (pipelineStatistics.pipelineType ==
                             PipelineStatistics::PipelineType::MESH)
                         {
@@ -243,8 +253,6 @@ bool DebugLayer::frame()
                                 "%d",
                                 pipelineStatistics.nFragmentShaderInvocations
                             );
-
-                            ImGui::EndTable();
                         }
                         break;
                     case PipelineStatistics::PipelineType::MESH:
@@ -285,8 +293,6 @@ bool DebugLayer::frame()
                                 "%d",
                                 pipelineStatistics.nFragmentShaderInvocations
                             );
-
-                            ImGui::EndTable();
                         }
                         break;
                     default:
@@ -294,6 +300,12 @@ bool DebugLayer::frame()
                             "Pipeline type not supported for debug data"
                         );
                     }
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("N Drawn Triangles");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%.3e", (double) pipelineStatistics.nTriangles);
+                    ImGui::EndTable();
                 }
             }
         }
