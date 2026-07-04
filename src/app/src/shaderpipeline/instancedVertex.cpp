@@ -247,22 +247,16 @@ bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
 
 bool InstancedVertexVulkanShaderPipeline::initVertexBuffer()
 {
-    // TODO - can parameterise and select lod now
-    uint32_t lodIndex = 0;
-    uint32_t vertexCount = geometry_->vertexCounts[lodIndex];
-    uint32_t vertexOffset = geometry_->vertexOffsets[lodIndex];
-    vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertexCount;
-    vertexBuffer_.init(bufferSize, &(geometry_->vertices[vertexOffset]));
+    vk::DeviceSize bufferSize =
+        sizeof(VertexInputType) * geometry_->vertices.size();
+    vertexBuffer_.init(bufferSize, geometry_->vertices.data());
     return true;
 }
 
 bool InstancedVertexVulkanShaderPipeline::initIndexBuffer()
 {
-    uint32_t lodIndex = 0;
-    uint32_t indexCount = geometry_->indexCounts[lodIndex];
-    uint32_t indexOffset = geometry_->indexOffsets[lodIndex];
-    vk::DeviceSize bufferSize = sizeof(uint32_t) * indexCount;
-    indexBuffer_.init(bufferSize, &(geometry_->indices[indexOffset]));
+    vk::DeviceSize bufferSize = sizeof(uint32_t) * geometry_->indices.size();
+    indexBuffer_.init(bufferSize, geometry_->indices.data());
     return true;
 }
 
@@ -287,7 +281,7 @@ bool InstancedVertexVulkanShaderPipeline::bind()
     );
     commandBuffer.bindVertexBuffers(0, **vertexBuffer_.getBuffer(), {0});
     commandBuffer.bindIndexBuffer(
-        **indexBuffer_.getBuffer(), 0, vk::IndexType::eUint16
+        **indexBuffer_.getBuffer(), 0, vk::IndexType::eUint32
     );
     commandBuffer.bindVertexBuffers(1, **instanceBuffer_.getBuffer(), {0});
     commandBuffer.bindDescriptorSets(
@@ -341,11 +335,13 @@ bool InstancedVertexVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
-    uint32_t nVertices = geometry_->indexCounts[0];
+    uint32_t nIndices = geometry_->indexCounts[*updateData_->lodIndex];
+    uint32_t indexOffset = geometry_->indexOffsets[*updateData_->lodIndex];
     renderer_->getCommandBuffer().drawIndexed(
-        static_cast<uint32_t>(nVertices), updateData_->instances->size(), 0, 0,
-        0
+        static_cast<uint32_t>(nIndices), updateData_->instances->size(),
+        static_cast<uint32_t>(indexOffset), 0, 0
     );
+
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
             .count();
@@ -389,6 +385,7 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
     pipelineStatistics_.nTriangles =
-        (geometry_->indices.size() / 3.0) * updateData_->instances->size();
+        (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3) *
+        updateData_->instances->size();
     return true;
 }

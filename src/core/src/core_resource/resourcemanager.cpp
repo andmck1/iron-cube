@@ -425,15 +425,6 @@ Geometry ResourceManager::loadObj(
         combinedGeometry.meshletLODCounts.push_back(
             static_cast<uint32_t>(geometry.meshlets.size())
         );
-
-        spdlog::info(
-            "LOD {}: vertexOffset={} indexOffset={} vertCount={} idxCount={}",
-            combinedGeometry.vertexOffsets.size() - 1,
-            combinedGeometry.vertexOffsets.back(),
-            combinedGeometry.indexOffsets.back(),
-            combinedGeometry.vertexCounts.back(),
-            combinedGeometry.indexCounts.back()
-        );
     }
 
     repackMeshlets(&combinedGeometry);
@@ -463,15 +454,10 @@ void ResourceManager::processMeshlets(Geometry *geometry)
     geometry->meshletVertices.resize(maxMeshlets * kMaxVertices);
     geometry->meshletTriangles.resize(maxMeshlets * kMaxTriangles * 3);
 
-    // TODO - this feels like a hack, should make indices 32 bit generally?
-    // meshopt requires uint32_t indices, so convert from uint16_t
-    std::vector<uint32_t> indices32(
-        geometry->indices.begin(), geometry->indices.end()
-    );
-
     size_t meshletCount = meshopt_buildMeshlets(
         geometry->meshlets.data(), geometry->meshletVertices.data(),
-        geometry->meshletTriangles.data(), indices32.data(), indices32.size(),
+        geometry->meshletTriangles.data(), geometry->indices.data(),
+        geometry->indices.size(),
         reinterpret_cast<const float *>(positions.data()), positions.size(),
         sizeof(glm::vec4), kMaxVertices, kMaxTriangles, kConeWeight
     );

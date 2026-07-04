@@ -132,15 +132,14 @@ bool DebugLayer::frame()
 
                     uint nInstances =
                         meshComponent->getMesh()->instances.size();
-                    uint nMeshlets = meshComponent->getMesh()
+                    uint nMeshlets =
+                        meshComponent->getMesh()
+                            ->getGeometry()
+                            ->meshletLODCounts[*debugData_->lodIndex];
+                    uint nVertices = meshComponent->getMesh()
                                          ->getGeometry()
-                                         ->meshlets.size();
-                    uint nVertices =
-                        meshComponent->getMesh()->getGeometry()->indices.size();
-                    uint nTriangles = meshComponent->getMesh()
-                                          ->getGeometry()
-                                          ->indices.size() /
-                                      3 * nInstances;
+                                         ->indexCounts[*debugData_->lodIndex];
+                    uint nTriangles = nVertices / 3 * nInstances;
 
                     if (ImGui::BeginTable(
                             "pipelineStats", 2,
@@ -325,12 +324,12 @@ bool DebugLayer::frame()
         ImGui::SliderFloat(
             "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 50.0
         );
-        ImGui::SliderInt("LOD Index", (int *) debugData_->lodIndex, 0, 4);
     }
 
     // Mesh
     if (ImGui::CollapsingHeader("Mesh Options"))
     {
+        ImGui::SliderInt("LOD Index", (int *) debugData_->lodIndex, 0, 4);
         ImGui::Checkbox("Animate?", debugData_->isAnimationOn);
         ImGui::SliderInt(
             "N Instance Rows", debugData_->nInstanceRows, 1, MAX_N_INSTANCE_ROWS

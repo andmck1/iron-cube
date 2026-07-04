@@ -284,6 +284,7 @@ bool Application::initialiseGeometry(
         actorInstancedShaderPipelineUpdateData->camera = camera_;
         actorInstancedShaderPipelineUpdateData->instances =
             &registeredMesh->instances;
+        actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =

@@ -12,6 +12,7 @@ class InstancedVertexShaderPipelineUpdateData : public ShaderPipelineUpdateData
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
     std::vector<Instance> *instances = nullptr;
+    uint32_t *lodIndex = 0;
 };
 
 class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
