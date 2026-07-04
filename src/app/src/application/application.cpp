@@ -204,8 +204,8 @@ bool Application::initialiseEntities(Scene *scene)
         // horsie
         std::string name = "horsie";
         Geometry geometry = ResourceManager::loadObj(
-            "assets/horse_statue/horse_statue_01_4k.obj",
-            "./assets/horse_statue"
+            "assets/horse_statue_lod/horse_statue_01_4k_LOD_4.obj",
+            "./assets/horse_statue_lod"
         );
         resourceManager_.loadGeometry(name, geometry);
         Transform transform = Transform{

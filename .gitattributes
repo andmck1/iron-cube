@@ -1,0 +1,2 @@
+assets/horse_statue filter=lfs diff=lfs merge=lfs -text
+assets/horse_statue_lod filter=lfs diff=lfs merge=lfs -text
