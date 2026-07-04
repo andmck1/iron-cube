@@ -135,9 +135,8 @@ bool DebugLayer::frame()
                     uint nMeshlets = meshComponent->getMesh()
                                          ->getGeometry()
                                          ->meshlets.size();
-                    uint nVertices = meshComponent->getMesh()
-                                         ->getGeometry()
-                                         ->indices.size();
+                    uint nVertices =
+                        meshComponent->getMesh()->getGeometry()->indices.size();
                     uint nTriangles = meshComponent->getMesh()
                                           ->getGeometry()
                                           ->indices.size() /
@@ -326,6 +325,7 @@ bool DebugLayer::frame()
         ImGui::SliderFloat(
             "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 50.0
         );
+        ImGui::SliderInt("LOD Index", (int *) debugData_->lodIndex, 0, 4);
     }
 
     // Mesh

@@ -11,6 +11,7 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
     public:
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
+    unsigned int *lodIndex = 0;
 };
 
 class StandardVulkanShaderPipeline : public VulkanShaderPipeline

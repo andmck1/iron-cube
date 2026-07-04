@@ -347,7 +347,7 @@ Geometry ResourceManager::loadObj(
                 );
 
                 geometry.indices.push_back(
-                    static_cast<uint16_t>(geometry.vertices.size() - 1)
+                    static_cast<uint32_t>(geometry.vertices.size() - 1)
                 );
             }
         }
@@ -355,29 +355,32 @@ Geometry ResourceManager::loadObj(
         processMeshlets(&geometry);
         calculateMeshBounds(&geometry);
 
-        spdlog::info(
-            "Loaded OBJ '{}': {} vertices, {} indices, {} meshlets",
-            objFilePath, geometry.vertices.size(), geometry.indices.size(),
-            geometry.meshlets.size()
-        );
-
-        unsigned int indexOffset = combinedGeometry.vertices.size();
-        unsigned int meshletVertexOffset =
-            combinedGeometry.meshletVertices.size();
-        unsigned int meshletTriangleOffset =
+        uint32_t indexOffset = combinedGeometry.vertices.size();
+        uint32_t meshletVertexOffset = combinedGeometry.meshletVertices.size();
+        uint32_t meshletTriangleOffset =
             combinedGeometry.meshletTriangles.size();
 
         for (int indexIndex = 0; indexIndex < geometry.indices.size();
              indexIndex++)
             geometry.indices[indexIndex] += indexOffset;
-        for (unsigned int meshletIndex = 0;
-             meshletIndex < geometry.meshlets.size(); meshletIndex++)
+        for (uint32_t meshletIndex = 0; meshletIndex < geometry.meshlets.size();
+             meshletIndex++)
         {
             geometry.meshlets[meshletIndex].vertex_offset +=
                 meshletVertexOffset;
             geometry.meshlets[meshletIndex].triangle_offset +=
                 meshletTriangleOffset;
         }
+
+        combinedGeometry.vertexOffsets.push_back(
+            static_cast<uint32_t>(combinedGeometry.vertices.size())
+        );
+        combinedGeometry.indexOffsets.push_back(
+            static_cast<uint32_t>(combinedGeometry.indices.size())
+        );
+        combinedGeometry.meshletLODOffsets.push_back(
+            static_cast<uint32_t>(combinedGeometry.meshlets.size())
+        );
 
         combinedGeometry.vertices.insert(
             combinedGeometry.vertices.end(), geometry.vertices.begin(),
@@ -413,11 +416,23 @@ Geometry ResourceManager::loadObj(
         // Should probs just be the first mesh lod
         combinedGeometry.meshBounds = geometry.meshBounds;
 
-        combinedGeometry.meshletLODOffsets.push_back(
-            static_cast<uint32_t>(combinedGeometry.meshlets.size())
+        combinedGeometry.vertexCounts.push_back(
+            static_cast<uint32_t>(geometry.vertices.size())
+        );
+        combinedGeometry.indexCounts.push_back(
+            static_cast<uint32_t>(geometry.indices.size())
         );
         combinedGeometry.meshletLODCounts.push_back(
             static_cast<uint32_t>(geometry.meshlets.size())
+        );
+
+        spdlog::info(
+            "LOD {}: vertexOffset={} indexOffset={} vertCount={} idxCount={}",
+            combinedGeometry.vertexOffsets.size() - 1,
+            combinedGeometry.vertexOffsets.back(),
+            combinedGeometry.indexOffsets.back(),
+            combinedGeometry.vertexCounts.back(),
+            combinedGeometry.indexCounts.back()
         );
     }
 

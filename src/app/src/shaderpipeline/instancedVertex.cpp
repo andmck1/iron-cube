@@ -247,17 +247,22 @@ bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
 
 bool InstancedVertexVulkanShaderPipeline::initVertexBuffer()
 {
-    std::vector<VertexInputType> &vertices = geometry_->vertices;
-    vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertices.size();
-    vertexBuffer_.init(bufferSize, vertices.data());
+    // TODO - can parameterise and select lod now
+    uint32_t lodIndex = 0;
+    uint32_t vertexCount = geometry_->vertexCounts[lodIndex];
+    uint32_t vertexOffset = geometry_->vertexOffsets[lodIndex];
+    vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertexCount;
+    vertexBuffer_.init(bufferSize, &(geometry_->vertices[vertexOffset]));
     return true;
 }
 
 bool InstancedVertexVulkanShaderPipeline::initIndexBuffer()
 {
-    std::vector<uint16_t> &indices = geometry_->indices;
-    vk::DeviceSize bufferSize = sizeof(uint16_t) * indices.size();
-    indexBuffer_.init(bufferSize, indices.data());
+    uint32_t lodIndex = 0;
+    uint32_t indexCount = geometry_->indexCounts[lodIndex];
+    uint32_t indexOffset = geometry_->indexOffsets[lodIndex];
+    vk::DeviceSize bufferSize = sizeof(uint32_t) * indexCount;
+    indexBuffer_.init(bufferSize, &(geometry_->indices[indexOffset]));
     return true;
 }
 
@@ -336,9 +341,10 @@ bool InstancedVertexVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
+    uint32_t nVertices = geometry_->indexCounts[0];
     renderer_->getCommandBuffer().drawIndexed(
-        static_cast<uint32_t>(geometry_->indices.size()),
-        updateData_->instances->size(), 0, 0, 0
+        static_cast<uint32_t>(nVertices), updateData_->instances->size(), 0, 0,
+        0
     );
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)

@@ -42,6 +42,7 @@ bool StandardVulkanShaderPipeline::initPipeline()
 bool StandardVulkanShaderPipeline::recreateGraphicsPipeline()
 {
     spdlog::debug("Recreating graphics pipeline");
+    renderer_->waitAllFramesComplete();
     graphicsPipeline_ = nullptr;
     return initGraphicsPipeline();
 }
@@ -204,17 +205,16 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
 
 bool StandardVulkanShaderPipeline::initVertexBuffer()
 {
-    std::vector<VertexInputType> &vertices = geometry_->vertices;
-    vk::DeviceSize bufferSize = sizeof(VertexInputType) * vertices.size();
-    vertexBuffer_.init(bufferSize, vertices.data());
+    vk::DeviceSize bufferSize =
+        sizeof(VertexInputType) * geometry_->vertices.size();
+    vertexBuffer_.init(bufferSize, geometry_->vertices.data());
     return true;
 }
 
 bool StandardVulkanShaderPipeline::initIndexBuffer()
 {
-    std::vector<uint16_t> &indices = geometry_->indices;
-    vk::DeviceSize bufferSize = sizeof(uint16_t) * indices.size();
-    indexBuffer_.init(bufferSize, indices.data());
+    vk::DeviceSize bufferSize = sizeof(uint32_t) * geometry_->indices.size();
+    indexBuffer_.init(bufferSize, geometry_->indices.data());
     return true;
 }
 
@@ -230,7 +230,7 @@ bool StandardVulkanShaderPipeline::bind()
     );
     commandBuffer.bindVertexBuffers(0, **vertexBuffer_.getBuffer(), {0});
     commandBuffer.bindIndexBuffer(
-        **indexBuffer_.getBuffer(), 0, vk::IndexType::eUint16
+        **indexBuffer_.getBuffer(), 0, vk::IndexType::eUint32
     );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
@@ -280,8 +280,11 @@ bool StandardVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
+    uint32_t nIndices = geometry_->indexCounts[*updateData_->lodIndex];
+    uint32_t indexOffset = geometry_->indexOffsets[*updateData_->lodIndex];
     renderer_->getCommandBuffer().drawIndexed(
-        static_cast<uint32_t>(geometry_->indices.size()), 1, 0, 0, 0
+        static_cast<uint32_t>(nIndices), 1, static_cast<uint32_t>(indexOffset),
+        0, 0
     );
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)

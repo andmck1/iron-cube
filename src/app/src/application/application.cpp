@@ -167,6 +167,7 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.cameraFarPlane = &camera_->farClip_;
     debugLayerData_.isDebugStatsOn = &isDebugQueryOn_;
     debugLayerData_.gpuStats = &gpuStats_;
+    debugLayerData_.lodIndex = &lodIndex_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -257,6 +258,7 @@ bool Application::initialiseGeometry(
                 std::make_unique<DefaultShaderPipelineUpdateData>();
         actorShaderPipelineUpdateData->actor = actorPtr;
         actorShaderPipelineUpdateData->camera = camera_;
+        actorShaderPipelineUpdateData->lodIndex = &lodIndex_;
 
         std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
             std::make_unique<StandardVulkanShaderPipeline>();

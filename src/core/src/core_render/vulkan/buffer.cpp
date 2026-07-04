@@ -73,10 +73,14 @@ void VulkanBufferBase::copyBuffer(
 // to do as they're static and this wastes memory
 void VulkanBufferSingleStageBase::init(vk::DeviceSize bufferSize, void *data)
 {
-
     renderer_ = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
+
+    buffer_ = nullptr;
+    bufferMemory_ = nullptr;
+    stagingBuffer_ = nullptr;
+    stagingBufferMemory_ = nullptr;
 
     std::tie(stagingBuffer_, stagingBufferMemory_) = renderer_->createBuffer(
         bufferSize, vk::BufferUsageFlagBits::eTransferSrc,

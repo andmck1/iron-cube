@@ -27,12 +27,17 @@ struct MeshBounds
 struct Geometry
 {
     std::vector<VertexInputType> vertices;
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
     std::vector<meshopt_Meshlet> meshlets;
     std::vector<uint32_t> meshletVertices;
     std::vector<uint8_t> meshletTriangles;
     std::vector<uint32_t> meshletTrianglesU32;
     std::vector<glm::vec4> meshletBoundingSpheres;
+    
+    std::vector<uint32_t> vertexOffsets;
+    std::vector<uint32_t> vertexCounts;
+    std::vector<uint32_t> indexOffsets;
+    std::vector<uint32_t> indexCounts;
     std::vector<uint32_t> meshletLODOffsets;
     std::vector<uint32_t> meshletLODCounts;
     MeshBounds meshBounds;
