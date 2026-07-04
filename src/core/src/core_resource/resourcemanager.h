@@ -14,10 +14,12 @@ class ResourceManager : public IResourceManager
     static Geometry generateProceduralTriangle();
     static Geometry generateProceduralRectangle();
     static Geometry generateProceduralCube();
-    static Geometry loadObj(std::string objFilePath, std::string objBaseDir);
+    static Geometry
+    loadObj(std::vector<std::string> objFilePaths, std::string objBaseDir);
 
     private:
     static void processMeshlets(Geometry *geometry);
+    static void repackMeshlets(Geometry *geometry);
     static void calculateMeshBounds(Geometry *geometry);
 
     std::unordered_map<std::string, Geometry> geometries_;

@@ -32,48 +32,54 @@ void main(
     uint instanceIndex = dtid / scene.meshletCount;
     uint meshletIndex = dtid % scene.meshletCount;
 
-    if ((instanceIndex < scene.instanceCount) &&
-        (meshletIndex < scene.meshletCount))
+    if (instanceIndex < scene.instanceCount)
     {
+        uint lod = instanceIndex;
+        uint lodMeshletCount = scene.meshletLODCounts[lod];
+        if (meshletIndex < lodMeshletCount)
+        {
+            meshletIndex += scene.meshletLODOffsets[lod];
 
-        // TODO - I do this twice!
-        float4x4 modelMatrix = modelMatrix(
-            instances[instanceIndex].position,
-            instances[instanceIndex].rotation, instances[instanceIndex].scale
-        );
-        // Don't multiply w (which is radius here) by transform
-        float4 meshletBoundingSphere =
-            mul(modelMatrix,
-                float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
-        meshletBoundingSphere.w = meshletBoundingSpheres[meshletIndex].w;
+            // TODO - I do this twice!
+            float4x4 modelMatrix = modelMatrix(
+                instances[instanceIndex].position,
+                instances[instanceIndex].rotation,
+                instances[instanceIndex].scale
+            );
+            // Don't multiply w (which is radius here) by transform
+            float4 meshletBoundingSphere =
+                mul(modelMatrix,
+                    float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
+            meshletBoundingSphere.w = meshletBoundingSpheres[meshletIndex].w;
 
-        switch (scene.visibilityFunc)
-        {
-        case (VisibilityFunc::VISIBILITY_FUNC_NONE):
-        {
-            visible = true;
-            break;
-        }
-        case (VisibilityFunc::VISIBILITY_FUNC_PLANES):
-        {
-            visible = VisibleFrustumPlanes(meshletBoundingSphere);
-            break;
-        }
-        case (VisibilityFunc::VISIBILITY_FUNC_SPHERE):
-        {
-            visible = VisibleFrustumSphere(meshletBoundingSphere);
-            break;
-        }
-        case (VisibilityFunc::VISIBILITY_FUNC_CONE):
-        {
-            visible = VisibleFrustumCone(meshletBoundingSphere);
-            break;
-        }
-        case (VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE):
-        {
-            visible = VisibleFrustumConeAndNearPlane(meshletBoundingSphere);
-            break;
-        }
+            switch (scene.visibilityFunc)
+            {
+            case (VisibilityFunc::VISIBILITY_FUNC_NONE):
+            {
+                visible = true;
+                break;
+            }
+            case (VisibilityFunc::VISIBILITY_FUNC_PLANES):
+            {
+                visible = VisibleFrustumPlanes(meshletBoundingSphere);
+                break;
+            }
+            case (VisibilityFunc::VISIBILITY_FUNC_SPHERE):
+            {
+                visible = VisibleFrustumSphere(meshletBoundingSphere);
+                break;
+            }
+            case (VisibilityFunc::VISIBILITY_FUNC_CONE):
+            {
+                visible = VisibleFrustumCone(meshletBoundingSphere);
+                break;
+            }
+            case (VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE):
+            {
+                visible = VisibleFrustumConeAndNearPlane(meshletBoundingSphere);
+                break;
+            }
+            }
         }
     }
 

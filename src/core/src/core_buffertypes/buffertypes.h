@@ -121,9 +121,12 @@ struct SceneBuffer
     float4x4 view;
     float4x4 projection;
     FrustumData frustum;
-    uint instanceCount;
-    uint meshletCount;
-    uint visibilityFunc;
+    uint32_t instanceCount;
+    uint32_t meshletCount;
+    uint32_t visibilityFunc;
+    // TODO - parameterise this (compile time const)
+    uint32_t meshletLODOffsets[5];
+    uint32_t meshletLODCounts[5];
 };
 
 struct DebugDataBuffer

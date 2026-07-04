@@ -266,102 +266,169 @@ Geometry ResourceManager::generateProceduralCube()
 
 // AI helped with this
 // Really useful example where this has just worked
-Geometry
-ResourceManager::loadObj(std::string objFilePath, std::string objBaseDir)
+Geometry ResourceManager::loadObj(
+    std::vector<std::string> objFilePaths, std::string objBaseDir
+)
 {
-    Geometry geometry;
-
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-
-    std::string warn, err;
-    bool res = tinyobj::LoadObj(
-        &attrib, &shapes, &materials, &warn, &err, objFilePath.c_str(),
-        objBaseDir.c_str()
-    );
-
-    if (!warn.empty())
+    Geometry combinedGeometry;
+    for (std::string objFilePath : objFilePaths)
     {
-        spdlog::warn("OBJ load warning for '{}': {}", objFilePath, warn);
-    }
-    if (!err.empty())
-    {
-        spdlog::error("OBJ load error for '{}': {}", objFilePath, err);
-    }
-    if (!res)
-    {
-        spdlog::error("Failed to load OBJ file: {}", objFilePath);
-        return geometry;
-    }
+        Geometry geometry;
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
 
-    for (const auto &shape : shapes)
-    {
-        for (const auto &idx : shape.mesh.indices)
+        std::string warn, err;
+        bool res = tinyobj::LoadObj(
+            &attrib, &shapes, &materials, &warn, &err, objFilePath.c_str(),
+            objBaseDir.c_str()
+        );
+
+        if (!warn.empty())
         {
-            // Position
-            glm::vec3 position(0.f, 0.f, 0.f);
-            if (idx.vertex_index >= 0 &&
-                static_cast<size_t>(idx.vertex_index * 3 + 2) <
-                    attrib.vertices.size())
-            {
-                position = glm::vec3(
-                    attrib.vertices[idx.vertex_index * 3 + 0],
-                    attrib.vertices[idx.vertex_index * 3 + 1],
-                    attrib.vertices[idx.vertex_index * 3 + 2]
-                );
-            }
-
-            // Normal
-            glm::vec3 normal(0.f, 0.f, -1.f);
-            if (idx.normal_index >= 0 &&
-                static_cast<size_t>(idx.normal_index * 3 + 2) <
-                    attrib.normals.size())
-            {
-                normal = glm::vec3(
-                    attrib.normals[idx.normal_index * 3 + 0],
-                    attrib.normals[idx.normal_index * 3 + 1],
-                    attrib.normals[idx.normal_index * 3 + 2]
-                );
-            }
-
-            // Tex coord
-            glm::vec2 tex(0.f, 0.f);
-            if (idx.texcoord_index >= 0 &&
-                static_cast<size_t>(idx.texcoord_index * 2 + 1) <
-                    attrib.texcoords.size())
-            {
-                tex = glm::vec2(
-                    attrib.texcoords[idx.texcoord_index * 2 + 0],
-                    attrib.texcoords[idx.texcoord_index * 2 + 1]
-                );
-            }
-
-            geometry.vertices.push_back(
-                {glm::vec4(position.x, position.y, position.z, 1.f),
-                 glm::vec4(tex.x, tex.y, 0.f, 0.f),
-                 glm::vec4(normal.x, normal.y, normal.z, 1.f)}
-            );
-
-            geometry.indices.push_back(
-                static_cast<uint16_t>(geometry.vertices.size() - 1)
-            );
+            spdlog::warn("OBJ load warning for '{}': {}", objFilePath, warn);
         }
+        if (!err.empty())
+        {
+            spdlog::error("OBJ load error for '{}': {}", objFilePath, err);
+        }
+        if (!res)
+        {
+            spdlog::error("Failed to load OBJ file: {}", objFilePath);
+            return combinedGeometry;
+        }
+
+        for (const auto &shape : shapes)
+        {
+            for (const auto &idx : shape.mesh.indices)
+            {
+                // Position
+                glm::vec3 position(0.f, 0.f, 0.f);
+                if (idx.vertex_index >= 0 &&
+                    static_cast<size_t>(idx.vertex_index * 3 + 2) <
+                        attrib.vertices.size())
+                {
+                    position = glm::vec3(
+                        attrib.vertices[idx.vertex_index * 3 + 0],
+                        attrib.vertices[idx.vertex_index * 3 + 1],
+                        attrib.vertices[idx.vertex_index * 3 + 2]
+                    );
+                }
+
+                // Normal
+                glm::vec3 normal(0.f, 0.f, -1.f);
+                if (idx.normal_index >= 0 &&
+                    static_cast<size_t>(idx.normal_index * 3 + 2) <
+                        attrib.normals.size())
+                {
+                    normal = glm::vec3(
+                        attrib.normals[idx.normal_index * 3 + 0],
+                        attrib.normals[idx.normal_index * 3 + 1],
+                        attrib.normals[idx.normal_index * 3 + 2]
+                    );
+                }
+
+                // Tex coord
+                glm::vec2 tex(0.f, 0.f);
+                if (idx.texcoord_index >= 0 &&
+                    static_cast<size_t>(idx.texcoord_index * 2 + 1) <
+                        attrib.texcoords.size())
+                {
+                    tex = glm::vec2(
+                        attrib.texcoords[idx.texcoord_index * 2 + 0],
+                        attrib.texcoords[idx.texcoord_index * 2 + 1]
+                    );
+                }
+
+                geometry.vertices.push_back(
+                    {glm::vec4(position.x, position.y, position.z, 1.f),
+                     glm::vec4(tex.x, tex.y, 0.f, 0.f),
+                     glm::vec4(normal.x, normal.y, normal.z, 1.f)}
+                );
+
+                geometry.indices.push_back(
+                    static_cast<uint16_t>(geometry.vertices.size() - 1)
+                );
+            }
+        }
+
+        processMeshlets(&geometry);
+        calculateMeshBounds(&geometry);
+
+        spdlog::info(
+            "Loaded OBJ '{}': {} vertices, {} indices, {} meshlets",
+            objFilePath, geometry.vertices.size(), geometry.indices.size(),
+            geometry.meshlets.size()
+        );
+
+        unsigned int indexOffset = combinedGeometry.vertices.size();
+        unsigned int meshletVertexOffset =
+            combinedGeometry.meshletVertices.size();
+        unsigned int meshletTriangleOffset =
+            combinedGeometry.meshletTriangles.size();
+
+        for (int indexIndex = 0; indexIndex < geometry.indices.size();
+             indexIndex++)
+            geometry.indices[indexIndex] += indexOffset;
+        for (unsigned int meshletIndex = 0;
+             meshletIndex < geometry.meshlets.size(); meshletIndex++)
+        {
+            geometry.meshlets[meshletIndex].vertex_offset +=
+                meshletVertexOffset;
+            geometry.meshlets[meshletIndex].triangle_offset +=
+                meshletTriangleOffset;
+        }
+
+        combinedGeometry.vertices.insert(
+            combinedGeometry.vertices.end(), geometry.vertices.begin(),
+            geometry.vertices.end()
+        );
+        combinedGeometry.indices.insert(
+            combinedGeometry.indices.end(), geometry.indices.begin(),
+            geometry.indices.end()
+        );
+        combinedGeometry.meshlets.insert(
+            combinedGeometry.meshlets.end(), geometry.meshlets.begin(),
+            geometry.meshlets.end()
+        );
+        combinedGeometry.meshletVertices.insert(
+            combinedGeometry.meshletVertices.end(),
+            geometry.meshletVertices.begin(), geometry.meshletVertices.end()
+        );
+        combinedGeometry.meshletTriangles.insert(
+            combinedGeometry.meshletTriangles.end(),
+            geometry.meshletTriangles.begin(), geometry.meshletTriangles.end()
+        );
+        combinedGeometry.meshletTrianglesU32.insert(
+            combinedGeometry.meshletTrianglesU32.end(),
+            geometry.meshletTrianglesU32.begin(),
+            geometry.meshletTrianglesU32.end()
+        );
+        combinedGeometry.meshletBoundingSpheres.insert(
+            combinedGeometry.meshletBoundingSpheres.end(),
+            geometry.meshletBoundingSpheres.begin(),
+            geometry.meshletBoundingSpheres.end()
+        );
+
+        // Should probs just be the first mesh lod
+        combinedGeometry.meshBounds = geometry.meshBounds;
+
+        combinedGeometry.meshletLODOffsets.push_back(
+            static_cast<uint32_t>(combinedGeometry.meshlets.size())
+        );
+        combinedGeometry.meshletLODCounts.push_back(
+            static_cast<uint32_t>(geometry.meshlets.size())
+        );
     }
 
-    processMeshlets(&geometry);
-    calculateMeshBounds(&geometry);
+    repackMeshlets(&combinedGeometry);
 
-    spdlog::info(
-        "Loaded OBJ '{}': {} vertices, {} indices, {} meshlets", objFilePath,
-        geometry.vertices.size(), geometry.indices.size(),
-        geometry.meshlets.size()
-    );
-    return geometry;
+    return combinedGeometry;
 }
 
 // Help from chaoticbob tutorial
 void ResourceManager::processMeshlets(Geometry *geometry)
+
 {
     std::vector<glm::vec4> positions;
     for (const VertexInputType &vertex : geometry->vertices)
@@ -400,7 +467,10 @@ void ResourceManager::processMeshlets(Geometry *geometry)
         last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3)
     );
     geometry->meshlets.resize(meshletCount);
+}
 
+void ResourceManager::repackMeshlets(Geometry *geometry)
+{
     // repack for gpu
     for (meshopt_Meshlet &meshlet : geometry->meshlets)
     {

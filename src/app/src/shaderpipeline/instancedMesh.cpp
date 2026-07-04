@@ -261,6 +261,14 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
     sceneData.instanceCount = updateData_->instances->size();
     sceneData.meshletCount = geometry_->meshlets.size();
+    for (unsigned int lodIndex = 0;
+         lodIndex < geometry_->meshletLODOffsets.size(); lodIndex++)
+    {
+        sceneData.meshletLODOffsets[lodIndex] =
+            geometry_->meshletLODOffsets[lodIndex];
+        sceneData.meshletLODCounts[lodIndex] =
+            geometry_->meshletLODCounts[lodIndex];
+    }
 
     std::array<FrustumPlane, 6> frustumPlanes =
         updateData_->camera->getFrustumPlanes();
