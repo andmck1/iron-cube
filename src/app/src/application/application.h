@@ -76,5 +76,5 @@ class Application
     int nInstanceLayers_ = 1;
     bool isDebugQueryOn_ = true;
     std::vector<GPUStats> gpuStats_ = {};
-    unsigned int lodIndex_ = 0;
+    uint32_t lodIndex_ = 0;
 };

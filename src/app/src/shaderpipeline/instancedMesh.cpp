@@ -260,13 +260,13 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.view = *updateData_->camera->getViewMatrixRef();
     sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
     sceneData.instanceCount = updateData_->instances->size();
-    sceneData.meshletCount = geometry_->meshlets.size();
+    sceneData.meshletCount = geometry_->meshletLODCounts[0];
     for (unsigned int lodIndex = 0;
          lodIndex < geometry_->meshletLODOffsets.size(); lodIndex++)
     {
-        sceneData.meshletLODOffsets[lodIndex] =
+        sceneData.meshletLODOffsets[lodIndex][0] =
             geometry_->meshletLODOffsets[lodIndex];
-        sceneData.meshletLODCounts[lodIndex] =
+        sceneData.meshletLODCounts[lodIndex][0] =
             geometry_->meshletLODCounts[lodIndex];
     }
 
@@ -321,7 +321,8 @@ bool InstancedMeshVulkanShaderPipeline::draw()
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
     // etc
-    uint32_t meshletCount = static_cast<uint32_t>(geometry_->meshlets.size());
+    uint32_t meshletCount =
+        static_cast<uint32_t>(geometry_->meshletLODCounts[0]);
     uint32_t instanceCount =
         static_cast<uint32_t>(updateData_->instances->size());
     uint32_t threadGroupCountX =

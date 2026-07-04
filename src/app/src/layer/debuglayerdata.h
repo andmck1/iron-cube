@@ -19,5 +19,5 @@ class DebugLayerData
     float *cameraFarPlane;
     bool *isDebugStatsOn;
     std::vector<GPUStats> *gpuStats;
-    unsigned int *lodIndex;
+    uint32_t *lodIndex;
 };

@@ -19,6 +19,7 @@ using float2 = glm::vec2;
 using float3 = glm::vec3;
 using float4 = glm::vec4;
 using float4x4 = glm::mat4;
+using uint4 = glm::uvec4;
 #endif
 
 struct VertexInputType
@@ -124,9 +125,10 @@ struct SceneBuffer
     uint32_t instanceCount;
     uint32_t meshletCount;
     uint32_t visibilityFunc;
+    uint32_t pad0;
     // TODO - parameterise this (compile time const)
-    uint32_t meshletLODOffsets[5];
-    uint32_t meshletLODCounts[5];
+    uint4 meshletLODOffsets[5];
+    uint4 meshletLODCounts[5];
 };
 
 struct DebugDataBuffer

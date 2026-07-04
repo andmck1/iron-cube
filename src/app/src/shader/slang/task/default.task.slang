@@ -34,11 +34,11 @@ void main(
 
     if (instanceIndex < scene.instanceCount)
     {
-        uint lod = instanceIndex;
-        uint lodMeshletCount = scene.meshletLODCounts[lod];
+        uint lod = instanceIndex % 5;
+        uint lodMeshletCount = scene.meshletLODCounts[lod].x;
         if (meshletIndex < lodMeshletCount)
         {
-            meshletIndex += scene.meshletLODOffsets[lod];
+            meshletIndex += scene.meshletLODOffsets[lod].x;
 
             // TODO - I do this twice!
             float4x4 modelMatrix = modelMatrix(
@@ -76,8 +76,8 @@ void main(
             }
             case (VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE):
             {
-                visible = VisibleFrustumConeAndNearPlane(meshletBoundingSphere);
-                break;
+                visible =
+                VisibleFrustumConeAndNearPlane(meshletBoundingSphere); break;
             }
             }
         }
