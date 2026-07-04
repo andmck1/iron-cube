@@ -360,16 +360,16 @@ Geometry ResourceManager::loadObj(
         uint32_t meshletTriangleOffset =
             combinedGeometry.meshletTriangles.size();
 
-        for (int indexIndex = 0; indexIndex < geometry.indices.size();
-             indexIndex++)
-            geometry.indices[indexIndex] += indexOffset;
-        for (uint32_t meshletIndex = 0; meshletIndex < geometry.meshlets.size();
-             meshletIndex++)
+        for (uint32_t &index : geometry.indices)
+            index += indexOffset;
+        for (uint32_t &meshletVertex : geometry.meshletVertices)
         {
-            geometry.meshlets[meshletIndex].vertex_offset +=
-                meshletVertexOffset;
-            geometry.meshlets[meshletIndex].triangle_offset +=
-                meshletTriangleOffset;
+            meshletVertex += indexOffset;
+        }
+        for (auto &meshlet : geometry.meshlets)
+        {
+            meshlet.vertex_offset += meshletVertexOffset;
+            meshlet.triangle_offset += meshletTriangleOffset;
         }
 
         combinedGeometry.vertexOffsets.push_back(

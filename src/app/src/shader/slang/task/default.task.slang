@@ -30,11 +30,11 @@ void main(
     bool visible = false;
 
     uint instanceIndex = dtid / scene.meshletCount;
+    uint lod = instanceIndex % 5;
     uint meshletIndex = dtid % scene.meshletCount;
 
     if (instanceIndex < scene.instanceCount)
     {
-        uint lod = instanceIndex % 5;
         uint lodMeshletCount = scene.meshletLODCounts[lod].x;
         if (meshletIndex < lodMeshletCount)
         {
