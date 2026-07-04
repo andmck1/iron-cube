@@ -367,5 +367,6 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
         debugDataBufferData_[0].nMeshShaderInvocations;
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
+    pipelineStatistics_.nTriangles = debugDataBufferData_[0].nTriangles;
     return true;
 }

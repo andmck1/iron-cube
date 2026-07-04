@@ -15,6 +15,7 @@ struct PipelineStatistics
 
     PipelineType pipelineType = PipelineType::TRADITIONAL;
     int nVertices = 0;
+    int nTriangles = 0;
     int nVertexShaderInvocations = 0;
     int nFragmentShaderInvocations = 0;
     int nTaskShaderInvocations = 0;

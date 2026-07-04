@@ -382,5 +382,7 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
         debugDataBufferData_[0].nVertexShaderInvocations;
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
+    pipelineStatistics_.nTriangles =
+        (geometry_->indices.size() / 3.0) * updateData_->instances->size();
     return true;
 }

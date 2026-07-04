@@ -325,5 +325,6 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
         debugDataBufferData_[0].nVertexShaderInvocations;
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
+    pipelineStatistics_.nTriangles = (geometry_->indices.size() / 3);
     return true;
 }
