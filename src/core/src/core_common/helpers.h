@@ -25,3 +25,4 @@ struct GPUStats
 
 void printUsage(const std::string &progName);
 std::vector<GPUStats> queryGPUStats();
+std::string formatNumber(double value);

@@ -280,7 +280,7 @@ bool StandardVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
     nDrawCalls_ = 0;
-    
+
     uint32_t nIndices = geometry_->indexCounts[*updateData_->lodIndex];
     uint32_t indexOffset = geometry_->indexOffsets[*updateData_->lodIndex];
     renderer_->getCommandBuffer().drawIndexed(

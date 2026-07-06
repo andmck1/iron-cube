@@ -179,25 +179,27 @@ bool DebugLayer::frame()
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text("N Instances");
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.3e", nInstances);
+                        ImGui::Text("%s", formatNumber(nInstances).c_str());
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text("N Maximum Vertices per Instance");
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.3e", nVertices);
+                        ImGui::Text("%s", formatNumber(nVertices).c_str());
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text("N Total Maximum Vertices");
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.3e", (nVertices * nInstances));
+                        ImGui::Text(
+                            "%s", formatNumber(nVertices * nInstances).c_str()
+                        );
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text("N Total Maximum Triangles");
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.3e", nTriangles);
+                        ImGui::Text("%s", formatNumber(nTriangles).c_str());
 
                         if (pipelineStatistics.pipelineType ==
                             PipelineStatistics::PipelineType::MESH)
@@ -206,14 +208,15 @@ bool DebugLayer::frame()
                             ImGui::TableSetColumnIndex(0);
                             ImGui::Text("N Meshlets per Instance");
                             ImGui::TableSetColumnIndex(1);
-                            ImGui::Text("%.3e", (double) nMeshlets);
+                            ImGui::Text("%s", formatNumber(nMeshlets).c_str());
 
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
                             ImGui::Text("Total Maximum Meshlets");
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%.3e", (double((nMeshlets * nInstances)))
+                                "%s",
+                                formatNumber(nMeshlets * nInstances).c_str()
                             );
                         }
 
@@ -239,8 +242,10 @@ bool DebugLayer::frame()
                             ImGui::Text("%s VS", entity->getName().c_str());
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%.3e", (double) pipelineStatistics
-                                            .nVertexShaderInvocations
+                                "%s",
+                                formatNumber((double) pipelineStatistics
+                                                 .nVertexShaderInvocations)
+                                    .c_str()
                             );
 
                             ImGui::TableNextRow();
@@ -248,8 +253,10 @@ bool DebugLayer::frame()
                             ImGui::Text("%s PS", entity->getName().c_str());
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%.3e",
-                                pipelineStatistics.nFragmentShaderInvocations
+                                "%s",
+                                formatNumber((double) pipelineStatistics
+                                                 .nFragmentShaderInvocations)
+                                    .c_str()
                             );
                         }
                         break;
@@ -270,8 +277,9 @@ bool DebugLayer::frame()
                             ImGui::Text("%s TS", entity->getName().c_str());
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%.3e", (double) pipelineStatistics
-                                            .nTaskShaderInvocations
+                                "%s", formatNumber((double) pipelineStatistics
+                                                       .nTaskShaderInvocations)
+                                          .c_str()
                             );
 
                             ImGui::TableNextRow();
@@ -279,8 +287,9 @@ bool DebugLayer::frame()
                             ImGui::Text("%s MS", entity->getName().c_str());
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%.3e", (double) pipelineStatistics
-                                            .nMeshShaderInvocations
+                                "%s", formatNumber((double) pipelineStatistics
+                                                       .nMeshShaderInvocations)
+                                          .c_str()
                             );
 
                             ImGui::TableNextRow();
@@ -288,8 +297,10 @@ bool DebugLayer::frame()
                             ImGui::Text("%s PS", entity->getName().c_str());
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%.3e",
-                                pipelineStatistics.nFragmentShaderInvocations
+                                "%s",
+                                formatNumber((double) pipelineStatistics
+                                                 .nFragmentShaderInvocations)
+                                    .c_str()
                             );
                         }
                         break;
@@ -302,7 +313,11 @@ bool DebugLayer::frame()
                     ImGui::TableSetColumnIndex(0);
                     ImGui::Text("N Drawn Triangles");
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("%.3e", (double) pipelineStatistics.nTriangles);
+                    ImGui::Text(
+                        "%s",
+                        formatNumber((double) pipelineStatistics.nTriangles)
+                            .c_str()
+                    );
 
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
@@ -336,7 +351,6 @@ bool DebugLayer::frame()
     // Mesh
     if (ImGui::CollapsingHeader("Mesh Options"))
     {
-        ImGui::SliderFloat("LOD Exponent", debugData_->lodExponent, 0.1f, 5.f);
         ImGui::Checkbox("Animate?", debugData_->isAnimationOn);
         ImGui::SliderInt(
             "N Instance Rows", debugData_->nInstanceRows, 1, MAX_N_INSTANCE_ROWS
@@ -360,6 +374,9 @@ bool DebugLayer::frame()
             ImGui::SliderInt("LOD Index", (int *) debugData_->lodIndex, 0, 4);
             ImGui::SliderFloat(
                 "Max LOD Distance", debugData_->maxLODDistance, 1.f, 100.f
+            );
+            ImGui::SliderFloat(
+                "LOD Exponent", debugData_->lodExponent, 0.1f, 5.f
             );
         }
     }

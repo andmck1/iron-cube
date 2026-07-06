@@ -356,7 +356,7 @@ bool InstancedMeshVulkanShaderPipeline::draw()
     uint32_t workRemaining = maximumPossibleWork;
     uint32_t threadsRemaining = maximumPossibleThreads;
     uint32_t workOffset = 0;
-    
+
     nDrawCalls_ = 0;
     while (threadsRemaining > 0)
     {
