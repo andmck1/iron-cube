@@ -77,4 +77,6 @@ class Application
     bool isDebugQueryOn_ = true;
     std::vector<GPUStats> gpuStats_ = {};
     uint32_t lodIndex_ = 0;
+    float maxLODDistance = 50.f;
+    float lodExponent = 0.65f;
 };

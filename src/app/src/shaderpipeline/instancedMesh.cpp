@@ -1,5 +1,6 @@
 #include "shaderpipeline/instancedMesh.h"
 #include "core_buffertypes/buffertypes.h"
+#include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
@@ -257,6 +258,10 @@ bool InstancedMeshVulkanShaderPipeline::update()
 
     std::chrono::time_point now = std::chrono::steady_clock::now();
     SceneBuffer sceneData{};
+    sceneData.eyePosition = {
+        updateData_->camera->getComponent<TransformComponent>()->getPosition(),
+        1.0f
+    };
     sceneData.view = *updateData_->camera->getViewMatrixRef();
     sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
     sceneData.instanceCount = updateData_->instances->size();
@@ -269,6 +274,10 @@ bool InstancedMeshVulkanShaderPipeline::update()
         sceneData.meshletLODCounts[lodIndex][0] =
             geometry_->meshletLODCounts[lodIndex];
     }
+    sceneData.minMeshBounds = {geometry_->meshBounds.minCorner, 1.0f};
+    sceneData.maxMeshBounds = {geometry_->meshBounds.maxCorner, 1.0f};
+    sceneData.maxLODDistance = {*updateData_->maxLODDistance, 0.f, 0.f, 0.f};
+    sceneData.lodExponent = {*updateData_->lodExponent, 0.f, 0.f, 0.f};
 
     std::array<FrustumPlane, 6> frustumPlanes =
         updateData_->camera->getFrustumPlanes();

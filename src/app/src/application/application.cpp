@@ -168,6 +168,8 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.isDebugStatsOn = &isDebugQueryOn_;
     debugLayerData_.gpuStats = &gpuStats_;
     debugLayerData_.lodIndex = &lodIndex_;
+    debugLayerData_.maxLODDistance = &maxLODDistance;
+    debugLayerData_.lodExponent = &lodExponent;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -311,6 +313,8 @@ bool Application::initialiseGeometry(
             &registeredMesh->instances;
         actorMeshShaderPipelineUpdateData->visibilityFunc =
             &visibilityFunction_;
+        actorMeshShaderPipelineUpdateData->maxLODDistance = &maxLODDistance;
+        actorMeshShaderPipelineUpdateData->lodExponent = &lodExponent;
 
         std::unique_ptr<InstancedMeshVulkanShaderPipeline>
             actorMeshShaderPipeline =

@@ -66,7 +66,7 @@ void main(
         uint vertexIndex = m.vertexOffset + gtid;
         vertexIndex = vertexIndices[vertexIndex];
 
-        float4x4 modelMatrix = modelMatrix(
+        float4x4 modelMatrix = calculateModelMatrix(
             instances[instanceIndex].position,
             instances[instanceIndex].rotation, instances[instanceIndex].scale
         );

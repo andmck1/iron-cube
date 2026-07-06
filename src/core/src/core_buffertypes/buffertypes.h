@@ -4,6 +4,7 @@
 #define N_MAX_VERTICES 64
 
 #define AS_GROUP_SIZE 32
+#define MAX_LOD_COUNT 5
 
 #ifndef SHARED_TYPES_H
 #define SHARED_TYPES_H
@@ -119,6 +120,7 @@ struct MVPBuffer
 
 struct SceneBuffer
 {
+    float4 eyePosition;
     float4x4 view;
     float4x4 projection;
     FrustumData frustum;
@@ -129,6 +131,10 @@ struct SceneBuffer
     // TODO - parameterise this (compile time const)
     uint4 meshletLODOffsets[5];
     uint4 meshletLODCounts[5];
+    float4 minMeshBounds;
+    float4 maxMeshBounds;
+    float4 maxLODDistance;
+    float4 lodExponent;
 };
 
 struct DebugDataBuffer

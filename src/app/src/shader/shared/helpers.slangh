@@ -1,5 +1,5 @@
 // TODO - define column/row major so is always consistent
-float4x4 modelMatrix(float4 transform, float4 rotation, float4 scale)
+float4x4 calculateModelMatrix(float4 transform, float4 rotation, float4 scale)
 {
     float cosX = cos(rotation.x);
     float cosY = cos(rotation.y);

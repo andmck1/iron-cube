@@ -30,22 +30,21 @@ void main(
     bool visible = false;
 
     uint instanceIndex = dtid / scene.meshletCount;
-    uint lod = instanceIndex % 5;
     uint meshletIndex = dtid % scene.meshletCount;
 
     if (instanceIndex < scene.instanceCount)
     {
+        // TODO - I do this twice!
+        float4x4 modelMatrix = calculateModelMatrix(
+            instances[instanceIndex].position,
+            instances[instanceIndex].rotation, instances[instanceIndex].scale
+        );
+        uint lod = calculateLOD(modelMatrix);
         uint lodMeshletCount = scene.meshletLODCounts[lod].x;
         if (meshletIndex < lodMeshletCount)
         {
             meshletIndex += scene.meshletLODOffsets[lod].x;
 
-            // TODO - I do this twice!
-            float4x4 modelMatrix = modelMatrix(
-                instances[instanceIndex].position,
-                instances[instanceIndex].rotation,
-                instances[instanceIndex].scale
-            );
             // Don't multiply w (which is radius here) by transform
             float4 meshletBoundingSphere =
                 mul(modelMatrix,
@@ -61,23 +60,23 @@ void main(
             }
             case (VisibilityFunc::VISIBILITY_FUNC_PLANES):
             {
-                visible = VisibleFrustumPlanes(meshletBoundingSphere);
+                visible = visibleFrustumPlanes(meshletBoundingSphere);
                 break;
             }
             case (VisibilityFunc::VISIBILITY_FUNC_SPHERE):
             {
-                visible = VisibleFrustumSphere(meshletBoundingSphere);
+                visible = visibleFrustumSphere(meshletBoundingSphere);
                 break;
             }
             case (VisibilityFunc::VISIBILITY_FUNC_CONE):
             {
-                visible = VisibleFrustumCone(meshletBoundingSphere);
+                visible = visibleFrustumCone(meshletBoundingSphere);
                 break;
             }
             case (VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE):
             {
-                visible =
-                VisibleFrustumConeAndNearPlane(meshletBoundingSphere); break;
+                visible = visibleFrustumConeAndNearPlane(meshletBoundingSphere);
+                break;
             }
             }
         }
@@ -101,7 +100,7 @@ float pointPlaneDistance(float4 testPoint, float4 planeEquation)
 };
 
 // chaoticbob help
-bool VisibleFrustumPlanes(float4 sphere)
+bool visibleFrustumPlanes(float4 sphere)
 {
     for (int i = 0; i < 6; i++)
     {
@@ -113,7 +112,7 @@ bool VisibleFrustumPlanes(float4 sphere)
     return true;
 }
 
-bool VisibleFrustumSphere(float4 sphere)
+bool visibleFrustumSphere(float4 sphere)
 {
     bool inside =
         (distance(sphere.xyz, scene.frustum.sphere.xyz) <
@@ -121,7 +120,7 @@ bool VisibleFrustumSphere(float4 sphere)
     return inside;
 }
 
-bool VisibleFrustumCone(float4 sphere)
+bool visibleFrustumCone(float4 sphere)
 {
     // float3 coneDir = { 0.f, 0.f, 1.f };
     // float3 coneTip = { 0.f, 0.f, -3.f };
@@ -143,9 +142,9 @@ bool VisibleFrustumCone(float4 sphere)
     return (pointConeCentreDistance < (coneRadiusAtPoint + sphere.w));
 }
 
-bool VisibleFrustumConeAndNearPlane(float4 sphere)
+bool visibleFrustumConeAndNearPlane(float4 sphere)
 {
-    bool i0 = VisibleFrustumCone(sphere);
+    bool i0 = visibleFrustumCone(sphere);
 
     FrustumPlane frNear = scene.frustum.planes[FRUSTUM_PLANE_NEAR];
 
@@ -154,4 +153,18 @@ bool VisibleFrustumConeAndNearPlane(float4 sphere)
     bool i2 = (planeDistance > 0); // On positive half space of near plane
 
     return i0 && (i1 || i2);
+}
+
+uint calculateLOD(float4x4 modelMatrix)
+{
+    float4 instanceBoundsMinWS = mul(modelMatrix, scene.minMeshBounds);
+    float4 instanceBoundsMaxWS = mul(modelMatrix, scene.maxMeshBounds);
+    float4 instanceCentre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
+    float distanceToMesh = distance(instanceCentre.xyz, scene.eyePosition.xyz);
+    float normalisedDistanceToMesh =
+        clamp(distanceToMesh / scene.maxLODDistance.x, 0.f, 1.f);
+    // TODO - parameterise exponential
+    uint lod = (uint) (pow(normalisedDistanceToMesh, scene.lodExponent.x) *
+                       (MAX_LOD_COUNT - 1));
+    return lod;
 }

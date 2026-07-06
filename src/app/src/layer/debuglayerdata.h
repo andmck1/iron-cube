@@ -20,4 +20,6 @@ class DebugLayerData
     bool *isDebugStatsOn;
     std::vector<GPUStats> *gpuStats;
     uint32_t *lodIndex;
+    float *maxLODDistance;
+    float *lodExponent;
 };

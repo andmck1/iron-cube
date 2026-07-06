@@ -18,7 +18,7 @@ VertexOutputType main(InstancedVertexInputType input)
 
     VertexOutputType output;
 
-    float4x4 worldMatrix = modelMatrix(
+    float4x4 worldMatrix = calculateModelMatrix(
         input.instancePosition, input.instanceRotation, input.instanceScale
     );
 
