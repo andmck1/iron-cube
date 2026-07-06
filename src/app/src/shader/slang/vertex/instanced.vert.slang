@@ -6,6 +6,9 @@
 ConstantBuffer<MVPBuffer> mvp;
 
 [[vk::binding(1)]]
+ConstantBuffer<AnimationBuffer> animation;
+
+[[vk::binding(2)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
 [shader("vertex")]

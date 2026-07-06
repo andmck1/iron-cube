@@ -28,9 +28,11 @@ void Timer::tick()
     lastTime_ = currentTime;
 
     frameTime_ = static_cast<float>(delta * 1000.0f);
+    totalSecondsElapsed_ += static_cast<float>(delta);
 
     accumulatedDelta_ += static_cast<float>(delta);
     frameCount_++;
+    totalFrames_++;
 
     if (accumulatedDelta_ >= FPS_UPDATE_INTERVAL)
     {
@@ -63,4 +65,14 @@ float Timer::getDeltaSeconds() const
 const std::vector<float> &Timer::getFrameTimes() const
 {
     return frameTimes_;
+}
+
+int Timer::getFramesSinceStart() const
+{
+    return totalFrames_;
+}
+
+float Timer::getTotalSecondsElapsed() const
+{
+    return totalSecondsElapsed_;
 }

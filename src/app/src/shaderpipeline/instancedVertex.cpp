@@ -67,6 +67,12 @@ void InstancedVertexVulkanShaderPipeline::initUniformBuffers()
         uniformBuffers_, sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
+
+    addBuffer<VulkanBufferUniform>(
+        uniformBuffers_, sizeof(AnimationBuffer),
+        static_cast<AnimationBuffer *>(nullptr),
+        vk::ShaderStageFlagBits::eVertex
+    );
 }
 
 void InstancedVertexVulkanShaderPipeline::initStorageBuffers()

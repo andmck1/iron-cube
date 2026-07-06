@@ -151,15 +151,6 @@ bool Application::initialiseShaders()
         "defaultFragment", std::move(defaultFragmentShader)
     );
 
-    VulkanShaderConfig meshFragmentShaderConfig;
-    meshFragmentShaderConfig.path = "build/shader/slang/fragment/mesh.frag.spv";
-
-    std::unique_ptr<VulkanShader> meshFragmentShader =
-        std::make_unique<VulkanShader>(meshFragmentShaderConfig);
-    shaderManager_.registerShader(
-        "meshFragment", std::move(meshFragmentShader)
-    );
-
     spdlog::debug("Finished initialising shaders");
     return true;
 }
@@ -272,6 +263,10 @@ bool Application::initialiseGeometry(
         actorShaderPipelineUpdateData->actor = actorPtr;
         actorShaderPipelineUpdateData->camera = camera_;
         actorShaderPipelineUpdateData->lodIndex = &lodIndex_;
+        actorShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
+        actorShaderPipelineUpdateData->nFramesSinceStart = &nFramesSinceStart_;
+        actorShaderPipelineUpdateData->rotationFrequency = &rotationFrequency_;
+        actorShaderPipelineUpdateData->timer = &timer_;
 
         std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
             std::make_unique<StandardVulkanShaderPipeline>();
@@ -460,6 +455,8 @@ void Application::mainLoop()
         {
             layer->end();
         }
+
+        nFramesSinceStart_++;
     }
 }
 

@@ -2,19 +2,22 @@
 #include "shader/shared/helpers.slangh"
 #include "shader/shared/buffertypes.h"
 
-[[vk::binding(0)]]
-ConstantBuffer<SceneBuffer> scene;
-
 [[vk::push_constant]]
 ConstantBuffer<TaskWorkBuffer> work;
 
+[[vk::binding(0)]]
+ConstantBuffer<SceneBuffer> scene;
+
 [[vk::binding(1)]]
+ConstantBuffer<AnimationBuffer> animation;
+
+[[vk::binding(2)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
-[[vk::binding(6)]]
+[[vk::binding(7)]]
 StructuredBuffer<Instance> instances;
 
-[[vk::binding(7)]]
+[[vk::binding(8)]]
 StructuredBuffer<float4> meshletBoundingSpheres;
 
 groupshared Payload sPayload;

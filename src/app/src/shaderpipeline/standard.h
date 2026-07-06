@@ -2,6 +2,7 @@
 
 #include "core_actor/camera.h"
 #include "core_actor/sceneactor.h"
+#include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
 #include <vulkan/vulkan_raii.hpp>
@@ -11,7 +12,11 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
     public:
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
-    uint32_t *lodIndex = 0;
+    uint32_t *lodIndex = nullptr;
+    uint32_t *nFramesSinceStart = nullptr;
+    bool *isAnimationOn = nullptr;
+    float *rotationFrequency = nullptr;
+    Timer *timer = nullptr;
 };
 
 class StandardVulkanShaderPipeline : public VulkanShaderPipeline

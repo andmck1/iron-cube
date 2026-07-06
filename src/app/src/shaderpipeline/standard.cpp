@@ -63,6 +63,12 @@ void StandardVulkanShaderPipeline::initUniformBuffers()
         uniformBuffers_, sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
+
+    addBuffer<VulkanBufferUniform>(
+        uniformBuffers_, sizeof(AnimationBuffer),
+        static_cast<AnimationBuffer *>(nullptr),
+        vk::ShaderStageFlagBits::eVertex
+    );
 }
 
 void StandardVulkanShaderPipeline::initStorageBuffers()
@@ -258,6 +264,21 @@ bool StandardVulkanShaderPipeline::update()
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
     uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
         sizeof(mvp), &mvp
+    );
+
+    AnimationBuffer animation{};
+    animation.isAnimationOn = *updateData_->isAnimationOn;
+    animation.rotationFrequency = {
+        *updateData_->rotationFrequency, 0.f, 0.f, 0.f
+    };
+    animation.deltaTime = {
+        updateData_->timer->getDeltaSeconds(), 0.f, 0.f, 0.f
+    };
+    animation.currentTime = {
+        updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
+    };
+    uniformBuffers_[1][renderer_->getCurrentFrameIndex()].update(
+        sizeof(animation), &animation
     );
 
     updatePipelineStatistics();

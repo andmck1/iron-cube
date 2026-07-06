@@ -87,4 +87,6 @@ class Application
     float maxLODDistance_ = 7.f;
     float lodExponent_ = 1.2f;
     bool isLODOn_ = true;
+    uint32_t nFramesSinceStart_ = 0;
+    float rotationFrequency_ = 0.5f;
 };

@@ -39,6 +39,7 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     PipelineStatistics pipelineStatistics_{};
 
     uint sceneDataUniformBufferIndex_ = 0;
+    uint animationDataUniformBufferIndex_ = 0;
     uint debugDataStorageRWBufferIndex_ = 0;
     uint instancesStorageRBufferIndex_ = 0;
 

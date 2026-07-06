@@ -11,6 +11,8 @@
 #define AS_GROUP_SIZE 32
 #define MAX_LOD_COUNT 5
 
+#define PI2 6.28318530719
+
 #ifndef SHARED_TYPES_H
 #define SHARED_TYPES_H
 
@@ -151,6 +153,17 @@ struct TaskWorkBuffer
     uint32_t workStart;
     uint32_t workCount;
     uint32_t pad0;
+};
+
+struct AnimationBuffer
+{
+    uint32_t isAnimationOn;
+    uint32_t pad0;
+    uint32_t pad1;
+    uint32_t pad2;
+    float4 rotationFrequency;
+    float4 deltaTime;
+    float4 currentTime;
 };
 
 struct DebugDataBuffer

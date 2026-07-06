@@ -67,8 +67,9 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
         dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultTask"));
     VulkanShader *defaultMeshShader =
         dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultMesh"));
-    VulkanShader *meshFragmentShader =
-        dynamic_cast<VulkanShader *>(shaderManager->getShader("meshFragment"));
+    VulkanShader *meshFragmentShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("defaultFragment")
+    );
 
     vk::PipelineShaderStageCreateInfo taskShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
@@ -184,6 +185,13 @@ void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     sceneDataUniformBufferIndex_ = 0;
+
+    addBuffer<VulkanBufferUniform>(
+        uniformBuffers_, sizeof(AnimationBuffer),
+        static_cast<AnimationBuffer *>(nullptr),
+        vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
+    );
+    animationDataUniformBufferIndex_ = 0;
 }
 
 void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
