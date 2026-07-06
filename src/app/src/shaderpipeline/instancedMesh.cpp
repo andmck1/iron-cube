@@ -278,7 +278,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.maxMeshBounds = {geometry_->meshBounds.maxCorner, 1.0f};
     sceneData.maxLODDistance = {*updateData_->maxLODDistance, 0.f, 0.f, 0.f};
     sceneData.lodExponent = {*updateData_->lodExponent, 0.f, 0.f, 0.f};
-    sceneData.isLODOn = (uint32_t) *updateData_->isLODOn;
+    sceneData.isLODOn = *updateData_->isLODOn;
 
     std::array<FrustumPlane, 6> frustumPlanes =
         updateData_->camera->getFrustumPlanes();
@@ -337,6 +337,21 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         static_cast<uint32_t>(updateData_->instances->size());
     uint32_t threadGroupCountX =
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
+
+    vk::PhysicalDeviceMeshShaderPropertiesEXT meshShaderProperties;
+    vk::PhysicalDeviceProperties2 physicalDeviceProperties;
+    physicalDeviceProperties.pNext = &meshShaderProperties;
+    renderer_->getPhysicalDevice().getProperties2(&physicalDeviceProperties);
+    uint32_t maxTaskShaderThreadCount =
+        meshShaderProperties.maxTaskWorkGroupTotalCount;
+    if (threadGroupCountX > maxTaskShaderThreadCount)
+    {
+        spdlog::warn(
+            "threadGroupCountX ({}) > the max thread count ({})",
+            threadGroupCountX, maxTaskShaderThreadCount
+        );
+        threadGroupCountX = maxTaskShaderThreadCount;
+    }
 
     renderer_->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
     // TODO - wonder if you want to ensure that this is a nice number? eg 256,
