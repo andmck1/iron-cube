@@ -15,6 +15,7 @@ class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     int *visibilityFunc = nullptr;
     float *maxLODDistance = nullptr;
     float *lodExponent = nullptr;
+    bool *isLODOn = nullptr;
 };
 
 class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline

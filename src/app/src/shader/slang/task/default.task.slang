@@ -39,7 +39,10 @@ void main(
             instances[instanceIndex].position,
             instances[instanceIndex].rotation, instances[instanceIndex].scale
         );
-        uint lod = calculateLOD(modelMatrix);
+        uint lod = 0;
+        if (scene.isLODOn > 0)
+            lod = calculateLOD(modelMatrix);
+
         uint lodMeshletCount = scene.meshletLODCounts[lod].x;
         if (meshletIndex < lodMeshletCount)
         {

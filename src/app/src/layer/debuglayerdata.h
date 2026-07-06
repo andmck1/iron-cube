@@ -22,4 +22,5 @@ class DebugLayerData
     uint32_t *lodIndex;
     float *maxLODDistance;
     float *lodExponent;
+    bool *isLODOn;
 };

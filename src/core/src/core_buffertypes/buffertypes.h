@@ -135,6 +135,8 @@ struct SceneBuffer
     float4 maxMeshBounds;
     float4 maxLODDistance;
     float4 lodExponent;
+    uint32_t isLODOn;
+    uint32_t pad1[3];
 };
 
 struct DebugDataBuffer

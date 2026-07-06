@@ -329,11 +329,7 @@ bool DebugLayer::frame()
     // Mesh
     if (ImGui::CollapsingHeader("Mesh Options"))
     {
-        ImGui::SliderInt("LOD Index", (int *) debugData_->lodIndex, 0, 4);
-        ImGui::SliderFloat(
-            "Max LOD Distance", debugData_->maxLODDistance, 1.f, 100.f
-        );
-        ImGui::SliderFloat("LOD Exponent", debugData_->lodExponent, 0.1f, 1.f);
+        ImGui::SliderFloat("LOD Exponent", debugData_->lodExponent, 0.1f, 5.f);
         ImGui::Checkbox("Animate?", debugData_->isAnimationOn);
         ImGui::SliderInt(
             "N Instance Rows", debugData_->nInstanceRows, 1, MAX_N_INSTANCE_ROWS
@@ -346,6 +342,19 @@ bool DebugLayer::frame()
             "N Instance Layers", debugData_->nInstanceLayers, 1,
             MAX_N_INSTANCE_LAYERS
         );
+    }
+
+    // LOD
+    if (ImGui::CollapsingHeader("LOD"))
+    {
+        ImGui::Checkbox("LOD?", debugData_->isLODOn);
+        if (*debugData_->isLODOn)
+        {
+            ImGui::SliderInt("LOD Index", (int *) debugData_->lodIndex, 0, 4);
+            ImGui::SliderFloat(
+                "Max LOD Distance", debugData_->maxLODDistance, 1.f, 100.f
+            );
+        }
     }
 
     // Shader type
