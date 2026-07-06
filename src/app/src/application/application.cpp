@@ -252,7 +252,8 @@ bool Application::initialiseGeometry(
     actorMesh.setGeometry(name);
     Mesh *registeredMesh =
         meshManager_.registerMesh(name, std::move(actorMesh));
-    updateEntities();
+    initialiseEntities();
+    // updateEntities();
 
     // transform component
     TransformComponent *transformComponent =
@@ -425,12 +426,13 @@ void Application::mainLoop()
         handleInput();
 
         // entity updates
+        checkForEntitiyUpdates();
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
 
         renderer_.beginFrame();
 
-        updateEntities();
+        // updateEntities();
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
             layer->update();
@@ -459,6 +461,18 @@ void Application::mainLoop()
             layer->end();
         }
     }
+}
+
+void Application::checkForEntitiyUpdates()
+{
+    bool checkRows = currentNInstanceRows_ != nInstanceRows_;
+    bool checkColumns = currentNInstanceColumns_ != nInstanceColumns_;
+    bool checkLayers = currentNInstanceLayers_ != nInstanceLayers_;
+    if (checkRows || checkColumns || checkLayers)
+        updateEntities();
+    currentNInstanceRows_ = nInstanceRows_;
+    currentNInstanceColumns_ = nInstanceColumns_;
+    currentNInstanceLayers_ = nInstanceLayers_;
 }
 
 void Application::checkForPipelineUpdates()
@@ -535,6 +549,61 @@ void Application::checkForPipelineUpdates()
         {
             timeSinceGPUStatsQuery_ = 0.f;
             gpuStats_ = queryGPUStats();
+        }
+    }
+}
+
+void Application::initialiseEntities()
+{
+    Mesh *horseMesh = meshManager_.getMesh("horsie");
+    horseMesh->instances.resize(
+        nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
+    );
+    float maxSpan = std::max<float>(
+        std::max<float>(
+            horseMesh->getGeometry()->meshBounds.getWidth(),
+            horseMesh->getGeometry()->meshBounds.getDepth()
+        ),
+        horseMesh->getGeometry()->meshBounds.getHeight()
+    );
+    float instanceSpanX = 2.0f * maxSpan;
+    float instanceSpanY = 2.0f * maxSpan;
+    float instanceSpanZ = 2.0f * maxSpan;
+    float totalSpanX = nInstanceColumns_ * instanceSpanX;
+    float totalSpanY = nInstanceLayers_ * instanceSpanY;
+    float totalSpanZ = nInstanceRows_ * instanceSpanZ;
+
+    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows_; ++rowIndex)
+    {
+        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers_;
+             ++layerIndex)
+        {
+            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns_;
+                 ++columnIndex)
+            {
+                float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
+                          instanceSpanX / 2.f;
+                float y = layerIndex * instanceSpanY - (totalSpanY / 2.f) +
+                          instanceSpanY / 2.f;
+                float z = rowIndex * instanceSpanZ - (totalSpanZ / 2.f) +
+                          instanceSpanZ / 2.f;
+
+                uint32_t index =
+                    (layerIndex * nInstanceRows_ * nInstanceColumns_) +
+                    (rowIndex * nInstanceColumns_) + columnIndex;
+                float t = static_cast<float>(glfwGetTime()) +
+                          ((columnIndex ^ rowIndex + columnIndex) / 10.f);
+                glm::vec4 rotationVector;
+                if (isAnimationOn_)
+                    rotationVector = glm::vec4(0.0, t, 0.0, 1.0);
+                else
+                    rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+                horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
+                horseMesh->instances[index].rotation = rotationVector;
+                horseMesh->instances[index].scale =
+                    glm::vec4(1.0, 1.0, 1.0, 1.0);
+            }
         }
     }
 }
