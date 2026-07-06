@@ -1,4 +1,22 @@
 // TODO - define column/row major so is always consistent
+
+// Some help from AI for the quaternion stuff
+float4 quaternionFromAxisAngle(float3 axis, float angle)
+{
+    float halfAngle = angle * 0.5;
+
+    return float4(normalize(axis) * sin(halfAngle), cos(halfAngle));
+}
+
+float3 rotateVectorWithQuaternion(float3 position, float4 q)
+{
+    float3 qVector = q.xyz;
+    float qScalar = q.w;
+
+    float3 t = 2.0 * cross(qVector, position);
+    return position + qScalar * t + cross(qVector, t);
+}
+
 float4x4 calculateModelMatrix(float4 transform, float4 rotation, float4 scale)
 {
     float cosX = cos(rotation.x);

@@ -2,6 +2,7 @@
 
 #include "core_actor/camera.h"
 #include "core_actor/sceneactor.h"
+#include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
 #include <vulkan/vulkan_raii.hpp>
@@ -13,6 +14,9 @@ class InstancedVertexShaderPipelineUpdateData : public ShaderPipelineUpdateData
     CameraActor *camera = nullptr;
     std::vector<Instance> *instances = nullptr;
     uint32_t *lodIndex = 0;
+    bool *isAnimationOn = nullptr;
+    float *rotationFrequency = nullptr;
+    Timer *timer = nullptr;
 };
 
 class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline

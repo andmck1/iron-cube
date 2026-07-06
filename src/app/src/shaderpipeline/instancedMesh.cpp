@@ -191,7 +191,7 @@ void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
         static_cast<AnimationBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
-    animationDataUniformBufferIndex_ = 0;
+    animationDataUniformBufferIndex_ = 1;
 }
 
 void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
@@ -321,6 +321,21 @@ bool InstancedMeshVulkanShaderPipeline::update()
     uniformBuffers_[sceneDataUniformBufferIndex_]
                    [renderer_->getCurrentFrameIndex()]
                        .update(sizeof(sceneData), &sceneData);
+
+    AnimationBuffer animation{};
+    animation.isAnimationOn = *updateData_->isAnimationOn;
+    animation.rotationFrequency = {
+        *updateData_->rotationFrequency, 0.f, 0.f, 0.f
+    };
+    animation.deltaTime = {
+        updateData_->timer->getDeltaSeconds(), 0.f, 0.f, 0.f
+    };
+    animation.currentTime = {
+        updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
+    };
+    uniformBuffers_[animationDataUniformBufferIndex_]
+                   [renderer_->getCurrentFrameIndex()]
+                       .update(sizeof(animation), &animation);
 
     // This takes up most of the frame time
     vk::DeviceSize instancesBufferSize =

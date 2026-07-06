@@ -293,6 +293,10 @@ bool Application::initialiseGeometry(
         actorInstancedShaderPipelineUpdateData->instances =
             &registeredMesh->instances;
         actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
+        actorInstancedShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
+        actorInstancedShaderPipelineUpdateData->rotationFrequency =
+            &rotationFrequency_;
+        actorInstancedShaderPipelineUpdateData->timer = &timer_;
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -322,6 +326,10 @@ bool Application::initialiseGeometry(
         actorMeshShaderPipelineUpdateData->maxLODDistance = &maxLODDistance_;
         actorMeshShaderPipelineUpdateData->lodExponent = &lodExponent_;
         actorMeshShaderPipelineUpdateData->isLODOn = &isLODOn_;
+        actorMeshShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
+        actorMeshShaderPipelineUpdateData->rotationFrequency =
+            &rotationFrequency_;
+        actorMeshShaderPipelineUpdateData->timer = &timer_;
 
         std::unique_ptr<InstancedMeshVulkanShaderPipeline>
             actorMeshShaderPipeline =

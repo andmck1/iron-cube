@@ -42,21 +42,3 @@ VertexOutputType main(VertexInputType input)
     output.colour = (input.normal + 1.f + input.tex[0]) / 3.f;
     return output;
 }
-
-float4 quaternionFromAxisAngle(float3 axis, float angle)
-{
-    float halfAngle = angle * 0.5;
-    float s = sin(halfAngle);
-    float c = cos(halfAngle);
-
-    return float4(normalize(axis) * s, c);
-}
-
-float3 rotateVectorWithQuaternion(float3 pos, float4 q)
-{
-    float3 qVector = q.xyz;
-    float qScalar = q.w;
-
-    float3 t = 2.0 * cross(qVector, pos);
-    return pos + qScalar * t + cross(qVector, t);
-}

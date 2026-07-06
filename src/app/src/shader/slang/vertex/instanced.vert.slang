@@ -25,8 +25,22 @@ VertexOutputType main(InstancedVertexInputType input)
         input.instancePosition, input.instanceRotation, input.instanceScale
     );
 
+    float4 modelPosition = input.position;
+    if (animation.isAnimationOn > 0)
+    {
+        float rotationAngle =
+            PI2 * animation.rotationFrequency.x * animation.currentTime.x;
+        modelPosition = {
+            rotateVectorWithQuaternion(
+                modelPosition.xyz,
+                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle)
+            ),
+            1.f
+        };
+    }
+
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
-    output.position = mul(mvpMatrix, input.position);
+    output.position = mul(mvpMatrix, modelPosition);
     output.colour = (input.normal + 1.f + input.tex[0]) / 3.f;
     // output.colour = {1.0, 1.0, 1.0, 1.0};
     return output;

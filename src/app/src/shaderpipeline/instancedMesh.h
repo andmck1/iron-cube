@@ -2,6 +2,7 @@
 
 #include "core_actor/camera.h"
 #include "core_actor/sceneactor.h"
+#include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
 #include <vulkan/vulkan_raii.hpp>
@@ -16,6 +17,9 @@ class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     float *maxLODDistance = nullptr;
     float *lodExponent = nullptr;
     bool *isLODOn = nullptr;
+    bool *isAnimationOn = nullptr;
+    float *rotationFrequency = nullptr;
+    Timer *timer = nullptr;
 };
 
 class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
@@ -39,7 +43,7 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     PipelineStatistics pipelineStatistics_{};
 
     uint sceneDataUniformBufferIndex_ = 0;
-    uint animationDataUniformBufferIndex_ = 0;
+    uint animationDataUniformBufferIndex_ = 1;
     uint debugDataStorageRWBufferIndex_ = 0;
     uint instancesStorageRBufferIndex_ = 0;
 

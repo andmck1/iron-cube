@@ -317,6 +317,21 @@ bool InstancedVertexVulkanShaderPipeline::update()
         sizeof(mvp), &mvp
     );
 
+    AnimationBuffer animation{};
+    animation.isAnimationOn = *updateData_->isAnimationOn;
+    animation.rotationFrequency = {
+        *updateData_->rotationFrequency, 0.f, 0.f, 0.f
+    };
+    animation.deltaTime = {
+        updateData_->timer->getDeltaSeconds(), 0.f, 0.f, 0.f
+    };
+    animation.currentTime = {
+        updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
+    };
+    uniformBuffers_[1][renderer_->getCurrentFrameIndex()].update(
+        sizeof(animation), &animation
+    );
+
     vk::DeviceSize instanceBufferSize =
         sizeof(Instance) * updateData_->instances->size();
     instanceBuffer_.update(instanceBufferSize, updateData_->instances->data());

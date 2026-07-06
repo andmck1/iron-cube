@@ -74,10 +74,25 @@ void main(
             instances[instanceIndex].rotation, instances[instanceIndex].scale
         );
 
+        float4 modelPosition = modelVertices[vertexIndex].position;
+        if (animation.isAnimationOn > 0)
+        {
+            float rotationAngle =
+                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
+            modelPosition = {
+                rotateVectorWithQuaternion(
+                    modelPosition.xyz,
+                    quaternionFromAxisAngle(
+                        float3(0.f, 1.f, 0.f), rotationAngle
+                    )
+                ),
+                1.f
+            };
+        }
+
         float4x4 mvpMatrix =
             mul(scene.projection, mul(scene.view, modelMatrix));
-        vertices[gtid].position =
-            mul(mvpMatrix, modelVertices[vertexIndex].position);
+        vertices[gtid].position = mul(mvpMatrix, modelPosition);
 
         float4 colour =
             float4(float(gid & 1), float(gid & 3) / 4, float(gid & 7) / 8, 1.f);
