@@ -130,16 +130,16 @@ bool DebugLayer::frame()
                          fenceWaitTime) /
                         debugData_->timer->getFrameTime() * 100;
 
-                    uint nInstances =
+                    double nInstances =
                         meshComponent->getMesh()->instances.size();
-                    uint nMeshlets =
+                    double nMeshlets =
                         meshComponent->getMesh()
                             ->getGeometry()
                             ->meshletLODCounts[*debugData_->lodIndex];
-                    uint nVertices = meshComponent->getMesh()
-                                         ->getGeometry()
-                                         ->indexCounts[*debugData_->lodIndex];
-                    uint nTriangles = nVertices / 3 * nInstances;
+                    double nVertices = meshComponent->getMesh()
+                                           ->getGeometry()
+                                           ->indexCounts[*debugData_->lodIndex];
+                    double nTriangles = (nVertices / 3) * nInstances;
 
                     if (ImGui::BeginTable(
                             "pipelineStats", 2,
@@ -179,25 +179,25 @@ bool DebugLayer::frame()
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text("N Instances");
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.3e", (double) nInstances);
+                        ImGui::Text("%.3e", nInstances);
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Vertices per Instance");
+                        ImGui::Text("N Maximum Vertices per Instance");
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.3e", (double) nVertices);
+                        ImGui::Text("%.3e", nVertices);
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Total Vertices");
+                        ImGui::Text("N Total Maximum Vertices");
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.3e", (double((nVertices * nInstances))));
+                        ImGui::Text("%.3e", (nVertices * nInstances));
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Total Triangles");
+                        ImGui::Text("N Total Maximum Triangles");
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.3e", (double) nTriangles);
+                        ImGui::Text("%.3e", nTriangles);
 
                         if (pipelineStatistics.pipelineType ==
                             PipelineStatistics::PipelineType::MESH)
@@ -210,7 +210,7 @@ bool DebugLayer::frame()
 
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("Total Meshlets");
+                            ImGui::Text("Total Maximum Meshlets");
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%.3e", (double((nMeshlets * nInstances)))
@@ -248,7 +248,7 @@ bool DebugLayer::frame()
                             ImGui::Text("%s PS", entity->getName().c_str());
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%d",
+                                "%.3e",
                                 pipelineStatistics.nFragmentShaderInvocations
                             );
                         }
@@ -288,7 +288,7 @@ bool DebugLayer::frame()
                             ImGui::Text("%s PS", entity->getName().c_str());
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%d",
+                                "%.3e",
                                 pipelineStatistics.nFragmentShaderInvocations
                             );
                         }
@@ -303,6 +303,13 @@ bool DebugLayer::frame()
                     ImGui::Text("N Drawn Triangles");
                     ImGui::TableSetColumnIndex(1);
                     ImGui::Text("%.3e", (double) pipelineStatistics.nTriangles);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("N Draw Calls");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%d", (int) pipelineStatistics.nDrawCalls);
+
                     ImGui::EndTable();
                 }
             }

@@ -5,18 +5,17 @@
 [[vk::binding(0)]]
 ConstantBuffer<SceneBuffer> scene;
 
-[[vk::binding(1)]]
+[[vk::push_constant]]
 ConstantBuffer<TaskWorkBuffer> work;
 
-[[vk::binding(2)]]
+[[vk::binding(1)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
-[[vk::binding(7)]]
+[[vk::binding(6)]]
 StructuredBuffer<Instance> instances;
 
-[[vk::binding(8)]]
+[[vk::binding(7)]]
 StructuredBuffer<float4> meshletBoundingSpheres;
-
 
 groupshared Payload sPayload;
 
@@ -34,10 +33,10 @@ void main(
 
     bool visible = false;
 
-    uint threadIndex = dtid - work.workStart;
-    uint instanceIndex = threadIndex / scene.meshletCount;
-    uint meshletIndex = threadIndex % scene.meshletCount;
-    if (threadIndex < work.workCount)
+    uint globalThreadIndex = dtid + work.workStart;
+    uint instanceIndex = globalThreadIndex / scene.meshletCount;
+    uint meshletIndex = globalThreadIndex % scene.meshletCount;
+    if (dtid < work.workCount)
     {
         // TODO - I do this twice!
         float4x4 modelMatrix = calculateModelMatrix(

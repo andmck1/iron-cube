@@ -1,3 +1,8 @@
+// uint32_t = 4 bytes
+// float4 = 4 bytes
+// float4x4 = 64 bytes
+// constant buffer = 12 byte alignment
+
 #pragma once
 
 #define N_MAX_TRIANGLES 124
@@ -131,20 +136,21 @@ struct SceneBuffer
     // TODO - parameterise this (compile time const)
     uint4 meshletLODOffsets[5];
     uint4 meshletLODCounts[5];
-    uint4 pad1[2];
     float4 minMeshBounds;
     float4 maxMeshBounds;
     float4 maxLODDistance;
     float4 lodExponent;
     uint32_t isLODOn;
-    uint32_t pad2[3];
+    uint32_t pad1;
+    uint32_t pad2;
+    uint32_t pad3;
 };
 
 struct TaskWorkBuffer
 {
     uint32_t workStart;
     uint32_t workCount;
-    uint32_t pad0[2];
+    uint32_t pad0;
 };
 
 struct DebugDataBuffer

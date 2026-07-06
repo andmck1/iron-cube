@@ -45,4 +45,6 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
 
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
     PipelineStatistics pipelineStatistics_{};
+
+    uint32_t nDrawCalls_ = 0;
 };

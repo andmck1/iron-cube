@@ -5,22 +5,22 @@
 [[vk::binding(0)]]
 ConstantBuffer<SceneBuffer> scene;
 
-[[vk::binding(2)]]
+[[vk::binding(1)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
-[[vk::binding(3)]]
+[[vk::binding(2)]]
 StructuredBuffer<VertexInputType> modelVertices;
 
-[[vk::binding(4)]]
+[[vk::binding(3)]]
 StructuredBuffer<OptimisedMeshlet> meshlets;
 
-[[vk::binding(5)]]
+[[vk::binding(4)]]
 StructuredBuffer<uint> vertexIndices;
 
-[[vk::binding(6)]]
+[[vk::binding(5)]]
 StructuredBuffer<uint> triangleIndices;
 
-[[vk::binding(7)]]
+[[vk::binding(6)]]
 StructuredBuffer<Instance> instances;
 
 // TODO - use the defines for the triange and vertex limits??

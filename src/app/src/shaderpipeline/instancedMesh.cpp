@@ -130,11 +130,19 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
             .setDepthBoundsTestEnable(vk::False)
             .setStencilTestEnable(vk::False);
 
+    // TODO - move this in with the other buffers (is buffer like)
+    vk::PushConstantRange pushConstantRange =
+        vk::PushConstantRange{}
+            .setStageFlags(vk::ShaderStageFlagBits::eTaskEXT)
+            .setOffset(0)
+            .setSize(sizeof(TaskWorkBuffer));
+
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
         vk::PipelineLayoutCreateInfo{}
             .setSetLayoutCount(1)
             .setPSetLayouts(&*descriptorSetLayout_)
-            .setPushConstantRangeCount(0);
+            .setPushConstantRangeCount(1)
+            .setPPushConstantRanges(&pushConstantRange);
 
     pipelineLayout_ =
         vk::raii::PipelineLayout(renderer_->getDevice(), pipelineLayoutInfo);
@@ -176,13 +184,6 @@ void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     sceneDataUniformBufferIndex_ = 0;
-
-    addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(TaskWorkBuffer),
-        static_cast<TaskWorkBuffer *>(nullptr),
-        vk::ShaderStageFlagBits::eTaskEXT
-    );
-    workUniformBufferIndex_ = 1;
 }
 
 void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
@@ -348,27 +349,35 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         static_cast<uint32_t>(geometry_->meshletLODCounts[0]);
     uint32_t instanceCount =
         static_cast<uint32_t>(updateData_->instances->size());
-    uint32_t maximumPossibleWork =
-        ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
+    uint32_t maximumPossibleWork = meshletCount * instanceCount;
+    uint32_t maximumPossibleThreads =
+        (maximumPossibleWork + AS_GROUP_SIZE - 1) / AS_GROUP_SIZE;
 
     uint32_t workRemaining = maximumPossibleWork;
+    uint32_t threadsRemaining = maximumPossibleThreads;
     uint32_t workOffset = 0;
-
-    while (workRemaining > 0)
+    
+    nDrawCalls_ = 0;
+    while (threadsRemaining > 0)
     {
-        uint32_t currentWork =
-            std::min(workRemaining, maxTaskShaderThreadCount_);
+        nDrawCalls_++;
+        uint32_t currentThreads =
+            std::min(threadsRemaining, maxTaskShaderThreadCount_);
+        uint32_t currentWork = currentThreads * AS_GROUP_SIZE;
+
         TaskWorkBuffer workData{};
         workData.workStart = workOffset;
         workData.workCount = currentWork;
-        uniformBuffers_[workUniformBufferIndex_]
-                       [renderer_->getCurrentFrameIndex()]
-                           .update(sizeof(workData), &workData);
+        renderer_->getCommandBuffer().pushConstants(
+            pipelineLayout_, vk::ShaderStageFlagBits::eTaskEXT, 0,
+            sizeof(TaskWorkBuffer), &workData
+        );
 
-        renderer_->getCommandBuffer().drawMeshTasksEXT(currentWork, 1, 1);
+        renderer_->getCommandBuffer().drawMeshTasksEXT(currentThreads, 1, 1);
 
         workOffset += currentWork;
         workRemaining -= currentWork;
+        threadsRemaining -= currentThreads;
         // TODO - wonder if you want to ensure that this is a nice number? eg
         // 256,
     }
@@ -418,5 +427,6 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
     pipelineStatistics_.nTriangles = debugDataBufferData_[0].nTriangles;
+    pipelineStatistics_.nDrawCalls = nDrawCalls_;
     return true;
 }

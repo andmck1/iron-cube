@@ -14,12 +14,13 @@ struct PipelineStatistics
     };
 
     PipelineType pipelineType = PipelineType::TRADITIONAL;
-    int nVertices = 0;
-    int nTriangles = 0;
-    int nVertexShaderInvocations = 0;
-    int nFragmentShaderInvocations = 0;
-    int nTaskShaderInvocations = 0;
-    int nMeshShaderInvocations = 0;
+    double nVertices = 0;
+    double nTriangles = 0;
+    double nVertexShaderInvocations = 0;
+    double nFragmentShaderInvocations = 0;
+    double nTaskShaderInvocations = 0;
+    double nMeshShaderInvocations = 0;
+    double nDrawCalls = 0;
 };
 
 class IRenderer

@@ -1,7 +1,7 @@
 #include "core_buffertypes/buffertypes.h"
 #include "shader/shared/buffertypes.h"
 
-[[vk::binding(2)]]
+[[vk::binding(1)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
 [shader("fragment")]

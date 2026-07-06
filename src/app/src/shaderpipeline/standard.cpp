@@ -279,7 +279,8 @@ bool StandardVulkanShaderPipeline::update()
 bool StandardVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
-
+    nDrawCalls_ = 0;
+    
     uint32_t nIndices = geometry_->indexCounts[*updateData_->lodIndex];
     uint32_t indexOffset = geometry_->indexOffsets[*updateData_->lodIndex];
     renderer_->getCommandBuffer().drawIndexed(
@@ -289,6 +290,7 @@ bool StandardVulkanShaderPipeline::draw()
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
             .count();
+    nDrawCalls_++;
 
     return true;
 }
@@ -329,6 +331,7 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
     pipelineStatistics_.nTriangles =
-        (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3);
+        (int) (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3);
+    pipelineStatistics_.nDrawCalls = nDrawCalls_;
     return true;
 }

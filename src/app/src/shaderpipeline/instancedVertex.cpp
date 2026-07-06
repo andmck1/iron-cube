@@ -334,6 +334,7 @@ bool InstancedVertexVulkanShaderPipeline::update()
 bool InstancedVertexVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
+    nDrawCalls_ = 0;
 
     uint32_t nIndices = geometry_->indexCounts[*updateData_->lodIndex];
     uint32_t indexOffset = geometry_->indexOffsets[*updateData_->lodIndex];
@@ -345,6 +346,7 @@ bool InstancedVertexVulkanShaderPipeline::draw()
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
             .count();
+    nDrawCalls_++;
 
     return true;
 }
@@ -387,5 +389,6 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
     pipelineStatistics_.nTriangles =
         (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3) *
         updateData_->instances->size();
+    pipelineStatistics_.nDrawCalls = nDrawCalls_;
     return true;
 }
