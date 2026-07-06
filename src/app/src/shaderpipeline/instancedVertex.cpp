@@ -270,7 +270,7 @@ bool InstancedVertexVulkanShaderPipeline::initInstanceBuffer()
 {
     vk::DeviceSize bufferSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
                                 MAX_N_INSTANCE_LAYERS * MAX_N_INSTANCE_ROWS;
-    instanceBuffer_.init(bufferSize, updateData_->instances->data());
+    instanceBuffer_.init(bufferSize, nullptr);
 
     return true;
 }
