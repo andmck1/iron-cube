@@ -237,8 +237,13 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
         MAX_N_INSTANCE_ROWS;
+    // addBuffer<VulkanBufferRStorage>(
+    //     storageRBuffers_, instancesBufferSize,
+    //     updateData_->instances->data(), vk::ShaderStageFlagBits::eTaskEXT |
+    //     vk::ShaderStageFlagBits::eMeshEXT
+    // );
     addBuffer<VulkanBufferRStorage>(
-        storageRBuffers_, instancesBufferSize, updateData_->instances->data(),
+        storageRBuffers_, instancesBufferSize, nullptr,
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     instancesStorageRBufferIndex_ = 4;
