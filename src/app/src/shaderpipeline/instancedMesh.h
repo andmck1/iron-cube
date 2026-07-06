@@ -39,6 +39,7 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     PipelineStatistics pipelineStatistics_{};
 
     uint sceneDataUniformBufferIndex_ = 0;
+    uint workUniformBufferIndex_ = 0;
     uint debugDataStorageRWBufferIndex_ = 0;
     uint instancesStorageRBufferIndex_ = 0;
 
@@ -49,4 +50,5 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     void initStorageBuffers() override;
 
     InstancedMeshShaderPipelineUpdateData *updateData_ = nullptr;
+    uint32_t maxTaskShaderThreadCount_;
 };

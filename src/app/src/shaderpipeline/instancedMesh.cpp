@@ -16,6 +16,13 @@ bool InstancedMeshVulkanShaderPipeline::init(
     );
     updateData_ =
         dynamic_cast<InstancedMeshShaderPipelineUpdateData *>(updateData);
+
+    vk::PhysicalDeviceMeshShaderPropertiesEXT meshShaderProperties;
+    vk::PhysicalDeviceProperties2 physicalDeviceProperties;
+    physicalDeviceProperties.pNext = &meshShaderProperties;
+    renderer_->getPhysicalDevice().getProperties2(&physicalDeviceProperties);
+    maxTaskShaderThreadCount_ = meshShaderProperties.maxTaskWorkGroupTotalCount;
+
     return initPipeline(geometry);
 }
 
@@ -60,9 +67,8 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
         dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultTask"));
     VulkanShader *defaultMeshShader =
         dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultMesh"));
-    VulkanShader *defaultFragmentShader = dynamic_cast<VulkanShader *>(
-        shaderManager->getShader("defaultFragment")
-    );
+    VulkanShader *meshFragmentShader =
+        dynamic_cast<VulkanShader *>(shaderManager->getShader("meshFragment"));
 
     vk::PipelineShaderStageCreateInfo taskShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
@@ -79,7 +85,7 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eFragment)
-            .setModule(defaultFragmentShader->getShaderModule())
+            .setModule(meshFragmentShader->getShaderModule())
             .setPName("main");
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = {
@@ -170,6 +176,13 @@ void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     sceneDataUniformBufferIndex_ = 0;
+
+    addBuffer<VulkanBufferUniform>(
+        uniformBuffers_, sizeof(TaskWorkBuffer),
+        static_cast<TaskWorkBuffer *>(nullptr),
+        vk::ShaderStageFlagBits::eTaskEXT
+    );
+    workUniformBufferIndex_ = 1;
 }
 
 void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
@@ -296,9 +309,9 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.frustum.cone.angle = frustumCone.angle;
     sceneData.visibilityFunc = *updateData_->visibilityFunc;
 
-    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
-        sizeof(sceneData), &sceneData
-    );
+    uniformBuffers_[sceneDataUniformBufferIndex_]
+                   [renderer_->getCurrentFrameIndex()]
+                       .update(sizeof(sceneData), &sceneData);
 
     // This takes up most of the frame time
     vk::DeviceSize instancesBufferSize =
@@ -313,7 +326,8 @@ bool InstancedMeshVulkanShaderPipeline::update()
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {DebugDataBuffer()};
-    debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
+    debugDataBufferData_[debugDataStorageRWBufferIndex_].isDebugQueryOn =
+        isDebugQuery_;
     storageRWBuffers_[debugDataStorageRWBufferIndex_]
                      [renderer_->getCurrentFrameIndex()]
                          .update(
@@ -330,32 +344,34 @@ bool InstancedMeshVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
-    // etc
     uint32_t meshletCount =
         static_cast<uint32_t>(geometry_->meshletLODCounts[0]);
     uint32_t instanceCount =
         static_cast<uint32_t>(updateData_->instances->size());
-    uint32_t threadGroupCountX =
+    uint32_t maximumPossibleWork =
         ((meshletCount * instanceCount) / AS_GROUP_SIZE) + 1;
 
-    vk::PhysicalDeviceMeshShaderPropertiesEXT meshShaderProperties;
-    vk::PhysicalDeviceProperties2 physicalDeviceProperties;
-    physicalDeviceProperties.pNext = &meshShaderProperties;
-    renderer_->getPhysicalDevice().getProperties2(&physicalDeviceProperties);
-    uint32_t maxTaskShaderThreadCount =
-        meshShaderProperties.maxTaskWorkGroupTotalCount;
-    if (threadGroupCountX > maxTaskShaderThreadCount)
+    uint32_t workRemaining = maximumPossibleWork;
+    uint32_t workOffset = 0;
+
+    while (workRemaining > 0)
     {
-        spdlog::warn(
-            "threadGroupCountX ({}) > the max thread count ({})",
-            threadGroupCountX, maxTaskShaderThreadCount
-        );
-        threadGroupCountX = maxTaskShaderThreadCount;
+        uint32_t currentWork =
+            std::min(workRemaining, maxTaskShaderThreadCount_);
+        TaskWorkBuffer workData{};
+        workData.workStart = workOffset;
+        workData.workCount = currentWork;
+        uniformBuffers_[workUniformBufferIndex_]
+                       [renderer_->getCurrentFrameIndex()]
+                           .update(sizeof(workData), &workData);
+
+        renderer_->getCommandBuffer().drawMeshTasksEXT(currentWork, 1, 1);
+
+        workOffset += currentWork;
+        workRemaining -= currentWork;
+        // TODO - wonder if you want to ensure that this is a nice number? eg
+        // 256,
     }
-
-    renderer_->getCommandBuffer().drawMeshTasksEXT(threadGroupCountX, 1, 1);
-    // TODO - wonder if you want to ensure that this is a nice number? eg 256,
-
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
             .count();

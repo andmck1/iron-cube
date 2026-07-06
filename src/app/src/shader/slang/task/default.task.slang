@@ -2,16 +2,21 @@
 #include "shader/shared/helpers.slangh"
 #include "shader/shared/buffertypes.h"
 
+[[vk::binding(0)]]
 ConstantBuffer<SceneBuffer> scene;
 
 [[vk::binding(1)]]
+ConstantBuffer<TaskWorkBuffer> work;
+
+[[vk::binding(2)]]
 RWStructuredBuffer<DebugDataBuffer> debugData;
 
-[[vk::binding(6)]]
+[[vk::binding(7)]]
 StructuredBuffer<Instance> instances;
 
-[[vk::binding(7)]]
+[[vk::binding(8)]]
 StructuredBuffer<float4> meshletBoundingSpheres;
+
 
 groupshared Payload sPayload;
 
@@ -29,10 +34,10 @@ void main(
 
     bool visible = false;
 
-    uint instanceIndex = dtid / scene.meshletCount;
-    uint meshletIndex = dtid % scene.meshletCount;
-
-    if (instanceIndex < scene.instanceCount)
+    uint threadIndex = dtid - work.workStart;
+    uint instanceIndex = threadIndex / scene.meshletCount;
+    uint meshletIndex = threadIndex % scene.meshletCount;
+    if (threadIndex < work.workCount)
     {
         // TODO - I do this twice!
         float4x4 modelMatrix = calculateModelMatrix(
@@ -166,7 +171,6 @@ uint calculateLOD(float4x4 modelMatrix)
     float distanceToMesh = distance(instanceCentre.xyz, scene.eyePosition.xyz);
     float normalisedDistanceToMesh =
         clamp(distanceToMesh / scene.maxLODDistance.x, 0.f, 1.f);
-    // TODO - parameterise exponential
     uint lod = (uint) (pow(normalisedDistanceToMesh, scene.lodExponent.x) *
                        (MAX_LOD_COUNT - 1));
     return lod;

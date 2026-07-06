@@ -151,6 +151,15 @@ bool Application::initialiseShaders()
         "defaultFragment", std::move(defaultFragmentShader)
     );
 
+    VulkanShaderConfig meshFragmentShaderConfig;
+    meshFragmentShaderConfig.path = "build/shader/slang/fragment/mesh.frag.spv";
+
+    std::unique_ptr<VulkanShader> meshFragmentShader =
+        std::make_unique<VulkanShader>(meshFragmentShaderConfig);
+    shaderManager_.registerShader(
+        "meshFragment", std::move(meshFragmentShader)
+    );
+
     spdlog::debug("Finished initialising shaders");
     return true;
 }
