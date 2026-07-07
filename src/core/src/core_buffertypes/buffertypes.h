@@ -175,6 +175,7 @@ struct DebugDataBuffer
     uint32_t nVertexShaderInvocations = 0;
     uint32_t nTaskShaderInvocations = 0;
     uint32_t nMeshShaderInvocations = 0;
+    uint32_t nComputeShaderInvocations = 0;
     uint32_t nFragmentShaderInvocations = 0;
     uint32_t nTriangles = 0;
 };

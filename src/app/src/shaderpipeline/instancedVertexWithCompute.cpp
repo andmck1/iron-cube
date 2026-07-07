@@ -705,6 +705,8 @@ bool InstancedVertexComputeVulkanShaderPipeline::updatePipelineStatistics()
     );
     pipelineStatistics_.nVertexShaderInvocations =
         debugDataBufferData_[0].nVertexShaderInvocations;
+    pipelineStatistics_.nComputeShaderInvocations =
+        debugDataBufferData_[0].nComputeShaderInvocations;
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
     pipelineStatistics_.nTriangles =

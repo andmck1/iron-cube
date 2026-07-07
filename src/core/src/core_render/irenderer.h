@@ -20,6 +20,7 @@ struct PipelineStatistics
     double nFragmentShaderInvocations = 0;
     double nTaskShaderInvocations = 0;
     double nMeshShaderInvocations = 0;
+    double nComputeShaderInvocations = 0;
     double nDrawCalls = 0;
 };
 

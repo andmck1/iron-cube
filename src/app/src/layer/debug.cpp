@@ -223,23 +223,37 @@ bool DebugLayer::frame()
                         ImGui::EndTable();
                     }
 
-                    switch (pipelineStatistics.pipelineType)
+                    if (ImGui::BeginTable(
+                            "shaderInvocationsOuter", 2,
+                            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                                ImGuiTableFlags_SizingFixedFit
+                        ))
                     {
-                    case PipelineStatistics::PipelineType::TRADITIONAL:
-                        if (ImGui::BeginTable(
-                                "shaderInvocationsTraditional", 2,
-                                ImGuiTableFlags_Borders |
-                                    ImGuiTableFlags_RowBg |
-                                    ImGuiTableFlags_SizingFixedFit
-                            ))
+                        ImGui::TableSetupColumn("Metric");
+                        ImGui::TableSetupColumn("Value");
+                        ImGui::TableHeadersRow();
+
+                        switch (pipelineStatistics.pipelineType)
                         {
-                            ImGui::TableSetupColumn("Shader");
-                            ImGui::TableSetupColumn("Invocations");
-                            ImGui::TableHeadersRow();
+                        case PipelineStatistics::PipelineType::TRADITIONAL:
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text(
+                                "%s CS Invocations", entity->getName().c_str()
+                            );
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%s",
+                                formatNumber((double) pipelineStatistics
+                                                 .nComputeShaderInvocations)
+                                    .c_str()
+                            );
 
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("%s VS", entity->getName().c_str());
+                            ImGui::Text(
+                                "%s VS Invocations", entity->getName().c_str()
+                            );
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%s",
@@ -250,7 +264,9 @@ bool DebugLayer::frame()
 
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("%s PS", entity->getName().c_str());
+                            ImGui::Text(
+                                "%s PS Invocations", entity->getName().c_str()
+                            );
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%s",
@@ -258,23 +274,13 @@ bool DebugLayer::frame()
                                                  .nFragmentShaderInvocations)
                                     .c_str()
                             );
-                        }
-                        break;
-                    case PipelineStatistics::PipelineType::MESH:
-                        if (ImGui::BeginTable(
-                                "shaderInvocationsMesh", 2,
-                                ImGuiTableFlags_Borders |
-                                    ImGuiTableFlags_RowBg |
-                                    ImGuiTableFlags_SizingFixedFit
-                            ))
-                        {
-                            ImGui::TableSetupColumn("Shader");
-                            ImGui::TableSetupColumn("Invocations");
-                            ImGui::TableHeadersRow();
-
+                            break;
+                        case PipelineStatistics::PipelineType::MESH:
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("%s TS", entity->getName().c_str());
+                            ImGui::Text(
+                                "%s TS Invocations", entity->getName().c_str()
+                            );
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%s", formatNumber((double) pipelineStatistics
@@ -284,7 +290,9 @@ bool DebugLayer::frame()
 
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("%s MS", entity->getName().c_str());
+                            ImGui::Text(
+                                "%s MS Invocations", entity->getName().c_str()
+                            );
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%s", formatNumber((double) pipelineStatistics
@@ -294,7 +302,9 @@ bool DebugLayer::frame()
 
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("%s PS", entity->getName().c_str());
+                            ImGui::Text(
+                                "%s PS Invocations", entity->getName().c_str()
+                            );
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%s",
@@ -302,30 +312,31 @@ bool DebugLayer::frame()
                                                  .nFragmentShaderInvocations)
                                     .c_str()
                             );
+                            break;
+                        default:
+                            spdlog::warn(
+                                "Pipeline type not supported for debug data"
+                            );
                         }
-                        break;
-                    default:
-                        spdlog::warn(
-                            "Pipeline type not supported for debug data"
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("N Drawn Triangles");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text(
+                            "%s",
+                            formatNumber((double) pipelineStatistics.nTriangles)
+                                .c_str()
                         );
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("N Draw Calls");
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%d", (int) pipelineStatistics.nDrawCalls);
+
+                        ImGui::EndTable();
                     }
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("N Drawn Triangles");
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::Text(
-                        "%s",
-                        formatNumber((double) pipelineStatistics.nTriangles)
-                            .c_str()
-                    );
-
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("N Draw Calls");
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("%d", (int) pipelineStatistics.nDrawCalls);
-
-                    ImGui::EndTable();
                 }
             }
         }

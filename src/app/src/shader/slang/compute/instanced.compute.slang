@@ -15,6 +15,9 @@ struct IndirectDrawCommand
 [[vk::binding(1)]]
 ConstantBuffer<SceneBuffer> scene;
 
+[[vk::binding(3)]]
+RWStructuredBuffer<DebugDataBuffer> debugData;
+
 [[vk::binding(7)]]
 StructuredBuffer<Instance> instances;
 
@@ -41,6 +44,11 @@ cbuffer cbPush
 void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 {
     uint instanceIndex = dispatchThreadID.x;
+
+    if (debugData[0].isDebugQueryOn > 0)
+    {
+        InterlockedAdd(debugData[0].nComputeShaderInvocations, 1);
+    }
 
     if (phase == 0)
     {
