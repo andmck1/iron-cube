@@ -364,12 +364,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
     sceneData.instanceCount = updateData_->instances->size();
     sceneData.meshletCount = geometry_->meshletLODCounts[0];
-    sceneData.indexCount = static_cast<uint32_t>(geometry_->indices.size());
-    spdlog::info(
-        "LOD0: indexOffset={}, indexCount={}, instanceCount={}",
-        geometry_->indexOffsets[0], geometry_->indexCounts[0],
-        updateData_->instances->size()
-    );
+    sceneData.indexCount = geometry_->indexCounts[0];
     for (unsigned int lodIndex = 0;
          lodIndex < geometry_->meshletLODOffsets.size(); lodIndex++)
     {
@@ -468,16 +463,18 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     // Barrier: ensure compute writes to indirect buffer are visible for draw
     auto &indirectBuffer =
         storageIndirectBuffers_.front()[renderer_->getCurrentFrameIndex()];
-    vk::BufferMemoryBarrier2 bufferBarrier = vk::BufferMemoryBarrier2{}
-        .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
-        .setDstAccessMask(vk::AccessFlagBits2::eIndirectCommandRead)
-        .setSrcStageMask(vk::PipelineStageFlagBits2::eComputeShader)
-        .setDstStageMask(vk::PipelineStageFlagBits2::eDrawIndirect)
-        .setBuffer(*indirectBuffer.getBuffer())
-        .setSize(VK_WHOLE_SIZE);
-    vk::DependencyInfo dependencyInfo = vk::DependencyInfo{}
-        .setBufferMemoryBarrierCount(1)
-        .setPBufferMemoryBarriers(&bufferBarrier);
+    vk::BufferMemoryBarrier2 bufferBarrier =
+        vk::BufferMemoryBarrier2{}
+            .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
+            .setDstAccessMask(vk::AccessFlagBits2::eIndirectCommandRead)
+            .setSrcStageMask(vk::PipelineStageFlagBits2::eComputeShader)
+            .setDstStageMask(vk::PipelineStageFlagBits2::eDrawIndirect)
+            .setBuffer(*indirectBuffer.getBuffer())
+            .setSize(VK_WHOLE_SIZE);
+    vk::DependencyInfo dependencyInfo =
+        vk::DependencyInfo{}
+            .setBufferMemoryBarrierCount(1)
+            .setPBufferMemoryBarriers(&bufferBarrier);
     commandBuffer.pipelineBarrier2(dependencyInfo);
 
     updateTime =
@@ -490,8 +487,6 @@ bool InstancedVertexComputeVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
     nDrawCalls_ = 0;
-
-    spdlog::info("Drawing {} LODs", MAX_LOD_COUNT);
 
     for (unsigned int lodIndex = 0; lodIndex < MAX_LOD_COUNT; lodIndex++)
     {
