@@ -118,7 +118,6 @@ bool DebugLayer::frame()
                         meshComponent->getShaderPipeline()
                             ->getPipelineStatistics();
 
-                    // Pipeline statistics
                     float pipelineUpdateTime =
                         meshComponent->getShaderPipeline()->updateTime * 1000.0;
                     float pipelineDrawTime =
@@ -130,19 +129,56 @@ bool DebugLayer::frame()
                          fenceWaitTime) /
                         debugData_->timer->getFrameTime() * 100;
 
+                    // Grow time-history vector to cover this entity
+                    while (static_cast<int>(debugData_->timeHistories.size()) <
+                           debugData_->scene->getEntities().size())
+                    {
+                        debugData_->timeHistories.emplace_back();
+                    }
+                    int entityIndex = 0;
+                    int i = 0;
+                    for (const std::unique_ptr<Entity> &e :
+                         debugData_->scene->getEntities())
+                    {
+                        if (e.get() == entity.get())
+                        {
+                            entityIndex = i;
+                            break;
+                        }
+                        i++;
+                    }
+                    PipelineTimeHistory &history =
+                        debugData_->timeHistories[entityIndex];
+                    history.push(
+                        pipelineUpdateTime, pipelineDrawTime, fenceWaitTime,
+                        percentGPUTimeOfTotalFrameTime
+                    );
+
                     double nInstances =
                         meshComponent->getMesh()->instances.size();
-                    double nMeshlets =
-                        meshComponent->getMesh()
-                            ->getGeometry()
-                            ->meshletLODCounts[*debugData_->lodIndex];
                     double nVertices = meshComponent->getMesh()
                                            ->getGeometry()
                                            ->indexCounts[*debugData_->lodIndex];
                     double nTriangles = (nVertices / 3) * nInstances;
 
+                    // Per-frame time line charts
+                    {
+                        ImVec2 plotSize = ImVec2(300.f, 60.f);
+                        ImGui::Text("100");
+                        ImGui::SameLine();
+                        ImGui::PlotLines(
+                            "GPU %", history.gpuPercent, DEBUG_HISTORY_FRAMES,
+                            history.head_, "GPU %", 0.f, 100.f, plotSize
+                        );
+                        ImGui::Text("0");
+                        ImGui::SameLine();
+                        ImGui::Dummy(ImVec2(0.f, 0.f));
+                    }
+
+                    // Stats table — only relevant rows per pipeline type
+                    std::string tableName = "Pipeline";
                     if (ImGui::BeginTable(
-                            "pipelineStats", 2,
+                            tableName.c_str(), 2,
                             ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                                 ImGuiTableFlags_SizingFixedFit
                         ))
@@ -151,41 +187,12 @@ bool DebugLayer::frame()
                         ImGui::TableSetupColumn("Value");
                         ImGui::TableHeadersRow();
 
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("Pipeline Update Time (ms)");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.0f", pipelineUpdateTime);
-
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("Pipeline Draw Time (ms)");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.0f", pipelineDrawTime);
-
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("Fence Wait Time (ms)");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.0f", fenceWaitTime);
-
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("%% GPU Time of Frame");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%.0f%%", percentGPUTimeOfTotalFrameTime);
-
+                        // Common rows
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text("N Instances");
                         ImGui::TableSetColumnIndex(1);
                         ImGui::Text("%s", formatNumber(nInstances).c_str());
-
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Maximum Vertices per Instance");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%s", formatNumber(nVertices).c_str());
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
@@ -200,124 +207,6 @@ bool DebugLayer::frame()
                         ImGui::Text("N Total Maximum Triangles");
                         ImGui::TableSetColumnIndex(1);
                         ImGui::Text("%s", formatNumber(nTriangles).c_str());
-
-                        if (pipelineStatistics.pipelineType ==
-                            PipelineStatistics::PipelineType::MESH)
-                        {
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("N Meshlets per Instance");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text("%s", formatNumber(nMeshlets).c_str());
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("Total Maximum Meshlets");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber(nMeshlets * nInstances).c_str()
-                            );
-                        }
-
-                        ImGui::EndTable();
-                    }
-
-                    if (ImGui::BeginTable(
-                            "shaderInvocationsOuter", 2,
-                            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-                                ImGuiTableFlags_SizingFixedFit
-                        ))
-                    {
-                        ImGui::TableSetupColumn("Metric");
-                        ImGui::TableSetupColumn("Value");
-                        ImGui::TableHeadersRow();
-
-                        switch (pipelineStatistics.pipelineType)
-                        {
-                        case PipelineStatistics::PipelineType::TRADITIONAL:
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text(
-                                "%s CS Invocations", entity->getName().c_str()
-                            );
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber((double) pipelineStatistics
-                                                 .nComputeShaderInvocations)
-                                    .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text(
-                                "%s VS Invocations", entity->getName().c_str()
-                            );
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber((double) pipelineStatistics
-                                                 .nVertexShaderInvocations)
-                                    .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text(
-                                "%s PS Invocations", entity->getName().c_str()
-                            );
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber((double) pipelineStatistics
-                                                 .nFragmentShaderInvocations)
-                                    .c_str()
-                            );
-                            break;
-                        case PipelineStatistics::PipelineType::MESH:
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text(
-                                "%s TS Invocations", entity->getName().c_str()
-                            );
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s", formatNumber((double) pipelineStatistics
-                                                       .nTaskShaderInvocations)
-                                          .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text(
-                                "%s MS Invocations", entity->getName().c_str()
-                            );
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s", formatNumber((double) pipelineStatistics
-                                                       .nMeshShaderInvocations)
-                                          .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text(
-                                "%s PS Invocations", entity->getName().c_str()
-                            );
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber((double) pipelineStatistics
-                                                 .nFragmentShaderInvocations)
-                                    .c_str()
-                            );
-                            break;
-                        default:
-                            spdlog::warn(
-                                "Pipeline type not supported for debug data"
-                            );
-                        }
 
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
@@ -334,6 +223,104 @@ bool DebugLayer::frame()
                         ImGui::Text("N Draw Calls");
                         ImGui::TableSetColumnIndex(1);
                         ImGui::Text("%d", (int) pipelineStatistics.nDrawCalls);
+
+                        // Pipeline-specific invocation rows
+                        if (pipelineStatistics.pipelineType ==
+                            PipelineStatistics::PipelineType::TRADITIONAL)
+                        {
+                            // Only show CS invocations for compute shader
+                            if (selectedShaderType == 2)
+                            {
+                                ImGui::TableNextRow();
+                                ImGui::TableSetColumnIndex(0);
+                                ImGui::Text("CS Invocations");
+                                ImGui::TableSetColumnIndex(1);
+                                ImGui::Text(
+                                    "%s",
+                                    formatNumber((double) pipelineStatistics
+                                                     .nComputeShaderInvocations)
+                                        .c_str()
+                                );
+                            }
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("VS Invocations");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%s",
+                                formatNumber((double) pipelineStatistics
+                                                 .nVertexShaderInvocations)
+                                    .c_str()
+                            );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("PS Invocations");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%s",
+                                formatNumber((double) pipelineStatistics
+                                                 .nFragmentShaderInvocations)
+                                    .c_str()
+                            );
+                        }
+                        else if (
+                            pipelineStatistics.pipelineType ==
+                            PipelineStatistics::PipelineType::MESH
+                        )
+                        {
+                            double nMeshlets =
+                                meshComponent->getMesh()
+                                    ->getGeometry()
+                                    ->meshletLODCounts[*debugData_->lodIndex];
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("TS Invocations");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%s", formatNumber((double) pipelineStatistics
+                                                       .nTaskShaderInvocations)
+                                          .c_str()
+                            );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("MS Invocations");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%s", formatNumber((double) pipelineStatistics
+                                                       .nMeshShaderInvocations)
+                                          .c_str()
+                            );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("PS Invocations");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%s",
+                                formatNumber((double) pipelineStatistics
+                                                 .nFragmentShaderInvocations)
+                                    .c_str()
+                            );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("N Meshlets per Instance");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text("%s", formatNumber(nMeshlets).c_str());
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("Total Maximum Meshlets");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%s",
+                                formatNumber(nMeshlets * nInstances).c_str()
+                            );
+                        }
 
                         ImGui::EndTable();
                     }
@@ -400,7 +387,6 @@ bool DebugLayer::frame()
             "Default Vertex", "Instanced Vertex",
             "Instanced Vertex With Compute", "Mesh"
         };
-        static int selectedShaderType = 2;
         if (ImGui::Combo(
                 "Shader Type", &selectedShaderType, shaderTypes.data(),
                 shaderTypes.size()
