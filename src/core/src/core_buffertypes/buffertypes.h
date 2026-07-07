@@ -134,7 +134,10 @@ struct SceneBuffer
     uint32_t instanceCount;
     uint32_t meshletCount;
     uint32_t visibilityFunc;
-    uint32_t indexCount;
+    uint32_t pad0;
+    uint4 indexCounts[MAX_LOD_COUNT];
+    uint4 indexOffsets[MAX_LOD_COUNT];
+    uint4 vertexOffsets[MAX_LOD_COUNT];
     // TODO - parameterise this (compile time const)
     uint4 meshletLODOffsets[MAX_LOD_COUNT];
     uint4 meshletLODCounts[MAX_LOD_COUNT];
@@ -181,6 +184,12 @@ struct Instance
     float4 position;
     float4 rotation;
     float4 scale;
+};
+
+struct LODData
+{
+    uint32_t baseOffset;
+    uint32_t slotCounter;
 };
 
 // Mental note - 32 bits in a float4 and must be in groups of 32 bits

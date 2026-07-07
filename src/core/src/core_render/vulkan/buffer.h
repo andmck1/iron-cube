@@ -48,7 +48,10 @@ class VulkanBufferVertex : public VulkanBufferSingleStageBase
 {
     public:
     VulkanBufferVertex()
-        : VulkanBufferSingleStageBase(vk::BufferUsageFlagBits::eVertexBuffer)
+        : VulkanBufferSingleStageBase(
+              vk::BufferUsageFlagBits::eVertexBuffer |
+              vk::BufferUsageFlagBits::eTransferDst
+          )
     {
     }
 };

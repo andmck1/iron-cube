@@ -60,6 +60,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::shutdown()
     spdlog::debug("Shutting down instanced vulkan pipeline");
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
+    computePipeline_ = nullptr;
     shutdownBuffers();
     spdlog::debug("Shutdown complete for instanced vulkan pipeline");
     return true;
@@ -86,14 +87,38 @@ void InstancedVertexComputeVulkanShaderPipeline::initUniformBuffers()
 
 void InstancedVertexComputeVulkanShaderPipeline::initStorageBuffers()
 {
+    // Binding 3: debugData (RW Storage)
     vk::DeviceSize debugDataBufferSize =
         sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-
     addBuffer<VulkanBufferRWStorage>(
         storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
         vk::ShaderStageFlagBits::eAll
     );
 
+    // Binding 4: reorderedInstances (RW Storage)
+    vk::DeviceSize reorderedInstancesSize =
+        sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
+        MAX_N_INSTANCE_ROWS;
+    addBuffer<VulkanBufferRWStorage>(
+        storageRWBuffers_, reorderedInstancesSize, nullptr,
+        vk::ShaderStageFlagBits::eCompute
+    );
+
+    // Binding 5: lodBaseOffsets (RW Storage)
+    vk::DeviceSize lodBaseOffsetsSize = sizeof(uint32_t) * MAX_LOD_COUNT;
+    addBuffer<VulkanBufferRWStorage>(
+        storageRWBuffers_, lodBaseOffsetsSize, nullptr,
+        vk::ShaderStageFlagBits::eCompute
+    );
+
+    // Binding 6: lodSlotCounters (RW Storage)
+    vk::DeviceSize lodSlotCountersSize = sizeof(uint32_t) * MAX_LOD_COUNT;
+    addBuffer<VulkanBufferRWStorage>(
+        storageRWBuffers_, lodSlotCountersSize, nullptr,
+        vk::ShaderStageFlagBits::eCompute
+    );
+
+    // Binding 7: instances (R Storage)
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
         MAX_N_INSTANCE_ROWS;
@@ -102,9 +127,9 @@ void InstancedVertexComputeVulkanShaderPipeline::initStorageBuffers()
         vk::ShaderStageFlagBits::eCompute
     );
 
+    // Binding 8: indirectCommands (Indirect Storage)
     vk::DeviceSize indirectDrawBufferSize =
         sizeof(vk::DrawIndexedIndirectCommand) * MAX_LOD_COUNT;
-
     addBuffer<VulkanBufferIndirectStorage>(
         storageIndirectBuffers_, indirectDrawBufferSize, nullptr,
         vk::ShaderStageFlagBits::eAll
@@ -236,11 +261,18 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setDepthBoundsTestEnable(vk::False)
             .setStencilTestEnable(vk::False);
 
+    vk::PushConstantRange pushConstantRange =
+        vk::PushConstantRange{}
+            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
+            .setOffset(0)
+            .setSize(sizeof(uint32_t));
+
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
         vk::PipelineLayoutCreateInfo{}
             .setSetLayoutCount(1)
             .setPSetLayouts(&*descriptorSetLayout_)
-            .setPushConstantRangeCount(0);
+            .setPushConstantRangeCount(1)
+            .setPPushConstantRanges(&pushConstantRange);
 
     pipelineLayout_ =
         vk::raii::PipelineLayout(renderer_->getDevice(), pipelineLayoutInfo);
@@ -364,7 +396,18 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
     sceneData.instanceCount = updateData_->instances->size();
     sceneData.meshletCount = geometry_->meshletLODCounts[0];
-    sceneData.indexCount = geometry_->indexCounts[0];
+    for (unsigned int lodIndex = 0; lodIndex < MAX_LOD_COUNT; lodIndex++)
+    {
+        sceneData.indexCounts[lodIndex] = {
+            geometry_->indexCounts[lodIndex], 0.f, 0.f, 0.f
+        };
+        sceneData.indexOffsets[lodIndex] = {
+            geometry_->indexOffsets[lodIndex], 0.f, 0.f, 0.f
+        };
+        sceneData.vertexOffsets[lodIndex] = {
+            geometry_->vertexOffsets[lodIndex], 0.f, 0.f, 0.f
+        };
+    }
     for (unsigned int lodIndex = 0;
          lodIndex < geometry_->meshletLODOffsets.size(); lodIndex++)
     {
@@ -432,10 +475,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
                             instancesBufferSize, updateData_->instances->data()
                         );
 
-    // Update instance vertex buffer for vertex shader instancing
-    vk::DeviceSize instanceBufferSize =
-        sizeof(Instance) * updateData_->instances->size();
-    instanceBuffer_.update(instanceBufferSize, updateData_->instances->data());
+    // instanceBuffer_ is populated by GPU copy from reorderedInstances
 
     updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
@@ -458,7 +498,120 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
         vk::PipelineBindPoint::eCompute, pipelineLayout_, 0,
         *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
     );
-    commandBuffer.dispatch(1, 1, 1);
+    uint32_t dispatchCount = (updateData_->instances->size() + 255) / 256;
+
+    // Clear indirect commands buffer on CPU: populate geometry data, zero
+    // counts This avoids a race condition where the reset thread could execute
+    // after atomic adds from other workgroups.
+    std::vector<vk::DrawIndexedIndirectCommand> indirectCommandsData(
+        MAX_LOD_COUNT, vk::DrawIndexedIndirectCommand()
+    );
+    for (unsigned int lodIndex = 0; lodIndex < MAX_LOD_COUNT; lodIndex++)
+    {
+        indirectCommandsData[lodIndex].indexCount =
+            geometry_->indexCounts[lodIndex];
+        indirectCommandsData[lodIndex].instanceCount = 0;
+        indirectCommandsData[lodIndex].firstIndex =
+            geometry_->indexOffsets[lodIndex];
+        // vertexOffset is 0 because indices are already adjusted during
+        // resource loading to point into the combined vertex buffer.
+        // Setting this to geometry_->vertexOffsets[lodIndex] would
+        // double-apply the offset and cause out-of-bounds vertex fetches.
+        indirectCommandsData[lodIndex].vertexOffset = 0;
+        indirectCommandsData[lodIndex].firstInstance = 0;
+    }
+    storageIndirectBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
+        sizeof(vk::DrawIndexedIndirectCommand) * MAX_LOD_COUNT,
+        indirectCommandsData.data()
+    );
+
+    // Dispatch 1: Compute LOD per instance, atomic count
+    uint32_t phase0 = 0;
+    commandBuffer.pushConstants(
+        pipelineLayout_, vk::ShaderStageFlagBits::eCompute, 0, sizeof(uint32_t),
+        &phase0
+    );
+    commandBuffer.dispatch(dispatchCount, 1, 1);
+
+    // Barrier: ensure compute writes from phase 0 are visible to phase 1
+    // (indirectCommands.instanceCount, lodBaseOffsets, lodSlotCounters)
+    vk::MemoryBarrier2 computeToComputeBarrier =
+        vk::MemoryBarrier2{}
+            .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
+            .setDstAccessMask(
+                vk::AccessFlagBits2::eShaderRead |
+                vk::AccessFlagBits2::eShaderWrite
+            )
+            .setSrcStageMask(vk::PipelineStageFlagBits2::eComputeShader)
+            .setDstStageMask(vk::PipelineStageFlagBits2::eComputeShader);
+    vk::DependencyInfo phaseBarrierInfo =
+        vk::DependencyInfo{}.setMemoryBarrierCount(1).setPMemoryBarriers(
+            &computeToComputeBarrier
+        );
+    commandBuffer.pipelineBarrier2(phaseBarrierInfo);
+
+    // Dispatch 2: Compute base offsets, scatter instances, set firstInstance
+    uint32_t phase1 = 1;
+    commandBuffer.pushConstants(
+        pipelineLayout_, vk::ShaderStageFlagBits::eCompute, 0, sizeof(uint32_t),
+        &phase1
+    );
+    commandBuffer.dispatch(dispatchCount, 1, 1);
+
+    // Barrier: ensure compute writes to reordered instances are visible for
+    // copy
+    auto &reorderedInstancesBuffer = storageRWBuffers_
+        [1][renderer_->getCurrentFrameIndex()]; // reordered instances buffer
+    vk::BufferMemoryBarrier2 reorderBarrier =
+        vk::BufferMemoryBarrier2{}
+            .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
+            .setDstAccessMask(vk::AccessFlagBits2::eTransferRead)
+            .setSrcStageMask(vk::PipelineStageFlagBits2::eComputeShader)
+            .setDstStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setBuffer(*reorderedInstancesBuffer.getBuffer())
+            .setSize(VK_WHOLE_SIZE);
+    vk::BufferMemoryBarrier2 instanceBarrier =
+        vk::BufferMemoryBarrier2{}
+            .setSrcAccessMask(vk::AccessFlagBits2::eHostWrite)
+            .setDstAccessMask(vk::AccessFlagBits2::eTransferWrite)
+            .setSrcStageMask(vk::PipelineStageFlagBits2::eHost)
+            .setDstStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setBuffer(*instanceBuffer_.getBuffer())
+            .setSize(VK_WHOLE_SIZE);
+    vk::DependencyInfo reorderDependencyInfo =
+        vk::DependencyInfo{}
+            .setBufferMemoryBarrierCount(2)
+            .setPBufferMemoryBarriers(
+                std::array<vk::BufferMemoryBarrier2, 2>{
+                    reorderBarrier, instanceBarrier
+                }
+                    .data()
+            );
+    commandBuffer.pipelineBarrier2(reorderDependencyInfo);
+
+    // Copy reordered instances to vertex input buffer (on same command buffer)
+    vk::DeviceSize maxInstancesSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
+                                      MAX_N_INSTANCE_LAYERS *
+                                      MAX_N_INSTANCE_ROWS;
+    commandBuffer.copyBuffer(
+        *reorderedInstancesBuffer.getBuffer(), *instanceBuffer_.getBuffer(),
+        vk::BufferCopy(0, 0, maxInstancesSize)
+    );
+
+    // Barrier: ensure reordered instances are visible for vertex fetch
+    vk::BufferMemoryBarrier2 vertexFetchBarrier =
+        vk::BufferMemoryBarrier2{}
+            .setSrcAccessMask(vk::AccessFlagBits2::eTransferWrite)
+            .setDstAccessMask(vk::AccessFlagBits2::eVertexAttributeRead)
+            .setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setDstStageMask(vk::PipelineStageFlagBits2::eVertexInput)
+            .setBuffer(*instanceBuffer_.getBuffer())
+            .setSize(VK_WHOLE_SIZE);
+    vk::DependencyInfo vertexFetchDependencyInfo =
+        vk::DependencyInfo{}
+            .setBufferMemoryBarrierCount(1)
+            .setPBufferMemoryBarriers(&vertexFetchBarrier);
+    commandBuffer.pipelineBarrier2(vertexFetchDependencyInfo);
 
     // Barrier: ensure compute writes to indirect buffer are visible for draw
     auto &indirectBuffer =
