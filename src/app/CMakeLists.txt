@@ -17,6 +17,8 @@ foreach(SHADER_FILE ${ALL_SHADERS})
         set(STAGE "vertex")
     elseif(SHADER_NAME MATCHES ".frag.slang")
         set(STAGE "fragment")
+    elseif(SHADER_NAME MATCHES ".compute.slang")
+        set(STAGE "compute")
     elseif(SHADER_NAME MATCHES ".mesh.slang")
         set(STAGE "mesh")
     elseif(SHADER_NAME MATCHES ".task.slang")
@@ -59,6 +61,7 @@ add_executable(
     src/layer/scene.cpp
     src/shaderpipeline/standard.cpp
     src/shaderpipeline/instancedVertex.cpp
+    src/shaderpipeline/instancedVertexWithCompute.cpp
     src/shaderpipeline/instancedMesh.cpp
 )
 

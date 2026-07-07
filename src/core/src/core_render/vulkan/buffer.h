@@ -140,3 +140,19 @@ class VulkanBufferRWStorage : public VulkanBufferStorageBase
         vk::BufferUsageFlagBits::eTransferDst |
         vk::BufferUsageFlagBits::eTransferSrc;
 };
+
+class VulkanBufferIndirectStorage : public VulkanBufferStorageBase
+{
+    public:
+    VulkanBufferIndirectStorage()
+        : VulkanBufferStorageBase(
+              vk::BufferUsageFlagBits::eTransferDst |
+                  vk::BufferUsageFlagBits::eTransferSrc,
+              vk::BufferUsageFlagBits::eTransferDst |
+                  vk::BufferUsageFlagBits::eTransferSrc |
+                  vk::BufferUsageFlagBits::eStorageBuffer |
+                  vk::BufferUsageFlagBits::eIndirectBuffer
+          )
+    {
+    }
+};

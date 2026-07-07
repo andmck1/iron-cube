@@ -134,10 +134,10 @@ struct SceneBuffer
     uint32_t instanceCount;
     uint32_t meshletCount;
     uint32_t visibilityFunc;
-    uint32_t pad0;
+    uint32_t indexCount;
     // TODO - parameterise this (compile time const)
-    uint4 meshletLODOffsets[5];
-    uint4 meshletLODCounts[5];
+    uint4 meshletLODOffsets[MAX_LOD_COUNT];
+    uint4 meshletLODCounts[MAX_LOD_COUNT];
     float4 minMeshBounds;
     float4 maxMeshBounds;
     float4 maxLODDistance;

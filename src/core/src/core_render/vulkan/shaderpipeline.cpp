@@ -53,6 +53,10 @@ bool VulkanShaderPipeline::initDescriptorLayout()
         storageRBuffers_, bindingIndex, vk::DescriptorType::eStorageBuffer,
         &bindings
     );
+    initBufferDescriptorLayout<VulkanBufferIndirectStorage>(
+        storageIndirectBuffers_, bindingIndex,
+        vk::DescriptorType::eStorageBuffer, &bindings
+    );
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo =
         vk::DescriptorSetLayoutCreateInfo{}
@@ -83,7 +87,8 @@ bool VulkanShaderPipeline::createDescriptorPool()
     }
 
     uint totalNStorageBuffers =
-        storageRBuffers_.size() + storageRWBuffers_.size();
+        storageRBuffers_.size() + storageRWBuffers_.size() +
+        storageIndirectBuffers_.size();
     if (totalNStorageBuffers > 0)
     {
         poolSizes.emplace_back(
@@ -132,7 +137,8 @@ bool VulkanShaderPipeline::initDescriptorSets()
         std::vector<vk::DescriptorBufferInfo> bufferInfos;
 
         uint totalNStorageBuffers =
-            storageRBuffers_.size() + storageRWBuffers_.size();
+            storageRBuffers_.size() + storageRWBuffers_.size() +
+            storageIndirectBuffers_.size();
         size_t totalBuffers = uniformBuffers_.size() + totalNStorageBuffers;
         descriptorWrites.reserve(totalBuffers);
         bufferInfos.reserve(totalBuffers);
@@ -151,6 +157,10 @@ bool VulkanShaderPipeline::initDescriptorSets()
             storageRBuffers_, frameIndex, vk::DescriptorType::eStorageBuffer,
             bindingIndex, &descriptorWrites, &bufferInfos
         );
+        initBufferDescriptorSet<VulkanBufferIndirectStorage>(
+            storageIndirectBuffers_, frameIndex, vk::DescriptorType::eStorageBuffer,
+            bindingIndex, &descriptorWrites, &bufferInfos
+        );
 
         renderer->getDevice().updateDescriptorSets(descriptorWrites, {});
     }
@@ -163,4 +173,5 @@ void VulkanShaderPipeline::shutdownBuffers()
     uniformBuffers_.clear();
     storageRWBuffers_.clear();
     storageRBuffers_.clear();
+    storageIndirectBuffers_.clear();
 }

@@ -98,6 +98,8 @@ class VulkanShaderPipeline : public IShaderPipeline
     std::vector<std::vector<VulkanBufferUniform>> uniformBuffers_;
     std::vector<std::vector<VulkanBufferRStorage>> storageRBuffers_;
     std::vector<std::vector<VulkanBufferRWStorage>> storageRWBuffers_;
+    std::vector<std::vector<VulkanBufferIndirectStorage>>
+        storageIndirectBuffers_;
 
     std::vector<DebugDataBuffer> debugDataBufferData_ = {DebugDataBuffer()};
 };

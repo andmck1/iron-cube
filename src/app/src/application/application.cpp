@@ -15,6 +15,7 @@
 
 #include "shaderpipeline/standard.h"
 #include "shaderpipeline/instancedVertex.h"
+#include "shaderpipeline/instancedVertexWithCompute.h"
 #include "shaderpipeline/instancedMesh.h"
 
 #include <format>
@@ -127,6 +128,26 @@ bool Application::initialiseShaders()
         "instancedVertex", std::move(instancedVertexShader)
     );
 
+    VulkanShaderConfig instancedComputeVertexShaderConfig;
+    instancedComputeVertexShaderConfig.path =
+        "build/shader/slang/vertex/instancedCompute.vert.spv";
+
+    std::unique_ptr<VulkanShader> instancedComputeVertexShader =
+        std::make_unique<VulkanShader>(instancedComputeVertexShaderConfig);
+    shaderManager_.registerShader(
+        "instancedComputeVertex", std::move(instancedComputeVertexShader)
+    );
+
+    VulkanShaderConfig instancedComputeShaderConfig;
+    instancedComputeShaderConfig.path =
+        "build/shader/slang/compute/instanced.compute.spv";
+
+    std::unique_ptr<VulkanShader> instancedComputeShader =
+        std::make_unique<VulkanShader>(instancedComputeShaderConfig);
+    shaderManager_.registerShader(
+        "instancedCompute", std::move(instancedComputeShader)
+    );
+
     VulkanShaderConfig defaultTaskShaderConfig;
     defaultTaskShaderConfig.path = "build/shader/slang/task/default.task.spv";
 
@@ -149,6 +170,16 @@ bool Application::initialiseShaders()
         std::make_unique<VulkanShader>(defaultFragmentShaderConfig);
     shaderManager_.registerShader(
         "defaultFragment", std::move(defaultFragmentShader)
+    );
+
+    VulkanShaderConfig instancedFragmentShaderConfig;
+    instancedFragmentShaderConfig.path =
+        "build/shader/slang/fragment/instanced.frag.spv";
+
+    std::unique_ptr<VulkanShader> instancedFragmentShader =
+        std::make_unique<VulkanShader>(instancedFragmentShaderConfig);
+    shaderManager_.registerShader(
+        "instancedFragment", std::move(instancedFragmentShader)
     );
 
     spdlog::debug("Finished initialising shaders");
@@ -280,8 +311,6 @@ bool Application::initialiseGeometry(
         registeredShaderPipeline->init(
             registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
-        meshComponent->setShaderPipeline(registeredShaderPipeline);
-        meshComponent->setMesh(registeredMesh);
     }
     {
         // instanced vertex shader pipeline
@@ -311,6 +340,43 @@ bool Application::initialiseGeometry(
         registeredShaderPipeline->init(
             registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
+    }
+    {
+        // instanced vertex shader pipeline
+        std::unique_ptr<InstancedVertexComputeShaderPipelineUpdateData>
+            actorInstancedShaderPipelineUpdateData = std::make_unique<
+                InstancedVertexComputeShaderPipelineUpdateData>();
+        actorInstancedShaderPipelineUpdateData->actor = actorPtr;
+        actorInstancedShaderPipelineUpdateData->camera = camera_;
+        actorInstancedShaderPipelineUpdateData->instances =
+            &registeredMesh->instances;
+        actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
+        actorInstancedShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
+        actorInstancedShaderPipelineUpdateData->rotationFrequency =
+            &rotationFrequency_;
+        actorInstancedShaderPipelineUpdateData->timer = &timer_;
+        actorInstancedShaderPipelineUpdateData->visibilityFunc =
+            &visibilityFunction_;
+        actorInstancedShaderPipelineUpdateData->maxLODDistance =
+            &maxLODDistance_;
+        actorInstancedShaderPipelineUpdateData->lodExponent = &lodExponent_;
+        actorInstancedShaderPipelineUpdateData->isLODOn = &isLODOn_;
+
+        std::unique_ptr<InstancedVertexComputeVulkanShaderPipeline>
+            actorInstancedShaderPipeline =
+                std::make_unique<InstancedVertexComputeVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("{}InstancedVertexCompute", name),
+                std::move(actorInstancedShaderPipeline),
+                std::move(actorInstancedShaderPipelineUpdateData)
+            );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+        meshComponent->setShaderPipeline(registeredShaderPipeline);
+        meshComponent->setMesh(registeredMesh);
     }
     {
         // mesh shader pipeline
@@ -503,12 +569,17 @@ void Application::checkForPipelineUpdates()
         }
         case 2:
         {
+            shaderPipelineSuffix = "InstancedVertexCompute";
+            break;
+        }
+        case 3:
+        {
             shaderPipelineSuffix = "Mesh";
             break;
         }
         default:
         {
-            shaderPipelineSuffix = "DefaultVertex";
+            shaderPipelineSuffix = "InstancedVertexCompute";
             break;
         }
         }
