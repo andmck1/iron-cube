@@ -43,6 +43,7 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
     uint animationDataUniformBufferIndex_ = 2;
     uint instancesStorageRBufferIndex_ = 0;
     uint debugDataStorageRWBufferIndex_ = 0;
+    uint lodSlotCountersStorageRWBufferIndex_ = 3;
 
     bool initGraphicsPipeline();
     bool initComputeShaderPipeline();

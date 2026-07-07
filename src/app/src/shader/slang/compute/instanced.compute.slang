@@ -59,11 +59,12 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
     else
     {
         // Phase 1: Compute base offsets, scatter, set firstInstance
+        // (lodSlotCounters are cleared on CPU before dispatch to avoid
+        //  cross-workgroup race conditions)
         uint offset = 0;
         for (uint lod = 0; lod < MAX_LOD_COUNT; lod++)
         {
             lodBaseOffsets[lod] = offset;
-            lodSlotCounters[lod] = 0;
             offset += indirectCommands[lod].instanceCount;
         }
 

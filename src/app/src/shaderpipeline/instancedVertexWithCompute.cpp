@@ -525,6 +525,17 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
         indirectCommandsData.data()
     );
 
+    // Clear slot counters on CPU before dispatch. This avoids a race condition
+    // where AllMemoryBarrierWithGroupSync() only synchronises within a
+    // workgroup, leaving cross-workgroup resets and scatters unordered.
+    std::vector<uint32_t> slotCountersData(MAX_LOD_COUNT, 0);
+    storageRWBuffers_[lodSlotCountersStorageRWBufferIndex_]
+                     [renderer_->getCurrentFrameIndex()]
+                         .update(
+                             sizeof(uint32_t) * MAX_LOD_COUNT,
+                             slotCountersData.data()
+                         );
+
     // Dispatch 1: Compute LOD per instance, atomic count
     uint32_t phase0 = 0;
     commandBuffer.pushConstants(
