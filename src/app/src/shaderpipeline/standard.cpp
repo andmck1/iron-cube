@@ -1,5 +1,5 @@
 #include "shaderpipeline/standard.h"
-#include "core_buffertypes/buffertypes.h"
+#include "shader/shared/buffertypes.h"
 #include "core_render/ishadermanager.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"

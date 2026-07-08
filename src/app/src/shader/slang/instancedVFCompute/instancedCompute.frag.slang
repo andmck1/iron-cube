@@ -1,4 +1,4 @@
-#include "core_buffertypes/buffertypes.h"
+#include "shader/shared/buffertypes.h"
 #include "shader/shared/buffertypes.h"
 
 [[vk::binding(3)]]

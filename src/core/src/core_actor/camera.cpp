@@ -1,5 +1,5 @@
 #include "core_actor/camera.h"
-#include "core_buffertypes/buffertypes.h"
+#include "shader/shared/buffertypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_platform/iplatform.h"
 #include "core_service/servicelocator.h"

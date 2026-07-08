@@ -1,9 +1,6 @@
 # Compile Slang shaders to SPIR-V
 set(SHADER_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shader)
 set(SPIRV_BASE_DIR ${CMAKE_BINARY_DIR}/shader)
-set(SHARED_CORE_BUFFERTYPES_HEADER
-    ${CMAKE_SOURCE_DIR}/src/core/src/core_buffertypes/buffertypes.h
-)
 set(SHARED_APP_BUFFERTYPES_HEADER ${SHADER_BASE_DIR}/shared/buffertypes.h)
 
 file(MAKE_DIRECTORY ${SPIRV_BASE_DIR})
@@ -33,14 +30,12 @@ foreach(SHADER_FILE ${ALL_SHADERS})
 
     set(SHADER_DEPENDENCIES ${SHADER_FILE})
     list(APPEND SHADER_DEPENDENCIES ${SHARED_APP_BUFFERTYPES_HEADER})
-    list(APPEND SHADER_DEPENDENCIES ${SHARED_CORE_BUFFERTYPES_HEADER})
 
     add_custom_command(
         OUTPUT ${SPIRV_FILE}
         COMMAND
             ${SLANGC_EXECUTABLE} -target spirv -entry main -stage ${STAGE} -I
-            ${CMAKE_CURRENT_SOURCE_DIR}/src -I ${SHADER_BASE_DIR} -I
-            ${CMAKE_SOURCE_DIR}/src/core/src -o ${SPIRV_FILE} ${SHADER_FILE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/src -I ${SHADER_BASE_DIR} -o ${SPIRV_FILE} ${SHADER_FILE}
         DEPENDS ${SHADER_DEPENDENCIES}
         COMMENT "Compiling ${SHADER_FILE} -> ${SPIRV_FILE}"
     )

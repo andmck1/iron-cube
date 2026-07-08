@@ -1,5 +1,5 @@
 #include "shader/shared/helpers.slangh"
-#include "core_buffertypes/buffertypes.h"
+#include "shader/shared/buffertypes.h"
 #include "shader/shared/buffertypes.h"
 
 [[vk::binding(0)]]
