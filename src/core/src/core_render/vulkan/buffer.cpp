@@ -39,14 +39,17 @@ BufferDescription VertexBuffer{
                    vk::BufferUsageFlagBits::eTransferDst,
     .stagingUsage = vk::BufferUsageFlagBits::eTransferSrc,
     .deviceMemory = vk::MemoryPropertyFlagBits::eDeviceLocal,
-    .stageFlags = {},
+    .stageFlags = {vk::ShaderStageFlagBits::eVertex},
     .useStaging = true
 };
 
 BufferDescription IndexBuffer{
-    .deviceUsage = vk::BufferUsageFlagBits::eIndexBuffer,
+    .deviceUsage = vk::BufferUsageFlagBits::eIndexBuffer |
+                   vk::BufferUsageFlagBits::eTransferDst,
+    .stagingUsage = vk::BufferUsageFlagBits::eTransferSrc,
     .deviceMemory = vk::MemoryPropertyFlagBits::eDeviceLocal,
-    .stageFlags = {}
+    .stageFlags = {vk::ShaderStageFlagBits::eVertex},
+    .useStaging = true
 };
 
 void VulkanBuffer::init(
