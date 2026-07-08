@@ -67,75 +67,78 @@ bool InstancedVertexComputeVulkanShaderPipeline::shutdown()
 
 void InstancedVertexComputeVulkanShaderPipeline::initUniformBuffers()
 {
-    addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(InstancedVFCompute::MVPBuffer),
-        static_cast<InstancedVFCompute::MVPBuffer *>(nullptr),
-        vk::ShaderStageFlagBits::eVertex
+    BufferDescription mvpDesc = UniformBuffer;
+    mvpDesc.stageFlags =
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+    addBuffer(
+        mvpDesc, sizeof(InstancedVFCompute::MVPBuffer),
+        static_cast<InstancedVFCompute::MVPBuffer *>(nullptr)
     );
 
-    addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(InstancedVFCompute::SceneBuffer),
-        static_cast<InstancedVFCompute::SceneBuffer *>(nullptr),
-        vk::ShaderStageFlagBits::eCompute
+    BufferDescription sceneDesc = UniformBuffer;
+    sceneDesc.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    addBuffer(
+        sceneDesc, sizeof(InstancedVFCompute::SceneBuffer),
+        static_cast<InstancedVFCompute::SceneBuffer *>(nullptr)
     );
 
-    addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(InstancedVFCompute::AnimationBuffer),
-        static_cast<InstancedVFCompute::AnimationBuffer *>(nullptr),
-        vk::ShaderStageFlagBits::eVertex
+    BufferDescription animDesc = UniformBuffer;
+    animDesc.stageFlags =
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eCompute;
+    addBuffer(
+        animDesc, sizeof(InstancedVFCompute::AnimationBuffer),
+        static_cast<InstancedVFCompute::AnimationBuffer *>(nullptr)
     );
 }
 
 void InstancedVertexComputeVulkanShaderPipeline::initStorageBuffers()
 {
-    // Binding 3: debugData (RW Storage)
+    // debugData (RW Storage)
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    addBuffer<VulkanBufferRWStorage>(
-        storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
-        vk::ShaderStageFlagBits::eAll
-    );
+    BufferDescription debugDesc = StorageReadWrite;
+    debugDesc.stageFlags = vk::ShaderStageFlagBits::eVertex |
+                           vk::ShaderStageFlagBits::eFragment |
+                           vk::ShaderStageFlagBits::eCompute;
+    addBuffer(debugDesc, debugDataBufferSize, debugDataBufferData_.data());
 
-    // Binding 4: reorderedInstances (RW Storage)
+    // reorderedInstances (RW Storage)
     vk::DeviceSize reorderedInstancesSize =
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
         MAX_N_INSTANCE_ROWS;
-    addBuffer<VulkanBufferRWStorage>(
-        storageRWBuffers_, reorderedInstancesSize, nullptr,
-        vk::ShaderStageFlagBits::eCompute
-    );
+    BufferDescription reorderedDesc = StorageReadWrite;
+    reorderedDesc.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    addBuffer(reorderedDesc, reorderedInstancesSize, nullptr);
 
-    // Binding 5: lodBaseOffsets (RW Storage)
+    // lodBaseOffsets (RW Storage)
     vk::DeviceSize lodBaseOffsetsSize = sizeof(uint32_t) * MAX_LOD_COUNT;
-    addBuffer<VulkanBufferRWStorage>(
-        storageRWBuffers_, lodBaseOffsetsSize, nullptr,
-        vk::ShaderStageFlagBits::eCompute
-    );
+    BufferDescription lodOffsetsDesc = StorageReadWrite;
+    lodOffsetsDesc.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    addBuffer(lodOffsetsDesc, lodBaseOffsetsSize, nullptr);
 
-    // Binding 6: lodSlotCounters (RW Storage)
+    // lodSlotCounters (RW Storage)
     vk::DeviceSize lodSlotCountersSize = sizeof(uint32_t) * MAX_LOD_COUNT;
-    addBuffer<VulkanBufferRWStorage>(
-        storageRWBuffers_, lodSlotCountersSize, nullptr,
-        vk::ShaderStageFlagBits::eCompute
-    );
+    BufferDescription lodCountersDesc = StorageReadWrite;
+    lodCountersDesc.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    addBuffer(lodCountersDesc, lodSlotCountersSize, nullptr);
 
-    // Binding 7: instances (R Storage)
+    // instances (R Storage)
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
         MAX_N_INSTANCE_ROWS;
-    addBuffer<VulkanBufferRStorage>(
-        storageRBuffers_, instancesBufferSize, nullptr,
-        vk::ShaderStageFlagBits::eCompute
-    );
+    BufferDescription instancesDesc = StorageRead;
+    instancesDesc.stageFlags =
+        vk::ShaderStageFlagBits::eCompute | vk::ShaderStageFlagBits::eVertex;
+    addBuffer(instancesDesc, instancesBufferSize, nullptr);
 
-    // Binding 8: indirectCommands (Indirect Storage)
+    // indirectCommands (RW Storage)
     vk::DeviceSize indirectDrawBufferSize =
         sizeof(vk::DrawIndexedIndirectCommand) * MAX_LOD_COUNT;
-    addBuffer<VulkanBufferIndirectStorage>(
-        storageIndirectBuffers_, indirectDrawBufferSize, nullptr,
-        vk::ShaderStageFlagBits::eAll
-    );
+    BufferDescription indirectDesc = StorageReadWrite;
+    indirectDesc.deviceUsage |= vk::BufferUsageFlagBits::eIndirectBuffer;
+    indirectDesc.stageFlags = vk::ShaderStageFlagBits::eCompute;
+    addBuffer(indirectDesc, indirectDrawBufferSize, nullptr);
 }
 
 bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
@@ -338,14 +341,14 @@ bool InstancedVertexComputeVulkanShaderPipeline::initVertexBuffer()
 {
     vk::DeviceSize bufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
-    vertexBuffer_.init(bufferSize, geometry_->vertices.data());
+    vertexBuffer_.init(VertexBuffer, bufferSize, geometry_->vertices.data());
     return true;
 }
 
 bool InstancedVertexComputeVulkanShaderPipeline::initIndexBuffer()
 {
     vk::DeviceSize bufferSize = sizeof(uint32_t) * geometry_->indices.size();
-    indexBuffer_.init(bufferSize, geometry_->indices.data());
+    indexBuffer_.init(IndexBuffer, bufferSize, geometry_->indices.data());
     return true;
 }
 
@@ -353,7 +356,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::initInstanceBuffer()
 {
     vk::DeviceSize bufferSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
                                 MAX_N_INSTANCE_LAYERS * MAX_N_INSTANCE_ROWS;
-    instanceBuffer_.init(bufferSize, nullptr);
+    instanceBuffer_.init(VertexBuffer, bufferSize, nullptr);
 
     return true;
 }
@@ -368,11 +371,16 @@ bool InstancedVertexComputeVulkanShaderPipeline::bind()
     commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
     );
-    commandBuffer.bindVertexBuffers(0, **vertexBuffer_.getBuffer(), {0});
-    commandBuffer.bindIndexBuffer(
-        **indexBuffer_.getBuffer(), 0, vk::IndexType::eUint32
+    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
+    commandBuffer.bindVertexBuffers(
+        0, **vertexBuffer_.getBuffer(frameIndex), {0}
     );
-    commandBuffer.bindVertexBuffers(1, **instanceBuffer_.getBuffer(), {0});
+    commandBuffer.bindIndexBuffer(
+        **indexBuffer_.getBuffer(frameIndex), 0, vk::IndexType::eUint32
+    );
+    commandBuffer.bindVertexBuffers(
+        1, **instanceBuffer_.getBuffer(frameIndex), {0}
+    );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
         *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
@@ -420,18 +428,16 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
         static_cast<uint32_t>(*updateData_->visibilityFunc), 0, 0, 0
     };
 
-    uniformBuffers_[sceneDataUniformBufferIndex_]
-                   [renderer_->getCurrentFrameIndex()]
-                       .update(sizeof(sceneData), &sceneData);
+    buffers_[InstancedVFCompute::BufferSlots::SCENE].update(
+        sizeof(sceneData), &sceneData
+    );
 
     InstancedVFCompute::MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
-    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
-        sizeof(mvp), &mvp
-    );
+    buffers_[InstancedVFCompute::BufferSlots::MVP].update(sizeof(mvp), &mvp);
 
     InstancedVFCompute::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
@@ -444,18 +450,16 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     animation.currentTime = {
         updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
     };
-    uniformBuffers_[animationDataUniformBufferIndex_]
-                   [renderer_->getCurrentFrameIndex()]
-                       .update(sizeof(animation), &animation);
+    buffers_[InstancedVFCompute::BufferSlots::ANIMATION].update(
+        sizeof(animation), &animation
+    );
 
     // This takes up most of the frame time
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * updateData_->instances->size();
-    storageRBuffers_[instancesStorageRBufferIndex_]
-                    [renderer_->getCurrentFrameIndex()]
-                        .update(
-                            instancesBufferSize, updateData_->instances->data()
-                        );
+    buffers_[InstancedVFCompute::BufferSlots::INSTANCES].update(
+        instancesBufferSize, updateData_->instances->data()
+    );
 
     // instanceBuffer_ is populated by GPU copy from reorderedInstances
 
@@ -464,13 +468,10 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
     debugDataBufferData_ = {InstancedVFCompute::DebugDataBuffer()};
-    debugDataBufferData_[debugDataStorageRWBufferIndex_].isDebugQueryOn =
-        isDebugQuery_;
-    storageRWBuffers_[debugDataStorageRWBufferIndex_]
-                     [renderer_->getCurrentFrameIndex()]
-                         .update(
-                             debugDataBufferSize, debugDataBufferData_.data()
-                         );
+    debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
+    buffers_[InstancedVFCompute::BufferSlots::DEBUG].update(
+        debugDataBufferSize, debugDataBufferData_.data()
+    );
 
     // Dispatch compute shader outside of render pass
     vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
@@ -503,7 +504,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
         indirectCommandsData[lodIndex].vertexOffset = 0;
         indirectCommandsData[lodIndex].firstInstance = 0;
     }
-    storageIndirectBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
+    buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS].update(
         sizeof(vk::DrawIndexedIndirectCommand) * MAX_LOD_COUNT,
         indirectCommandsData.data()
     );
@@ -512,12 +513,9 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     // where AllMemoryBarrierWithGroupSync() only synchronises within a
     // workgroup, leaving cross-workgroup resets and scatters unordered.
     std::vector<uint32_t> slotCountersData(MAX_LOD_COUNT, 0);
-    storageRWBuffers_[lodSlotCountersStorageRWBufferIndex_]
-                     [renderer_->getCurrentFrameIndex()]
-                         .update(
-                             sizeof(uint32_t) * MAX_LOD_COUNT,
-                             slotCountersData.data()
-                         );
+    buffers_[InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS].update(
+        sizeof(uint32_t) * MAX_LOD_COUNT, slotCountersData.data()
+    );
 
     // Dispatch 1: Compute LOD per instance, atomic count
     uint32_t phase0 = 0;
@@ -554,15 +552,17 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
 
     // Barrier: ensure compute writes to reordered instances are visible for
     // copy
-    auto &reorderedInstancesBuffer = storageRWBuffers_
-        [1][renderer_->getCurrentFrameIndex()]; // reordered instances buffer
+    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
+    auto &reorderedInstancesBuffer =
+        buffers_[InstancedVFCompute::BufferSlots::
+                     REORDERED_INSTANCES]; // reordered instances buffer
     vk::BufferMemoryBarrier2 reorderBarrier =
         vk::BufferMemoryBarrier2{}
             .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
             .setDstAccessMask(vk::AccessFlagBits2::eTransferRead)
             .setSrcStageMask(vk::PipelineStageFlagBits2::eComputeShader)
             .setDstStageMask(vk::PipelineStageFlagBits2::eTransfer)
-            .setBuffer(*reorderedInstancesBuffer.getBuffer())
+            .setBuffer(*reorderedInstancesBuffer.getBuffer(frameIndex))
             .setSize(VK_WHOLE_SIZE);
     vk::BufferMemoryBarrier2 instanceBarrier =
         vk::BufferMemoryBarrier2{}
@@ -570,7 +570,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
             .setDstAccessMask(vk::AccessFlagBits2::eTransferWrite)
             .setSrcStageMask(vk::PipelineStageFlagBits2::eHost)
             .setDstStageMask(vk::PipelineStageFlagBits2::eTransfer)
-            .setBuffer(*instanceBuffer_.getBuffer())
+            .setBuffer(*instanceBuffer_.getBuffer(frameIndex))
             .setSize(VK_WHOLE_SIZE);
     vk::DependencyInfo reorderDependencyInfo =
         vk::DependencyInfo{}
@@ -588,7 +588,8 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
                                       MAX_N_INSTANCE_LAYERS *
                                       MAX_N_INSTANCE_ROWS;
     commandBuffer.copyBuffer(
-        *reorderedInstancesBuffer.getBuffer(), *instanceBuffer_.getBuffer(),
+        *reorderedInstancesBuffer.getBuffer(frameIndex),
+        *instanceBuffer_.getBuffer(frameIndex),
         vk::BufferCopy(0, 0, maxInstancesSize)
     );
 
@@ -599,7 +600,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
             .setDstAccessMask(vk::AccessFlagBits2::eVertexAttributeRead)
             .setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer)
             .setDstStageMask(vk::PipelineStageFlagBits2::eVertexInput)
-            .setBuffer(*instanceBuffer_.getBuffer())
+            .setBuffer(*instanceBuffer_.getBuffer(frameIndex))
             .setSize(VK_WHOLE_SIZE);
     vk::DependencyInfo vertexFetchDependencyInfo =
         vk::DependencyInfo{}
@@ -609,14 +610,14 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
 
     // Barrier: ensure compute writes to indirect buffer are visible for draw
     auto &indirectBuffer =
-        storageIndirectBuffers_.front()[renderer_->getCurrentFrameIndex()];
+        buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS];
     vk::BufferMemoryBarrier2 bufferBarrier =
         vk::BufferMemoryBarrier2{}
             .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
             .setDstAccessMask(vk::AccessFlagBits2::eIndirectCommandRead)
             .setSrcStageMask(vk::PipelineStageFlagBits2::eComputeShader)
             .setDstStageMask(vk::PipelineStageFlagBits2::eDrawIndirect)
-            .setBuffer(*indirectBuffer.getBuffer())
+            .setBuffer(*indirectBuffer.getBuffer(frameIndex))
             .setSize(VK_WHOLE_SIZE);
     vk::DependencyInfo dependencyInfo =
         vk::DependencyInfo{}
@@ -635,12 +636,12 @@ bool InstancedVertexComputeVulkanShaderPipeline::draw()
     std::chrono::time_point now = std::chrono::steady_clock::now();
     nDrawCalls_ = 0;
 
+    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
     for (unsigned int lodIndex = 0; lodIndex < MAX_LOD_COUNT; lodIndex++)
     {
-        auto &buffer =
-            storageIndirectBuffers_.front()[renderer_->getCurrentFrameIndex()];
         renderer_->getCommandBuffer().drawIndexedIndirect(
-            *buffer.getBuffer(),
+            *buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS]
+                 .getBuffer(frameIndex),
             lodIndex * sizeof(vk::DrawIndexedIndirectCommand), 1,
             sizeof(vk::DrawIndexedIndirectCommand)
         );
@@ -661,9 +662,11 @@ bool InstancedVertexComputeVulkanShaderPipeline::postRender()
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
-        debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
-                                 vk::PipelineStageFlagBits::eFragmentShader
+    buffers_[InstancedVFCompute::BufferSlots::DEBUG].copyToStaging(
+        debugDataBufferSize,
+        vk::PipelineStageFlagBits::eVertexShader |
+            vk::PipelineStageFlagBits::eFragmentShader,
+        renderer_->getCurrentFrameIndex()
     );
     return true;
 }
@@ -685,7 +688,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::updatePipelineStatistics()
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
+    buffers_[InstancedVFCompute::BufferSlots::DEBUG].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =

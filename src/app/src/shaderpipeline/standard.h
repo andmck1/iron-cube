@@ -43,8 +43,8 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     void initUniformBuffers() override;
     void initStorageBuffers() override;
 
-    VulkanBufferVertex vertexBuffer_;
-    VulkanBufferIndex indexBuffer_;
+    VulkanBuffer vertexBuffer_;
+    VulkanBuffer indexBuffer_;
     DefaultShaderPipelineUpdateData *updateData_ = nullptr;
 
     Geometry *geometry_ = nullptr;

@@ -58,16 +58,19 @@ bool StandardVulkanShaderPipeline::shutdown()
 
 void StandardVulkanShaderPipeline::initUniformBuffers()
 {
-    addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(SimpleVF::MVPBuffer),
-        static_cast<SimpleVF::MVPBuffer *>(nullptr),
-        vk::ShaderStageFlagBits::eVertex
+    BufferDescription sceneDesc = UniformBuffer;
+    sceneDesc.stageFlags =
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+    addBuffer(
+        sceneDesc, sizeof(SimpleVF::MVPBuffer),
+        static_cast<SimpleVF::MVPBuffer *>(nullptr)
     );
 
-    addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(SimpleVF::AnimationBuffer),
-        static_cast<SimpleVF::AnimationBuffer *>(nullptr),
-        vk::ShaderStageFlagBits::eVertex
+    BufferDescription animDesc = UniformBuffer;
+    animDesc.stageFlags = vk::ShaderStageFlagBits::eVertex;
+    addBuffer(
+        animDesc, sizeof(SimpleVF::AnimationBuffer),
+        static_cast<SimpleVF::AnimationBuffer *>(nullptr)
     );
 }
 
@@ -75,11 +78,10 @@ void StandardVulkanShaderPipeline::initStorageBuffers()
 {
     vk::DeviceSize debugDataBufferSize =
         sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
-
-    addBuffer<VulkanBufferRWStorage>(
-        storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
-        vk::ShaderStageFlagBits::eAll
-    );
+    BufferDescription debugDesc = StorageReadWrite;
+    debugDesc.stageFlags =
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+    addBuffer(debugDesc, debugDataBufferSize, debugDataBufferData_.data());
 }
 
 bool StandardVulkanShaderPipeline::initGraphicsPipeline()
@@ -214,14 +216,14 @@ bool StandardVulkanShaderPipeline::initVertexBuffer()
 {
     vk::DeviceSize bufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
-    vertexBuffer_.init(bufferSize, geometry_->vertices.data());
+    vertexBuffer_.init(VertexBuffer, bufferSize, geometry_->vertices.data());
     return true;
 }
 
 bool StandardVulkanShaderPipeline::initIndexBuffer()
 {
     vk::DeviceSize bufferSize = sizeof(uint32_t) * geometry_->indices.size();
-    indexBuffer_.init(bufferSize, geometry_->indices.data());
+    indexBuffer_.init(IndexBuffer, bufferSize, geometry_->indices.data());
     return true;
 }
 
@@ -235,9 +237,12 @@ bool StandardVulkanShaderPipeline::bind()
     commandBuffer.bindPipeline(
         vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
     );
-    commandBuffer.bindVertexBuffers(0, **vertexBuffer_.getBuffer(), {0});
+    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
+    commandBuffer.bindVertexBuffers(
+        0, **vertexBuffer_.getBuffer(frameIndex), {0}
+    );
     commandBuffer.bindIndexBuffer(
-        **indexBuffer_.getBuffer(), 0, vk::IndexType::eUint32
+        **indexBuffer_.getBuffer(frameIndex), 0, vk::IndexType::eUint32
     );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
@@ -256,16 +261,13 @@ bool StandardVulkanShaderPipeline::update()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
-    // TODO - update hardcoded indices in all pipelines
-    // MVP uniform buffer (index 0)
+    // MVP uniform buffer (slot 0)
     SimpleVF::MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
-    uniformBuffers_[0][renderer_->getCurrentFrameIndex()].update(
-        sizeof(mvp), &mvp
-    );
+    buffers_[SimpleVF::BufferSlots::MVP].update(sizeof(mvp), &mvp);
 
     SimpleVF::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
@@ -278,7 +280,7 @@ bool StandardVulkanShaderPipeline::update()
     animation.currentTime = {
         updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
     };
-    uniformBuffers_[1][renderer_->getCurrentFrameIndex()].update(
+    buffers_[SimpleVF::BufferSlots::ANIMATION].update(
         sizeof(animation), &animation
     );
 
@@ -287,7 +289,7 @@ bool StandardVulkanShaderPipeline::update()
         sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {SimpleVF::DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
+    buffers_[SimpleVF::BufferSlots::DEBUG].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -323,9 +325,11 @@ bool StandardVulkanShaderPipeline::postRender()
         return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
-        debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
-                                 vk::PipelineStageFlagBits::eFragmentShader
+    buffers_[SimpleVF::BufferSlots::DEBUG].copyToStaging(
+        debugDataBufferSize,
+        vk::PipelineStageFlagBits::eVertexShader |
+            vk::PipelineStageFlagBits::eFragmentShader,
+        renderer_->getCurrentFrameIndex()
     );
     return true;
 }
@@ -345,7 +349,7 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
-    storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
+    buffers_[SimpleVF::BufferSlots::DEBUG].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =

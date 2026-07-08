@@ -116,6 +116,7 @@ bool Application::initialiseShaders()
 {
     spdlog::debug("Initialising shaders");
 
+    // TODO - load these from config
     initialiseShader("build/shader/simpleVF/simple.vert.spv", "simpleVFVertex");
     initialiseShader(
         "build/shader/simpleVF/simple.frag.spv", "simpleVFFragment"

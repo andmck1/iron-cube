@@ -127,4 +127,4 @@ namespace InstancedMesh
         uint32_t nFragmentShaderInvocations = 0;
         uint32_t nTriangles = 0;
     };
-} // namespace instancedMesh
+} // namespace InstancedMesh

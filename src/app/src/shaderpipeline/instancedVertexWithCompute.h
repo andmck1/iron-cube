@@ -39,13 +39,6 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
     bool updatePipelineStatistics() override;
     bool postRender() override;
 
-    protected:
-    uint sceneDataUniformBufferIndex_ = 1;
-    uint animationDataUniformBufferIndex_ = 2;
-    uint instancesStorageRBufferIndex_ = 0;
-    uint debugDataStorageRWBufferIndex_ = 0;
-    uint lodSlotCountersStorageRWBufferIndex_ = 3;
-
     bool initGraphicsPipeline();
     bool initComputeShaderPipeline();
     bool initPipeline();
@@ -58,9 +51,9 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
 
     std::optional<vk::raii::Pipeline> computePipeline_ = nullptr;
 
-    VulkanBufferVertex vertexBuffer_;
-    VulkanBufferIndex indexBuffer_;
-    VulkanBufferVertex instanceBuffer_;
+    VulkanBuffer vertexBuffer_;
+    VulkanBuffer indexBuffer_;
+    VulkanBuffer instanceBuffer_;
 
     Geometry *geometry_ = nullptr;
 

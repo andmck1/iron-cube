@@ -44,9 +44,9 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     void initUniformBuffers() override;
     void initStorageBuffers() override;
 
-    VulkanBufferVertex vertexBuffer_;
-    VulkanBufferIndex indexBuffer_;
-    VulkanBufferVertex instanceBuffer_;
+    VulkanBuffer vertexBuffer_;
+    VulkanBuffer indexBuffer_;
+    VulkanBuffer instanceBuffer_;
 
     Geometry *geometry_ = nullptr;
 
