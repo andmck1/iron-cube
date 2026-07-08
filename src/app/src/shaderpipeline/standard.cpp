@@ -87,22 +87,23 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
 
     IShaderManager *shaderManager =
         ServiceLocator::instance().get<IShaderManager>();
-    VulkanShader *defaultVertexShader =
-        dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultVertex"));
-    VulkanShader *defaultFragmentShader = dynamic_cast<VulkanShader *>(
-        shaderManager->getShader("defaultFragment")
+    VulkanShader *simpleVertexShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("simpleVFVertex")
+    );
+    VulkanShader *simpleFragmentShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("simpleVFFragment")
     );
 
     vk::PipelineShaderStageCreateInfo vertexShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eVertex)
-            .setModule(defaultVertexShader->getShaderModule())
+            .setModule(simpleVertexShader->getShaderModule())
             .setPName("main");
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eFragment)
-            .setModule(defaultFragmentShader->getShaderModule())
+            .setModule(simpleFragmentShader->getShaderModule())
             .setPName("main");
 
     vk::VertexInputBindingDescription bindingDescription = {

@@ -103,83 +103,55 @@ bool Application::initialiseRenderer()
     return true;
 }
 
+void Application::initialiseShader(std::string path, std::string name)
+{
+    VulkanShaderConfig config;
+    config.path = path;
+    std::unique_ptr<VulkanShader> shader =
+        std::make_unique<VulkanShader>(config);
+    shaderManager_.registerShader(name, std::move(shader));
+}
+
 bool Application::initialiseShaders()
 {
     spdlog::debug("Initialising shaders");
 
-    // TODO - look up nicer init styles
-    VulkanShaderConfig defaultVertexShaderConfig;
-    defaultVertexShaderConfig.path =
-        "build/shader/slang/vertex/default.vert.spv";
-
-    std::unique_ptr<VulkanShader> defaultVertexShader =
-        std::make_unique<VulkanShader>(defaultVertexShaderConfig);
-    shaderManager_.registerShader(
-        "defaultVertex", std::move(defaultVertexShader)
+    initialiseShader(
+        "build/shader/slang/simpleVF/simple.vert.spv", "simpleVFVertex"
     );
-
-    VulkanShaderConfig instancedVertexShaderConfig;
-    instancedVertexShaderConfig.path =
-        "build/shader/slang/vertex/instanced.vert.spv";
-
-    std::unique_ptr<VulkanShader> instancedVertexShader =
-        std::make_unique<VulkanShader>(instancedVertexShaderConfig);
-    shaderManager_.registerShader(
-        "instancedVertex", std::move(instancedVertexShader)
+    initialiseShader(
+        "build/shader/slang/simpleVF/simple.frag.spv", "simpleVFFragment"
     );
-
-    VulkanShaderConfig instancedComputeVertexShaderConfig;
-    instancedComputeVertexShaderConfig.path =
-        "build/shader/slang/vertex/instancedCompute.vert.spv";
-
-    std::unique_ptr<VulkanShader> instancedComputeVertexShader =
-        std::make_unique<VulkanShader>(instancedComputeVertexShaderConfig);
-    shaderManager_.registerShader(
-        "instancedComputeVertex", std::move(instancedComputeVertexShader)
+    initialiseShader(
+        "build/shader/slang/instancedVF/instanced.vert.spv", "instancedVFVertex"
     );
-
-    VulkanShaderConfig instancedComputeShaderConfig;
-    instancedComputeShaderConfig.path =
-        "build/shader/slang/compute/instanced.compute.spv";
-
-    std::unique_ptr<VulkanShader> instancedComputeShader =
-        std::make_unique<VulkanShader>(instancedComputeShaderConfig);
-    shaderManager_.registerShader(
-        "instancedCompute", std::move(instancedComputeShader)
+    initialiseShader(
+        "build/shader/slang/instancedVF/instanced.frag.spv",
+        "instancedVFFragment"
     );
-
-    VulkanShaderConfig defaultTaskShaderConfig;
-    defaultTaskShaderConfig.path = "build/shader/slang/task/default.task.spv";
-
-    std::unique_ptr<VulkanShader> defaultTaskShader =
-        std::make_unique<VulkanShader>(defaultTaskShaderConfig);
-    shaderManager_.registerShader("defaultTask", std::move(defaultTaskShader));
-
-    VulkanShaderConfig defaultMeshShaderConfig;
-    defaultMeshShaderConfig.path = "build/shader/slang/mesh/default.mesh.spv";
-
-    std::unique_ptr<VulkanShader> defaultMeshShader =
-        std::make_unique<VulkanShader>(defaultMeshShaderConfig);
-    shaderManager_.registerShader("defaultMesh", std::move(defaultMeshShader));
-
-    VulkanShaderConfig defaultFragmentShaderConfig;
-    defaultFragmentShaderConfig.path =
-        "build/shader/slang/fragment/default.frag.spv";
-
-    std::unique_ptr<VulkanShader> defaultFragmentShader =
-        std::make_unique<VulkanShader>(defaultFragmentShaderConfig);
-    shaderManager_.registerShader(
-        "defaultFragment", std::move(defaultFragmentShader)
+    initialiseShader(
+        "build/shader/slang/instancedVFCompute/instancedCompute.vert.spv",
+        "instancedVFCVertex"
     );
-
-    VulkanShaderConfig instancedFragmentShaderConfig;
-    instancedFragmentShaderConfig.path =
-        "build/shader/slang/fragment/instanced.frag.spv";
-
-    std::unique_ptr<VulkanShader> instancedFragmentShader =
-        std::make_unique<VulkanShader>(instancedFragmentShaderConfig);
-    shaderManager_.registerShader(
-        "instancedFragment", std::move(instancedFragmentShader)
+    initialiseShader(
+        "build/shader/slang/instancedVFCompute/instancedCompute.comp.spv",
+        "instancedVFCCompute"
+    );
+    initialiseShader(
+        "build/shader/slang/instancedVFCompute/instancedCompute.frag.spv",
+        "instancedVFCFragment"
+    );
+    initialiseShader(
+        "build/shader/slang/instancedMesh/instancedMesh.task.spv",
+        "instancedMeshTask"
+    );
+    initialiseShader(
+        "build/shader/slang/instancedMesh/instancedMesh.mesh.spv",
+        "instancedMeshMesh"
+    );
+    initialiseShader(
+        "build/shader/slang/instancedMesh/instancedMesh.frag.spv",
+        "instancedMeshFragment"
     );
 
     spdlog::debug("Finished initialising shaders");

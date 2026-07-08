@@ -92,10 +92,10 @@ bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
     IShaderManager *shaderManager =
         ServiceLocator::instance().get<IShaderManager>();
     VulkanShader *instancedVertexShader = dynamic_cast<VulkanShader *>(
-        shaderManager->getShader("instancedVertex")
+        shaderManager->getShader("instancedVFVertex")
     );
-    VulkanShader *defaultFragmentShader = dynamic_cast<VulkanShader *>(
-        shaderManager->getShader("defaultFragment")
+    VulkanShader *instancedFragmentShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("instancedVFFragment")
     );
 
     vk::PipelineShaderStageCreateInfo vertexShaderStageInfo =
@@ -107,7 +107,7 @@ bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eFragment)
-            .setModule(defaultFragmentShader->getShaderModule())
+            .setModule(instancedFragmentShader->getShaderModule())
             .setPName("main");
 
     std::array<vk::VertexInputBindingDescription, 2> bindingDescriptions = {

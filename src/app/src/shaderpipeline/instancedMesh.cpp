@@ -63,30 +63,32 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
 
     IShaderManager *shaderManager =
         ServiceLocator::instance().get<IShaderManager>();
-    VulkanShader *defaultTaskShader =
-        dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultTask"));
-    VulkanShader *defaultMeshShader =
-        dynamic_cast<VulkanShader *>(shaderManager->getShader("defaultMesh"));
-    VulkanShader *meshFragmentShader = dynamic_cast<VulkanShader *>(
-        shaderManager->getShader("defaultFragment")
+    VulkanShader *instancedMeshTaskShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("instancedMeshTask")
+    );
+    VulkanShader *instancedMeshMeshShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("instancedMeshMesh")
+    );
+    VulkanShader *instancedMeshFragmentShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("instancedMeshFragment")
     );
 
     vk::PipelineShaderStageCreateInfo taskShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eTaskEXT)
-            .setModule(defaultTaskShader->getShaderModule())
+            .setModule(instancedMeshTaskShader->getShaderModule())
             .setPName("main");
 
     vk::PipelineShaderStageCreateInfo meshShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eMeshEXT)
-            .setModule(defaultMeshShader->getShaderModule())
+            .setModule(instancedMeshMeshShader->getShaderModule())
             .setPName("main");
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo =
         vk::PipelineShaderStageCreateInfo{}
             .setStage(vk::ShaderStageFlagBits::eFragment)
-            .setModule(meshFragmentShader->getShaderModule())
+            .setModule(instancedMeshFragmentShader->getShaderModule())
             .setPName("main");
 
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = {

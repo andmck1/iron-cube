@@ -36,6 +36,7 @@ class Application
     bool registerServices();
     bool initialisePlatform();
     bool initialiseRenderer();
+    void initialiseShader(std::string path, std::string name);
     bool initialiseShaders();
     bool createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
