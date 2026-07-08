@@ -62,10 +62,10 @@ struct FrustumPlane
 
 struct FrustumCone
 {
-    float3 tip;
-    float height;
-    float3 direction;
-    float angle;
+    float4 tip;
+    float4 height;
+    float4 direction;
+    float4 angle;
 };
 
 #endif

@@ -53,7 +53,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
     {
         // Phase 0: Atomic LOD count (indirectCommands and counters cleared on
         // CPU before dispatch)
-        if (instanceIndex < scene.instanceCount)
+        if (instanceIndex < scene.instanceCount.x)
         {
             float4x4 modelMatrix = calculateModelMatrix(
                 instances[instanceIndex].position,
@@ -83,7 +83,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
             offset += indirectCommands[lod].instanceCount;
         }
 
-        if (instanceIndex < scene.instanceCount)
+        if (instanceIndex < scene.instanceCount.x)
         {
             float4x4 modelMatrix = calculateModelMatrix(
                 instances[instanceIndex].position,
@@ -139,7 +139,7 @@ float4 calculateInstanceBoundingSphere(float4x4 modelMatrix)
 
 bool isVisible(float4 sphere)
 {
-    switch (scene.visibilityFunc)
+    switch (scene.visibilityFunc.x)
     {
     case (VisibilityFunc::VISIBILITY_FUNC_NONE):
         return true;

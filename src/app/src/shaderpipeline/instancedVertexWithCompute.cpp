@@ -394,35 +394,13 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
         updateData_->camera->getComponent<TransformComponent>()->getPosition(),
         1.0f
     };
-    sceneData.view = *updateData_->camera->getViewMatrixRef();
-    sceneData.projection = *updateData_->camera->getProjectionMatrixRef();
-    sceneData.instanceCount = updateData_->instances->size();
-    sceneData.meshletCount = geometry_->meshletLODCounts[0];
-    for (unsigned int lodIndex = 0; lodIndex < MAX_LOD_COUNT; lodIndex++)
-    {
-        sceneData.indexCounts[lodIndex] = {
-            geometry_->indexCounts[lodIndex], 0.f, 0.f, 0.f
-        };
-        sceneData.indexOffsets[lodIndex] = {
-            geometry_->indexOffsets[lodIndex], 0.f, 0.f, 0.f
-        };
-        sceneData.vertexOffsets[lodIndex] = {
-            geometry_->vertexOffsets[lodIndex], 0.f, 0.f, 0.f
-        };
-    }
-    for (unsigned int lodIndex = 0;
-         lodIndex < geometry_->meshletLODOffsets.size(); lodIndex++)
-    {
-        sceneData.meshletLODOffsets[lodIndex][0] =
-            geometry_->meshletLODOffsets[lodIndex];
-        sceneData.meshletLODCounts[lodIndex][0] =
-            geometry_->meshletLODCounts[lodIndex];
-    }
+    sceneData.instanceCount = {
+        static_cast<uint32_t>(updateData_->instances->size()), 0, 0, 0
+    };
     sceneData.minMeshBounds = {geometry_->meshBounds.minCorner, 1.0f};
     sceneData.maxMeshBounds = {geometry_->meshBounds.maxCorner, 1.0f};
     sceneData.maxLODDistance = {*updateData_->maxLODDistance, 0.f, 0.f, 0.f};
     sceneData.lodExponent = {*updateData_->lodExponent, 0.f, 0.f, 0.f};
-    sceneData.isLODOn = *updateData_->isLODOn;
 
     std::array<FrustumPlane, 6> frustumPlanes =
         updateData_->camera->getFrustumPlanes();
@@ -438,8 +416,9 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     sceneData.frustum.cone.height = frustumCone.height;
     sceneData.frustum.cone.direction = frustumCone.direction;
     sceneData.frustum.cone.angle = frustumCone.angle;
-    sceneData.visibilityFunc =
-        static_cast<uint32_t>(*updateData_->visibilityFunc);
+    sceneData.visibilityFunc = {
+        static_cast<uint32_t>(*updateData_->visibilityFunc), 0, 0, 0
+    };
 
     uniformBuffers_[sceneDataUniformBufferIndex_]
                    [renderer_->getCurrentFrameIndex()]

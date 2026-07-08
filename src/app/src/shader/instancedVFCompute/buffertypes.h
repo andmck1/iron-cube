@@ -70,26 +70,13 @@ namespace InstancedVFCompute
     struct SceneBuffer
     {
         float4 eyePosition;
-        float4x4 view;
-        float4x4 projection;
         FrustumData frustum;
-        uint32_t instanceCount;
-        uint32_t meshletCount;
-        uint32_t visibilityFunc;
-        uint32_t pad0;
-        uint4 indexCounts[MAX_LOD_COUNT];
-        uint4 indexOffsets[MAX_LOD_COUNT];
-        uint4 vertexOffsets[MAX_LOD_COUNT];
-        uint4 meshletLODOffsets[MAX_LOD_COUNT];
-        uint4 meshletLODCounts[MAX_LOD_COUNT];
+        uint4 instanceCount;
+        uint4 visibilityFunc;
         float4 minMeshBounds;
         float4 maxMeshBounds;
         float4 maxLODDistance;
         float4 lodExponent;
-        uint32_t isLODOn;
-        uint32_t pad1;
-        uint32_t pad2;
-        uint32_t pad3;
     };
 
     struct DebugDataBuffer

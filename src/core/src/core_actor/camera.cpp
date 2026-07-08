@@ -79,16 +79,16 @@ FrustumCone CameraActor::getFrustumCone(bool fitFarClip)
     glm::vec3 viewDirection =
         glm::vec3(cameraRotation * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));
 
-    cone.tip = transformComponent->getPosition();
-    cone.direction = viewDirection;
-    cone.height = farClip_;
+    cone.tip = glm::vec4(transformComponent->getPosition(), 0.0f);
+    cone.direction = glm::vec4(viewDirection, 0.0f);
+    cone.height = glm::vec4(farClip_);
 
     float vFovRad = glm::radians(vertFovDegrees_);
     float hFovRad = 2.0f * std::atan(std::tan(vFovRad / 2.0f) * aspect_);
 
     float halfV = vFovRad / 2.0f;
     float halfH = hFovRad / 2.0f;
-    cone.angle = std::acos(std::cos(halfV) * std::cos(halfH));
+    cone.angle = glm::vec4(std::acos(std::cos(halfV) * std::cos(halfH)));
 
     if (fitFarClip)
     {
@@ -96,7 +96,7 @@ FrustumCone CameraActor::getFrustumCone(bool fitFarClip)
         float farHalfV = std::tan(halfV) * farClip_;
         float farCornerDist =
             std::sqrt(farHalfH * farHalfH + farHalfV * farHalfV);
-        cone.angle = std::atan2(farCornerDist, farClip_);
+        cone.angle = glm::vec4(std::atan2(farCornerDist, farClip_));
     }
     return cone;
 }

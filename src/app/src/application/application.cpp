@@ -116,41 +116,36 @@ bool Application::initialiseShaders()
 {
     spdlog::debug("Initialising shaders");
 
+    initialiseShader("build/shader/simpleVF/simple.vert.spv", "simpleVFVertex");
     initialiseShader(
-        "build/shader/slang/simpleVF/simple.vert.spv", "simpleVFVertex"
+        "build/shader/simpleVF/simple.frag.spv", "simpleVFFragment"
     );
     initialiseShader(
-        "build/shader/slang/simpleVF/simple.frag.spv", "simpleVFFragment"
+        "build/shader/instancedVF/instanced.vert.spv", "instancedVFVertex"
     );
     initialiseShader(
-        "build/shader/slang/instancedVF/instanced.vert.spv", "instancedVFVertex"
+        "build/shader/instancedVF/instanced.frag.spv", "instancedVFFragment"
     );
     initialiseShader(
-        "build/shader/slang/instancedVF/instanced.frag.spv",
-        "instancedVFFragment"
-    );
-    initialiseShader(
-        "build/shader/slang/instancedVFCompute/instancedCompute.vert.spv",
+        "build/shader/instancedVFCompute/instancedCompute.vert.spv",
         "instancedVFCVertex"
     );
     initialiseShader(
-        "build/shader/slang/instancedVFCompute/instancedCompute.comp.spv",
+        "build/shader/instancedVFCompute/instancedCompute.comp.spv",
         "instancedVFCCompute"
     );
     initialiseShader(
-        "build/shader/slang/instancedVFCompute/instancedCompute.frag.spv",
+        "build/shader/instancedVFCompute/instancedCompute.frag.spv",
         "instancedVFCFragment"
     );
     initialiseShader(
-        "build/shader/slang/instancedMesh/instancedMesh.task.spv",
-        "instancedMeshTask"
+        "build/shader/instancedMesh/instancedMesh.task.spv", "instancedMeshTask"
     );
     initialiseShader(
-        "build/shader/slang/instancedMesh/instancedMesh.mesh.spv",
-        "instancedMeshMesh"
+        "build/shader/instancedMesh/instancedMesh.mesh.spv", "instancedMeshMesh"
     );
     initialiseShader(
-        "build/shader/slang/instancedMesh/instancedMesh.frag.spv",
+        "build/shader/instancedMesh/instancedMesh.frag.spv",
         "instancedMeshFragment"
     );
 
