@@ -1,5 +1,4 @@
 #include "shaderpipeline/instancedVertex.h"
-#include "shader/shared/buffertypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
 #include "core_render/vulkan/renderer.h"
@@ -64,13 +63,13 @@ bool InstancedVertexVulkanShaderPipeline::shutdown()
 void InstancedVertexVulkanShaderPipeline::initUniformBuffers()
 {
     addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
+        uniformBuffers_, sizeof(InstancedVF::MVPBuffer), static_cast<InstancedVF::MVPBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
 
     addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(AnimationBuffer),
-        static_cast<AnimationBuffer *>(nullptr),
+        uniformBuffers_, sizeof(InstancedVF::AnimationBuffer),
+        static_cast<InstancedVF::AnimationBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
 }
@@ -78,7 +77,7 @@ void InstancedVertexVulkanShaderPipeline::initUniformBuffers()
 void InstancedVertexVulkanShaderPipeline::initStorageBuffers()
 {
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
 
     addBuffer<VulkanBufferRWStorage>(
         storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
@@ -308,7 +307,7 @@ bool InstancedVertexVulkanShaderPipeline::update()
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
     // MVP uniform buffer (index 0)
-    MVPBuffer mvp{};
+    InstancedVF::MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
@@ -317,7 +316,7 @@ bool InstancedVertexVulkanShaderPipeline::update()
         sizeof(mvp), &mvp
     );
 
-    AnimationBuffer animation{};
+    InstancedVF::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
     animation.rotationFrequency = {
         *updateData_->rotationFrequency, 0.f, 0.f, 0.f
@@ -338,8 +337,8 @@ bool InstancedVertexVulkanShaderPipeline::update()
 
     updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    debugDataBufferData_ = {DebugDataBuffer()};
+        sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
+    debugDataBufferData_ = {InstancedVF::DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
@@ -377,7 +376,7 @@ bool InstancedVertexVulkanShaderPipeline::postRender()
     if (!isDebugQuery_)
         return true;
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
                                  vk::PipelineStageFlagBits::eFragmentShader
@@ -399,7 +398,7 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
         PipelineStatistics::PipelineType::TRADITIONAL;
 
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );

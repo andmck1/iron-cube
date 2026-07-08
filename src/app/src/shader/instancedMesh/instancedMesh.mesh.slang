@@ -1,29 +1,28 @@
-#include "shader/shared/helpers.slangh"
-#include "shader/shared/buffertypes.h"
-#include "shader/shared/buffertypes.h"
+#include "buffertypes.h"
+#include "shader/helpers.slangh"
 
-[[vk::binding(0)]]
-ConstantBuffer<SceneBuffer> scene;
+[[vk::binding(InstancedMesh::BufferSlots::SCENE)]]
+ConstantBuffer<InstancedMesh::SceneBuffer> scene;
 
-[[vk::binding(1)]]
-ConstantBuffer<AnimationBuffer> animation;
+[[vk::binding(InstancedMesh::BufferSlots::ANIMATION)]]
+ConstantBuffer<InstancedMesh::AnimationBuffer> animation;
 
-[[vk::binding(2)]]
-RWStructuredBuffer<DebugDataBuffer> debugData;
+[[vk::binding(InstancedMesh::BufferSlots::DEBUG)]]
+RWStructuredBuffer<InstancedMesh::DebugDataBuffer> debugData;
 
-[[vk::binding(3)]]
+[[vk::binding(InstancedMesh::BufferSlots::MODEL_VERTICES)]]
 StructuredBuffer<VertexInputType> modelVertices;
 
-[[vk::binding(4)]]
-StructuredBuffer<OptimisedMeshlet> meshlets;
+[[vk::binding(InstancedMesh::BufferSlots::MESHLETS)]]
+StructuredBuffer<InstancedMesh::OptimisedMeshlet> meshlets;
 
-[[vk::binding(5)]]
+[[vk::binding(InstancedMesh::BufferSlots::VERTEX_INDICES)]]
 StructuredBuffer<uint> vertexIndices;
 
-[[vk::binding(6)]]
+[[vk::binding(InstancedMesh::BufferSlots::TRIANGLE_INDICES)]]
 StructuredBuffer<uint> triangleIndices;
 
-[[vk::binding(7)]]
+[[vk::binding(InstancedMesh::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
 // TODO - use the defines for the triange and vertex limits??
@@ -32,14 +31,14 @@ StructuredBuffer<Instance> instances;
 [numthreads(128, 1, 1)]
 void main(
     uint gtid: SV_GroupThreadID, uint gid: SV_GroupID,
-    in payload Payload payload, out indices uint3 triangles[128],
-    out vertices VertexOutputType vertices[64]
+    in payload InstancedMesh::Payload payload, out indices uint3 triangles[128],
+    out vertices InstancedMesh::VertexOutputType vertices[64]
 )
 {
 
     uint instanceIndex = payload.instanceIndices[gid];
     uint meshletIndex = payload.meshletIndices[gid];
-    OptimisedMeshlet m = meshlets[meshletIndex];
+    InstancedMesh::OptimisedMeshlet m = meshlets[meshletIndex];
 
     SetMeshOutputCounts(m.vertexCount, m.triangleCount);
     if (debugData[0].isDebugQueryOn > 0)
@@ -81,10 +80,9 @@ void main(
                 PI2 * animation.rotationFrequency.x * animation.currentTime.x;
             modelPosition = {
                 rotateVectorWithQuaternion(
-                    modelPosition.xyz,
-                    quaternionFromAxisAngle(
-                        float3(0.f, 1.f, 0.f), rotationAngle
-                    )
+                    modelPosition.xyz, quaternionFromAxisAngle(
+                                           float3(0.f, 1.f, 0.f), rotationAngle
+                                       )
                 ),
                 1.f
             };

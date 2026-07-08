@@ -1,18 +1,17 @@
-#include "shader/shared/buffertypes.h"
-#include "shader/shared/helpers.slangh"
-#include "shader/shared/buffertypes.h"
+#include "buffertypes.h"
+#include "shader/helpers.slangh"
 
-[[vk::binding(0)]]
-ConstantBuffer<MVPBuffer> mvp;
+[[vk::binding(SimpleVF::BufferSlots::MVP)]]
+ConstantBuffer<SimpleVF::MVPBuffer> mvp;
 
-[[vk::binding(1)]]
-ConstantBuffer<AnimationBuffer> animation;
+[[vk::binding(SimpleVF::BufferSlots::ANIMATION)]]
+ConstantBuffer<SimpleVF::AnimationBuffer> animation;
 
-[[vk::binding(2)]]
-RWStructuredBuffer<DebugDataBuffer> debugData;
+[[vk::binding(SimpleVF::BufferSlots::DEBUG)]]
+RWStructuredBuffer<SimpleVF::DebugDataBuffer> debugData;
 
 [shader("vertex")]
-VertexOutputType main(VertexInputType input)
+SimpleVF::VertexOutputType main(VertexInputType input)
 {
     // In theory you can compile this out using constants
     if (debugData[0].isDebugQueryOn > 0)
@@ -20,7 +19,7 @@ VertexOutputType main(VertexInputType input)
         InterlockedAdd(debugData[0].nVertexShaderInvocations, 1);
     }
 
-    VertexOutputType output;
+    SimpleVF::VertexOutputType output;
 
     float4 modelPosition = input.position;
 

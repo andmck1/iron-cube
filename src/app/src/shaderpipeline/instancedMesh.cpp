@@ -1,5 +1,4 @@
 #include "shaderpipeline/instancedMesh.h"
-#include "shader/shared/buffertypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_render/ishadermanager.h"
 #include "core_render/vulkan/renderer.h"
@@ -138,7 +137,7 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
         vk::PushConstantRange{}
             .setStageFlags(vk::ShaderStageFlagBits::eTaskEXT)
             .setOffset(0)
-            .setSize(sizeof(TaskWorkBuffer));
+            .setSize(sizeof(InstancedMesh::TaskWorkBuffer));
 
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
         vk::PipelineLayoutCreateInfo{}
@@ -182,15 +181,15 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
 void InstancedMeshVulkanShaderPipeline::initUniformBuffers()
 {
     addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(SceneBuffer),
-        static_cast<SceneBuffer *>(nullptr),
+        uniformBuffers_, sizeof(InstancedMesh::SceneBuffer),
+        static_cast<InstancedMesh::SceneBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     sceneDataUniformBufferIndex_ = 0;
 
     addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(AnimationBuffer),
-        static_cast<AnimationBuffer *>(nullptr),
+        uniformBuffers_, sizeof(InstancedMesh::AnimationBuffer),
+        static_cast<InstancedMesh::AnimationBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT
     );
     animationDataUniformBufferIndex_ = 1;
@@ -201,7 +200,7 @@ void InstancedMeshVulkanShaderPipeline::initStorageBuffers()
     // TODO - this indices are still hardcoded....they need to be consistently
     // defined somehow
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(InstancedMesh::DebugDataBuffer) * debugDataBufferData_.size();
     addBuffer<VulkanBufferRWStorage>(
         storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
         vk::ShaderStageFlagBits::eAll
@@ -286,7 +285,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
 {
 
     std::chrono::time_point now = std::chrono::steady_clock::now();
-    SceneBuffer sceneData{};
+    InstancedMesh::SceneBuffer sceneData{};
     sceneData.eyePosition = {
         updateData_->camera->getComponent<TransformComponent>()->getPosition(),
         1.0f
@@ -323,13 +322,14 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.frustum.cone.height = frustumCone.height;
     sceneData.frustum.cone.direction = frustumCone.direction;
     sceneData.frustum.cone.angle = frustumCone.angle;
-    sceneData.visibilityFunc = *updateData_->visibilityFunc;
+    sceneData.visibilityFunc =
+        static_cast<uint32_t>(*updateData_->visibilityFunc);
 
     uniformBuffers_[sceneDataUniformBufferIndex_]
                    [renderer_->getCurrentFrameIndex()]
                        .update(sizeof(sceneData), &sceneData);
 
-    AnimationBuffer animation{};
+    InstancedMesh::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
     animation.rotationFrequency = {
         *updateData_->rotationFrequency, 0.f, 0.f, 0.f
@@ -355,8 +355,8 @@ bool InstancedMeshVulkanShaderPipeline::update()
 
     updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    debugDataBufferData_ = {DebugDataBuffer()};
+        sizeof(InstancedMesh::DebugDataBuffer) * debugDataBufferData_.size();
+    debugDataBufferData_ = {InstancedMesh::DebugDataBuffer()};
     debugDataBufferData_[debugDataStorageRWBufferIndex_].isDebugQueryOn =
         isDebugQuery_;
     storageRWBuffers_[debugDataStorageRWBufferIndex_]
@@ -395,12 +395,12 @@ bool InstancedMeshVulkanShaderPipeline::draw()
             std::min(threadsRemaining, maxTaskShaderThreadCount_);
         uint32_t currentWork = currentThreads * AS_GROUP_SIZE;
 
-        TaskWorkBuffer workData{};
+        InstancedMesh::TaskWorkBuffer workData{};
         workData.workStart = workOffset;
         workData.workCount = currentWork;
         renderer_->getCommandBuffer().pushConstants(
             pipelineLayout_, vk::ShaderStageFlagBits::eTaskEXT, 0,
-            sizeof(TaskWorkBuffer), &workData
+            sizeof(InstancedMesh::TaskWorkBuffer), &workData
         );
 
         renderer_->getCommandBuffer().drawMeshTasksEXT(currentThreads, 1, 1);
@@ -422,7 +422,7 @@ bool InstancedMeshVulkanShaderPipeline::postRender()
     if (!isDebugQuery_)
         return true;
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(InstancedMesh::DebugDataBuffer) * debugDataBufferData_.size();
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eTaskShaderEXT |
                                  vk::PipelineStageFlagBits::eMeshShaderEXT |
@@ -446,7 +446,7 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
     // TODO - debug buffer should be it's own allocation tbh, or I track it as
     // a pointer
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(InstancedMesh::DebugDataBuffer) * debugDataBufferData_.size();
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );

@@ -5,6 +5,7 @@
 #include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "shader/instancedVF/buffertypes.h"
 #include <vulkan/vulkan_raii.hpp>
 
 class InstancedVertexShaderPipelineUpdateData : public ShaderPipelineUpdateData
@@ -54,4 +55,8 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     InstancedVertexShaderPipelineUpdateData *updateData_ = nullptr;
 
     uint32_t nDrawCalls_ = 0;
+
+    std::vector<InstancedVF::DebugDataBuffer> debugDataBufferData_ = {
+        InstancedVF::DebugDataBuffer()
+    };
 };

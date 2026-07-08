@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shader/shared/buffertypes.h"
+#include "shader/commontypes.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <spdlog/spdlog.h>
 #include <stdexcept>

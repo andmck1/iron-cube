@@ -1,6 +1,5 @@
-#include "shader/shared/helpers.slangh"
-#include "shader/shared/buffertypes.h"
-#include "shader/shared/buffertypes.h"
+#include "buffertypes.h"
+#include "shader/helpers.slangh"
 
 // Must match vk::DrawIndexedIndirectCommand layout exactly
 struct IndirectDrawCommand
@@ -12,25 +11,25 @@ struct IndirectDrawCommand
     uint firstInstance;
 };
 
-[[vk::binding(1)]]
-ConstantBuffer<SceneBuffer> scene;
+[[vk::binding(InstancedVFCompute::BufferSlots::SCENE)]]
+ConstantBuffer<InstancedVFCompute::SceneBuffer> scene;
 
-[[vk::binding(3)]]
-RWStructuredBuffer<DebugDataBuffer> debugData;
+[[vk::binding(InstancedVFCompute::BufferSlots::DEBUG)]]
+RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 
-[[vk::binding(7)]]
+[[vk::binding(InstancedVFCompute::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
-[[vk::binding(8)]]
+[[vk::binding(InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS)]]
 RWStructuredBuffer<IndirectDrawCommand> indirectCommands;
 
-[[vk::binding(4)]]
+[[vk::binding(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)]]
 RWStructuredBuffer<Instance> reorderedInstances;
 
-[[vk::binding(5)]]
+[[vk::binding(InstancedVFCompute::BufferSlots::LOD_BASE_OFFSETS)]]
 RWStructuredBuffer<uint> lodBaseOffsets;
 
-[[vk::binding(6)]]
+[[vk::binding(InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS)]]
 RWStructuredBuffer<uint> lodSlotCounters;
 
 [[vk::push_constant]]
@@ -58,7 +57,8 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
         {
             float4x4 modelMatrix = calculateModelMatrix(
                 instances[instanceIndex].position,
-                instances[instanceIndex].rotation, instances[instanceIndex].scale
+                instances[instanceIndex].rotation,
+                instances[instanceIndex].scale
             );
             float4 instanceBoundingSphere =
                 calculateInstanceBoundingSphere(modelMatrix);
@@ -87,7 +87,8 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
         {
             float4x4 modelMatrix = calculateModelMatrix(
                 instances[instanceIndex].position,
-                instances[instanceIndex].rotation, instances[instanceIndex].scale
+                instances[instanceIndex].rotation,
+                instances[instanceIndex].scale
             );
             float4 instanceBoundingSphere =
                 calculateInstanceBoundingSphere(modelMatrix);
@@ -173,8 +174,10 @@ bool visibleFrustumPlanes(float4 sphere)
 
 bool visibleFrustumSphere(float4 sphere)
 {
-    return (distance(sphere.xyz, scene.frustum.sphere.xyz) <
-            (sphere.w + scene.frustum.sphere.w));
+    return (
+        distance(sphere.xyz, scene.frustum.sphere.xyz) <
+        (sphere.w + scene.frustum.sphere.w)
+    );
 }
 
 bool visibleFrustumCone(float4 sphere)
@@ -199,7 +202,7 @@ bool visibleFrustumConeAndNearPlane(float4 sphere)
 {
     bool i0 = visibleFrustumCone(sphere);
 
-    FrustumPlane frNear = scene.frustum.planes[FRUSTUM_PLANE_NEAR];
+    FrustumPlane frNear = scene.frustum.planes[FrustumPlanes::NEAR];
 
     float planeDistance = pointPlaneDistance(sphere, frNear.coefficients);
     bool i1 = (abs(planeDistance) < sphere.w);

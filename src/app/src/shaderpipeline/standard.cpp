@@ -1,5 +1,4 @@
 #include "shaderpipeline/standard.h"
-#include "shader/shared/buffertypes.h"
 #include "core_render/ishadermanager.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/shader.h"
@@ -60,13 +59,14 @@ bool StandardVulkanShaderPipeline::shutdown()
 void StandardVulkanShaderPipeline::initUniformBuffers()
 {
     addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(MVPBuffer), static_cast<MVPBuffer *>(nullptr),
+        uniformBuffers_, sizeof(SimpleVF::MVPBuffer),
+        static_cast<SimpleVF::MVPBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
 
     addBuffer<VulkanBufferUniform>(
-        uniformBuffers_, sizeof(AnimationBuffer),
-        static_cast<AnimationBuffer *>(nullptr),
+        uniformBuffers_, sizeof(SimpleVF::AnimationBuffer),
+        static_cast<SimpleVF::AnimationBuffer *>(nullptr),
         vk::ShaderStageFlagBits::eVertex
     );
 }
@@ -74,7 +74,7 @@ void StandardVulkanShaderPipeline::initUniformBuffers()
 void StandardVulkanShaderPipeline::initStorageBuffers()
 {
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
 
     addBuffer<VulkanBufferRWStorage>(
         storageRWBuffers_, debugDataBufferSize, debugDataBufferData_.data(),
@@ -258,7 +258,7 @@ bool StandardVulkanShaderPipeline::update()
 
     // TODO - update hardcoded indices in all pipelines
     // MVP uniform buffer (index 0)
-    MVPBuffer mvp{};
+    SimpleVF::MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
@@ -267,7 +267,7 @@ bool StandardVulkanShaderPipeline::update()
         sizeof(mvp), &mvp
     );
 
-    AnimationBuffer animation{};
+    SimpleVF::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
     animation.rotationFrequency = {
         *updateData_->rotationFrequency, 0.f, 0.f, 0.f
@@ -284,8 +284,8 @@ bool StandardVulkanShaderPipeline::update()
 
     updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
-    debugDataBufferData_ = {DebugDataBuffer()};
+        sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
+    debugDataBufferData_ = {SimpleVF::DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].update(
         debugDataBufferSize, debugDataBufferData_.data()
@@ -322,7 +322,7 @@ bool StandardVulkanShaderPipeline::postRender()
     if (!isDebugQuery_)
         return true;
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].copyToStaging(
         debugDataBufferSize, vk::PipelineStageFlagBits::eVertexShader |
                                  vk::PipelineStageFlagBits::eFragmentShader
@@ -344,7 +344,7 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
         PipelineStatistics::PipelineType::TRADITIONAL;
 
     vk::DeviceSize debugDataBufferSize =
-        sizeof(DebugDataBuffer) * debugDataBufferData_.size();
+        sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
     storageRWBuffers_.front()[renderer_->getCurrentFrameIndex()].readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );

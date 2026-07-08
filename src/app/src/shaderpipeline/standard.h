@@ -5,6 +5,7 @@
 #include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "shader/simpleVF/buffertypes.h"
 #include <vulkan/vulkan_raii.hpp>
 
 class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
@@ -52,4 +53,8 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     PipelineStatistics pipelineStatistics_{};
 
     uint32_t nDrawCalls_ = 0;
+
+    std::vector<SimpleVF::DebugDataBuffer> debugDataBufferData_ = {
+        SimpleVF::DebugDataBuffer()
+    };
 };

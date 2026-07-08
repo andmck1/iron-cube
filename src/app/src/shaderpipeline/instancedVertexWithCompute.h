@@ -5,6 +5,7 @@
 #include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "shader/instancedVFCompute/buffertypes.h"
 #include <vulkan/vulkan_raii.hpp>
 
 class InstancedVertexComputeShaderPipelineUpdateData
@@ -15,7 +16,7 @@ class InstancedVertexComputeShaderPipelineUpdateData
     CameraActor *camera = nullptr;
     std::vector<Instance> *instances = nullptr;
     uint32_t *lodIndex = 0;
-    int *visibilityFunc = nullptr;
+    VisibilityFunc *visibilityFunc = nullptr;
     float *maxLODDistance = nullptr;
     float *lodExponent = nullptr;
     bool *isLODOn = nullptr;
@@ -68,4 +69,8 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
     InstancedVertexComputeShaderPipelineUpdateData *updateData_ = nullptr;
 
     uint32_t nDrawCalls_ = 0;
+
+    std::vector<InstancedVFCompute::DebugDataBuffer> debugDataBufferData_ = {
+        InstancedVFCompute::DebugDataBuffer()
+    };
 };

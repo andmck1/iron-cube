@@ -1,25 +1,25 @@
-#include "shader/shared/buffertypes.h"
-#include "shader/shared/helpers.slangh"
-#include "shader/shared/buffertypes.h"
+#include "buffertypes.h"
+#include "shader/helpers.slangh"
 
-[[vk::binding(0)]]
-ConstantBuffer<MVPBuffer> mvp;
+[[vk::binding(InstancedVFCompute::BufferSlots::MVP)]]
+ConstantBuffer<InstancedVFCompute::MVPBuffer> mvp;
 
-[[vk::binding(2)]]
-ConstantBuffer<AnimationBuffer> animation;
+[[vk::binding(InstancedVFCompute::BufferSlots::ANIMATION)]]
+ConstantBuffer<InstancedVFCompute::AnimationBuffer> animation;
 
-[[vk::binding(3)]]
-RWStructuredBuffer<DebugDataBuffer> debugData;
+[[vk::binding(InstancedVFCompute::BufferSlots::DEBUG)]]
+RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 
 [shader("vertex")]
-VertexOutputType main(InstancedVertexInputType input)
+InstancedVFCompute::VertexOutputType
+main(InstancedVFCompute::InstancedVertexInputType input)
 {
     if (debugData[0].isDebugQueryOn > 0)
     {
         InterlockedAdd(debugData[0].nVertexShaderInvocations, 1);
     }
 
-    VertexOutputType output;
+    InstancedVFCompute::VertexOutputType output;
 
     float4x4 worldMatrix = calculateModelMatrix(
         input.instancePosition, input.instanceRotation, input.instanceScale

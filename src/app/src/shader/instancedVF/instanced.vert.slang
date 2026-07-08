@@ -1,25 +1,24 @@
-#include "shader/shared/buffertypes.h"
-#include "shader/shared/helpers.slangh"
-#include "shader/shared/buffertypes.h"
+#include "buffertypes.h"
+#include "shader/helpers.slangh"
 
-[[vk::binding(0)]]
-ConstantBuffer<MVPBuffer> mvp;
+[[vk::binding(InstancedVF::BufferSlots::MVP)]]
+ConstantBuffer<InstancedVF::MVPBuffer> mvp;
 
-[[vk::binding(2)]]
-ConstantBuffer<AnimationBuffer> animation;
+[[vk::binding(InstancedVF::BufferSlots::ANIMATION)]]
+ConstantBuffer<InstancedVF::AnimationBuffer> animation;
 
-[[vk::binding(3)]]
-RWStructuredBuffer<DebugDataBuffer> debugData;
+[[vk::binding(InstancedVF::BufferSlots::DEBUG)]]
+RWStructuredBuffer<InstancedVF::DebugDataBuffer> debugData;
 
 [shader("vertex")]
-VertexOutputType main(InstancedVertexInputType input)
+InstancedVF::VertexOutputType main(InstancedVF::InstancedVertexInputType input)
 {
     if (debugData[0].isDebugQueryOn > 0)
     {
         InterlockedAdd(debugData[0].nVertexShaderInvocations, 1);
     }
 
-    VertexOutputType output;
+    InstancedVF::VertexOutputType output;
 
     float4x4 worldMatrix = calculateModelMatrix(
         input.instancePosition, input.instanceRotation, input.instanceScale
@@ -42,5 +41,6 @@ VertexOutputType main(InstancedVertexInputType input)
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
     output.position = mul(mvpMatrix, modelPosition);
     output.colour = float4((input.normal + 1.f + input.tex[0]).xyz / 3.f, 1.0f);
+    // output.colour = {1.0, 1.0, 1.0, 1.0};
     return output;
 }

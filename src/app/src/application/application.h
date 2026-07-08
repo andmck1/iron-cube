@@ -72,7 +72,7 @@ class Application
     std::vector<std::unique_ptr<ILayer>> layers_;
 
     float timeSinceGPUStatsQuery_ = 0.f;
-    int visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
+    VisibilityFunc visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
     bool isAnimationOn_ = false;
 
     int nInstanceRows_ = 1;

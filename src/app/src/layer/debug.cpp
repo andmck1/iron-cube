@@ -401,7 +401,8 @@ bool DebugLayer::frame()
             "None", "Planes", "Sphere", "Cone", "Cone and Near Plane"
         };
         ImGui::Combo(
-            "Culling Function", debugData_->visibilityFunc,
+            "Culling Function",
+            reinterpret_cast<int *>(debugData_->visibilityFunc),
             cullingFunctions.data(), cullingFunctions.size()
         );
     }

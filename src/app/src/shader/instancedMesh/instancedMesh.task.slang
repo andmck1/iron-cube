@@ -1,26 +1,25 @@
-#include "shader/shared/buffertypes.h"
-#include "shader/shared/helpers.slangh"
-#include "shader/shared/buffertypes.h"
+#include "buffertypes.h"
+#include "shader/helpers.slangh"
 
 [[vk::push_constant]]
-ConstantBuffer<TaskWorkBuffer> work;
+ConstantBuffer<InstancedMesh::TaskWorkBuffer> work;
 
-[[vk::binding(0)]]
-ConstantBuffer<SceneBuffer> scene;
+[[vk::binding(InstancedMesh::BufferSlots::SCENE)]]
+ConstantBuffer<InstancedMesh::SceneBuffer> scene;
 
-[[vk::binding(1)]]
-ConstantBuffer<AnimationBuffer> animation;
+[[vk::binding(InstancedMesh::BufferSlots::ANIMATION)]]
+ConstantBuffer<InstancedMesh::AnimationBuffer> animation;
 
-[[vk::binding(2)]]
-RWStructuredBuffer<DebugDataBuffer> debugData;
+[[vk::binding(InstancedMesh::BufferSlots::DEBUG)]]
+RWStructuredBuffer<InstancedMesh::DebugDataBuffer> debugData;
 
-[[vk::binding(7)]]
+[[vk::binding(InstancedMesh::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
-[[vk::binding(8)]]
+[[vk::binding(InstancedMesh::BufferSlots::MESHLET_BOUNDING_SPHERES)]]
 StructuredBuffer<float4> meshletBoundingSpheres;
 
-groupshared Payload sPayload;
+groupshared InstancedMesh::Payload sPayload;
 
 [shader("task")]
 [numthreads(AS_GROUP_SIZE, 1, 1)]
@@ -156,7 +155,7 @@ bool visibleFrustumConeAndNearPlane(float4 sphere)
 {
     bool i0 = visibleFrustumCone(sphere);
 
-    FrustumPlane frNear = scene.frustum.planes[FRUSTUM_PLANE_NEAR];
+    FrustumPlane frNear = scene.frustum.planes[FrustumPlanes::NEAR];
 
     float planeDistance = pointPlaneDistance(sphere, frNear.coefficients);
     bool i1 = (abs(planeDistance) < sphere.w); // Intersects with near plane

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core_common/helpers.h"
+#include "shader/commontypes.h"
 #include "core_common/timer.h"
 #include "core_scene/scene.h"
 #include <algorithm>
@@ -37,7 +38,7 @@ class DebugLayerData
     DebugLayerData() = default;
     Scene *scene;
     Timer *timer;
-    int *visibilityFunc;
+    VisibilityFunc *visibilityFunc;
     bool *isAnimationOn;
     int *nInstanceRows;
     int *nInstanceColumns;

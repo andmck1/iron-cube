@@ -5,6 +5,7 @@
 #include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "shader/instancedMesh/buffertypes.h"
 #include <vulkan/vulkan_raii.hpp>
 
 class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
@@ -13,7 +14,7 @@ class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
     std::vector<Instance> *instances = nullptr;
-    int *visibilityFunc = nullptr;
+    VisibilityFunc *visibilityFunc = nullptr;
     float *maxLODDistance = nullptr;
     float *lodExponent = nullptr;
     bool *isLODOn = nullptr;
@@ -56,4 +57,8 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     InstancedMeshShaderPipelineUpdateData *updateData_ = nullptr;
     uint32_t maxTaskShaderThreadCount_;
     uint32_t nDrawCalls_ = 0;
+
+    std::vector<InstancedMesh::DebugDataBuffer> debugDataBufferData_ = {
+        InstancedMesh::DebugDataBuffer()
+    };
 };

@@ -1,5 +1,5 @@
 #include "core_actor/camera.h"
-#include "shader/shared/buffertypes.h"
+#include "shader/commontypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_platform/iplatform.h"
 #include "core_service/servicelocator.h"
@@ -108,22 +108,22 @@ std::array<FrustumPlane, 6> CameraActor::getFrustumPlanes()
         glm::transpose(getViewProjectionMatrix());
 
     // https://gamedev.stackexchange.com/questions/156743/finding-the-normals-of-the-planes-of-a-view-frustum
-    planes[FRUSTUM_PLANE_NEAR].coefficients =
+    planes[FrustumPlanes::NEAR].coefficients =
         viewProjectionMatrix[2] + viewProjectionMatrix[3];
 
-    planes[FRUSTUM_PLANE_FAR].coefficients =
+    planes[FrustumPlanes::FAR].coefficients =
         viewProjectionMatrix[3] - viewProjectionMatrix[2];
 
-    planes[FRUSTUM_PLANE_BOTTOM].coefficients =
+    planes[FrustumPlanes::BOTTOM].coefficients =
         viewProjectionMatrix[1] + viewProjectionMatrix[3];
 
-    planes[FRUSTUM_PLANE_TOP].coefficients =
+    planes[FrustumPlanes::TOP].coefficients =
         viewProjectionMatrix[3] + viewProjectionMatrix[1];
 
-    planes[FRUSTUM_PLANE_LEFT].coefficients =
+    planes[FrustumPlanes::LEFT].coefficients =
         viewProjectionMatrix[0] + viewProjectionMatrix[3];
 
-    planes[FRUSTUM_PLANE_RIGHT].coefficients =
+    planes[FrustumPlanes::RIGHT].coefficients =
         viewProjectionMatrix[3] + viewProjectionMatrix[0];
 
     // Normalise each plane so that the distance computed in the shader is

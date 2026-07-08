@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glm/ext/vector_float3.hpp"
-#include "shader/shared/buffertypes.h"
+#include "shader/commontypes.h"
 #include "meshoptimizer.h"
 #include <vector>
 
