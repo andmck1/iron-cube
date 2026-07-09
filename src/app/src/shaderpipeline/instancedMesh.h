@@ -5,6 +5,7 @@
 #include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "helpers/globals.h"
 #include "shader/instancedMesh/buffertypes.h"
 #include <vulkan/vulkan_raii.hpp>
 
@@ -45,6 +46,7 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
+    void initBufferDescriptions();
 
     void initBuffers() override;
 
@@ -55,4 +57,6 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     std::vector<InstancedMesh::DebugDataBuffer> debugDataBufferData_ = {
         InstancedMesh::DebugDataBuffer()
     };
+
+    std::vector<BufferDescription> bufferDescriptions_;
 };
