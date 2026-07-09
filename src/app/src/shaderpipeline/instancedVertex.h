@@ -40,7 +40,7 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     bool initIndexBuffer();
     bool initVertexBuffer();
     bool initInstanceBuffer();
-    
+
     void initBuffers() override;
 
     VulkanBuffer vertexBuffer_;

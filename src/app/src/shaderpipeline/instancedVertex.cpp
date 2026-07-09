@@ -65,27 +65,24 @@ void InstancedVertexVulkanShaderPipeline::initBuffers()
     sceneDesc.bufferSlot = InstancedVF::BufferSlots::MVP;
     sceneDesc.stageFlags =
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
-    addBuffer(
-        sceneDesc, sizeof(InstancedVF::MVPBuffer),
-        static_cast<InstancedVF::MVPBuffer *>(nullptr)
-    );
+    sceneDesc.data = static_cast<InstancedVF::MVPBuffer *>(nullptr);
+    sceneDesc.bufferSize = sizeof(InstancedVF::MVPBuffer);
+    addBuffer(sceneDesc);
 
     BufferDescription animDesc = UniformBuffer;
     animDesc.bufferSlot = InstancedVF::BufferSlots::ANIMATION;
     animDesc.stageFlags = vk::ShaderStageFlagBits::eVertex;
-    addBuffer(
-        animDesc, sizeof(InstancedVF::AnimationBuffer),
-        static_cast<InstancedVF::AnimationBuffer *>(nullptr)
-    );
+    animDesc.data = static_cast<InstancedVF::AnimationBuffer *>(nullptr);
+    animDesc.bufferSize = sizeof(InstancedVF::AnimationBuffer);
+    addBuffer(animDesc);
 
     BufferDescription debugDesc = StorageReadWrite;
     debugDesc.bufferSlot = InstancedVF::BufferSlots::DEBUG;
     debugDesc.stageFlags =
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
-    addBuffer(
-        debugDesc, sizeof(InstancedVF::DebugDataBuffer),
-        debugDataBufferData_.data()
-    );
+    debugDesc.data = debugDataBufferData_.data();
+    debugDesc.bufferSize = sizeof(InstancedVF::DebugDataBuffer);
+    addBuffer(debugDesc);
 }
 
 bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
@@ -255,24 +252,30 @@ bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()
 
 bool InstancedVertexVulkanShaderPipeline::initVertexBuffer()
 {
-    vk::DeviceSize bufferSize =
+    BufferDescription vertexDesc = VertexBuffer;
+    vertexDesc.bufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
-    vertexBuffer_.init(VertexBuffer, bufferSize, geometry_->vertices.data());
+    vertexDesc.data = geometry_->vertices.data();
+    vertexBuffer_.init(vertexDesc);
     return true;
 }
 
 bool InstancedVertexVulkanShaderPipeline::initIndexBuffer()
 {
-    vk::DeviceSize bufferSize = sizeof(uint32_t) * geometry_->indices.size();
-    indexBuffer_.init(IndexBuffer, bufferSize, geometry_->indices.data());
+    BufferDescription indexDesc = IndexBuffer;
+    indexDesc.bufferSize = sizeof(uint32_t) * geometry_->indices.size();
+    indexDesc.data = geometry_->indices.data();
+    indexBuffer_.init(indexDesc);
     return true;
 }
 
 bool InstancedVertexVulkanShaderPipeline::initInstanceBuffer()
 {
-    vk::DeviceSize bufferSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
-                                MAX_N_INSTANCE_LAYERS * MAX_N_INSTANCE_ROWS;
-    instanceBuffer_.init(VertexBuffer, bufferSize, nullptr);
+    BufferDescription instanceDesc = VertexBuffer;
+    instanceDesc.bufferSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
+                              MAX_N_INSTANCE_LAYERS * MAX_N_INSTANCE_ROWS;
+    instanceDesc.data = nullptr;
+    instanceBuffer_.init(instanceDesc);
     return true;
 }
 

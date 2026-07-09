@@ -68,12 +68,16 @@ void StandardVulkanShaderPipeline::initBuffers()
     BufferDescription animDesc = UniformBuffer;
     animDesc.bufferSlot = SimpleVF::BufferSlots::ANIMATION;
     animDesc.stageFlags = vk::ShaderStageFlagBits::eVertex;
+    animDesc.bufferSize = sizeof(SimpleVF::AnimationBuffer);
+    animDesc.data = static_cast<SimpleVF::AnimationBuffer *>(nullptr);
     addBuffer(animDesc);
 
     BufferDescription debugDesc = StorageReadWrite;
     debugDesc.bufferSlot = SimpleVF::BufferSlots::DEBUG;
     debugDesc.stageFlags =
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+    debugDesc.bufferSize = sizeof(SimpleVF::DebugDataBuffer);
+    debugDesc.data = debugDataBufferData_.data();
     addBuffer(debugDesc);
 }
 
@@ -207,16 +211,20 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
 
 bool StandardVulkanShaderPipeline::initVertexBuffer()
 {
-    vk::DeviceSize bufferSize =
+    BufferDescription vertexDesc = VertexBuffer;
+    vertexDesc.bufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
-    vertexBuffer_.init(VertexBuffer, bufferSize, geometry_->vertices.data());
+    vertexDesc.data = geometry_->vertices.data();
+    vertexBuffer_.init(vertexDesc);
     return true;
 }
 
 bool StandardVulkanShaderPipeline::initIndexBuffer()
 {
-    vk::DeviceSize bufferSize = sizeof(uint32_t) * geometry_->indices.size();
-    indexBuffer_.init(IndexBuffer, bufferSize, geometry_->indices.data());
+    BufferDescription indexDesc = IndexBuffer;
+    indexDesc.bufferSize = sizeof(uint32_t) * geometry_->indices.size();
+    indexDesc.data = geometry_->indices.data();
+    indexBuffer_.init(indexDesc);
     return true;
 }
 

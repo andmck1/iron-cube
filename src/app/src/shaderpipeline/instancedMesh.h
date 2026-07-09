@@ -45,7 +45,7 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
-    
+
     void initBuffers() override;
 
     InstancedMeshShaderPipelineUpdateData *updateData_ = nullptr;

@@ -183,62 +183,61 @@ void InstancedMeshVulkanShaderPipeline::initBuffers()
     sceneDesc.bufferSlot = InstancedMesh::BufferSlots::SCENE;
     sceneDesc.stageFlags =
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT;
-    addBuffer(
-        sceneDesc, sizeof(InstancedMesh::SceneBuffer),
-        static_cast<InstancedMesh::SceneBuffer *>(nullptr)
-    );
+    sceneDesc.data = static_cast<InstancedMesh::SceneBuffer *>(nullptr);
+    sceneDesc.bufferSize = sizeof(InstancedMesh::SceneBuffer);
+    addBuffer(sceneDesc);
 
     BufferDescription animDesc = UniformBuffer;
     animDesc.bufferSlot = InstancedMesh::BufferSlots::ANIMATION;
     animDesc.stageFlags = vk::ShaderStageFlagBits::eMeshEXT;
-    addBuffer(
-        animDesc, sizeof(InstancedMesh::AnimationBuffer),
-        static_cast<InstancedMesh::AnimationBuffer *>(nullptr)
-    );
+    animDesc.data = static_cast<InstancedMesh::AnimationBuffer *>(nullptr);
+    animDesc.bufferSize = sizeof(InstancedMesh::AnimationBuffer);
+    addBuffer(animDesc);
 
     BufferDescription debugDesc = StorageReadWrite;
     debugDesc.bufferSlot = InstancedMesh::BufferSlots::DEBUG;
     debugDesc.stageFlags = vk::ShaderStageFlagBits::eTaskEXT |
                            vk::ShaderStageFlagBits::eMeshEXT |
                            vk::ShaderStageFlagBits::eFragment;
-    addBuffer(
-        debugDesc, sizeof(InstancedMesh::DebugDataBuffer),
-        debugDataBufferData_.data()
-    );
+    debugDesc.data = debugDataBufferData_.data();
+    debugDesc.bufferSize = sizeof(InstancedMesh::DebugDataBuffer);
+    addBuffer(debugDesc);
 
     vk::DeviceSize vertexBufferSize =
         sizeof(VertexInputType) * geometry_->vertices.size();
     BufferDescription verticesDesc = StorageRead;
     verticesDesc.bufferSlot = InstancedMesh::BufferSlots::MODEL_VERTICES;
     verticesDesc.stageFlags = vk::ShaderStageFlagBits::eMeshEXT;
-    addBuffer(verticesDesc, vertexBufferSize, geometry_->vertices.data());
+    verticesDesc.data = geometry_->vertices.data();
+    verticesDesc.bufferSize = vertexBufferSize;
+    addBuffer(verticesDesc);
 
     vk::DeviceSize meshletBufferSize =
         sizeof(meshopt_Meshlet) * geometry_->meshlets.size();
     BufferDescription meshletsDesc = StorageRead;
     meshletsDesc.bufferSlot = InstancedMesh::BufferSlots::MESHLETS;
     meshletsDesc.stageFlags = vk::ShaderStageFlagBits::eMeshEXT;
-    addBuffer(meshletsDesc, meshletBufferSize, geometry_->meshlets.data());
+    meshletsDesc.data = geometry_->meshlets.data();
+    meshletsDesc.bufferSize = meshletBufferSize;
+    addBuffer(meshletsDesc);
 
     vk::DeviceSize meshletVerticesBufferSize =
         sizeof(uint32_t) * geometry_->meshletVertices.size();
     BufferDescription meshletVertsDesc = StorageRead;
     meshletVertsDesc.bufferSlot = InstancedMesh::BufferSlots::VERTEX_INDICES;
     meshletVertsDesc.stageFlags = vk::ShaderStageFlagBits::eMeshEXT;
-    addBuffer(
-        meshletVertsDesc, meshletVerticesBufferSize,
-        geometry_->meshletVertices.data()
-    );
+    meshletVertsDesc.data = geometry_->meshletVertices.data();
+    meshletVertsDesc.bufferSize = meshletVerticesBufferSize;
+    addBuffer(meshletVertsDesc);
 
     vk::DeviceSize meshletTrianglesBufferSize =
         sizeof(uint32_t) * geometry_->meshletTrianglesU32.size();
     BufferDescription meshletTrisDesc = StorageRead;
     meshletTrisDesc.bufferSlot = InstancedMesh::BufferSlots::TRIANGLE_INDICES;
     meshletTrisDesc.stageFlags = vk::ShaderStageFlagBits::eMeshEXT;
-    addBuffer(
-        meshletTrisDesc, meshletTrianglesBufferSize,
-        geometry_->meshletTrianglesU32.data()
-    );
+    meshletTrisDesc.data = geometry_->meshletTrianglesU32.data();
+    meshletTrisDesc.bufferSize = meshletTrianglesBufferSize;
+    addBuffer(meshletTrisDesc);
 
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
@@ -247,7 +246,9 @@ void InstancedMeshVulkanShaderPipeline::initBuffers()
     instancesDesc.bufferSlot = InstancedMesh::BufferSlots::INSTANCES;
     instancesDesc.stageFlags =
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT;
-    addBuffer(instancesDesc, instancesBufferSize, nullptr);
+    instancesDesc.data = nullptr;
+    instancesDesc.bufferSize = instancesBufferSize;
+    addBuffer(instancesDesc);
 
     vk::DeviceSize meshletBoundingSpheresBufferSize =
         sizeof(glm::vec4) * geometry_->meshletBoundingSpheres.size();
@@ -256,10 +257,9 @@ void InstancedMeshVulkanShaderPipeline::initBuffers()
         InstancedMesh::BufferSlots::MESHLET_BOUNDING_SPHERES;
     boundingSpheresDesc.stageFlags =
         vk::ShaderStageFlagBits::eTaskEXT | vk::ShaderStageFlagBits::eMeshEXT;
-    addBuffer(
-        boundingSpheresDesc, meshletBoundingSpheresBufferSize,
-        geometry_->meshletBoundingSpheres.data()
-    );
+    boundingSpheresDesc.data = geometry_->meshletBoundingSpheres.data();
+    boundingSpheresDesc.bufferSize = meshletBoundingSpheresBufferSize;
+    addBuffer(boundingSpheresDesc);
 }
 
 bool InstancedMeshVulkanShaderPipeline::bind()
