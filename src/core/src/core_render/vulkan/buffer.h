@@ -6,6 +6,8 @@
 struct BufferDescription
 {
     uint bufferSlot;
+    vk::DeviceSize bufferSize;
+    void *data;
 
     vk::DescriptorType descriptorType;
     vk::BufferUsageFlags deviceUsage;
@@ -21,10 +23,7 @@ struct BufferDescription
 class VulkanBuffer
 {
     public:
-    void init(
-        BufferDescription bufferDescription, vk::DeviceSize bufferSize,
-        void *data
-    );
+    void init(BufferDescription bufferDescription);
     void update(vk::DeviceSize bufferSize, void *data);
     vk::raii::Buffer *getBuffer(uint32_t frameIndex);
     vk::raii::DeviceMemory *getDeviceMemory(uint32_t frameIndex);

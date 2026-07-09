@@ -35,13 +35,12 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
+    void initBuffers() override;
+
     bool initGraphicsPipeline();
     bool initPipeline();
     bool initIndexBuffer();
     bool initVertexBuffer();
-
-    void initUniformBuffers() override;
-    void initStorageBuffers() override;
 
     VulkanBuffer vertexBuffer_;
     VulkanBuffer indexBuffer_;

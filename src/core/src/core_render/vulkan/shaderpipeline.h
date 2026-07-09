@@ -3,7 +3,6 @@
 #include "core_render/ishaderpipeline.h"
 #include "core_render/vulkan/buffer.h"
 #include "core_render/vulkan/renderer.h"
-#include "core_service/servicelocator.h"
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
@@ -13,14 +12,11 @@ class VulkanShaderPipeline : public IShaderPipeline
     std::optional<vk::raii::Pipeline> &getGraphicsPipeline();
 
     protected:
-    void addBuffer(
-        BufferDescription description, vk::DeviceSize bufferSize, void *data
-    )
+    void addBuffer(BufferDescription description)
     {
-        description.bufferSlot = static_cast<uint>(bufferDescriptions_.size());
         bufferDescriptions_.push_back(description);
         buffers_.emplace_back();
-        buffers_.back().init(description, bufferSize, data);
+        buffers_.back().init(description);
     }
 
     void addBufferWrite(
@@ -36,8 +32,7 @@ class VulkanShaderPipeline : public IShaderPipeline
     bool createDescriptorPool();
     void shutdownBuffers();
 
-    virtual void initUniformBuffers() = 0;
-    virtual void initStorageBuffers() = 0;
+    virtual void initBuffers() = 0;
 
     std::optional<vk::raii::Pipeline> graphicsPipeline_ = nullptr;
     VulkanRenderer *renderer_ = nullptr;

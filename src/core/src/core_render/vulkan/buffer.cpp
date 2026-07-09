@@ -52,12 +52,10 @@ BufferDescription IndexBuffer{
     .useStaging = true
 };
 
-void VulkanBuffer::init(
-    BufferDescription bufferDescription, vk::DeviceSize bufferSize, void *data
-)
+void VulkanBuffer::init(BufferDescription bufferDescription)
 {
     description = bufferDescription;
-    bufferSize_ = bufferSize;
+    bufferSize_ = bufferDescription.bufferSize;
     renderer_ = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
@@ -71,7 +69,7 @@ void VulkanBuffer::init(
         // Create shared staging buffer (host-visible)
         std::tie(stagingBuffer_, stagingBufferMemory_) =
             renderer_->createBuffer(
-                bufferSize, description.stagingUsage,
+                bufferDescription.bufferSize, description.stagingUsage,
                 vk::MemoryPropertyFlagBits::eHostVisible |
                     vk::MemoryPropertyFlagBits::eHostCoherent
             );
@@ -82,19 +80,24 @@ void VulkanBuffer::init(
         {
             std::tie(frames_[i].buffer, frames_[i].memory) =
                 renderer_->createBuffer(
-                    bufferSize, description.deviceUsage,
+                    bufferDescription.bufferSize, description.deviceUsage,
                     description.deviceMemory
                 );
             frames_[i].mappedPointer = nullptr;
 
-            if (data)
+            if (bufferDescription.data)
             {
-                void *stagingData =
-                    stagingBufferMemory_.mapMemory(0, bufferSize);
-                memcpy(stagingData, data, bufferSize);
+                void *stagingData = stagingBufferMemory_.mapMemory(
+                    0, bufferDescription.bufferSize
+                );
+                memcpy(
+                    stagingData, bufferDescription.data,
+                    bufferDescription.bufferSize
+                );
                 stagingBufferMemory_.unmapMemory();
                 renderer_->copyBuffer(
-                    stagingBuffer_, frames_[i].buffer, bufferSize
+                    stagingBuffer_, frames_[i].buffer,
+                    bufferDescription.bufferSize
                 );
             }
         }
@@ -107,14 +110,17 @@ void VulkanBuffer::init(
         {
             std::tie(frames_[i].buffer, frames_[i].memory) =
                 renderer_->createBuffer(
-                    bufferSize, description.deviceUsage,
+                    bufferDescription.bufferSize, description.deviceUsage,
                     description.deviceMemory
                 );
             frames_[i].mappedPointer =
-                frames_[i].memory.mapMemory(0, bufferSize);
-            if (data)
+                frames_[i].memory.mapMemory(0, bufferDescription.bufferSize);
+            if (bufferDescription.data)
             {
-                memcpy(frames_[i].mappedPointer, data, bufferSize);
+                memcpy(
+                    frames_[i].mappedPointer, bufferDescription.data,
+                    bufferDescription.bufferSize
+                );
             }
         }
     }
@@ -126,7 +132,7 @@ void VulkanBuffer::init(
         {
             std::tie(frames_[i].buffer, frames_[i].memory) =
                 renderer_->createBuffer(
-                    bufferSize, description.deviceUsage,
+                    bufferDescription.bufferSize, description.deviceUsage,
                     description.deviceMemory
                 );
             frames_[i].mappedPointer = nullptr;

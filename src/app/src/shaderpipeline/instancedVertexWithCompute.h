@@ -46,8 +46,7 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
     bool initVertexBuffer();
     bool initInstanceBuffer();
 
-    void initUniformBuffers() override;
-    void initStorageBuffers() override;
+    void initBuffers() override;
 
     std::optional<vk::raii::Pipeline> computePipeline_ = nullptr;
 

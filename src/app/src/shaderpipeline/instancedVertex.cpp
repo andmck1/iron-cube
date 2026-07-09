@@ -26,8 +26,7 @@ bool InstancedVertexVulkanShaderPipeline::init(
 //
 bool InstancedVertexVulkanShaderPipeline::initPipeline()
 {
-    initUniformBuffers();
-    initStorageBuffers();
+    initBuffers();
     if (!initDescriptorLayout())
         return false;
     if (!initDescriptorSets())
@@ -60,9 +59,10 @@ bool InstancedVertexVulkanShaderPipeline::shutdown()
     return true;
 }
 
-void InstancedVertexVulkanShaderPipeline::initUniformBuffers()
+void InstancedVertexVulkanShaderPipeline::initBuffers()
 {
     BufferDescription sceneDesc = UniformBuffer;
+    sceneDesc.bufferSlot = InstancedVF::BufferSlots::MVP;
     sceneDesc.stageFlags =
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
     addBuffer(
@@ -71,21 +71,21 @@ void InstancedVertexVulkanShaderPipeline::initUniformBuffers()
     );
 
     BufferDescription animDesc = UniformBuffer;
+    animDesc.bufferSlot = InstancedVF::BufferSlots::ANIMATION;
     animDesc.stageFlags = vk::ShaderStageFlagBits::eVertex;
     addBuffer(
         animDesc, sizeof(InstancedVF::AnimationBuffer),
         static_cast<InstancedVF::AnimationBuffer *>(nullptr)
     );
-}
 
-void InstancedVertexVulkanShaderPipeline::initStorageBuffers()
-{
-    vk::DeviceSize debugDataBufferSize =
-        sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
     BufferDescription debugDesc = StorageReadWrite;
+    debugDesc.bufferSlot = InstancedVF::BufferSlots::DEBUG;
     debugDesc.stageFlags =
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
-    addBuffer(debugDesc, debugDataBufferSize, debugDataBufferData_.data());
+    addBuffer(
+        debugDesc, sizeof(InstancedVF::DebugDataBuffer),
+        debugDataBufferData_.data()
+    );
 }
 
 bool InstancedVertexVulkanShaderPipeline::initGraphicsPipeline()

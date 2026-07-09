@@ -45,9 +45,8 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
 
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
-
-    void initUniformBuffers() override;
-    void initStorageBuffers() override;
+    
+    void initBuffers() override;
 
     InstancedMeshShaderPipelineUpdateData *updateData_ = nullptr;
     uint32_t maxTaskShaderThreadCount_;
