@@ -18,6 +18,78 @@ struct BufferDescription
     bool useStaging = false;
     bool persistentlyMapped = false;
     bool readable = false;
+
+    BufferDescription &setBufferSlot(uint slot)
+    {
+        bufferSlot = slot;
+        return *this;
+    }
+
+    BufferDescription &setBufferSize(vk::DeviceSize size)
+    {
+        bufferSize = size;
+        return *this;
+    }
+
+    BufferDescription &setData(void *dataPtr)
+    {
+        data = dataPtr;
+        return *this;
+    }
+
+    BufferDescription &setDescriptorType(vk::DescriptorType type)
+    {
+        descriptorType = type;
+        return *this;
+    }
+
+    BufferDescription &setDeviceUsage(vk::BufferUsageFlags usage)
+    {
+        deviceUsage = usage;
+        return *this;
+    }
+
+    BufferDescription &setStagingUsage(vk::BufferUsageFlags usage)
+    {
+        stagingUsage = usage;
+        return *this;
+    }
+
+    BufferDescription &setDeviceMemory(vk::MemoryPropertyFlags memory)
+    {
+        deviceMemory = memory;
+        return *this;
+    }
+
+    BufferDescription &setStagingMemoryProperties(vk::MemoryPropertyFlags props)
+    {
+        stagingMemoryProperties = props;
+        return *this;
+    }
+
+    BufferDescription &setStageFlags(vk::ShaderStageFlags flags)
+    {
+        stageFlags = flags;
+        return *this;
+    }
+
+    BufferDescription &setUseStaging(bool use)
+    {
+        useStaging = use;
+        return *this;
+    }
+
+    BufferDescription &setPersistentlyMapped(bool mapped)
+    {
+        persistentlyMapped = mapped;
+        return *this;
+    }
+
+    BufferDescription &setReadable(bool readableFlag)
+    {
+        readable = readableFlag;
+        return *this;
+    }
 };
 
 class VulkanBuffer

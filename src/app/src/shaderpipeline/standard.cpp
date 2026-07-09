@@ -30,10 +30,6 @@ bool StandardVulkanShaderPipeline::initPipeline()
         return false;
     if (!initGraphicsPipeline())
         return false;
-    if (!initVertexBuffer())
-        return false;
-    if (!initIndexBuffer())
-        return false;
     return true;
 }
 
@@ -57,28 +53,19 @@ bool StandardVulkanShaderPipeline::shutdown()
 
 void StandardVulkanShaderPipeline::initBuffers()
 {
-    BufferDescription sceneDesc = UniformBuffer;
-    sceneDesc.bufferSlot = SimpleVF::BufferSlots::MVP;
-    sceneDesc.stageFlags =
-        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
-    sceneDesc.data = static_cast<SimpleVF::MVPBuffer *>(nullptr);
-    sceneDesc.bufferSize = sizeof(SimpleVF::MVPBuffer);
-    addBuffer(sceneDesc);
+    for (auto bufferDescription : bufferDescriptions_)
+        addBuffer(bufferDescription);
 
-    BufferDescription animDesc = UniformBuffer;
-    animDesc.bufferSlot = SimpleVF::BufferSlots::ANIMATION;
-    animDesc.stageFlags = vk::ShaderStageFlagBits::eVertex;
-    animDesc.bufferSize = sizeof(SimpleVF::AnimationBuffer);
-    animDesc.data = static_cast<SimpleVF::AnimationBuffer *>(nullptr);
-    addBuffer(animDesc);
+    BufferDescription vertexDesc = VertexBuffer;
+    vertexDesc.bufferSize =
+        sizeof(VertexInputType) * geometry_->vertices.size();
+    vertexDesc.data = geometry_->vertices.data();
+    vertexBuffer_.init(vertexDesc);
 
-    BufferDescription debugDesc = StorageReadWrite;
-    debugDesc.bufferSlot = SimpleVF::BufferSlots::DEBUG;
-    debugDesc.stageFlags =
-        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
-    debugDesc.bufferSize = sizeof(SimpleVF::DebugDataBuffer);
-    debugDesc.data = debugDataBufferData_.data();
-    addBuffer(debugDesc);
+    BufferDescription indexDesc = IndexBuffer;
+    indexDesc.bufferSize = sizeof(uint32_t) * geometry_->indices.size();
+    indexDesc.data = geometry_->indices.data();
+    indexBuffer_.init(indexDesc);
 }
 
 bool StandardVulkanShaderPipeline::initGraphicsPipeline()
@@ -209,25 +196,6 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
     return true;
 }
 
-bool StandardVulkanShaderPipeline::initVertexBuffer()
-{
-    BufferDescription vertexDesc = VertexBuffer;
-    vertexDesc.bufferSize =
-        sizeof(VertexInputType) * geometry_->vertices.size();
-    vertexDesc.data = geometry_->vertices.data();
-    vertexBuffer_.init(vertexDesc);
-    return true;
-}
-
-bool StandardVulkanShaderPipeline::initIndexBuffer()
-{
-    BufferDescription indexDesc = IndexBuffer;
-    indexDesc.bufferSize = sizeof(uint32_t) * geometry_->indices.size();
-    indexDesc.data = geometry_->indices.data();
-    indexBuffer_.init(indexDesc);
-    return true;
-}
-
 bool StandardVulkanShaderPipeline::bind()
 {
     spdlog::debug("Binding shader pipeline");
@@ -286,10 +254,9 @@ bool StandardVulkanShaderPipeline::update()
     );
 
     updatePipelineStatistics();
-    vk::DeviceSize debugDataBufferSize =
-        sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
+    vk::DeviceSize debugDataBufferSize = sizeof(SimpleVF::DebugDataBuffer);
     debugDataBufferData_ = {SimpleVF::DebugDataBuffer()};
-    debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
+    debugDataBufferData_.front().isDebugQueryOn = isDebugQuery_;
     buffers_[SimpleVF::BufferSlots::DEBUG].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );

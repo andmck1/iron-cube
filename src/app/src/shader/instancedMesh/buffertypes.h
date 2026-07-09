@@ -22,7 +22,8 @@ namespace InstancedMesh
         VERTEX_INDICES = 5,
         TRIANGLE_INDICES = 6,
         INSTANCES = 7,
-        MESHLET_BOUNDING_SPHERES = 8
+        MESHLET_BOUNDING_SPHERES = 8,
+        LAST
     };
 
     struct VertexOutputType

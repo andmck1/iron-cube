@@ -10,7 +10,8 @@ namespace SimpleVF
     {
         MVP = 0,
         ANIMATION = 1,
-        DEBUG = 2
+        DEBUG = 2,
+        LAST
     };
 
     struct VertexOutputType

@@ -39,8 +39,6 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
 
     bool initGraphicsPipeline();
     bool initPipeline();
-    bool initIndexBuffer();
-    bool initVertexBuffer();
 
     VulkanBuffer vertexBuffer_;
     VulkanBuffer indexBuffer_;
@@ -55,5 +53,27 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
 
     std::vector<SimpleVF::DebugDataBuffer> debugDataBufferData_ = {
         SimpleVF::DebugDataBuffer()
+    };
+
+    std::array<BufferDescription, SimpleVF::LAST> bufferDescriptions_ = {
+        UniformBuffer.setBufferSlot(SimpleVF::BufferSlots::MVP)
+            .setBufferSize(sizeof(SimpleVF::MVPBuffer))
+            .setData(static_cast<SimpleVF::MVPBuffer *>(nullptr))
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eVertex |
+                vk::ShaderStageFlagBits::eFragment
+            ),
+        UniformBuffer.setBufferSlot(SimpleVF::BufferSlots::ANIMATION)
+            .setBufferSize(sizeof(SimpleVF::AnimationBuffer))
+            .setData(static_cast<SimpleVF::AnimationBuffer *>(nullptr))
+            .setStageFlags(vk::ShaderStageFlagBits::eVertex),
+
+        StorageReadWrite.setBufferSlot(SimpleVF::BufferSlots::DEBUG)
+            .setBufferSize(sizeof(SimpleVF::DebugDataBuffer))
+            .setData(debugDataBufferData_.data())
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eVertex |
+                vk::ShaderStageFlagBits::eFragment
+            )
     };
 };

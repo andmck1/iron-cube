@@ -22,7 +22,8 @@ namespace InstancedVFCompute
         LOD_BASE_OFFSETS = 5,
         LOD_SLOT_COUNTERS = 6,
         INSTANCES = 7,
-        INDIRECT_COMMANDS = 8
+        INDIRECT_COMMANDS = 8,
+        LAST
     };
 
     struct VertexOutputType
