@@ -51,8 +51,40 @@ bool StandardVulkanShaderPipeline::shutdown()
     return true;
 }
 
+void StandardVulkanShaderPipeline::initBufferDescriptions()
+{
+    bufferDescriptions_.push_back(
+        UniformBuffer.setBufferSlot(SimpleVF::BufferSlots::MVP)
+            .setBufferSize(sizeof(SimpleVF::MVPBuffer))
+            .setData(static_cast<SimpleVF::MVPBuffer *>(nullptr))
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eVertex |
+                vk::ShaderStageFlagBits::eFragment
+            )
+    );
+
+    bufferDescriptions_.push_back(
+        UniformBuffer.setBufferSlot(SimpleVF::BufferSlots::ANIMATION)
+            .setBufferSize(sizeof(SimpleVF::AnimationBuffer))
+            .setData(static_cast<SimpleVF::AnimationBuffer *>(nullptr))
+            .setStageFlags(vk::ShaderStageFlagBits::eVertex)
+    );
+
+    bufferDescriptions_.push_back(
+        StorageReadWrite.setBufferSlot(SimpleVF::BufferSlots::DEBUG)
+            .setBufferSize(sizeof(SimpleVF::DebugDataBuffer))
+            .setData(debugDataBufferData_.data())
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eVertex |
+                vk::ShaderStageFlagBits::eFragment
+            )
+    );
+}
+
 void StandardVulkanShaderPipeline::initBuffers()
 {
+    initBufferDescriptions();
+
     for (auto bufferDescription : bufferDescriptions_)
         addBuffer(bufferDescription);
 

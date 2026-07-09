@@ -35,6 +35,7 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
+    void initBufferDescriptions() override;
     void initBuffers() override;
 
     bool initGraphicsPipeline();
@@ -55,25 +56,4 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
         SimpleVF::DebugDataBuffer()
     };
 
-    std::array<BufferDescription, SimpleVF::LAST> bufferDescriptions_ = {
-        UniformBuffer.setBufferSlot(SimpleVF::BufferSlots::MVP)
-            .setBufferSize(sizeof(SimpleVF::MVPBuffer))
-            .setData(static_cast<SimpleVF::MVPBuffer *>(nullptr))
-            .setStageFlags(
-                vk::ShaderStageFlagBits::eVertex |
-                vk::ShaderStageFlagBits::eFragment
-            ),
-        UniformBuffer.setBufferSlot(SimpleVF::BufferSlots::ANIMATION)
-            .setBufferSize(sizeof(SimpleVF::AnimationBuffer))
-            .setData(static_cast<SimpleVF::AnimationBuffer *>(nullptr))
-            .setStageFlags(vk::ShaderStageFlagBits::eVertex),
-
-        StorageReadWrite.setBufferSlot(SimpleVF::BufferSlots::DEBUG)
-            .setBufferSize(sizeof(SimpleVF::DebugDataBuffer))
-            .setData(debugDataBufferData_.data())
-            .setStageFlags(
-                vk::ShaderStageFlagBits::eVertex |
-                vk::ShaderStageFlagBits::eFragment
-            )
-    };
 };

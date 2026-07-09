@@ -14,7 +14,6 @@ class VulkanShaderPipeline : public IShaderPipeline
     protected:
     void addBuffer(BufferDescription description)
     {
-        bufferDescriptions_.push_back(description);
         buffers_.emplace_back();
         buffers_.back().init(description);
     }
@@ -32,6 +31,7 @@ class VulkanShaderPipeline : public IShaderPipeline
     bool createDescriptorPool();
     void shutdownBuffers();
 
+    virtual void initBufferDescriptions() = 0;
     virtual void initBuffers() = 0;
 
     std::optional<vk::raii::Pipeline> graphicsPipeline_ = nullptr;

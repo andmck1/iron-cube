@@ -37,8 +37,8 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     protected:
     bool initGraphicsPipeline();
     bool initPipeline();
-    void initBufferDescriptions();
 
+    void initBufferDescriptions() override;
     void initBuffers() override;
 
     VulkanBuffer vertexBuffer_;
@@ -56,6 +56,4 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     std::vector<InstancedVF::DebugDataBuffer> debugDataBufferData_ = {
         InstancedVF::DebugDataBuffer()
     };
-
-    std::vector<BufferDescription> bufferDescriptions_;
 };
