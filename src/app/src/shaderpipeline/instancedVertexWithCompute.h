@@ -46,6 +46,18 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
 
     void initBuffers() override;
 
+    void updateSceneData();
+    void updateMVPData();
+    void updateAnimationData();
+    void updateInstancesData();
+    void updateDebugData();
+    
+    void bindComputePipeline();
+    void resetIndirectDrawCommands();
+    void resetLODSlotCounters();
+    void dispatchComputePhase0(uint dispatchCount);
+    void dispatchComputePhase1(uint dispatchCount);
+
     std::optional<vk::raii::Pipeline> computePipeline_ = nullptr;
 
     VulkanBuffer vertexBuffer_;

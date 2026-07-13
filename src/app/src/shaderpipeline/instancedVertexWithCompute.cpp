@@ -401,9 +401,8 @@ bool InstancedVertexComputeVulkanShaderPipeline::bind()
     return true;
 }
 
-bool InstancedVertexComputeVulkanShaderPipeline::update()
+void InstancedVertexComputeVulkanShaderPipeline::updateSceneData()
 {
-    std::chrono::time_point now = std::chrono::steady_clock::now();
     InstancedVFCompute::SceneBuffer sceneData{};
     sceneData.eyePosition = {
         updateData_->camera->getComponent<TransformComponent>()->getPosition(),
@@ -438,14 +437,20 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     buffers_[InstancedVFCompute::BufferSlots::SCENE].update(
         sizeof(sceneData), &sceneData
     );
+}
 
+void InstancedVertexComputeVulkanShaderPipeline::updateMVPData()
+{
     InstancedVFCompute::MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
     buffers_[InstancedVFCompute::BufferSlots::MVP].update(sizeof(mvp), &mvp);
+}
 
+void InstancedVertexComputeVulkanShaderPipeline::updateAnimationData()
+{
     InstancedVFCompute::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
     animation.rotationFrequency = {
@@ -460,16 +465,19 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     buffers_[InstancedVFCompute::BufferSlots::ANIMATION].update(
         sizeof(animation), &animation
     );
+}
 
-    // This takes up most of the frame time
+void InstancedVertexComputeVulkanShaderPipeline::updateInstancesData()
+{
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * updateData_->instances->size();
     buffers_[InstancedVFCompute::BufferSlots::INSTANCES].update(
         instancesBufferSize, updateData_->instances->data()
     );
+}
 
-    // instanceBuffer_ is populated by GPU copy from reorderedInstances
-
+void InstancedVertexComputeVulkanShaderPipeline::updateDebugData()
+{
     updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
@@ -479,21 +487,10 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     buffers_[InstancedVFCompute::BufferSlots::DEBUG].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
+}
 
-    // Dispatch compute shader outside of render pass
-    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
-    commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eCompute, *computePipeline_
-    );
-    commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute, pipelineLayout_, 0,
-        *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
-    );
-    uint32_t dispatchCount = (updateData_->instances->size() + 255) / 256;
-
-    // Clear indirect commands buffer on CPU: populate geometry data, zero
-    // counts This avoids a race condition where the reset thread could execute
-    // after atomic adds from other workgroups.
+void InstancedVertexComputeVulkanShaderPipeline::resetIndirectDrawCommands()
+{
     std::vector<vk::DrawIndexedIndirectCommand> indirectCommandsData(
         MAX_LOD_COUNT, vk::DrawIndexedIndirectCommand()
     );
@@ -504,10 +501,6 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
         indirectCommandsData[lodIndex].instanceCount = 0;
         indirectCommandsData[lodIndex].firstIndex =
             geometry_->indexOffsets[lodIndex];
-        // vertexOffset is 0 because indices are already adjusted during
-        // resource loading to point into the combined vertex buffer.
-        // Setting this to geometry_->vertexOffsets[lodIndex] would
-        // double-apply the offset and cause out-of-bounds vertex fetches.
         indirectCommandsData[lodIndex].vertexOffset = 0;
         indirectCommandsData[lodIndex].firstInstance = 0;
     }
@@ -515,14 +508,21 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
         sizeof(vk::DrawIndexedIndirectCommand) * MAX_LOD_COUNT,
         indirectCommandsData.data()
     );
+}
 
-    // Clear slot counters on CPU before dispatch. This avoids a race condition
-    // where AllMemoryBarrierWithGroupSync() only synchronises within a
-    // workgroup, leaving cross-workgroup resets and scatters unordered.
+void InstancedVertexComputeVulkanShaderPipeline::resetLODSlotCounters()
+{
     std::vector<uint32_t> slotCountersData(MAX_LOD_COUNT, 0);
     buffers_[InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS].update(
         sizeof(uint32_t) * MAX_LOD_COUNT, slotCountersData.data()
     );
+}
+
+void InstancedVertexComputeVulkanShaderPipeline::dispatchComputePhase0(
+    uint dispatchCount
+)
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
     // Dispatch 1: Compute LOD per instance, atomic count
     uint32_t phase0 = 0;
@@ -548,6 +548,25 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
             &computeToComputeBarrier
         );
     commandBuffer.pipelineBarrier2(phaseBarrierInfo);
+}
+
+void InstancedVertexComputeVulkanShaderPipeline::bindComputePipeline()
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eCompute, *computePipeline_
+    );
+    commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eCompute, pipelineLayout_, 0,
+        *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
+    );
+}
+
+void InstancedVertexComputeVulkanShaderPipeline::dispatchComputePhase1(
+    uint dispatchCount
+)
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
     // Dispatch 2: Compute base offsets, scatter instances, set firstInstance
     uint32_t phase1 = 1;
@@ -631,6 +650,24 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
             .setBufferMemoryBarrierCount(1)
             .setPBufferMemoryBarriers(&bufferBarrier);
     commandBuffer.pipelineBarrier2(dependencyInfo);
+}
+
+bool InstancedVertexComputeVulkanShaderPipeline::update()
+{
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+    updateSceneData();
+    updateMVPData();
+    updateAnimationData();
+    updateInstancesData();
+    updateDebugData();
+
+    resetIndirectDrawCommands();
+    resetLODSlotCounters();
+
+    uint32_t dispatchCount = (updateData_->instances->size() + 255) / 256;
+    bindComputePipeline();
+    dispatchComputePhase0(dispatchCount);
+    dispatchComputePhase1(dispatchCount);
 
     updateTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
@@ -705,7 +742,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::updatePipelineStatistics()
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
     pipelineStatistics_.nTriangles =
-        (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3) *
+        (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3.0) *
         updateData_->instances->size();
     pipelineStatistics_.nDrawCalls = nDrawCalls_;
     return true;
