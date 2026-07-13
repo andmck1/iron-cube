@@ -518,6 +518,18 @@ void InstancedVertexComputeVulkanShaderPipeline::resetLODSlotCounters()
     );
 }
 
+void InstancedVertexComputeVulkanShaderPipeline::bindComputePipeline()
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eCompute, *computePipeline_
+    );
+    commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eCompute, pipelineLayout_, 0,
+        *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
+    );
+}
+
 void InstancedVertexComputeVulkanShaderPipeline::dispatchComputePhase0(
     uint dispatchCount
 )
@@ -548,18 +560,6 @@ void InstancedVertexComputeVulkanShaderPipeline::dispatchComputePhase0(
             &computeToComputeBarrier
         );
     commandBuffer.pipelineBarrier2(phaseBarrierInfo);
-}
-
-void InstancedVertexComputeVulkanShaderPipeline::bindComputePipeline()
-{
-    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
-    commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eCompute, *computePipeline_
-    );
-    commandBuffer.bindDescriptorSets(
-        vk::PipelineBindPoint::eCompute, pipelineLayout_, 0,
-        *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
-    );
 }
 
 void InstancedVertexComputeVulkanShaderPipeline::dispatchComputePhase1(
