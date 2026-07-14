@@ -1177,3 +1177,20 @@ std::pair<vk::raii::Image, vk::raii::DeviceMemory> VulkanRenderer::createImage(
 
     return {std::move(image), std::move(imageMemory)};
 }
+
+void VulkanRenderer::createPipelineMemoryBarrier(MemoryBarrierInfo barrierInfo)
+{
+    vk::MemoryBarrier2 barrier =
+        vk::MemoryBarrier2{}
+            .setSrcAccessMask(barrierInfo.sourceAccess)
+            .setDstAccessMask(barrierInfo.destinationAccess)
+            .setSrcStageMask(barrierInfo.sourceStage)
+            .setDstStageMask(barrierInfo.destinationStage);
+
+    vk::DependencyInfo barrierCreateInfo =
+        vk::DependencyInfo{}.setMemoryBarrierCount(1).setPMemoryBarriers(
+            &barrier
+        );
+
+    getCommandBuffer().pipelineBarrier2(barrierCreateInfo);
+}

@@ -558,20 +558,14 @@ void InstancedVertexComputeVulkanShaderPipeline::lodStatsComputePass(
 
     commandBuffer.dispatch(dispatchCount, 1, 1);
 
-    vk::MemoryBarrier2 computeToComputeBarrier =
-        vk::MemoryBarrier2{}
-            .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
-            .setDstAccessMask(
-                vk::AccessFlagBits2::eShaderRead |
-                vk::AccessFlagBits2::eShaderWrite
-            )
-            .setSrcStageMask(vk::PipelineStageFlagBits2::eComputeShader)
-            .setDstStageMask(vk::PipelineStageFlagBits2::eComputeShader);
-    vk::DependencyInfo phaseBarrierInfo =
-        vk::DependencyInfo{}.setMemoryBarrierCount(1).setPMemoryBarriers(
-            &computeToComputeBarrier
-        );
-    commandBuffer.pipelineBarrier2(phaseBarrierInfo);
+    MemoryBarrierInfo memoryBarrierInfo = {
+        .sourceAccess = vk::AccessFlagBits2::eShaderRead,
+        .destinationAccess = vk::AccessFlagBits2::eShaderRead |
+                             vk::AccessFlagBits2::eShaderWrite,
+        .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
+        .destinationStage = vk::PipelineStageFlagBits2::eComputeShader,
+    };
+    renderer_->createPipelineMemoryBarrier(memoryBarrierInfo);
 }
 
 void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
@@ -586,6 +580,7 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
     auto &reorderedInstancesBuffer =
         buffers_[InstancedVFCompute::BufferSlots::
                      REORDERED_INSTANCES]; // reordered instances buffer
+
     vk::BufferMemoryBarrier2 reorderBarrier =
         vk::BufferMemoryBarrier2{}
             .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
@@ -613,7 +608,6 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
             );
     commandBuffer.pipelineBarrier2(reorderDependencyInfo);
 
-    // Copy reordered instances to vertex input buffer (on same command buffer)
     vk::DeviceSize maxInstancesSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
                                       MAX_N_INSTANCE_LAYERS *
                                       MAX_N_INSTANCE_ROWS;
@@ -623,22 +617,6 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
         vk::BufferCopy(0, 0, maxInstancesSize)
     );
 
-    // Barrier: ensure reordered instances are visible for vertex fetch
-    vk::BufferMemoryBarrier2 vertexFetchBarrier =
-        vk::BufferMemoryBarrier2{}
-            .setSrcAccessMask(vk::AccessFlagBits2::eTransferWrite)
-            .setDstAccessMask(vk::AccessFlagBits2::eVertexAttributeRead)
-            .setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer)
-            .setDstStageMask(vk::PipelineStageFlagBits2::eVertexInput)
-            .setBuffer(*instanceBuffer_.getBuffer(frameIndex))
-            .setSize(VK_WHOLE_SIZE);
-    vk::DependencyInfo vertexFetchDependencyInfo =
-        vk::DependencyInfo{}
-            .setBufferMemoryBarrierCount(1)
-            .setPBufferMemoryBarriers(&vertexFetchBarrier);
-    commandBuffer.pipelineBarrier2(vertexFetchDependencyInfo);
-
-    // Barrier: ensure compute writes to indirect buffer are visible for draw
     auto &indirectBuffer =
         buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS];
     vk::BufferMemoryBarrier2 bufferBarrier =
