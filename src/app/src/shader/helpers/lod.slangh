@@ -1,0 +1,16 @@
+uint calculateLOD(
+    float4x4 modelMatrix, float4 minMeshBounds, float4 maxMeshBounds,
+    float3 eyePosition, float maxLODDistance, float lodExponent,
+    uint maxLODCount
+)
+{
+    float4 instanceBoundsMinWS = mul(modelMatrix, minMeshBounds);
+    float4 instanceBoundsMaxWS = mul(modelMatrix, maxMeshBounds);
+    float4 instanceCentre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
+    float distanceToMesh = distance(instanceCentre.xyz, eyePosition);
+    float normalisedDistanceToMesh =
+        clamp(distanceToMesh / maxLODDistance, 0.f, 1.f);
+    uint lod =
+        (uint) (pow(normalisedDistanceToMesh, lodExponent) * (maxLODCount - 1));
+    return lod;
+}

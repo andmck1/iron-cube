@@ -1,0 +1,76 @@
+#include "commontypes.h"
+#include "helpers/maths.slangh"
+
+bool visibleFrustumPlanes(float4 sphere, FrustumPlane planes[6])
+{
+    for (int i = 0; i < 6; i++)
+    {
+        float planeDistance =
+            pointPlaneDistance(sphere, planes[i].coefficients);
+        if (planeDistance < -sphere.w)
+            return false;
+    }
+    return true;
+}
+
+bool visibleFrustumSphere(float4 sphere, float4 frustumSphere)
+{
+    return (
+        distance(sphere.xyz, frustumSphere.xyz) < (sphere.w + frustumSphere.w)
+    );
+}
+
+bool visibleFrustumCone(float4 sphere, FrustumCone cone)
+{
+    float3 coneDir = cone.direction.xyz;
+    float3 coneTip = cone.tip.xyz;
+    float coneHeight = cone.height.x;
+    float coneAngle = cone.angle.x;
+    float coneRadius = coneHeight * tan(coneAngle);
+
+    float pointDistance = dot(sphere.xyz - coneTip, coneDir);
+    if ((pointDistance > coneHeight) || (pointDistance < 0.f))
+        return false;
+
+    float coneRadiusAtPoint = (pointDistance / coneHeight) * coneRadius;
+    float pointConeCentreDistance =
+        length((sphere.xyz - coneTip) - (pointDistance * coneDir));
+    return (pointConeCentreDistance < (coneRadiusAtPoint + sphere.w));
+}
+
+bool visibleFrustumConeAndNearPlane(
+    float4 sphere, FrustumCone cone, FrustumPlane planes[6]
+)
+{
+    bool i0 = visibleFrustumCone(sphere, cone);
+
+    FrustumPlane frNear = planes[FrustumPlanes::NEAR];
+
+    float planeDistance = pointPlaneDistance(sphere, frNear.coefficients);
+    bool i1 = (abs(planeDistance) < sphere.w);
+    bool i2 = (planeDistance > 0);
+
+    return i0 && (i1 || i2);
+}
+
+bool isVisible(
+    float4 sphere, VisibilityFunc visibilityFunction, FrustumPlane planes[6],
+    float4 frustumSphere, FrustumCone cone
+)
+{
+    switch (visibilityFunction)
+    {
+    case (VisibilityFunc::VISIBILITY_FUNC_NONE):
+        return true;
+    case (VisibilityFunc::VISIBILITY_FUNC_PLANES):
+        return visibleFrustumPlanes(sphere, planes);
+    case (VisibilityFunc::VISIBILITY_FUNC_SPHERE):
+        return visibleFrustumSphere(sphere, frustumSphere);
+    case (VisibilityFunc::VISIBILITY_FUNC_CONE):
+        return visibleFrustumCone(sphere, cone);
+    case (VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE):
+        return visibleFrustumConeAndNearPlane(sphere, cone, planes);
+    }
+    return true;
+}
+

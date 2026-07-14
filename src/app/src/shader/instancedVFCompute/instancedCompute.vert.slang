@@ -1,5 +1,5 @@
 #include "buffertypes.h"
-#include "shader/helpers.slangh"
+#include "helpers/maths.slangh"
 
 [[vk::binding(InstancedVFCompute::BufferSlots::MVP)]]
 ConstantBuffer<InstancedVFCompute::MVPBuffer> mvp;

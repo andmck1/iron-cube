@@ -1,5 +1,6 @@
 #include "buffertypes.h"
-#include "shader/helpers.slangh"
+#include "shader/helpers/visibility.slangh"
+#include "shader/helpers/lod.slangh"
 
 [[vk::binding(InstancedVFCompute::BufferSlots::SCENE)]]
 ConstantBuffer<InstancedVFCompute::SceneBuffer> scene;
@@ -46,13 +47,21 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
             instances[instanceIndex].position,
             instances[instanceIndex].rotation, instances[instanceIndex].scale
         );
-        float4 instanceBoundingSphere =
-            calculateInstanceBoundingSphere(modelMatrix);
+        float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
+            modelMatrix, scene.minMeshBounds, scene.minMeshBounds
+        );
 
-        bool visible = isVisible(instanceBoundingSphere);
+        bool visible = isVisible(
+            instanceBoundingSphere, (VisibilityFunc) scene.visibilityFunc.x,
+            scene.frustum.planes, scene.frustum.sphere, scene.frustum.cone
+        );
         if (visible)
         {
-            uint lod = calculateLOD(modelMatrix);
+            uint lod = calculateLOD(
+                modelMatrix, scene.minMeshBounds, scene.maxMeshBounds,
+                scene.eyePosition.xyz, scene.maxLODDistance.x,
+                scene.lodExponent.x, MAX_LOD_COUNT
+            );
             uint baseOffset = lodBaseOffsets[lod];
             uint previousValue;
             InterlockedAdd(lodSlotCounters[lod], 1, previousValue);
@@ -70,99 +79,3 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
     }
 }
 
-uint calculateLOD(float4x4 modelMatrix)
-{
-    float4 instanceBoundsMinWS = mul(modelMatrix, scene.minMeshBounds);
-    float4 instanceBoundsMaxWS = mul(modelMatrix, scene.maxMeshBounds);
-    float4 instanceCentre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
-    float distanceToMesh = distance(instanceCentre.xyz, scene.eyePosition.xyz);
-    float normalisedDistanceToMesh =
-        clamp(distanceToMesh / scene.maxLODDistance.x, 0.f, 1.f);
-    uint lod = (uint) (pow(normalisedDistanceToMesh, scene.lodExponent.x) *
-                       (MAX_LOD_COUNT - 1));
-    return lod;
-}
-
-float4 calculateInstanceBoundingSphere(float4x4 modelMatrix)
-{
-    float4 instanceBoundsMinWS = mul(modelMatrix, scene.minMeshBounds);
-    float4 instanceBoundsMaxWS = mul(modelMatrix, scene.maxMeshBounds);
-    float4 centre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
-    float3 extent = (instanceBoundsMaxWS - instanceBoundsMinWS).xyz / 2.f;
-    float radius = length(extent);
-    return float4(centre.xyz, radius);
-}
-
-bool isVisible(float4 sphere)
-{
-    switch (scene.visibilityFunc.x)
-    {
-    case (VisibilityFunc::VISIBILITY_FUNC_NONE):
-        return true;
-    case (VisibilityFunc::VISIBILITY_FUNC_PLANES):
-        return visibleFrustumPlanes(sphere);
-    case (VisibilityFunc::VISIBILITY_FUNC_SPHERE):
-        return visibleFrustumSphere(sphere);
-    case (VisibilityFunc::VISIBILITY_FUNC_CONE):
-        return visibleFrustumCone(sphere);
-    case (VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE):
-        return visibleFrustumConeAndNearPlane(sphere);
-    }
-    return true;
-}
-
-float pointPlaneDistance(float4 testPoint, float4 planeEquation)
-{
-    return dot(testPoint.xyz, planeEquation.xyz) + planeEquation.w;
-}
-
-bool visibleFrustumPlanes(float4 sphere)
-{
-    for (int i = 0; i < 6; i++)
-    {
-        float planeDistance =
-            pointPlaneDistance(sphere, scene.frustum.planes[i].coefficients);
-        if (planeDistance < -sphere.w)
-            return false;
-    }
-    return true;
-}
-
-bool visibleFrustumSphere(float4 sphere)
-{
-    return (
-        distance(sphere.xyz, scene.frustum.sphere.xyz) <
-        (sphere.w + scene.frustum.sphere.w)
-    );
-}
-
-bool visibleFrustumCone(float4 sphere)
-{
-    float3 coneDir = scene.frustum.cone.direction.xyz;
-    float3 coneTip = scene.frustum.cone.tip.xyz;
-    float coneHeight = scene.frustum.cone.height.x;
-    float coneAngle = scene.frustum.cone.angle.x;
-    float coneRadius = coneHeight * tan(coneAngle);
-
-    float pointDistance = dot(sphere.xyz - coneTip, coneDir);
-    if ((pointDistance > coneHeight) || (pointDistance < 0.f))
-        return false;
-
-    float coneRadiusAtPoint = (pointDistance / coneHeight) * coneRadius;
-    float pointConeCentreDistance =
-        length((sphere.xyz - coneTip) - (pointDistance * coneDir));
-    return (pointConeCentreDistance < (coneRadiusAtPoint + sphere.w));
-}
-
-bool visibleFrustumConeAndNearPlane(float4 sphere)
-{
-    bool i0 = visibleFrustumCone(sphere);
-
-    FrustumPlane frNear = scene.frustum.planes[FrustumPlanes::NEAR];
-
-    float planeDistance = pointPlaneDistance(sphere, frNear.coefficients);
-    bool i1 = (abs(planeDistance) < sphere.w);
-    bool i2 = (planeDistance > 0);
-
-    return i0 && (i1 || i2);
-}

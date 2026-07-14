@@ -43,3 +43,21 @@ float4x4 calculateModelMatrix(float4 transform, float4 rotation, float4 scale)
         0.0, 0.0, 0.0, 1.0
     );
 }
+
+float4 calculateInstanceBoundingSphere(
+    float4x4 modelMatrix, float4 minMeshBounds, float4 maxMeshBounds
+)
+{
+    float4 instanceBoundsMinWS = mul(modelMatrix, minMeshBounds);
+    float4 instanceBoundsMaxWS = mul(modelMatrix, maxMeshBounds);
+    float4 centre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
+    float3 extent = (instanceBoundsMaxWS - instanceBoundsMinWS).xyz / 2.f;
+    float radius = length(extent);
+    return float4(centre.xyz, radius);
+}
+
+float pointPlaneDistance(float4 testPoint, float4 planeEquation)
+{
+    return dot(testPoint.xyz, planeEquation.xyz) + planeEquation.w;
+}
+
