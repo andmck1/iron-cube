@@ -297,18 +297,10 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setDepthBoundsTestEnable(vk::False)
             .setStencilTestEnable(vk::False);
 
-    vk::PushConstantRange pushConstantRange =
-        vk::PushConstantRange{}
-            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
-            .setOffset(0)
-            .setSize(sizeof(uint32_t));
-
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
-        vk::PipelineLayoutCreateInfo{}
-            .setSetLayoutCount(1)
-            .setPSetLayouts(&*descriptorSetLayout_)
-            .setPushConstantRangeCount(1)
-            .setPPushConstantRanges(&pushConstantRange);
+        vk::PipelineLayoutCreateInfo{}.setSetLayoutCount(1).setPSetLayouts(
+            &*descriptorSetLayout_
+        );
 
     pipelineLayout_ =
         vk::raii::PipelineLayout(renderer_->getDevice(), pipelineLayoutInfo);
@@ -564,16 +556,8 @@ void InstancedVertexComputeVulkanShaderPipeline::lodStatsComputePass(
 {
     vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
-    // Dispatch 1: Compute LOD per instance, atomic count
-    uint32_t phase0 = 0;
-    commandBuffer.pushConstants(
-        pipelineLayout_, vk::ShaderStageFlagBits::eCompute, 0, sizeof(uint32_t),
-        &phase0
-    );
     commandBuffer.dispatch(dispatchCount, 1, 1);
 
-    // Barrier: ensure compute writes from phase 0 are visible to phase 1
-    // (indirectCommands.instanceCount, lodBaseOffsets, lodSlotCounters)
     vk::MemoryBarrier2 computeToComputeBarrier =
         vk::MemoryBarrier2{}
             .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
@@ -596,16 +580,8 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
 {
     vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
-    // Dispatch 2: Compute base offsets, scatter instances, set firstInstance
-    uint32_t phase1 = 1;
-    commandBuffer.pushConstants(
-        pipelineLayout_, vk::ShaderStageFlagBits::eCompute, 0, sizeof(uint32_t),
-        &phase1
-    );
     commandBuffer.dispatch(dispatchCount, 1, 1);
 
-    // Barrier: ensure compute writes to reordered instances are visible for
-    // copy
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
     auto &reorderedInstancesBuffer =
         buffers_[InstancedVFCompute::BufferSlots::
@@ -692,7 +668,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     resetIndirectDrawCommands();
     resetLODSlotCounters();
 
-    uint32_t dispatchCount = (updateData_->instances->size() + 255) / 256; 
+    uint32_t dispatchCount = (updateData_->instances->size() + 255) / 256;
     bindComputePipeline(0);
     lodStatsComputePass(dispatchCount);
     bindComputePipeline(1);
