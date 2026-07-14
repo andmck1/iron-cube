@@ -38,6 +38,7 @@ void main(
 
     uint instanceIndex = payload.instanceIndices[gid];
     uint meshletIndex = payload.meshletIndices[gid];
+    float lodLevel = payload.lodLevel[gid];
     InstancedMesh::OptimisedMeshlet m = meshlets[meshletIndex];
 
     SetMeshOutputCounts(m.vertexCount, m.triangleCount);
@@ -92,8 +93,15 @@ void main(
             mul(scene.projection, mul(scene.view, modelMatrix));
         vertices[gtid].position = mul(mvpMatrix, modelPosition);
 
-        float4 colour =
-            float4(float(gid & 1), float(gid & 3) / 4, float(gid & 7) / 8, 1.f);
+        // TODO - add as flag
+        // float4 colour =
+        //     float4(float(gid & 1), float(gid & 3) / 4, float(gid & 7) /
+        //     8, 1.f);
+        float lodColour = lodLevel + 1.0;
+        float4 colour = float4(
+            lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
+            lodColour / MAX_LOD_COUNT / 5.0, 1.f
+        );
         vertices[gtid].colour = colour;
     }
 }

@@ -211,7 +211,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setStride(sizeof(Instance))
             .setInputRate(vk::VertexInputRate::eInstance),
     };
-    std::array<vk::VertexInputAttributeDescription, 6> attributeDescriptions = {
+    std::array<vk::VertexInputAttributeDescription, 7> attributeDescriptions = {
         // vertex
         vk::VertexInputAttributeDescription{}
             .setBinding(0)
@@ -221,13 +221,14 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
         vk::VertexInputAttributeDescription{}
             .setBinding(0)
             .setLocation(1)
-            .setFormat(vk::Format::eR32G32Sfloat)
+            .setFormat(vk::Format::eR32G32B32A32Sfloat)
             .setOffset(offsetof(VertexInputType, tex)),
         vk::VertexInputAttributeDescription{}
             .setBinding(0)
             .setLocation(2)
-            .setFormat(vk::Format::eR32G32B32Sfloat)
+            .setFormat(vk::Format::eR32G32B32A32Sfloat)
             .setOffset(offsetof(VertexInputType, normal)),
+
         // instance
         vk::VertexInputAttributeDescription{}
             .setBinding(1)
@@ -244,6 +245,14 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setLocation(5)
             .setFormat(vk::Format::eR32G32B32A32Sfloat)
             .setOffset(offsetof(Instance, scale)),
+
+        // other
+        vk::VertexInputAttributeDescription{}
+            .setBinding(1)
+            .setLocation(6)
+            .setFormat(vk::Format::eR32G32B32A32Sfloat)
+            .setOffset(offsetof(Instance, lodLevel)),
+
     };
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
         vk::PipelineVertexInputStateCreateInfo{}

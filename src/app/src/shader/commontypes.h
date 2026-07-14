@@ -53,6 +53,7 @@ struct Instance
     float4 position;
     float4 rotation;
     float4 scale;
+    float4 lodLevel;
 };
 
 struct FrustumPlane

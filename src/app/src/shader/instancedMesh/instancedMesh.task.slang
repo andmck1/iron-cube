@@ -38,6 +38,7 @@ void main(
     uint globalThreadIndex = dtid + work.workStart;
     uint instanceIndex = globalThreadIndex / scene.meshletCount;
     uint meshletIndex = globalThreadIndex % scene.meshletCount;
+    uint lod = 0;
     if (dtid < work.workCount)
     {
         // TODO - I do this twice!
@@ -45,7 +46,6 @@ void main(
             instances[instanceIndex].position,
             instances[instanceIndex].rotation, instances[instanceIndex].scale
         );
-        uint lod = 0;
         if (scene.isLODOn > 0)
             lod = calculateLOD(modelMatrix);
 
@@ -96,6 +96,7 @@ void main(
         uint index = WavePrefixCountBits(visible);
         sPayload.instanceIndices[index] = instanceIndex;
         sPayload.meshletIndices[index] = meshletIndex;
+        sPayload.lodLevel[index] = float(lod);
     }
     uint visibleCount = WaveActiveCountBits(visible);
     DispatchMesh(visibleCount, 1, 1, sPayload);

@@ -58,6 +58,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
             InterlockedAdd(lodSlotCounters[lod], 1, previousValue);
             uint slot = baseOffset + previousValue;
             reorderedInstances[slot] = instances[instanceIndex];
+            reorderedInstances[slot].lodLevel.x = float(lod);
         }
     }
 

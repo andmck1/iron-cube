@@ -118,6 +118,7 @@ namespace InstancedMesh
     {
         uint instanceIndices[AS_GROUP_SIZE];
         uint meshletIndices[AS_GROUP_SIZE];
+        float lodLevel[AS_GROUP_SIZE];
     };
 
     struct DebugDataBuffer

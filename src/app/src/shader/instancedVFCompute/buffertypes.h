@@ -41,6 +41,8 @@ namespace InstancedVFCompute
 
     struct InstancedVertexInputType
     {
+        // VertexInputType vertex;
+        // Instance instance;
         float4 position;
         float4 tex;
         float4 normal;
@@ -48,6 +50,7 @@ namespace InstancedVFCompute
         float4 instancePosition;
         float4 instanceRotation;
         float4 instanceScale;
+        float4 lodLevel;
     };
 
     struct AnimationBuffer

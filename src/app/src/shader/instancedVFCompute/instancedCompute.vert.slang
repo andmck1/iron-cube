@@ -41,6 +41,12 @@ main(InstancedVFCompute::InstancedVertexInputType input)
 
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
     output.position = mul(mvpMatrix, modelPosition);
-    output.colour = float4((input.normal + 1.f + input.tex[0]).xyz / 3.f, 1.0f);
+
+    float lodColour = float(input.lodLevel.x) + 1.0;
+    output.colour = float4(
+        lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
+        lodColour / MAX_LOD_COUNT / 5.0, 1.f
+    );
+
     return output;
 }
