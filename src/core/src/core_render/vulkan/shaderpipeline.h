@@ -6,6 +6,15 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
+struct BufferBarrierInfo
+{
+    vk::Flags<vk::AccessFlagBits2> sourceAccess;
+    vk::Flags<vk::AccessFlagBits2> destinationAccess;
+    vk::Flags<vk::PipelineStageFlagBits2> sourceStage;
+    vk::Flags<vk::PipelineStageFlagBits2> destinationStage;
+    vk::raii::Buffer *buffer;
+};
+
 class VulkanShaderPipeline : public IShaderPipeline
 {
     public:
@@ -34,6 +43,9 @@ class VulkanShaderPipeline : public IShaderPipeline
     virtual void initBufferDescriptions() = 0;
     virtual void initBuffers() = 0;
 
+    void addBarrier(BufferBarrierInfo barrierInfo);
+    void setBarrier();
+
     std::optional<vk::raii::Pipeline> graphicsPipeline_ = nullptr;
     VulkanRenderer *renderer_ = nullptr;
 
@@ -44,4 +56,5 @@ class VulkanShaderPipeline : public IShaderPipeline
 
     std::vector<BufferDescription> bufferDescriptions_;
     std::vector<VulkanBuffer> buffers_;
+    std::vector<vk::BufferMemoryBarrier2> barriers_;
 };

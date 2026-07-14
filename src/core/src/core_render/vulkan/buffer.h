@@ -92,6 +92,14 @@ struct BufferDescription
     }
 };
 
+
+struct FrameBuffer
+{
+    vk::raii::Buffer buffer = nullptr;
+    vk::raii::DeviceMemory memory = nullptr;
+    void *mappedPointer = nullptr;
+};
+
 class VulkanBuffer
 {
     public:
@@ -105,6 +113,7 @@ class VulkanBuffer
         vk::Flags<vk::PipelineStageFlagBits> pipelineStages, uint32_t frameIndex
     );
     void *getMappedPointer(uint32_t frameIndex);
+    FrameBuffer *getFrameBuffer(uint32_t frameIndex);
 
     BufferDescription description;
 
@@ -115,13 +124,6 @@ class VulkanBuffer
         void *data
     );
 
-    struct FrameBuffer
-    {
-        vk::raii::Buffer buffer = nullptr;
-        vk::raii::DeviceMemory memory = nullptr;
-        void *mappedPointer = nullptr;
-    };
-
     std::vector<FrameBuffer> frames_;
     vk::raii::Buffer stagingBuffer_ = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory_ = nullptr;
@@ -129,7 +131,6 @@ class VulkanBuffer
     vk::DeviceSize bufferSize_ = 0;
 };
 
-// Predefined buffer descriptions for common buffer types
 extern BufferDescription UniformBuffer;
 extern BufferDescription StorageRead;
 extern BufferDescription StorageReadWrite;

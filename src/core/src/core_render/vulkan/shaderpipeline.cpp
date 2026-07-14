@@ -168,3 +168,27 @@ void VulkanShaderPipeline::shutdownBuffers()
     bufferDescriptions_.clear();
     buffers_.clear();
 }
+
+void VulkanShaderPipeline::addBarrier(BufferBarrierInfo barrierInfo)
+{
+    barriers_.emplace_back(
+        vk::BufferMemoryBarrier2{}
+            .setSrcAccessMask(barrierInfo.sourceAccess)
+            .setDstAccessMask(barrierInfo.destinationAccess)
+            .setSrcStageMask(barrierInfo.sourceStage)
+            .setDstStageMask(barrierInfo.destinationStage)
+            .setBuffer(*barrierInfo.buffer)
+            .setSize(VK_WHOLE_SIZE)
+    );
+}
+
+void VulkanShaderPipeline::setBarrier()
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    vk::DependencyInfo barrierDependencyInfo =
+        vk::DependencyInfo{}
+            .setBufferMemoryBarrierCount(barriers_.size())
+            .setPBufferMemoryBarriers(barriers_.data());
+    commandBuffer.pipelineBarrier2(barrierDependencyInfo);
+    barriers_.clear();
+}

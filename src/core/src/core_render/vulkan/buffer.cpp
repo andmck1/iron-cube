@@ -140,6 +140,7 @@ void VulkanBuffer::init(BufferDescription bufferDescription)
     }
 }
 
+// TODO - refactor this (ie use functions for barrier add and set
 void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
 {
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
@@ -266,3 +267,9 @@ void *VulkanBuffer::getMappedPointer(uint32_t frameIndex)
 {
     return frames_[frameIndex].mappedPointer;
 }
+
+FrameBuffer *VulkanBuffer::getFrameBuffer(uint32_t frameIndex)
+{
+    return &frames_[frameIndex];
+}
+

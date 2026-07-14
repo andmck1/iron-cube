@@ -1012,6 +1012,7 @@ void VulkanRenderer::transitionImageLayout(
     vk::ImageAspectFlags imageAspectFlags
 )
 {
+    // TODO - abstract barrier creation
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     vk::ImageMemoryBarrier2 barrier =
         vk::ImageMemoryBarrier2{}
