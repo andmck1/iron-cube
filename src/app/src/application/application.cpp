@@ -121,24 +121,31 @@ bool Application::initialiseShaders()
     initialiseShader(
         "build/shader/simpleVF/simple.frag.spv", "simpleVFFragment"
     );
+
     initialiseShader(
         "build/shader/instancedVF/instanced.vert.spv", "instancedVFVertex"
     );
     initialiseShader(
         "build/shader/instancedVF/instanced.frag.spv", "instancedVFFragment"
     );
+
+    initialiseShader(
+        "build/shader/instancedVFCompute/lodStats.comp.spv",
+        "instancedVFCLODStats"
+    );
+    initialiseShader(
+        "build/shader/instancedVFCompute/drawCommand.comp.spv",
+        "instancedVFCDrawCommand"
+    );
     initialiseShader(
         "build/shader/instancedVFCompute/instancedCompute.vert.spv",
         "instancedVFCVertex"
     );
     initialiseShader(
-        "build/shader/instancedVFCompute/instancedCompute.comp.spv",
-        "instancedVFCCompute"
-    );
-    initialiseShader(
         "build/shader/instancedVFCompute/instancedCompute.frag.spv",
         "instancedVFCFragment"
     );
+
     initialiseShader(
         "build/shader/instancedMesh/instancedMesh.task.spv", "instancedMeshTask"
     );

@@ -87,4 +87,14 @@ namespace InstancedVFCompute
         uint32_t nVertexShaderInvocations = 0;
         uint32_t nFragmentShaderInvocations = 0;
     };
+
+    // Must match vk::DrawIndexedIndirectCommand layout exactly
+    struct IndirectDrawCommand
+    {
+        uint indexCount;
+        uint instanceCount;
+        uint firstIndex;
+        int vertexOffset;
+        uint firstInstance;
+    };
 } // namespace InstancedVFCompute

@@ -52,7 +52,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::shutdown()
     spdlog::debug("Shutting down instanced vulkan pipeline");
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
-    computePipeline_ = nullptr;
+    computePasses_.clear();
     shutdownBuffers();
     spdlog::debug("Shutdown complete for instanced vulkan pipeline");
     return true;
@@ -348,23 +348,51 @@ bool InstancedVertexComputeVulkanShaderPipeline::initComputeShaderPipeline()
 {
     IShaderManager *shaderManager =
         ServiceLocator::instance().get<IShaderManager>();
-    VulkanShader *computeShader = dynamic_cast<VulkanShader *>(
-        shaderManager->getShader("instancedVFCCompute")
-    );
-    vk::PipelineShaderStageCreateInfo computeShaderStageInfo =
-        vk::PipelineShaderStageCreateInfo{}
-            .setStage(vk::ShaderStageFlagBits::eCompute)
-            .setModule(computeShader->getShaderModule())
-            .setPName("main");
 
-    vk::ComputePipelineCreateInfo computePipelineCreateInfo =
-        vk::ComputePipelineCreateInfo{}
-            .setStage(computeShaderStageInfo)
-            .setLayout(pipelineLayout_);
-
-    computePipeline_ = vk::raii::Pipeline(
-        renderer_->getDevice(), nullptr, computePipelineCreateInfo
+    VulkanShader *lodStatsComputeShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("instancedVFCLODStats")
     );
+    VulkanShader *drawCommandComputeShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("instancedVFCDrawCommand")
+    );
+
+    {
+        vk::PipelineShaderStageCreateInfo lodStatsStageInfo =
+            vk::PipelineShaderStageCreateInfo{}
+                .setStage(vk::ShaderStageFlagBits::eCompute)
+                .setModule(lodStatsComputeShader->getShaderModule())
+                .setPName("main");
+
+        vk::ComputePipelineCreateInfo computePipelineCreateInfo =
+            vk::ComputePipelineCreateInfo{}
+                .setStage(lodStatsStageInfo)
+                .setLayout(pipelineLayout_);
+
+        computePasses_.emplace_back(
+            vk::raii::Pipeline(
+                renderer_->getDevice(), nullptr, computePipelineCreateInfo
+            )
+        );
+    }
+
+    {
+        vk::PipelineShaderStageCreateInfo drawCommandStageInfo =
+            vk::PipelineShaderStageCreateInfo{}
+                .setStage(vk::ShaderStageFlagBits::eCompute)
+                .setModule(drawCommandComputeShader->getShaderModule())
+                .setPName("main");
+
+        vk::ComputePipelineCreateInfo computePipelineCreateInfo =
+            vk::ComputePipelineCreateInfo{}
+                .setStage(drawCommandStageInfo)
+                .setLayout(pipelineLayout_);
+
+        computePasses_.emplace_back(
+            vk::raii::Pipeline(
+                renderer_->getDevice(), nullptr, computePipelineCreateInfo
+            )
+        );
+    }
     return true;
 }
 
@@ -518,11 +546,11 @@ void InstancedVertexComputeVulkanShaderPipeline::resetLODSlotCounters()
     );
 }
 
-void InstancedVertexComputeVulkanShaderPipeline::bindComputePipeline()
+void InstancedVertexComputeVulkanShaderPipeline::bindComputePipeline(uint pass)
 {
     vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
     commandBuffer.bindPipeline(
-        vk::PipelineBindPoint::eCompute, *computePipeline_
+        vk::PipelineBindPoint::eCompute, *computePasses_[pass]
     );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eCompute, pipelineLayout_, 0,
@@ -530,7 +558,7 @@ void InstancedVertexComputeVulkanShaderPipeline::bindComputePipeline()
     );
 }
 
-void InstancedVertexComputeVulkanShaderPipeline::dispatchComputePhase0(
+void InstancedVertexComputeVulkanShaderPipeline::lodStatsComputePass(
     uint dispatchCount
 )
 {
@@ -562,7 +590,7 @@ void InstancedVertexComputeVulkanShaderPipeline::dispatchComputePhase0(
     commandBuffer.pipelineBarrier2(phaseBarrierInfo);
 }
 
-void InstancedVertexComputeVulkanShaderPipeline::dispatchComputePhase1(
+void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
     uint dispatchCount
 )
 {
@@ -664,10 +692,11 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     resetIndirectDrawCommands();
     resetLODSlotCounters();
 
-    uint32_t dispatchCount = (updateData_->instances->size() + 255) / 256;
-    bindComputePipeline();
-    dispatchComputePhase0(dispatchCount);
-    dispatchComputePhase1(dispatchCount);
+    uint32_t dispatchCount = (updateData_->instances->size() + 255) / 256; 
+    bindComputePipeline(0);
+    lodStatsComputePass(dispatchCount);
+    bindComputePipeline(1);
+    drawCommandComputePass(dispatchCount);
 
     updateTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)

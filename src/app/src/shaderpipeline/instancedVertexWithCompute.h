@@ -51,14 +51,14 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
     void updateAnimationData();
     void updateInstancesData();
     void updateDebugData();
-    
-    void bindComputePipeline();
+
+    void bindComputePipeline(uint pass);
     void resetIndirectDrawCommands();
     void resetLODSlotCounters();
-    void dispatchComputePhase0(uint dispatchCount);
-    void dispatchComputePhase1(uint dispatchCount);
+    void lodStatsComputePass(uint dispatchCount);
+    void drawCommandComputePass(uint dispatchCount);
 
-    std::optional<vk::raii::Pipeline> computePipeline_ = nullptr;
+    std::vector<std::optional<vk::raii::Pipeline>> computePasses_;
 
     VulkanBuffer vertexBuffer_;
     VulkanBuffer indexBuffer_;

@@ -1,116 +1,72 @@
 #include "buffertypes.h"
 #include "shader/helpers.slangh"
 
-// Must match vk::DrawIndexedIndirectCommand layout exactly
-struct IndirectDrawCommand
-{
-    uint indexCount;
-    uint instanceCount;
-    uint firstIndex;
-    int vertexOffset;
-    uint firstInstance;
-};
+[[vk::binding(InstancedVFComputeFlat::BufferSlots::SCENE)]]
+ConstantBuffer<InstancedVFComputeFlat::SceneBuffer> scene;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::SCENE)]]
-ConstantBuffer<InstancedVFCompute::SceneBuffer> scene;
+[[vk::binding(InstancedVFComputeFlat::BufferSlots::DEBUG)]]
+RWStructuredBuffer<InstancedVFComputeFlat::DebugDataBuffer> debugData;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::DEBUG)]]
-RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
-
-[[vk::binding(InstancedVFCompute::BufferSlots::INSTANCES)]]
+[[vk::binding(InstancedVFComputeFlat::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS)]]
-RWStructuredBuffer<IndirectDrawCommand> indirectCommands;
+[[vk::binding(InstancedVFComputeFlat::BufferSlots::INDIRECT_COMMANDS)]]
+RWStructuredBuffer<InstancedVFComputeFlat::IndirectDrawCommand>
+    indirectCommands;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)]]
-RWStructuredBuffer<Instance> reorderedInstances;
+[[vk::binding(InstancedVFComputeFlat::BufferSlots::INDIRECT_DRAW_STATS)]]
+RWStructuredBuffer<InstancedVFComputeFlat::IndirectDrawStats> indirectDrawStats;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::LOD_BASE_OFFSETS)]]
-RWStructuredBuffer<uint> lodBaseOffsets;
-
-[[vk::binding(InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS)]]
-RWStructuredBuffer<uint> lodSlotCounters;
-
-[[vk::push_constant]]
-cbuffer cbPush
-{
-    uint phase;
-}
+[[vk::binding(InstancedVFComputeFlat::BufferSlots::LOD)]]
+StructuredBuffer<InstancedVFComputeFlat::LOD> lods;
 
 [shader("compute")]
-[numthreads(256, 1, 1)]
+[numthreads(1, 1, 1)]
 void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 {
     uint instanceIndex = dispatchThreadID.x;
+    uint temp;
 
     if (debugData[0].isDebugQueryOn > 0)
     {
         InterlockedAdd(debugData[0].nComputeShaderInvocations, 1);
     }
 
-    if (phase == 0)
+    if (instanceIndex == 0)
     {
-        // Phase 0: Atomic LOD count (indirectCommands and counters cleared on
-        // CPU before dispatch)
-        if (instanceIndex < scene.instanceCount.x)
+        InterlockedExchange(indirectDrawStats[0].drawCount, 0, temp);
+        for (uint lodIndex = 0; lodIndex < MAX_LOD_COUNT; lodIndex++)
         {
-            float4x4 modelMatrix = calculateModelMatrix(
-                instances[instanceIndex].position,
-                instances[instanceIndex].rotation,
-                instances[instanceIndex].scale
+            InterlockedExchange(
+                indirectDrawStats[0].lodCount[lodIndex].x, 0, temp
             );
-            float4 instanceBoundingSphere =
-                calculateInstanceBoundingSphere(modelMatrix);
+        }
+    }
 
-            bool visible = isVisible(instanceBoundingSphere);
-            if (visible)
-            {
-                uint lod = calculateLOD(modelMatrix);
-                InterlockedAdd(indirectCommands[lod].instanceCount, 1);
-            }
+    if (instanceIndex < scene.instanceCount.x)
+    {
+        float4x4 modelMatrix = calculateModelMatrix(
+            instances[instanceIndex].position,
+            instances[instanceIndex].rotation, instances[instanceIndex].scale
+        );
+        float4 instanceBoundingSphere =
+            calculateInstanceBoundingSphere(modelMatrix);
+
+        bool visible = isVisible(instanceBoundingSphere);
+        if (visible)
+        {
+            uint lodLevel = calculateLOD(modelMatrix);
+            indirectCommands[instanceIndex].instanceCount = 1;
+            indirectCommands[instanceIndex].firstIndex =
+                lods[lodLevel].firstIndex;
+            indirectCommands[instanceIndex].indexCount =
+                lods[lodLevel].indexCount;
+            InterlockedAdd(indirectDrawStats[0].lodCount[lodLevel].x, 1, temp);
         }
     }
     else
     {
-        // Phase 1: Compute base offsets, scatter, set firstInstance
-        // (lodSlotCounters are cleared on CPU before dispatch to avoid
-        //  cross-workgroup race conditions)
-        uint offset = 0;
-        for (uint lod = 0; lod < MAX_LOD_COUNT; lod++)
-        {
-            lodBaseOffsets[lod] = offset;
-            offset += indirectCommands[lod].instanceCount;
-        }
-
-        if (instanceIndex < scene.instanceCount.x)
-        {
-            float4x4 modelMatrix = calculateModelMatrix(
-                instances[instanceIndex].position,
-                instances[instanceIndex].rotation,
-                instances[instanceIndex].scale
-            );
-            float4 instanceBoundingSphere =
-                calculateInstanceBoundingSphere(modelMatrix);
-
-            bool visible = isVisible(instanceBoundingSphere);
-            if (visible)
-            {
-                uint lod = calculateLOD(modelMatrix);
-                uint baseOffset = lodBaseOffsets[lod];
-                uint previousValue;
-                InterlockedAdd(lodSlotCounters[lod], 1, previousValue);
-                uint slot = baseOffset + previousValue;
-                reorderedInstances[slot] = instances[instanceIndex];
-            }
-        }
-
-        offset = 0;
-        for (uint lod = 0; lod < MAX_LOD_COUNT; lod++)
-        {
-            indirectCommands[lod].firstInstance = offset;
-            offset += indirectCommands[lod].instanceCount;
-        }
+        indirectCommands[instanceIndex].instanceCount = 0;
     }
 }
 
