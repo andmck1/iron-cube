@@ -20,11 +20,12 @@ RWStructuredBuffer<Instance> reorderedInstances;
 // [[vk::binding(InstancedVFCompute::BufferSlots::LOD_STATS)]]
 // RWStructuredBuffer<InstancedVFCompute::LODStats> lodStats;
 
+[[vk::binding(InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS)]]
+RWStructuredBuffer<uint> lodSlotCounters;
+
 [[vk::binding(InstancedVFCompute::BufferSlots::LOD_BASE_OFFSETS)]]
 RWStructuredBuffer<uint> lodBaseOffsets;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS)]]
-RWStructuredBuffer<uint> lodSlotCounters;
 
 [shader("compute")]
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]

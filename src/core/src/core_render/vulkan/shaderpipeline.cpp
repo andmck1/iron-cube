@@ -143,17 +143,15 @@ bool VulkanShaderPipeline::initDescriptorSets()
         descriptorWrites.reserve(totalBuffers);
         bufferInfos.reserve(totalBuffers);
 
-        for (size_t bufferIndex = 0; bufferIndex < bufferDescriptions_.size();
-             bufferIndex++)
+        for (const BufferDescription &bufferDescription : bufferDescriptions_)
         {
-            const BufferDescription &desc = bufferDescriptions_[bufferIndex];
-            VulkanBuffer &buffer = buffers_[bufferIndex];
+            VulkanBuffer &buffer = buffers_[bufferDescription.bufferSlot];
 
             addBufferWrite(
                 descriptorSets_[frameIndex],
-                static_cast<uint32_t>(desc.bufferSlot), desc.descriptorType,
-                buffer.getBuffer(frameIndex), VK_WHOLE_SIZE, descriptorWrites,
-                bufferInfos
+                static_cast<uint32_t>(bufferDescription.bufferSlot),
+                bufferDescription.descriptorType, buffer.getBuffer(frameIndex),
+                VK_WHOLE_SIZE, descriptorWrites, bufferInfos
             );
         }
 
