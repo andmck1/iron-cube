@@ -125,22 +125,6 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
     );
 
     bufferDescriptions_.push_back(
-        StorageReadWrite
-            .setBufferSlot(InstancedVFCompute::BufferSlots::LOD_BASE_OFFSETS)
-            .setBufferSize(sizeof(uint32_t) * MAX_LOD_COUNT)
-            .setData(nullptr)
-            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
-    );
-
-    bufferDescriptions_.push_back(
-        StorageReadWrite
-            .setBufferSlot(InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS)
-            .setBufferSize(sizeof(uint32_t) * MAX_LOD_COUNT)
-            .setData(nullptr)
-            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
-    );
-
-    bufferDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedVFCompute::BufferSlots::INSTANCES)
             .setBufferSize(
                 sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
@@ -567,11 +551,6 @@ void InstancedVertexComputeVulkanShaderPipeline::resetLODStats()
     );
     buffers_[InstancedVFCompute::BufferSlots::LOD_STATS].update(
         sizeof(InstancedVFCompute::LODStats) * MAX_LOD_COUNT, lodStats.data()
-    );
-
-    std::vector<uint32_t> slotCountersData(MAX_LOD_COUNT, 0);
-    buffers_[InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS].update(
-        sizeof(uint32_t) * MAX_LOD_COUNT, slotCountersData.data()
     );
 }
 

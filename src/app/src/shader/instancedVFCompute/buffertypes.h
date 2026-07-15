@@ -16,8 +16,6 @@ namespace InstancedVFCompute
         DEBUG,
         REORDERED_INSTANCES,
         LOD_STATS,
-        LOD_BASE_OFFSETS,
-        LOD_SLOT_COUNTERS,
         INSTANCES,
         INDIRECT_COMMANDS,
         LAST
