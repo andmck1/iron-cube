@@ -31,6 +31,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
         InterlockedAdd(debugData[0].nComputeShaderInvocations, 1);
     }
 
+    // Guarantee this is available to all threads
     uint offset = 0;
     for (uint lod = 0; lod < MAX_LOD_COUNT; lod++)
     {
@@ -60,10 +61,12 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
                 scene.eyePosition.xyz, scene.maxLODDistance.x,
                 scene.lodExponent.x, MAX_LOD_COUNT
             );
-            uint previousValue;
-            uint baseOffset = lodStats[lod].offset;
-            InterlockedAdd(lodStats[lod].count, 1, previousValue);
-            uint slot = baseOffset + previousValue;
+            uint lodInstanceOffset = lodStats[lod].offset;
+
+            // thread safe slot calculation
+            uint previousLODInstanceCount;
+            InterlockedAdd(lodStats[lod].count, 1, previousLODInstanceCount);
+            uint slot = lodInstanceOffset + previousLODInstanceCount;
             reorderedInstances[slot] = instances[instanceIndex];
             reorderedInstances[slot].lodLevel.x = float(lod);
         }

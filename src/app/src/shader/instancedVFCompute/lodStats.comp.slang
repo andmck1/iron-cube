@@ -19,7 +19,6 @@ RWStructuredBuffer<InstancedVFCompute::IndirectDrawCommand> indirectCommands;
 void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 {
     uint instanceIndex = dispatchThreadID.x;
-    uint temp;
 
     if (debugData[0].isDebugQueryOn > 0)
     {
