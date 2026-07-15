@@ -332,6 +332,7 @@ bool VulkanRenderer::createLogicalDevice()
                     .setPipelineStatisticsQuery(true)
                     .setVertexPipelineStoresAndAtomics(true)
                     .setFragmentStoresAndAtomics(true)
+                    .setMultiDrawIndirect(true)
             ),
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
             vk::PhysicalDeviceVulkan13Features{}

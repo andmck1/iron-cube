@@ -35,6 +35,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
     for (uint lod = 0; lod < MAX_LOD_COUNT; lod++)
     {
         lodStats[lod].offset = offset;
+        indirectCommands[lod].firstInstance = offset;
         offset += indirectCommands[lod].instanceCount;
     }
 
@@ -45,7 +46,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
             instances[instanceIndex].rotation, instances[instanceIndex].scale
         );
         float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
-            modelMatrix, scene.minMeshBounds, scene.minMeshBounds
+            modelMatrix, scene.minMeshBounds, scene.maxMeshBounds
         );
 
         bool visible = isVisible(
@@ -66,13 +67,6 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
             reorderedInstances[slot] = instances[instanceIndex];
             reorderedInstances[slot].lodLevel.x = float(lod);
         }
-    }
-
-    offset = 0;
-    for (uint lod = 0; lod < MAX_LOD_COUNT; lod++)
-    {
-        indirectCommands[lod].firstInstance = offset;
-        offset += indirectCommands[lod].instanceCount;
     }
 }
 

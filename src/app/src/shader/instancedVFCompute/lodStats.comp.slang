@@ -33,7 +33,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
             instances[instanceIndex].rotation, instances[instanceIndex].scale
         );
         float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
-            modelMatrix, scene.minMeshBounds, scene.minMeshBounds
+            modelMatrix, scene.minMeshBounds, scene.maxMeshBounds
         );
 
         bool visible = isVisible(

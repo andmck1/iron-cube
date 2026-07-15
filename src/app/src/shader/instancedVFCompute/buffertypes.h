@@ -4,7 +4,7 @@
 
 #include "shader/commontypes.h"
 
-#define THREAD_GROUP_SIZE 128
+#define THREAD_GROUP_SIZE 256
 
 namespace InstancedVFCompute
 {

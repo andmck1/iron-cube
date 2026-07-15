@@ -672,16 +672,13 @@ bool InstancedVertexComputeVulkanShaderPipeline::draw()
     nDrawCalls_ = 0;
 
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
-    for (unsigned int lodIndex = 0; lodIndex < MAX_LOD_COUNT; lodIndex++)
-    {
-        renderer_->getCommandBuffer().drawIndexedIndirect(
-            *buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS]
-                 .getBuffer(frameIndex),
-            lodIndex * sizeof(vk::DrawIndexedIndirectCommand), 1,
-            sizeof(vk::DrawIndexedIndirectCommand)
-        );
-        nDrawCalls_++;
-    }
+    renderer_->getCommandBuffer().drawIndexedIndirect(
+        *buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS].getBuffer(
+            frameIndex
+        ),
+        0, MAX_LOD_COUNT, sizeof(vk::DrawIndexedIndirectCommand)
+    );
+    nDrawCalls_++;
 
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
