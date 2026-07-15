@@ -1,0 +1,63 @@
+// TODO - define column/row major so is always consistent
+
+// Some help from AI for the quaternion stuff
+float4 quaternionFromAxisAngle(float3 axis, float angle)
+{
+    float halfAngle = angle * 0.5;
+
+    return float4(normalize(axis) * sin(halfAngle), cos(halfAngle));
+}
+
+float3 rotateVectorWithQuaternion(float3 position, float4 q)
+{
+    float3 qVector = q.xyz;
+    float qScalar = q.w;
+
+    float3 t = 2.0 * cross(qVector, position);
+    return position + qScalar * t + cross(qVector, t);
+}
+
+float4x4 calculateModelMatrix(float4 transform, float4 rotation, float4 scale)
+{
+    float cosX = cos(rotation.x);
+    float cosY = cos(rotation.y);
+    float cosZ = cos(rotation.z);
+
+    float sinX = sin(rotation.x);
+    float sinY = sin(rotation.y);
+    float sinZ = sin(rotation.z);
+
+    return float4x4(
+        // row1
+        scale.x * (cosY * cosZ), scale.y * (cosY * sinZ), scale.z * (-sinY),
+        transform.x,
+        // row 2
+        scale.x * (sinX * sinY * cosZ - cosX * sinZ),
+        scale.y * (sinX * sinY * sinZ + cosX * cosZ), scale.z * (sinX * cosY),
+        transform.y,
+        // row 3
+        scale.x * (cosX * sinY * cosZ + sinX * sinZ),
+        scale.y * (cosX * sinY * sinZ - sinX * cosZ), scale.z * (cosX * cosY),
+        transform.z,
+        // row 4
+        0.0, 0.0, 0.0, 1.0
+    );
+}
+
+float4 calculateInstanceBoundingSphere(
+    float4x4 modelMatrix, float4 minMeshBounds, float4 maxMeshBounds
+)
+{
+    float4 instanceBoundsMinWS = mul(modelMatrix, minMeshBounds);
+    float4 instanceBoundsMaxWS = mul(modelMatrix, maxMeshBounds);
+    float4 centre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
+    float3 extent = (instanceBoundsMaxWS - instanceBoundsMinWS).xyz / 2.f;
+    float radius = length(extent);
+    return float4(centre.xyz, radius);
+}
+
+float pointPlaneDistance(float4 testPoint, float4 planeEquation)
+{
+    return dot(testPoint.xyz, planeEquation.xyz) + planeEquation.w;
+}
+

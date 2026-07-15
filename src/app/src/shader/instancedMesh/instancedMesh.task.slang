@@ -1,0 +1,86 @@
+#include "buffertypes.h"
+#include "shader/helpers/visibility.slangh"
+#include "shader/helpers/lod.slangh"
+
+[[vk::push_constant]]
+ConstantBuffer<InstancedMesh::TaskWorkBuffer> work;
+
+[[vk::binding(InstancedMesh::BufferSlots::SCENE)]]
+ConstantBuffer<InstancedMesh::SceneBuffer> scene;
+
+[[vk::binding(InstancedMesh::BufferSlots::ANIMATION)]]
+ConstantBuffer<InstancedMesh::AnimationBuffer> animation;
+
+[[vk::binding(InstancedMesh::BufferSlots::DEBUG)]]
+RWStructuredBuffer<InstancedMesh::DebugDataBuffer> debugData;
+
+[[vk::binding(InstancedMesh::BufferSlots::INSTANCES)]]
+StructuredBuffer<Instance> instances;
+
+[[vk::binding(InstancedMesh::BufferSlots::MESHLET_BOUNDING_SPHERES)]]
+StructuredBuffer<float4> meshletBoundingSpheres;
+
+groupshared InstancedMesh::Payload sPayload;
+
+[shader("task")]
+[numthreads(AS_GROUP_SIZE, 1, 1)]
+void main(
+    uint gtid: SV_GroupThreadID, uint dtid: SV_DispatchThreadID,
+    uint gid: SV_GroupID
+)
+{
+    if (debugData[0].isDebugQueryOn > 0)
+    {
+        InterlockedAdd(debugData[0].nTaskShaderInvocations, 1);
+    }
+
+    bool visible = false;
+
+    uint globalThreadIndex = dtid + work.workStart;
+    uint instanceIndex = globalThreadIndex / scene.meshletCount;
+    uint meshletIndex = globalThreadIndex % scene.meshletCount;
+    uint lod = 0;
+    if (dtid < work.workCount)
+    {
+        // TODO - I do this twice!
+        float4x4 modelMatrix = calculateModelMatrix(
+            instances[instanceIndex].position,
+            instances[instanceIndex].rotation, instances[instanceIndex].scale
+        );
+
+        if (scene.isLODOn > 0)
+            lod = calculateLOD(
+                modelMatrix, scene.minMeshBounds, scene.maxMeshBounds,
+                scene.eyePosition.xyz, scene.maxLODDistance.x,
+                scene.lodExponent.x, MAX_LOD_COUNT
+            );
+
+        uint lodMeshletCount = scene.meshletLODCounts[lod].x;
+        if (meshletIndex < lodMeshletCount)
+        {
+            meshletIndex += scene.meshletLODOffsets[lod].x;
+
+            // Don't multiply w (which is radius here) by transform
+            float4 meshletBoundingSphere =
+                mul(modelMatrix,
+                    float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
+            meshletBoundingSphere.w = meshletBoundingSpheres[meshletIndex].w;
+
+            visible = isVisible(
+                meshletBoundingSphere, (VisibilityFunc) scene.visibilityFunc.x,
+                scene.frustum.planes, scene.frustum.sphere, scene.frustum.cone
+            );
+        }
+    }
+
+    if (visible)
+    {
+        uint index = WavePrefixCountBits(visible);
+        sPayload.instanceIndices[index] = instanceIndex;
+        sPayload.meshletIndices[index] = meshletIndex;
+        sPayload.lodLevel[index] = float(lod);
+    }
+    uint visibleCount = WaveActiveCountBits(visible);
+    DispatchMesh(visibleCount, 1, 1, sPayload);
+}
+

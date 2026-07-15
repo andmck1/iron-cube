@@ -67,9 +67,3 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
-
-# assets
-*.jpg
-*.blend
-*.exr
-*.mtl

@@ -1,5 +1,5 @@
 #include "core_actor/camera.h"
-#include "core_buffertypes/buffertypes.h"
+#include "shader/commontypes.h"
 #include "core_ecs/component/transform.h"
 #include "core_platform/iplatform.h"
 #include "core_service/servicelocator.h"
@@ -79,16 +79,16 @@ FrustumCone CameraActor::getFrustumCone(bool fitFarClip)
     glm::vec3 viewDirection =
         glm::vec3(cameraRotation * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f));
 
-    cone.tip = transformComponent->getPosition();
-    cone.direction = viewDirection;
-    cone.height = farClip_;
+    cone.tip = glm::vec4(transformComponent->getPosition(), 0.0f);
+    cone.direction = glm::vec4(viewDirection, 0.0f);
+    cone.height = glm::vec4(farClip_);
 
     float vFovRad = glm::radians(vertFovDegrees_);
     float hFovRad = 2.0f * std::atan(std::tan(vFovRad / 2.0f) * aspect_);
 
     float halfV = vFovRad / 2.0f;
     float halfH = hFovRad / 2.0f;
-    cone.angle = std::acos(std::cos(halfV) * std::cos(halfH));
+    cone.angle = glm::vec4(std::acos(std::cos(halfV) * std::cos(halfH)));
 
     if (fitFarClip)
     {
@@ -96,7 +96,7 @@ FrustumCone CameraActor::getFrustumCone(bool fitFarClip)
         float farHalfV = std::tan(halfV) * farClip_;
         float farCornerDist =
             std::sqrt(farHalfH * farHalfH + farHalfV * farHalfV);
-        cone.angle = std::atan2(farCornerDist, farClip_);
+        cone.angle = glm::vec4(std::atan2(farCornerDist, farClip_));
     }
     return cone;
 }
@@ -108,22 +108,22 @@ std::array<FrustumPlane, 6> CameraActor::getFrustumPlanes()
         glm::transpose(getViewProjectionMatrix());
 
     // https://gamedev.stackexchange.com/questions/156743/finding-the-normals-of-the-planes-of-a-view-frustum
-    planes[FRUSTUM_PLANE_NEAR].coefficients =
+    planes[FrustumPlanes::NEAR].coefficients =
         viewProjectionMatrix[2] + viewProjectionMatrix[3];
 
-    planes[FRUSTUM_PLANE_FAR].coefficients =
+    planes[FrustumPlanes::FAR].coefficients =
         viewProjectionMatrix[3] - viewProjectionMatrix[2];
 
-    planes[FRUSTUM_PLANE_BOTTOM].coefficients =
+    planes[FrustumPlanes::BOTTOM].coefficients =
         viewProjectionMatrix[1] + viewProjectionMatrix[3];
 
-    planes[FRUSTUM_PLANE_TOP].coefficients =
+    planes[FrustumPlanes::TOP].coefficients =
         viewProjectionMatrix[3] + viewProjectionMatrix[1];
 
-    planes[FRUSTUM_PLANE_LEFT].coefficients =
+    planes[FrustumPlanes::LEFT].coefficients =
         viewProjectionMatrix[0] + viewProjectionMatrix[3];
 
-    planes[FRUSTUM_PLANE_RIGHT].coefficients =
+    planes[FrustumPlanes::RIGHT].coefficients =
         viewProjectionMatrix[3] + viewProjectionMatrix[0];
 
     // Normalise each plane so that the distance computed in the shader is

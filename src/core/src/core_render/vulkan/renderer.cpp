@@ -332,6 +332,7 @@ bool VulkanRenderer::createLogicalDevice()
                     .setPipelineStatisticsQuery(true)
                     .setVertexPipelineStoresAndAtomics(true)
                     .setFragmentStoresAndAtomics(true)
+                    .setMultiDrawIndirect(true)
             ),
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
             vk::PhysicalDeviceVulkan13Features{}
@@ -1012,6 +1013,7 @@ void VulkanRenderer::transitionImageLayout(
     vk::ImageAspectFlags imageAspectFlags
 )
 {
+    // TODO - abstract barrier creation
     vk::raii::CommandBuffer &commandBuffer = getCommandBuffer();
     vk::ImageMemoryBarrier2 barrier =
         vk::ImageMemoryBarrier2{}
@@ -1176,4 +1178,21 @@ std::pair<vk::raii::Image, vk::raii::DeviceMemory> VulkanRenderer::createImage(
     image.bindMemory(imageMemory, 0);
 
     return {std::move(image), std::move(imageMemory)};
+}
+
+void VulkanRenderer::createPipelineMemoryBarrier(MemoryBarrierInfo barrierInfo)
+{
+    vk::MemoryBarrier2 barrier =
+        vk::MemoryBarrier2{}
+            .setSrcAccessMask(barrierInfo.sourceAccess)
+            .setDstAccessMask(barrierInfo.destinationAccess)
+            .setSrcStageMask(barrierInfo.sourceStage)
+            .setDstStageMask(barrierInfo.destinationStage);
+
+    vk::DependencyInfo barrierCreateInfo =
+        vk::DependencyInfo{}.setMemoryBarrierCount(1).setPMemoryBarriers(
+            &barrier
+        );
+
+    getCommandBuffer().pipelineBarrier2(barrierCreateInfo);
 }

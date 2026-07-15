@@ -9,6 +9,14 @@
 #include <imgui_impl_vulkan.h>
 #include <vulkan/vulkan_raii.hpp>
 
+struct MemoryBarrierInfo
+{
+    vk::Flags<vk::AccessFlagBits2> sourceAccess;
+    vk::Flags<vk::AccessFlagBits2> destinationAccess;
+    vk::Flags<vk::PipelineStageFlagBits2> sourceStage;
+    vk::Flags<vk::PipelineStageFlagBits2> destinationStage;
+};
+
 class VulkanRenderer : public IRenderer
 {
     public:
@@ -48,6 +56,7 @@ class VulkanRenderer : public IRenderer
         vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer,
         vk::DeviceSize size
     );
+    void createPipelineMemoryBarrier(MemoryBarrierInfo barrierInfo);
 
     // TODO - incorporate this
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;

@@ -15,6 +15,7 @@
 
 #include "shaderpipeline/standard.h"
 #include "shaderpipeline/instancedVertex.h"
+#include "shaderpipeline/instancedVertexWithCompute.h"
 #include "shaderpipeline/instancedMesh.h"
 
 #include <format>
@@ -102,53 +103,58 @@ bool Application::initialiseRenderer()
     return true;
 }
 
+void Application::initialiseShader(std::string path, std::string name)
+{
+    VulkanShaderConfig config;
+    config.path = path;
+    std::unique_ptr<VulkanShader> shader =
+        std::make_unique<VulkanShader>(config);
+    shaderManager_.registerShader(name, std::move(shader));
+}
+
 bool Application::initialiseShaders()
 {
     spdlog::debug("Initialising shaders");
 
-    // TODO - look up nicer init styles
-    VulkanShaderConfig defaultVertexShaderConfig;
-    defaultVertexShaderConfig.path =
-        "build/shader/slang/vertex/default.vert.spv";
-
-    std::unique_ptr<VulkanShader> defaultVertexShader =
-        std::make_unique<VulkanShader>(defaultVertexShaderConfig);
-    shaderManager_.registerShader(
-        "defaultVertex", std::move(defaultVertexShader)
+    // TODO - load these from config
+    initialiseShader("build/shader/simpleVF/simple.vert.spv", "simpleVFVertex");
+    initialiseShader(
+        "build/shader/simpleVF/simple.frag.spv", "simpleVFFragment"
     );
 
-    VulkanShaderConfig instancedVertexShaderConfig;
-    instancedVertexShaderConfig.path =
-        "build/shader/slang/vertex/instanced.vert.spv";
-
-    std::unique_ptr<VulkanShader> instancedVertexShader =
-        std::make_unique<VulkanShader>(instancedVertexShaderConfig);
-    shaderManager_.registerShader(
-        "instancedVertex", std::move(instancedVertexShader)
+    initialiseShader(
+        "build/shader/instancedVF/instanced.vert.spv", "instancedVFVertex"
+    );
+    initialiseShader(
+        "build/shader/instancedVF/instanced.frag.spv", "instancedVFFragment"
     );
 
-    VulkanShaderConfig defaultTaskShaderConfig;
-    defaultTaskShaderConfig.path = "build/shader/slang/task/default.task.spv";
+    initialiseShader(
+        "build/shader/instancedVFCompute/lodStats.comp.spv",
+        "instancedVFCLODStats"
+    );
+    initialiseShader(
+        "build/shader/instancedVFCompute/drawCommand.comp.spv",
+        "instancedVFCDrawCommand"
+    );
+    initialiseShader(
+        "build/shader/instancedVFCompute/instancedCompute.vert.spv",
+        "instancedVFCVertex"
+    );
+    initialiseShader(
+        "build/shader/instancedVFCompute/instancedCompute.frag.spv",
+        "instancedVFCFragment"
+    );
 
-    std::unique_ptr<VulkanShader> defaultTaskShader =
-        std::make_unique<VulkanShader>(defaultTaskShaderConfig);
-    shaderManager_.registerShader("defaultTask", std::move(defaultTaskShader));
-
-    VulkanShaderConfig defaultMeshShaderConfig;
-    defaultMeshShaderConfig.path = "build/shader/slang/mesh/default.mesh.spv";
-
-    std::unique_ptr<VulkanShader> defaultMeshShader =
-        std::make_unique<VulkanShader>(defaultMeshShaderConfig);
-    shaderManager_.registerShader("defaultMesh", std::move(defaultMeshShader));
-
-    VulkanShaderConfig defaultFragmentShaderConfig;
-    defaultFragmentShaderConfig.path =
-        "build/shader/slang/fragment/default.frag.spv";
-
-    std::unique_ptr<VulkanShader> defaultFragmentShader =
-        std::make_unique<VulkanShader>(defaultFragmentShaderConfig);
-    shaderManager_.registerShader(
-        "defaultFragment", std::move(defaultFragmentShader)
+    initialiseShader(
+        "build/shader/instancedMesh/instancedMesh.task.spv", "instancedMeshTask"
+    );
+    initialiseShader(
+        "build/shader/instancedMesh/instancedMesh.mesh.spv", "instancedMeshMesh"
+    );
+    initialiseShader(
+        "build/shader/instancedMesh/instancedMesh.frag.spv",
+        "instancedMeshFragment"
     );
 
     spdlog::debug("Finished initialising shaders");
@@ -167,6 +173,10 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.cameraFarPlane = &camera_->farClip_;
     debugLayerData_.isDebugStatsOn = &isDebugQueryOn_;
     debugLayerData_.gpuStats = &gpuStats_;
+    debugLayerData_.lodIndex = &lodIndex_;
+    debugLayerData_.maxLODDistance = &maxLODDistance_;
+    debugLayerData_.lodExponent = &lodExponent_;
+    debugLayerData_.isLODOn = &isLODOn_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -204,8 +214,12 @@ bool Application::initialiseEntities(Scene *scene)
         // horsie
         std::string name = "horsie";
         Geometry geometry = ResourceManager::loadObj(
-            "assets/horse_statue/horse_statue_01_4k.obj",
-            "./assets/horse_statue"
+            {"assets/horse_statue_lod/horse_statue_01_4k_LOD_0.obj",
+             "assets/horse_statue_lod/horse_statue_01_4k_LOD_1.obj",
+             "assets/horse_statue_lod/horse_statue_01_4k_LOD_2.obj",
+             "assets/horse_statue_lod/horse_statue_01_4k_LOD_3.obj",
+             "assets/horse_statue_lod/horse_statue_01_4k_LOD_4.obj"},
+            "./assets/horse_statue_lod"
         );
         resourceManager_.loadGeometry(name, geometry);
         Transform transform = Transform{
@@ -235,7 +249,8 @@ bool Application::initialiseGeometry(
     actorMesh.setGeometry(name);
     Mesh *registeredMesh =
         meshManager_.registerMesh(name, std::move(actorMesh));
-    updateEntities();
+    initialiseEntities();
+    // updateEntities();
 
     // transform component
     TransformComponent *transformComponent =
@@ -253,6 +268,11 @@ bool Application::initialiseGeometry(
                 std::make_unique<DefaultShaderPipelineUpdateData>();
         actorShaderPipelineUpdateData->actor = actorPtr;
         actorShaderPipelineUpdateData->camera = camera_;
+        actorShaderPipelineUpdateData->lodIndex = &lodIndex_;
+        actorShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
+        actorShaderPipelineUpdateData->nFramesSinceStart = &nFramesSinceStart_;
+        actorShaderPipelineUpdateData->rotationFrequency = &rotationFrequency_;
+        actorShaderPipelineUpdateData->timer = &timer_;
 
         std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
             std::make_unique<StandardVulkanShaderPipeline>();
@@ -266,8 +286,6 @@ bool Application::initialiseGeometry(
         registeredShaderPipeline->init(
             registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
-        meshComponent->setShaderPipeline(registeredShaderPipeline);
-        meshComponent->setMesh(registeredMesh);
     }
     {
         // instanced vertex shader pipeline
@@ -278,6 +296,11 @@ bool Application::initialiseGeometry(
         actorInstancedShaderPipelineUpdateData->camera = camera_;
         actorInstancedShaderPipelineUpdateData->instances =
             &registeredMesh->instances;
+        actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
+        actorInstancedShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
+        actorInstancedShaderPipelineUpdateData->rotationFrequency =
+            &rotationFrequency_;
+        actorInstancedShaderPipelineUpdateData->timer = &timer_;
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -294,6 +317,43 @@ bool Application::initialiseGeometry(
         );
     }
     {
+        // instanced vertex shader pipeline
+        std::unique_ptr<InstancedVertexComputeShaderPipelineUpdateData>
+            actorInstancedShaderPipelineUpdateData = std::make_unique<
+                InstancedVertexComputeShaderPipelineUpdateData>();
+        actorInstancedShaderPipelineUpdateData->actor = actorPtr;
+        actorInstancedShaderPipelineUpdateData->camera = camera_;
+        actorInstancedShaderPipelineUpdateData->instances =
+            &registeredMesh->instances;
+        actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
+        actorInstancedShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
+        actorInstancedShaderPipelineUpdateData->rotationFrequency =
+            &rotationFrequency_;
+        actorInstancedShaderPipelineUpdateData->timer = &timer_;
+        actorInstancedShaderPipelineUpdateData->visibilityFunc =
+            &visibilityFunction_;
+        actorInstancedShaderPipelineUpdateData->maxLODDistance =
+            &maxLODDistance_;
+        actorInstancedShaderPipelineUpdateData->lodExponent = &lodExponent_;
+        actorInstancedShaderPipelineUpdateData->isLODOn = &isLODOn_;
+
+        std::unique_ptr<InstancedVertexComputeVulkanShaderPipeline>
+            actorInstancedShaderPipeline =
+                std::make_unique<InstancedVertexComputeVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("{}InstancedVertexCompute", name),
+                std::move(actorInstancedShaderPipeline),
+                std::move(actorInstancedShaderPipelineUpdateData)
+            );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+        meshComponent->setShaderPipeline(registeredShaderPipeline);
+        meshComponent->setMesh(registeredMesh);
+    }
+    {
         // mesh shader pipeline
         std::unique_ptr<InstancedMeshShaderPipelineUpdateData>
             actorMeshShaderPipelineUpdateData =
@@ -304,6 +364,13 @@ bool Application::initialiseGeometry(
             &registeredMesh->instances;
         actorMeshShaderPipelineUpdateData->visibilityFunc =
             &visibilityFunction_;
+        actorMeshShaderPipelineUpdateData->maxLODDistance = &maxLODDistance_;
+        actorMeshShaderPipelineUpdateData->lodExponent = &lodExponent_;
+        actorMeshShaderPipelineUpdateData->isLODOn = &isLODOn_;
+        actorMeshShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
+        actorMeshShaderPipelineUpdateData->rotationFrequency =
+            &rotationFrequency_;
+        actorMeshShaderPipelineUpdateData->timer = &timer_;
 
         std::unique_ptr<InstancedMeshVulkanShaderPipeline>
             actorMeshShaderPipeline =
@@ -403,12 +470,13 @@ void Application::mainLoop()
         handleInput();
 
         // entity updates
+        checkForEntitiyUpdates();
         checkForPipelineUpdates();
         shaderPipelineManager_.checkForUpdates();
 
         renderer_.beginFrame();
 
-        updateEntities();
+        // updateEntities();
         for (std::unique_ptr<ILayer> &layer : layers_)
         {
             layer->update();
@@ -436,7 +504,21 @@ void Application::mainLoop()
         {
             layer->end();
         }
+
+        nFramesSinceStart_++;
     }
+}
+
+void Application::checkForEntitiyUpdates()
+{
+    bool checkRows = currentNInstanceRows_ != nInstanceRows_;
+    bool checkColumns = currentNInstanceColumns_ != nInstanceColumns_;
+    bool checkLayers = currentNInstanceLayers_ != nInstanceLayers_;
+    if (checkRows || checkColumns || checkLayers)
+        updateEntities();
+    currentNInstanceRows_ = nInstanceRows_;
+    currentNInstanceColumns_ = nInstanceColumns_;
+    currentNInstanceLayers_ = nInstanceLayers_;
 }
 
 void Application::checkForPipelineUpdates()
@@ -462,12 +544,17 @@ void Application::checkForPipelineUpdates()
         }
         case 2:
         {
+            shaderPipelineSuffix = "InstancedVertexCompute";
+            break;
+        }
+        case 3:
+        {
             shaderPipelineSuffix = "Mesh";
             break;
         }
         default:
         {
-            shaderPipelineSuffix = "DefaultVertex";
+            shaderPipelineSuffix = "InstancedVertexCompute";
             break;
         }
         }
@@ -513,6 +600,61 @@ void Application::checkForPipelineUpdates()
         {
             timeSinceGPUStatsQuery_ = 0.f;
             gpuStats_ = queryGPUStats();
+        }
+    }
+}
+
+void Application::initialiseEntities()
+{
+    Mesh *horseMesh = meshManager_.getMesh("horsie");
+    horseMesh->instances.resize(
+        nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
+    );
+    float maxSpan = std::max<float>(
+        std::max<float>(
+            horseMesh->getGeometry()->meshBounds.getWidth(),
+            horseMesh->getGeometry()->meshBounds.getDepth()
+        ),
+        horseMesh->getGeometry()->meshBounds.getHeight()
+    );
+    float instanceSpanX = 2.0f * maxSpan;
+    float instanceSpanY = 2.0f * maxSpan;
+    float instanceSpanZ = 2.0f * maxSpan;
+    float totalSpanX = nInstanceColumns_ * instanceSpanX;
+    float totalSpanY = nInstanceLayers_ * instanceSpanY;
+    float totalSpanZ = nInstanceRows_ * instanceSpanZ;
+
+    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows_; ++rowIndex)
+    {
+        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers_;
+             ++layerIndex)
+        {
+            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns_;
+                 ++columnIndex)
+            {
+                float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
+                          instanceSpanX / 2.f;
+                float y = layerIndex * instanceSpanY - (totalSpanY / 2.f) +
+                          instanceSpanY / 2.f;
+                float z = rowIndex * instanceSpanZ - (totalSpanZ / 2.f) +
+                          instanceSpanZ / 2.f;
+
+                uint32_t index =
+                    (layerIndex * nInstanceRows_ * nInstanceColumns_) +
+                    (rowIndex * nInstanceColumns_) + columnIndex;
+                float t = static_cast<float>(glfwGetTime()) +
+                          ((columnIndex ^ rowIndex + columnIndex) / 10.f);
+                glm::vec4 rotationVector;
+                if (isAnimationOn_)
+                    rotationVector = glm::vec4(0.0, t, 0.0, 1.0);
+                else
+                    rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+                horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
+                horseMesh->instances[index].rotation = rotationVector;
+                horseMesh->instances[index].scale =
+                    glm::vec4(1.0, 1.0, 1.0, 1.0);
+            }
         }
     }
 }

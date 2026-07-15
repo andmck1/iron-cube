@@ -2,6 +2,43 @@
 
 #include <nvml.h>
 #include <iostream>
+#include <sstream>
+
+// AI help here
+std::string formatNumber(double value)
+{
+    if (value < 0)
+    {
+        return "-" + formatNumber(-value);
+    }
+
+    std::string suffixes[] = {"", "k", "M", "B", "T"};
+    int index = 0;
+
+    double absValue = value;
+    while (absValue >= 1000.0 &&
+           index < (int) (sizeof(suffixes) / sizeof(suffixes[0]) - 1))
+    {
+        absValue /= 1000.0;
+        index++;
+    }
+
+    std::ostringstream stream;
+    if (absValue < 10.0)
+    {
+        stream << std::fixed;
+        stream.precision(1);
+        stream << absValue;
+    }
+    else
+    {
+        stream << std::fixed;
+        stream.precision(0);
+        stream << absValue;
+    }
+
+    return stream.str() + suffixes[index];
+}
 
 void printUsage(const std::string &progName)
 {

@@ -29,7 +29,6 @@ add_library(
     src/core_resource/resourcemanager.cpp
     src/core_scene/scene.cpp
     src/core_service/servicelocator.cpp
-    src/core_buffertypes/buffertypes.cpp
     src/core_actor/camera.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -41,6 +40,7 @@ add_library(
 )
 
 target_include_directories(iron-core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(iron-core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../app/src)
 target_include_directories(iron-core PUBLIC ${imgui_SOURCE_DIR})
 target_include_directories(iron-core PUBLIC ${imgui_SOURCE_DIR}/backends)
 

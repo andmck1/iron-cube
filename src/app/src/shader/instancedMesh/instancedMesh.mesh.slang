@@ -1,0 +1,107 @@
+#include "buffertypes.h"
+#include "helpers/maths.slangh"
+
+[[vk::binding(InstancedMesh::BufferSlots::SCENE)]]
+ConstantBuffer<InstancedMesh::SceneBuffer> scene;
+
+[[vk::binding(InstancedMesh::BufferSlots::ANIMATION)]]
+ConstantBuffer<InstancedMesh::AnimationBuffer> animation;
+
+[[vk::binding(InstancedMesh::BufferSlots::DEBUG)]]
+RWStructuredBuffer<InstancedMesh::DebugDataBuffer> debugData;
+
+[[vk::binding(InstancedMesh::BufferSlots::MODEL_VERTICES)]]
+StructuredBuffer<VertexInputType> modelVertices;
+
+[[vk::binding(InstancedMesh::BufferSlots::MESHLETS)]]
+StructuredBuffer<InstancedMesh::OptimisedMeshlet> meshlets;
+
+[[vk::binding(InstancedMesh::BufferSlots::VERTEX_INDICES)]]
+StructuredBuffer<uint> vertexIndices;
+
+[[vk::binding(InstancedMesh::BufferSlots::TRIANGLE_INDICES)]]
+StructuredBuffer<uint> triangleIndices;
+
+[[vk::binding(InstancedMesh::BufferSlots::INSTANCES)]]
+StructuredBuffer<Instance> instances;
+
+// TODO - use the defines for the triange and vertex limits??
+[shader("mesh")]
+[outputtopology("triangle")]
+[numthreads(128, 1, 1)]
+void main(
+    uint gtid: SV_GroupThreadID, uint gid: SV_GroupID,
+    in payload InstancedMesh::Payload payload, out indices uint3 triangles[128],
+    out vertices InstancedMesh::VertexOutputType vertices[64]
+)
+{
+
+    uint instanceIndex = payload.instanceIndices[gid];
+    uint meshletIndex = payload.meshletIndices[gid];
+    float lodLevel = payload.lodLevel[gid];
+    InstancedMesh::OptimisedMeshlet m = meshlets[meshletIndex];
+
+    SetMeshOutputCounts(m.vertexCount, m.triangleCount);
+    if (debugData[0].isDebugQueryOn > 0)
+    {
+        InterlockedAdd(debugData[0].nMeshShaderInvocations, 1);
+    }
+
+    if (gtid == 0)
+    {
+        if (debugData[0].isDebugQueryOn > 0)
+        {
+            InterlockedAdd(debugData[0].nTriangles, m.triangleCount);
+        }
+    }
+
+    if (gtid < m.triangleCount)
+    {
+        uint packed = triangleIndices[m.triangleOffset + gtid];
+        uint vIdx0 = (packed >> 0) & 0xFF;
+        uint vIdx1 = (packed >> 8) & 0xFF;
+        uint vIdx2 = (packed >> 16) & 0xFF;
+        triangles[gtid] = uint3(vIdx0, vIdx1, vIdx2);
+    }
+
+    if (gtid < m.vertexCount)
+    {
+        uint vertexIndex = m.vertexOffset + gtid;
+        vertexIndex = vertexIndices[vertexIndex];
+
+        float4x4 modelMatrix = calculateModelMatrix(
+            instances[instanceIndex].position,
+            instances[instanceIndex].rotation, instances[instanceIndex].scale
+        );
+
+        float4 modelPosition = modelVertices[vertexIndex].position;
+        if (animation.isAnimationOn > 0)
+        {
+            float rotationAngle =
+                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
+            modelPosition = {
+                rotateVectorWithQuaternion(
+                    modelPosition.xyz, quaternionFromAxisAngle(
+                                           float3(0.f, 1.f, 0.f), rotationAngle
+                                       )
+                ),
+                1.f
+            };
+        }
+
+        float4x4 mvpMatrix =
+            mul(scene.projection, mul(scene.view, modelMatrix));
+        vertices[gtid].position = mul(mvpMatrix, modelPosition);
+
+        // TODO - add as flag
+        // float4 colour =
+        //     float4(float(gid & 1), float(gid & 3) / 4, float(gid & 7) /
+        //     8, 1.f);
+        float lodColour = lodLevel + 1.0;
+        float4 colour = float4(
+            lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
+            lodColour / MAX_LOD_COUNT / 5.0, 1.f
+        );
+        vertices[gtid].colour = colour;
+    }
+}

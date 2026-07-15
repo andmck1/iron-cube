@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core_actor/iactor.h"
-#include "core_buffertypes/buffertypes.h"
+#include "shader/commontypes.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include <array>
 

@@ -2,8 +2,10 @@
 
 #include "core_actor/camera.h"
 #include "core_actor/sceneactor.h"
+#include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "shader/instancedMesh/buffertypes.h"
 #include <vulkan/vulkan_raii.hpp>
 
 class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
@@ -12,7 +14,13 @@ class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
     std::vector<Instance> *instances = nullptr;
-    int *visibilityFunc = nullptr;
+    VisibilityFunc *visibilityFunc = nullptr;
+    float *maxLODDistance = nullptr;
+    float *lodExponent = nullptr;
+    bool *isLODOn = nullptr;
+    bool *isAnimationOn = nullptr;
+    float *rotationFrequency = nullptr;
+    Timer *timer = nullptr;
 };
 
 class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
@@ -35,15 +43,17 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
     PipelineStatistics pipelineStatistics_{};
 
-    uint sceneDataUniformBufferIndex_ = 0;
-    uint debugDataStorageRWBufferIndex_ = 0;
-    uint instancesStorageRBufferIndex_ = 0;
-
     bool initGraphicsPipeline();
     bool initPipeline(Geometry *geometry);
+    void initBufferDescriptions() override;
 
-    void initUniformBuffers() override;
-    void initStorageBuffers() override;
+    void initBuffers() override;
 
     InstancedMeshShaderPipelineUpdateData *updateData_ = nullptr;
+    uint32_t maxTaskShaderThreadCount_;
+    uint32_t nDrawCalls_ = 0;
+
+    std::vector<InstancedMesh::DebugDataBuffer> debugDataBufferData_ = {
+        InstancedMesh::DebugDataBuffer()
+    };
 };

@@ -14,6 +14,8 @@ class Timer
     float getFps() const;
     float getFrameTime() const;
     float getDeltaSeconds() const;
+    int getFramesSinceStart() const;
+    float getTotalSecondsElapsed() const;
     const std::vector<float> &getFrameTimes() const;
 
     private:
@@ -26,5 +28,7 @@ class Timer
     float frameTime_ = 0.0f;
     float accumulatedDelta_ = 0.0f;
     int frameCount_ = 0;
+    int totalFrames_ = 0;
+    float totalSecondsElapsed_ = 0;
     std::vector<float> frameTimes_;
 };

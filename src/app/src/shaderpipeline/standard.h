@@ -2,8 +2,10 @@
 
 #include "core_actor/camera.h"
 #include "core_actor/sceneactor.h"
+#include "core_common/timer.h"
 #include "core_common/types.h"
 #include "core_render/vulkan/shaderpipeline.h"
+#include "shader/simpleVF/buffertypes.h"
 #include <vulkan/vulkan_raii.hpp>
 
 class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
@@ -11,6 +13,11 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
     public:
     SceneActor *actor = nullptr;
     CameraActor *camera = nullptr;
+    uint32_t *lodIndex = nullptr;
+    uint32_t *nFramesSinceStart = nullptr;
+    bool *isAnimationOn = nullptr;
+    float *rotationFrequency = nullptr;
+    Timer *timer = nullptr;
 };
 
 class StandardVulkanShaderPipeline : public VulkanShaderPipeline
@@ -28,20 +35,25 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     bool postRender() override;
 
     protected:
+    void initBufferDescriptions() override;
+    void initBuffers() override;
+
     bool initGraphicsPipeline();
     bool initPipeline();
-    bool initIndexBuffer();
-    bool initVertexBuffer();
 
-    void initUniformBuffers() override;
-    void initStorageBuffers() override;
-
-    VulkanBufferVertex vertexBuffer_;
-    VulkanBufferIndex indexBuffer_;
+    VulkanBuffer vertexBuffer_;
+    VulkanBuffer indexBuffer_;
     DefaultShaderPipelineUpdateData *updateData_ = nullptr;
 
     Geometry *geometry_ = nullptr;
 
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
     PipelineStatistics pipelineStatistics_{};
+
+    uint32_t nDrawCalls_ = 0;
+
+    std::vector<SimpleVF::DebugDataBuffer> debugDataBufferData_ = {
+        SimpleVF::DebugDataBuffer()
+    };
+
 };

@@ -36,6 +36,7 @@ class Application
     bool registerServices();
     bool initialisePlatform();
     bool initialiseRenderer();
+    void initialiseShader(std::string path, std::string name);
     bool initialiseShaders();
     bool createAndInitialiseLayers();
     void initialiseDebugLayerData(Scene *scene);
@@ -45,10 +46,12 @@ class Application
     bool initialiseCamera(Scene *scene);
     void handleInput();
     // TODO - should this go somewhere else?
+    void initialiseEntities();
     void updateEntities();
     void mainLoop();
 
     void checkForPipelineUpdates();
+    void checkForEntitiyUpdates();
 
     bool debugMode_ = false;
     Logger logger_;
@@ -69,11 +72,22 @@ class Application
     std::vector<std::unique_ptr<ILayer>> layers_;
 
     float timeSinceGPUStatsQuery_ = 0.f;
-    int visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
+    VisibilityFunc visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
     bool isAnimationOn_ = false;
+
     int nInstanceRows_ = 1;
     int nInstanceColumns_ = 1;
     int nInstanceLayers_ = 1;
+    int currentNInstanceRows_ = 1;
+    int currentNInstanceColumns_ = 1;
+    int currentNInstanceLayers_ = 1;
+
     bool isDebugQueryOn_ = true;
     std::vector<GPUStats> gpuStats_ = {};
+    uint32_t lodIndex_ = 0;
+    float maxLODDistance_ = 7.f;
+    float lodExponent_ = 1.2f;
+    bool isLODOn_ = true;
+    uint32_t nFramesSinceStart_ = 0;
+    float rotationFrequency_ = 0.5f;
 };
