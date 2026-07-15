@@ -14,11 +14,15 @@ StructuredBuffer<Instance> instances;
 [[vk::binding(InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS)]]
 RWStructuredBuffer<InstancedVFCompute::IndirectDrawCommand> indirectCommands;
 
+// [[vk::binding(InstancedVFCompute::BufferSlots::LOD_STATS)]]
+// RWStructuredBuffer<InstancedVFCompute::LODStats> lodStats;
+
 [shader("compute")]
-[numthreads(256, 1, 1)]
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 {
     uint instanceIndex = dispatchThreadID.x;
+    uint temp;
 
     if (debugData[0].isDebugQueryOn > 0)
     {

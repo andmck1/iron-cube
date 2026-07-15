@@ -19,6 +19,7 @@ using float4x4 = glm::mat4;
 using uint4 = glm::uvec4;
 #endif
 
+#define MAX_LOD_COUNT 5
 #define PI2 6.28318530719
 
 enum FrustumPlanes : uint

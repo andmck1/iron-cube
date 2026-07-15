@@ -8,7 +8,6 @@
 #define N_MAX_VERTICES 64
 
 #define AS_GROUP_SIZE 32
-#define MAX_LOD_COUNT 5
 
 namespace InstancedMesh
 {

@@ -23,8 +23,10 @@ class VulkanShaderPipeline : public IShaderPipeline
     protected:
     void addBuffer(BufferDescription description)
     {
-        buffers_.emplace_back();
-        buffers_.back().init(description);
+        uint slotNumber = description.bufferSlot;
+        if ((slotNumber + 1) > buffers_.size())
+            buffers_.resize(slotNumber + 1);
+        buffers_[slotNumber].init(description);
     }
 
     void addBufferWrite(

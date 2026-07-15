@@ -4,11 +4,7 @@
 
 #include "shader/commontypes.h"
 
-#define N_MAX_TRIANGLES 124
-#define N_MAX_VERTICES 64
-
-#define AS_GROUP_SIZE 32
-#define MAX_LOD_COUNT 5
+#define THREAD_GROUP_SIZE 128
 
 namespace InstancedVFCompute
 {
@@ -19,7 +15,9 @@ namespace InstancedVFCompute
         ANIMATION,
         DEBUG,
         REORDERED_INSTANCES,
-        LOD_STATS,
+        // LOD_STATS,
+        LOD_BASE_OFFSETS,
+        LOD_SLOT_COUNTERS,
         INSTANCES,
         INDIRECT_COMMANDS,
         LAST
@@ -104,5 +102,7 @@ namespace InstancedVFCompute
     {
         uint32_t offset;
         uint32_t count;
+        uint32_t _pad0;
+        uint32_t _pad1;
     };
 } // namespace InstancedVFCompute
