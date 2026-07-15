@@ -79,6 +79,14 @@ void StandardVulkanShaderPipeline::initBufferDescriptions()
                 vk::ShaderStageFlagBits::eFragment
             )
     );
+
+    // bufferDescriptions_.push_back(
+    //     BufferDescription()
+    //         .setBufferSlot(SimpleVF::BufferSlots::TEXTURE)
+    //         .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+    //         .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+    //         .setData(updateData_->texture->pixels)
+    // );
 }
 
 void StandardVulkanShaderPipeline::initBuffers()

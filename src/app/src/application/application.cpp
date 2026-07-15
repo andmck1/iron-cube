@@ -232,16 +232,19 @@ bool Application::initialiseEntities(Scene *scene)
         // asteroid
         std::string name = "asteroid";
         Geometry geometry = ResourceManager::loadObj(
-            {
-            "assets/asteroid_lod/asteroid_LOD_0.obj",
+            {"assets/asteroid_lod/asteroid_LOD_0.obj",
              "assets/asteroid_lod/asteroid_LOD_1.obj",
              "assets/asteroid_lod/asteroid_LOD_2.obj",
              "assets/asteroid_lod/asteroid_LOD_3.obj",
-             "assets/asteroid_lod/asteroid_LOD_4.obj"
-             },
+             "assets/asteroid_lod/asteroid_LOD_4.obj"},
             "./assets/asteroid_lod"
         );
         resourceManager_.loadGeometry(name, geometry);
+
+        Texture texture = ResourceManager::loadImage(
+            "assets/asteroid/textures/asteroid_1001_BaseColor.png"
+        );
+        resourceManager_.loadTexture("asteroid", texture);
         Transform transform =
             Transform{.position = {0.f, -1.f, 0.f}, .scale = {1.f, 1.f, 1.f}};
         initialiseGeometry(scene, name, transform);
@@ -292,6 +295,8 @@ bool Application::initialiseGeometry(
         actorShaderPipelineUpdateData->nFramesSinceStart = &nFramesSinceStart_;
         actorShaderPipelineUpdateData->rotationFrequency = &rotationFrequency_;
         actorShaderPipelineUpdateData->timer = &timer_;
+        actorShaderPipelineUpdateData->texture =
+            resourceManager_.getTexture(name);
 
         std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
             std::make_unique<StandardVulkanShaderPipeline>();

@@ -11,6 +11,7 @@ namespace SimpleVF
         MVP = 0,
         ANIMATION = 1,
         DEBUG = 2,
+        TEXTURE = 3,
         LAST
     };
 
@@ -18,6 +19,7 @@ namespace SimpleVF
     {
         float4 position SEMANTIC(SV_Position);
         float4 colour;
+        float2 uv;
     };
 
     struct MVPBuffer

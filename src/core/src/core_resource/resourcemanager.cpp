@@ -40,6 +40,37 @@ bool ResourceManager::unloadGeometry(const std::string &name)
     return false;
 }
 
+void ResourceManager::loadTexture(const std::string &name, Texture texture)
+{
+    spdlog::debug("Loading texture '{}'", name);
+    textures_[name] = std::move(texture);
+    spdlog::info("Loaded texture '{}'", name);
+}
+
+Texture *ResourceManager::getTexture(const std::string &name)
+{
+    spdlog::debug("Requesting texture: {}", name);
+    auto it = textures_.find(name);
+    if (it != textures_.end())
+    {
+        spdlog::debug("Found geometry: {}", name);
+        return &(it->second);
+    }
+    spdlog::error("Geometry not found: {}", name);
+    return nullptr;
+}
+
+void ResourceManager::unloadTexture(const std::string &name)
+{
+    auto it = textures_.find(name);
+    if (it != textures_.end())
+    {
+        textures_.erase(it);
+        spdlog::info("Unloaded texture '{}'", name);
+    }
+    spdlog::error("Cannot unload texture '{}': not found", name);
+}
+
 Geometry ResourceManager::generateProceduralTriangle()
 {
     Geometry geometry;
@@ -549,4 +580,26 @@ void ResourceManager::calculateMeshBounds(Geometry *geometry)
             bounds.center[0], bounds.center[1], bounds.center[2], bounds.radius
         ));
     }
+}
+
+Texture ResourceManager::loadImage(std::string filepath)
+{
+    Texture texture;
+    texture.pixels = stbi_load(
+        filepath.c_str(), &texture.texWidth, &texture.texHeight,
+        &texture.texChannels, STBI_rgb_alpha
+    );
+    texture.imageSize = texture.texWidth * texture.texHeight * 4;
+
+    if (!texture.pixels)
+    {
+        spdlog::error("Failed to load image from '{}'", filepath);
+        return texture;
+    }
+
+    spdlog::info(
+        "Loaded texture: {}x{} from '{}'", texture.texWidth, texture.texHeight,
+        filepath
+    );
+    return texture;
 }

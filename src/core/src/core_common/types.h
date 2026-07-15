@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stb_image.h>
 #include "glm/ext/vector_float3.hpp"
 #include "shader/commontypes.h"
 #include "meshoptimizer.h"
@@ -48,6 +48,15 @@ struct Transform
     glm::vec3 position = {0.f, 0.f, 0.f};
     glm::vec3 rotation = {0.f, 0.f, 0.f};
     glm::vec3 scale = {1.f, 1.f, 1.f};
+};
+
+struct Texture
+{
+    stbi_uc *pixels = nullptr;
+    uint imageSize = 0;
+    int texWidth = 0;
+    int texHeight = 0;
+    int texChannels = 0;
 };
 
 struct ShaderPipelineUpdateData
