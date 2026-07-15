@@ -15,7 +15,7 @@ namespace InstancedVFCompute
         ANIMATION,
         DEBUG,
         REORDERED_INSTANCES,
-        // LOD_STATS,
+        LOD_STATS,
         LOD_BASE_OFFSETS,
         LOD_SLOT_COUNTERS,
         INSTANCES,
