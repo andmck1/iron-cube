@@ -222,9 +222,28 @@ bool Application::initialiseEntities(Scene *scene)
             "./assets/horse_statue_lod"
         );
         resourceManager_.loadGeometry(name, geometry);
-        Transform transform = Transform{
-            .position = {0.f, -1.f, 0.f}, .scale = {10.f, 10.f, 10.f}
-        };
+        // Transform transform = Transform{
+        //     .position = {0.f, -1.f, 0.f}, .scale = {10.f, 10.f, 10.f}
+        // };
+        // initialiseGeometry(scene, name, transform);
+    }
+
+    {
+        // asteroid
+        std::string name = "asteroid";
+        Geometry geometry = ResourceManager::loadObj(
+            {
+            "assets/asteroid_lod/asteroid_LOD_0.obj",
+             "assets/asteroid_lod/asteroid_LOD_1.obj",
+             "assets/asteroid_lod/asteroid_LOD_2.obj",
+             "assets/asteroid_lod/asteroid_LOD_3.obj",
+             "assets/asteroid_lod/asteroid_LOD_4.obj"
+             },
+            "./assets/asteroid_lod"
+        );
+        resourceManager_.loadGeometry(name, geometry);
+        Transform transform =
+            Transform{.position = {0.f, -1.f, 0.f}, .scale = {1.f, 1.f, 1.f}};
         initialiseGeometry(scene, name, transform);
     }
 
@@ -606,16 +625,16 @@ void Application::checkForPipelineUpdates()
 
 void Application::initialiseEntities()
 {
-    Mesh *horseMesh = meshManager_.getMesh("horsie");
-    horseMesh->instances.resize(
+    Mesh *mesh = meshManager_.getMesh("asteroid");
+    mesh->instances.resize(
         nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
     );
     float maxSpan = std::max<float>(
         std::max<float>(
-            horseMesh->getGeometry()->meshBounds.getWidth(),
-            horseMesh->getGeometry()->meshBounds.getDepth()
+            mesh->getGeometry()->meshBounds.getWidth(),
+            mesh->getGeometry()->meshBounds.getDepth()
         ),
-        horseMesh->getGeometry()->meshBounds.getHeight()
+        mesh->getGeometry()->meshBounds.getHeight()
     );
     float instanceSpanX = 2.0f * maxSpan;
     float instanceSpanY = 2.0f * maxSpan;
@@ -650,10 +669,9 @@ void Application::initialiseEntities()
                 else
                     rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
-                horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
-                horseMesh->instances[index].rotation = rotationVector;
-                horseMesh->instances[index].scale =
-                    glm::vec4(1.0, 1.0, 1.0, 1.0);
+                mesh->instances[index].position = glm::vec4(x, y, z, 1.0);
+                mesh->instances[index].rotation = rotationVector;
+                mesh->instances[index].scale = glm::vec4(1.0, 1.0, 1.0, 1.0);
             }
         }
     }
@@ -664,16 +682,16 @@ void Application::initialiseEntities()
 // and then call animation update in the scene layer frame
 void Application::updateEntities()
 {
-    Mesh *horseMesh = meshManager_.getMesh("horsie");
-    horseMesh->instances.resize(
+    Mesh *mesh = meshManager_.getMesh("asteroid");
+    mesh->instances.resize(
         nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
     );
     float maxSpan = std::max<float>(
         std::max<float>(
-            horseMesh->getGeometry()->meshBounds.getWidth(),
-            horseMesh->getGeometry()->meshBounds.getDepth()
+            mesh->getGeometry()->meshBounds.getWidth(),
+            mesh->getGeometry()->meshBounds.getDepth()
         ),
-        horseMesh->getGeometry()->meshBounds.getHeight()
+        mesh->getGeometry()->meshBounds.getHeight()
     );
     float instanceSpanX = 2.0f * maxSpan;
     float instanceSpanY = 2.0f * maxSpan;
@@ -708,10 +726,9 @@ void Application::updateEntities()
                 else
                     rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
-                horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
-                horseMesh->instances[index].rotation = rotationVector;
-                horseMesh->instances[index].scale =
-                    glm::vec4(1.0, 1.0, 1.0, 1.0);
+                mesh->instances[index].position = glm::vec4(x, y, z, 1.0);
+                mesh->instances[index].rotation = rotationVector;
+                mesh->instances[index].scale = glm::vec4(1.0, 1.0, 1.0, 1.0);
             }
         }
     }
