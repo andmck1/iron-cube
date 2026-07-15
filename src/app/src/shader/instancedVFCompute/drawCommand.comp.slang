@@ -17,11 +17,8 @@ RWStructuredBuffer<InstancedVFCompute::IndirectDrawCommand> indirectCommands;
 [[vk::binding(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)]]
 RWStructuredBuffer<Instance> reorderedInstances;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::LOD_BASE_OFFSETS)]]
-RWStructuredBuffer<uint> lodBaseOffsets;
-
-[[vk::binding(InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS)]]
-RWStructuredBuffer<uint> lodSlotCounters;
+[[vk::binding(InstancedVFCompute::BufferSlots::LOD_STATS)]]
+RWStructuredBuffer<InstancedVFCompute::LODStats> lodStats;
 
 [shader("compute")]
 [numthreads(256, 1, 1)]
@@ -37,7 +34,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
     uint offset = 0;
     for (uint lod = 0; lod < MAX_LOD_COUNT; lod++)
     {
-        lodBaseOffsets[lod] = offset;
+        lodStats[lod].offset = offset;
         offset += indirectCommands[lod].instanceCount;
     }
 
@@ -62,9 +59,9 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
                 scene.eyePosition.xyz, scene.maxLODDistance.x,
                 scene.lodExponent.x, MAX_LOD_COUNT
             );
-            uint baseOffset = lodBaseOffsets[lod];
+            uint baseOffset = lodStats[lod].offset;
             uint previousValue;
-            InterlockedAdd(lodSlotCounters[lod], 1, previousValue);
+            InterlockedAdd(lodStats[lod].count, 1, previousValue);
             uint slot = baseOffset + previousValue;
             reorderedInstances[slot] = instances[instanceIndex];
             reorderedInstances[slot].lodLevel.x = float(lod);

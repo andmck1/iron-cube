@@ -14,15 +14,6 @@ StructuredBuffer<Instance> instances;
 [[vk::binding(InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS)]]
 RWStructuredBuffer<InstancedVFCompute::IndirectDrawCommand> indirectCommands;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)]]
-RWStructuredBuffer<Instance> reorderedInstances;
-
-[[vk::binding(InstancedVFCompute::BufferSlots::LOD_BASE_OFFSETS)]]
-RWStructuredBuffer<uint> lodBaseOffsets;
-
-[[vk::binding(InstancedVFCompute::BufferSlots::LOD_SLOT_COUNTERS)]]
-RWStructuredBuffer<uint> lodSlotCounters;
-
 [shader("compute")]
 [numthreads(256, 1, 1)]
 void main(uint3 dispatchThreadID: SV_DispatchThreadID)

@@ -14,15 +14,14 @@ namespace InstancedVFCompute
 {
     enum BufferSlots : uint
     {
-        MVP = 0,
-        SCENE = 1,
-        ANIMATION = 2,
-        DEBUG = 3,
-        REORDERED_INSTANCES = 4,
-        LOD_BASE_OFFSETS = 5,
-        LOD_SLOT_COUNTERS = 6,
-        INSTANCES = 7,
-        INDIRECT_COMMANDS = 8,
+        MVP,
+        SCENE,
+        ANIMATION,
+        DEBUG,
+        REORDERED_INSTANCES,
+        LOD_STATS,
+        INSTANCES,
+        INDIRECT_COMMANDS,
         LAST
     };
 
@@ -99,5 +98,11 @@ namespace InstancedVFCompute
         uint firstIndex;
         int vertexOffset;
         uint firstInstance;
+    };
+
+    struct LODStats
+    {
+        uint32_t offset;
+        uint32_t count;
     };
 } // namespace InstancedVFCompute

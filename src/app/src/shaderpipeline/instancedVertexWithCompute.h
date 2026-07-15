@@ -54,7 +54,7 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
 
     void bindComputePipeline(uint pass);
     void resetIndirectDrawCommands();
-    void resetLODSlotCounters();
+    void resetLODStats();
     void lodStatsComputePass(uint dispatchCount);
     void drawCommandComputePass(uint dispatchCount);
 
