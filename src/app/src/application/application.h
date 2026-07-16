@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commontypes.h"
 #include "core_actor/camera.h"
 #include "core_common/helpers.h"
 #include "core_common/logger.h"
@@ -90,4 +91,5 @@ class Application
     bool isLODOn_ = true;
     uint32_t nFramesSinceStart_ = 0;
     float rotationFrequency_ = 0.5f;
+    FragmentColourType fragmentColourType = FragmentColourType::TEXTURE;
 };

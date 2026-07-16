@@ -19,6 +19,7 @@ class InstancedVertexShaderPipelineUpdateData : public ShaderPipelineUpdateData
     float *rotationFrequency = nullptr;
     Timer *timer = nullptr;
     Texture *texture = nullptr;
+    FragmentColourType *fragmentColourType = nullptr;
 };
 
 class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline

@@ -178,6 +178,7 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.maxLODDistance = &maxLODDistance_;
     debugLayerData_.lodExponent = &lodExponent_;
     debugLayerData_.isLODOn = &isLODOn_;
+    debugLayerData_.fragmentColourType = &fragmentColourType;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -295,6 +296,7 @@ bool Application::initialiseGeometry(
         updateData->rotationFrequency = &rotationFrequency_;
         updateData->timer = &timer_;
         updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
 
         std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
             std::make_unique<StandardVulkanShaderPipeline>();

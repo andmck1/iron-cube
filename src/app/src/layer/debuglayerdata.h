@@ -51,4 +51,5 @@ class DebugLayerData
     float *lodExponent;
     bool *isLODOn;
     std::vector<PipelineTimeHistory> timeHistories;
+    FragmentColourType *fragmentColourType;
 };

@@ -344,6 +344,25 @@ bool DebugLayer::frame()
         ImGui::SliderFloat(
             "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 50.0
         );
+        std::vector<const char *> fragmentColourTypes = {
+            "Texture", "Primitive", "LOD"
+        };
+        ImGui::Combo(
+            "Fragment Colour Type",
+            reinterpret_cast<int *>(debugData_->fragmentColourType),
+            fragmentColourTypes.data(), fragmentColourTypes.size()
+        );
+
+        // Culling controls
+        ImGui::SeparatorText("Culling");
+        std::vector<const char *> cullingFunctions = {
+            "None", "Planes", "Sphere", "Cone", "Cone and Near Plane"
+        };
+        ImGui::Combo(
+            "Culling Function",
+            reinterpret_cast<int *>(debugData_->visibilityFunc),
+            cullingFunctions.data(), cullingFunctions.size()
+        );
     }
 
     // Mesh

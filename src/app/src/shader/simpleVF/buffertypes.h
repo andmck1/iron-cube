@@ -47,4 +47,10 @@ namespace SimpleVF
         uint32_t nFragmentShaderInvocations = 0;
     };
 
+    struct Constants
+    {
+        FragmentColourType fragmentColourType;
+        uint32_t lodLevel;
+    };
+
 } // namespace SimpleVF

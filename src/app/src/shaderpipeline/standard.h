@@ -19,6 +19,7 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
     float *rotationFrequency = nullptr;
     Timer *timer = nullptr;
     Texture *texture = nullptr;
+    FragmentColourType *fragmentColourType = nullptr;
 };
 
 class StandardVulkanShaderPipeline : public VulkanShaderPipeline
