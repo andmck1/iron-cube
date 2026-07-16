@@ -38,6 +38,6 @@ SimpleVF::VertexOutputType main(VertexInputType input)
 
     output.position =
         mul(mvp.projection, mul(mvp.view, mul(mvp.model, modelPosition)));
-    output.colour = (input.normal + 1.f + input.tex[0]) / 3.f;
+    output.uv = input.tex.xy;
     return output;
 }

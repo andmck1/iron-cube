@@ -34,6 +34,8 @@ class VulkanRenderer : public IRenderer
     float getFrameWaitTime() override;
 
     vk::raii::Device &getDevice();
+    vk::raii::CommandPool &getCommandPool();
+    vk::raii::Queue &getQueue();
     vk::raii::PhysicalDevice &getPhysicalDevice();
     vk::raii::CommandBuffer &getCommandBuffer();
 

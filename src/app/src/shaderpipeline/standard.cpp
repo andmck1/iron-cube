@@ -51,6 +51,7 @@ bool StandardVulkanShaderPipeline::shutdown()
     return true;
 }
 
+// TODO - change to resource, not buffer
 void StandardVulkanShaderPipeline::initBufferDescriptions()
 {
     resourceDescriptions_.push_back(
@@ -80,13 +81,20 @@ void StandardVulkanShaderPipeline::initBufferDescriptions()
             )
     );
 
-    // bufferDescriptions_.push_back(
-    //     BufferDescription()
-    //         .setBufferSlot(SimpleVF::BufferSlots::TEXTURE)
-    //         .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-    //         .setStageFlags(vk::ShaderStageFlagBits::eFragment)
-    //         .setData(updateData_->texture->pixels)
-    // );
+    resourceDescriptions_.push_back(
+        ImageDescription()
+            .setBufferSlot(SimpleVF::BufferSlots::TEXTURE)
+            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+            .setExtent(
+                vk::Extent3D(
+                    static_cast<uint32_t>(updateData_->texture->texWidth),
+                    static_cast<uint32_t>(updateData_->texture->texHeight), 1
+                )
+            )
+            .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+            .setData(updateData_->texture->pixels)
+            .setDataSize(updateData_->texture->imageSize)
+    );
 }
 
 // TODO - rename buffer -> resource

@@ -310,6 +310,8 @@ bool Application::initialiseGeometry(
         registeredShaderPipeline->init(
             registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
+        meshComponent->setShaderPipeline(registeredShaderPipeline);
+        meshComponent->setMesh(registeredMesh);
     }
     {
         // instanced vertex shader pipeline
@@ -374,8 +376,6 @@ bool Application::initialiseGeometry(
         registeredShaderPipeline->init(
             registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
-        meshComponent->setShaderPipeline(registeredShaderPipeline);
-        meshComponent->setMesh(registeredMesh);
     }
     {
         // mesh shader pipeline
@@ -578,7 +578,7 @@ void Application::checkForPipelineUpdates()
         }
         default:
         {
-            shaderPipelineSuffix = "InstancedVertexCompute";
+            shaderPipelineSuffix = "DefaultVertex";
             break;
         }
         }

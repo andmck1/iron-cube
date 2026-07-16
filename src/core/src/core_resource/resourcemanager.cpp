@@ -585,6 +585,7 @@ void ResourceManager::calculateMeshBounds(Geometry *geometry)
 Texture ResourceManager::loadImage(std::string filepath)
 {
     Texture texture;
+    stbi_set_flip_vertically_on_load(true);
     texture.pixels = stbi_load(
         filepath.c_str(), &texture.texWidth, &texture.texHeight,
         &texture.texChannels, STBI_rgb_alpha

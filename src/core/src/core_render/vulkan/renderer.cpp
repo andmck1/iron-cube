@@ -21,6 +21,16 @@ vk::raii::CommandBuffer &VulkanRenderer::getCommandBuffer()
     return commandBuffers_[currentFrameIndex_];
 }
 
+vk::raii::CommandPool &VulkanRenderer::getCommandPool()
+{
+    return commandPool_;
+}
+
+vk::raii::Queue &VulkanRenderer::getQueue()
+{
+    return queue_;
+}
+
 vk::Extent2D &VulkanRenderer::getSwapChainExtent()
 {
     return swapChainExtent_;

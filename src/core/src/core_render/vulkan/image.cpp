@@ -23,8 +23,17 @@ void VulkanImage::init(ImageDescription imageDescription)
         staging_.init(renderer_, description.dataSize);
         staging_.upload(description.data, description.dataSize);
 
-        vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
-        vk::ImageMemoryBarrier barrier;
+        vk::CommandBufferAllocateInfo allocInfo =
+            vk::CommandBufferAllocateInfo{}
+                .setCommandPool(renderer_->getCommandPool())
+                .setLevel(vk::CommandBufferLevel::ePrimary)
+                .setCommandBufferCount(1);
+        vk::raii::CommandBuffer commandCopyBuffer = std::move(
+            renderer_->getDevice().allocateCommandBuffers(allocInfo).front()
+        );
+        commandCopyBuffer.begin(
+            {vk::CommandBufferUsageFlagBits::eOneTimeSubmit}
+        );
 
         for (FrameImage &frame : frames_)
         {
@@ -37,7 +46,7 @@ void VulkanImage::init(ImageDescription imageDescription)
                 frame.image, description.format, description.aspectMask
             );
 
-            barrier = {
+            vk::ImageMemoryBarrier barrier = {
                 {},
                 vk::AccessFlagBits::eTransferWrite,
                 vk::ImageLayout::eUndefined,
@@ -47,7 +56,7 @@ void VulkanImage::init(ImageDescription imageDescription)
                 frame.image,
                 vk::ImageSubresourceRange{description.aspectMask, 0, 1, 0, 1}
             };
-            commandBuffer.pipelineBarrier(
+            commandCopyBuffer.pipelineBarrier(
                 vk::PipelineStageFlagBits::eTopOfPipe,
                 vk::PipelineStageFlagBits::eTransfer, {}, nullptr, nullptr,
                 barrier
@@ -61,7 +70,7 @@ void VulkanImage::init(ImageDescription imageDescription)
                 {0, 0, 0},
                 description.extent
             };
-            commandBuffer.copyBufferToImage(
+            commandCopyBuffer.copyBufferToImage(
                 staging_.buffer(), frame.image,
                 vk::ImageLayout::eTransferDstOptimal, copy
             );
@@ -76,12 +85,21 @@ void VulkanImage::init(ImageDescription imageDescription)
                 frame.image,
                 vk::ImageSubresourceRange{description.aspectMask, 0, 1, 0, 1}
             };
-            commandBuffer.pipelineBarrier(
+            commandCopyBuffer.pipelineBarrier(
                 vk::PipelineStageFlagBits::eTransfer,
                 vk::PipelineStageFlagBits::eFragmentShader, {}, nullptr,
                 nullptr, barrier
             );
         }
+
+        commandCopyBuffer.end();
+        renderer_->getQueue().submit(
+            vk::SubmitInfo{}.setCommandBufferCount(1).setPCommandBuffers(
+                &*commandCopyBuffer
+            ),
+            nullptr
+        );
+        renderer_->getQueue().waitIdle();
     }
 }
 

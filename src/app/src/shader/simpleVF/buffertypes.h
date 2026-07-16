@@ -8,10 +8,10 @@ namespace SimpleVF
 {
     enum BufferSlots : uint
     {
-        MVP = 0,
-        ANIMATION = 1,
-        DEBUG = 2,
-        TEXTURE = 3,
+        MVP,
+        ANIMATION,
+        DEBUG,
+        TEXTURE,
         LAST
     };
 

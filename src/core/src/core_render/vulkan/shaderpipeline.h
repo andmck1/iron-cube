@@ -24,12 +24,12 @@ class VulkanShaderPipeline : public IShaderPipeline
     void addResource(const ResourceDescription &description);
 
     void addResourceWrite(
-        vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
-        vk::DescriptorType bufferType,
-        std::variant<vk::raii::Buffer *, vk::raii::Image *> buffer,
-        vk::DeviceSize bufferSize,
+        PipelineResource &resource, vk::DeviceSize bufferSize,
+        const ResourceDescription &description, uint32_t frameIndex,
+        vk::raii::DescriptorSet &descriptorSet,
         std::vector<vk::WriteDescriptorSet> &descriptorWrites,
-        std::vector<vk::DescriptorBufferInfo> &bufferInfos
+        std::vector<vk::DescriptorBufferInfo> &bufferInfos,
+        std::vector<vk::DescriptorImageInfo> &imageInfos
     );
 
     bool initDescriptorLayout();
