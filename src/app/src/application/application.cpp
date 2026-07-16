@@ -324,6 +324,7 @@ bool Application::initialiseGeometry(
         updateData->rotationFrequency = &rotationFrequency_;
         updateData->timer = &timer_;
         updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -355,6 +356,7 @@ bool Application::initialiseGeometry(
         updateData->lodExponent = &lodExponent_;
         updateData->isLODOn = &isLODOn_;
         updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
 
         std::unique_ptr<InstancedVertexComputeVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -384,6 +386,7 @@ bool Application::initialiseGeometry(
         updateData->rotationFrequency = &rotationFrequency_;
         updateData->timer = &timer_;
         updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
 
         std::unique_ptr<InstancedMeshVulkanShaderPipeline>
             actorMeshShaderPipeline =

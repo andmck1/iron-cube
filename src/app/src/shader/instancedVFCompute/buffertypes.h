@@ -88,6 +88,11 @@ namespace InstancedVFCompute
         uint32_t nFragmentShaderInvocations = 0;
     };
 
+    struct Constants
+    {
+        FragmentColourType fragmentColourType;
+    };
+
     // Must match vk::DrawIndexedIndirectCommand layout exactly
     struct IndirectDrawCommand
     {

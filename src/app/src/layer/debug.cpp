@@ -341,9 +341,11 @@ bool DebugLayer::frame()
             if (pipelineManager)
                 pipelineManager->recreatePipelines = true;
         }
+
         ImGui::SliderFloat(
             "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 50.0
         );
+
         std::vector<const char *> fragmentColourTypes = {
             "Texture", "Primitive", "LOD"
         };
@@ -353,8 +355,6 @@ bool DebugLayer::frame()
             fragmentColourTypes.data(), fragmentColourTypes.size()
         );
 
-        // Culling controls
-        ImGui::SeparatorText("Culling");
         std::vector<const char *> cullingFunctions = {
             "None", "Planes", "Sphere", "Cone", "Cone and Near Plane"
         };
@@ -413,17 +413,6 @@ bool DebugLayer::frame()
             shaderTypeUpdate = selectedShaderType;
         else
             shaderTypeUpdate = -1;
-
-        // Culling controls
-        ImGui::SeparatorText("Culling");
-        std::vector<const char *> cullingFunctions = {
-            "None", "Planes", "Sphere", "Cone", "Cone and Near Plane"
-        };
-        ImGui::Combo(
-            "Culling Function",
-            reinterpret_cast<int *>(debugData_->visibilityFunc),
-            cullingFunctions.data(), cullingFunctions.size()
-        );
     }
 
     ImGui::End();

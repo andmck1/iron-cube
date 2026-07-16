@@ -57,4 +57,9 @@ namespace InstancedVF
         uint32_t nVertexShaderInvocations = 0;
         uint32_t nFragmentShaderInvocations = 0;
     };
+
+    struct Constants
+    {
+        FragmentColourType fragmentColourType;
+    };
 } // namespace InstancedVF

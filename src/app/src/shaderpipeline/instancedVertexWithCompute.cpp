@@ -326,10 +326,19 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setDepthBoundsTestEnable(vk::False)
             .setStencilTestEnable(vk::False);
 
+    std::vector<vk::PushConstantRange> pushConstantRanges = {
+        vk::PushConstantRange{}
+            .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+            .setOffset(0)
+            .setSize(sizeof(InstancedVFCompute::Constants)),
+    };
+
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
-        vk::PipelineLayoutCreateInfo{}.setSetLayoutCount(1).setPSetLayouts(
-            &*descriptorSetLayout_
-        );
+        vk::PipelineLayoutCreateInfo{}
+            .setSetLayoutCount(1)
+            .setPSetLayouts(&*descriptorSetLayout_)
+            .setPushConstantRangeCount(pushConstantRanges.size())
+            .setPPushConstantRanges(pushConstantRanges.data());
 
     pipelineLayout_ =
         vk::raii::PipelineLayout(renderer_->getDevice(), pipelineLayoutInfo);
@@ -665,6 +674,13 @@ bool InstancedVertexComputeVulkanShaderPipeline::update()
     updateAnimationData();
     updateInstancesData();
     updateDebugData();
+
+    InstancedVFCompute::Constants constants = InstancedVFCompute::Constants();
+    constants.fragmentColourType = *updateData_->fragmentColourType;
+    renderer_->getCommandBuffer().pushConstants(
+        pipelineLayout_, vk::ShaderStageFlagBits::eFragment, 0,
+        sizeof(InstancedVFCompute::Constants), &constants
+    );
 
     resetIndirectDrawCommands();
     resetLODStats();

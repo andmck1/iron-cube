@@ -22,6 +22,7 @@ class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     float *rotationFrequency = nullptr;
     Timer *timer = nullptr;
     Texture *texture = nullptr;
+    FragmentColourType *fragmentColourType = nullptr;
 };
 
 class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
@@ -57,4 +58,6 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     std::vector<InstancedMesh::DebugDataBuffer> debugDataBufferData_ = {
         InstancedMesh::DebugDataBuffer()
     };
+
+    InstancedMesh::Constants constants;
 };

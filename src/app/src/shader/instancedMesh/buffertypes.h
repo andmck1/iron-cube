@@ -108,13 +108,6 @@ namespace InstancedMesh
         uint32_t pad3;
     };
 
-    struct TaskWorkBuffer
-    {
-        uint32_t workStart;
-        uint32_t workCount;
-        uint32_t pad0;
-    };
-
     struct Payload
     {
         uint instanceIndices[AS_GROUP_SIZE];
@@ -129,5 +122,12 @@ namespace InstancedMesh
         uint32_t nMeshShaderInvocations = 0;
         uint32_t nFragmentShaderInvocations = 0;
         uint32_t nTriangles = 0;
+    };
+
+    struct Constants
+    {
+        FragmentColourType fragmentColourType;
+        uint32_t workStart;
+        uint32_t workCount;
     };
 } // namespace InstancedMesh

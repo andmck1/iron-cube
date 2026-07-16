@@ -132,18 +132,22 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
             .setStencilTestEnable(vk::False);
 
     // TODO - move this in with the other buffers (is buffer like)
-    vk::PushConstantRange pushConstantRange =
+    std::vector<vk::PushConstantRange> pushConstantRanges = {
         vk::PushConstantRange{}
-            .setStageFlags(vk::ShaderStageFlagBits::eTaskEXT)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eTaskEXT |
+                vk::ShaderStageFlagBits::eFragment
+            )
             .setOffset(0)
-            .setSize(sizeof(InstancedMesh::TaskWorkBuffer));
+            .setSize(sizeof(InstancedMesh::Constants)),
+    };
 
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
         vk::PipelineLayoutCreateInfo{}
             .setSetLayoutCount(1)
             .setPSetLayouts(&*descriptorSetLayout_)
-            .setPushConstantRangeCount(1)
-            .setPPushConstantRanges(&pushConstantRange);
+            .setPushConstantRangeCount(pushConstantRanges.size())
+            .setPPushConstantRanges(pushConstantRanges.data());
 
     pipelineLayout_ =
         vk::raii::PipelineLayout(renderer_->getDevice(), pipelineLayoutInfo);
@@ -411,12 +415,15 @@ bool InstancedMeshVulkanShaderPipeline::draw()
             std::min(threadsRemaining, maxTaskShaderThreadCount_);
         uint32_t currentWork = currentThreads * AS_GROUP_SIZE;
 
-        InstancedMesh::TaskWorkBuffer workData{};
-        workData.workStart = workOffset;
-        workData.workCount = currentWork;
+        constants = {};
+        constants.workStart = workOffset;
+        constants.workCount = currentWork;
+        constants.fragmentColourType = *updateData_->fragmentColourType;
         renderer_->getCommandBuffer().pushConstants(
-            pipelineLayout_, vk::ShaderStageFlagBits::eTaskEXT, 0,
-            sizeof(InstancedMesh::TaskWorkBuffer), &workData
+            pipelineLayout_,
+            vk::ShaderStageFlagBits::eTaskEXT |
+                vk::ShaderStageFlagBits::eFragment,
+            0, sizeof(InstancedMesh::Constants), &constants
         );
 
         renderer_->getCommandBuffer().drawMeshTasksEXT(currentThreads, 1, 1);

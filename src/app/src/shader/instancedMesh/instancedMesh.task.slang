@@ -3,7 +3,7 @@
 #include "shader/helpers/lod.slangh"
 
 [[vk::push_constant]]
-ConstantBuffer<InstancedMesh::TaskWorkBuffer> work;
+ConstantBuffer<InstancedMesh::Constants> constants;
 
 [[vk::binding(InstancedMesh::BufferSlots::SCENE)]]
 ConstantBuffer<InstancedMesh::SceneBuffer> scene;
@@ -36,11 +36,11 @@ void main(
 
     bool visible = false;
 
-    uint globalThreadIndex = dtid + work.workStart;
+    uint globalThreadIndex = dtid + constants.workStart;
     uint instanceIndex = globalThreadIndex / scene.meshletCount;
     uint meshletIndex = globalThreadIndex % scene.meshletCount;
     uint lod = 0;
-    if (dtid < work.workCount)
+    if (dtid < constants.workCount)
     {
         // TODO - I do this twice!
         float4x4 modelMatrix = calculateModelMatrix(
