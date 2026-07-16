@@ -242,7 +242,7 @@ bool Application::initialiseEntities(Scene *scene)
         resourceManager_.loadGeometry(name, geometry);
 
         Texture texture = ResourceManager::loadImage(
-            "assets/asteroid/textures/asteroid_1001_BaseColor.png"
+            "assets/asteroid/texture/diffuse.jpg"
         );
         resourceManager_.loadTexture("asteroid", texture);
         Transform transform =

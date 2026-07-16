@@ -18,10 +18,11 @@ import sys
 import shutil
 
 # --- Configuration ---
-src_obj = "/home/dtaunt/dev/iron-cube/assets/horse_statue/horse_statue_01_4k.obj"
-out_dir = "/home/dtaunt/dev/iron-cube/assets/horse_statue_lod"
-base_name = "horse_statue_01_4k"
-lod_ratios = [1.0, 0.5, 0.25, 0.125, 0.0625]
+src_obj = "/home/dtaunt/dev/iron-cube/assets/asteroid_lod/asteroid_LOD_4.obj"
+out_dir = "/home/dtaunt/dev/iron-cube/assets/asteroid_lod"
+base_name = "asteroid"
+lod_ratios = [0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625]
+lod_offset = 5  # output as LOD_5..LOD_10
 min_faces = 4  # safety floor so decimate never collapses a mesh to nothing
 
 
@@ -338,7 +339,8 @@ source_obj = create_blender_mesh(
 )
 
 for lod_index, ratio in enumerate(lod_ratios):
-    print(f"\nGenerating LOD {lod_index} (ratio={ratio})...")
+    lod_num = lod_index + lod_offset
+    print(f"\nGenerating LOD {lod_num} (ratio={ratio})...")
 
     if ratio >= 1.0:
         lod_positions, lod_uvs, lod_normals = positions, uvs, normals
@@ -347,7 +349,7 @@ for lod_index, ratio in enumerate(lod_ratios):
         effective_ratio = max(ratio, min_faces / max(len(faces), 1))
         lod_positions, lod_uvs, lod_normals, lod_faces, lod_face_mtl = (
             decimate_and_read(
-                source_obj, effective_ratio, f"LOD_{lod_index}", material_names
+                source_obj, effective_ratio, f"LOD_{lod_num}", material_names
             )
         )
 
@@ -356,7 +358,7 @@ for lod_index, ratio in enumerate(lod_ratios):
         f"{len(lod_uvs)} uvs, {len(lod_normals)} normals"
     )
 
-    out_path = os.path.join(out_dir, f"{base_name}_LOD_{lod_index}.obj")
+    out_path = os.path.join(out_dir, f"{base_name}_LOD_{lod_num}.obj")
     write_obj(
         out_path,
         lod_positions,
