@@ -233,11 +233,11 @@ bool Application::initialiseEntities(Scene *scene)
         // asteroid
         std::string name = "asteroid";
         Geometry geometry = ResourceManager::loadObj(
-            {"assets/asteroid_lod/asteroid_LOD_0.obj",
-             "assets/asteroid_lod/asteroid_LOD_1.obj",
-             "assets/asteroid_lod/asteroid_LOD_2.obj",
-             "assets/asteroid_lod/asteroid_LOD_3.obj",
-             "assets/asteroid_lod/asteroid_LOD_4.obj"},
+            {"assets/asteroid_lod/asteroid_LOD_10.obj",
+             "assets/asteroid_lod/asteroid_LOD_11.obj",
+             "assets/asteroid_lod/asteroid_LOD_12.obj",
+             "assets/asteroid_lod/asteroid_LOD_13.obj",
+             "assets/asteroid_lod/asteroid_LOD_14.obj"},
             "./assets/asteroid_lod"
         );
         resourceManager_.loadGeometry(name, geometry);
@@ -427,7 +427,8 @@ bool Application::initialiseCamera(Scene *scene)
 
 void Application::handleInput()
 {
-    // Clamp delta time to prevent rotation/movement spikes after frame stalls
+    // Clamp delta time to prevent rotation/movement spikes after frame
+    // stalls
     float deltaSeconds = std::min(timer_.getDeltaSeconds(), 0.1f);
     float movementSpeed = MOVEMENT_SENSITIVITY * deltaSeconds;
 
@@ -671,8 +672,8 @@ void Application::initialiseEntities()
 }
 
 // TODO - seems super hardcoded all of this - I think there might be an
-// animation component and I add a callback when initialising the horse actor
-// and then call animation update in the scene layer frame
+// animation component and I add a callback when initialising the horse
+// actor and then call animation update in the scene layer frame
 void Application::updateEntities()
 {
     Mesh *mesh = meshManager_.getMesh("asteroid");
