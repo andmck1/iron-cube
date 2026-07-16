@@ -285,18 +285,16 @@ bool Application::initialiseGeometry(
     // TODO - generalise
     {
         // vertex shader pipeline
-        std::unique_ptr<DefaultShaderPipelineUpdateData>
-            actorShaderPipelineUpdateData =
-                std::make_unique<DefaultShaderPipelineUpdateData>();
-        actorShaderPipelineUpdateData->actor = actorPtr;
-        actorShaderPipelineUpdateData->camera = camera_;
-        actorShaderPipelineUpdateData->lodIndex = &lodIndex_;
-        actorShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
-        actorShaderPipelineUpdateData->nFramesSinceStart = &nFramesSinceStart_;
-        actorShaderPipelineUpdateData->rotationFrequency = &rotationFrequency_;
-        actorShaderPipelineUpdateData->timer = &timer_;
-        actorShaderPipelineUpdateData->texture =
-            resourceManager_.getTexture(name);
+        std::unique_ptr<DefaultShaderPipelineUpdateData> updateData =
+            std::make_unique<DefaultShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->lodIndex = &lodIndex_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->nFramesSinceStart = &nFramesSinceStart_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->texture = resourceManager_.getTexture(name);
 
         std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
             std::make_unique<StandardVulkanShaderPipeline>();
@@ -304,7 +302,7 @@ bool Application::initialiseGeometry(
             shaderPipelineManager_.registerShaderPipeline(
                 std::format("{}DefaultVertex", name),
                 std::move(actorShaderPipeline),
-                std::move(actorShaderPipelineUpdateData)
+                std::move(updateData)
             );
 
         registeredShaderPipeline->init(
@@ -315,18 +313,16 @@ bool Application::initialiseGeometry(
     }
     {
         // instanced vertex shader pipeline
-        std::unique_ptr<InstancedVertexShaderPipelineUpdateData>
-            actorInstancedShaderPipelineUpdateData =
-                std::make_unique<InstancedVertexShaderPipelineUpdateData>();
-        actorInstancedShaderPipelineUpdateData->actor = actorPtr;
-        actorInstancedShaderPipelineUpdateData->camera = camera_;
-        actorInstancedShaderPipelineUpdateData->instances =
-            &registeredMesh->instances;
-        actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
-        actorInstancedShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
-        actorInstancedShaderPipelineUpdateData->rotationFrequency =
-            &rotationFrequency_;
-        actorInstancedShaderPipelineUpdateData->timer = &timer_;
+        std::unique_ptr<InstancedVertexShaderPipelineUpdateData> updateData =
+            std::make_unique<InstancedVertexShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->instances = &registeredMesh->instances;
+        updateData->lodIndex = &lodIndex_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->texture = resourceManager_.getTexture(name);
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -334,8 +330,7 @@ bool Application::initialiseGeometry(
         auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
             shaderPipelineManager_.registerShaderPipeline(
                 std::format("{}InstancedVertex", name),
-                std::move(actorInstancedShaderPipeline),
-                std::move(actorInstancedShaderPipelineUpdateData)
+                std::move(actorInstancedShaderPipeline), std::move(updateData)
             );
 
         registeredShaderPipeline->init(
@@ -345,23 +340,20 @@ bool Application::initialiseGeometry(
     {
         // instanced vertex shader pipeline
         std::unique_ptr<InstancedVertexComputeShaderPipelineUpdateData>
-            actorInstancedShaderPipelineUpdateData = std::make_unique<
+            updateData = std::make_unique<
                 InstancedVertexComputeShaderPipelineUpdateData>();
-        actorInstancedShaderPipelineUpdateData->actor = actorPtr;
-        actorInstancedShaderPipelineUpdateData->camera = camera_;
-        actorInstancedShaderPipelineUpdateData->instances =
-            &registeredMesh->instances;
-        actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
-        actorInstancedShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
-        actorInstancedShaderPipelineUpdateData->rotationFrequency =
-            &rotationFrequency_;
-        actorInstancedShaderPipelineUpdateData->timer = &timer_;
-        actorInstancedShaderPipelineUpdateData->visibilityFunc =
-            &visibilityFunction_;
-        actorInstancedShaderPipelineUpdateData->maxLODDistance =
-            &maxLODDistance_;
-        actorInstancedShaderPipelineUpdateData->lodExponent = &lodExponent_;
-        actorInstancedShaderPipelineUpdateData->isLODOn = &isLODOn_;
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->instances = &registeredMesh->instances;
+        updateData->lodIndex = &lodIndex_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->visibilityFunc = &visibilityFunction_;
+        updateData->maxLODDistance = &maxLODDistance_;
+        updateData->lodExponent = &lodExponent_;
+        updateData->isLODOn = &isLODOn_;
+        updateData->texture = resourceManager_.getTexture(name);
 
         std::unique_ptr<InstancedVertexComputeVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -370,7 +362,7 @@ bool Application::initialiseGeometry(
             shaderPipelineManager_.registerShaderPipeline(
                 std::format("{}InstancedVertexCompute", name),
                 std::move(actorInstancedShaderPipeline),
-                std::move(actorInstancedShaderPipelineUpdateData)
+                std::move(updateData)
             );
 
         registeredShaderPipeline->init(
@@ -379,22 +371,19 @@ bool Application::initialiseGeometry(
     }
     {
         // mesh shader pipeline
-        std::unique_ptr<InstancedMeshShaderPipelineUpdateData>
-            actorMeshShaderPipelineUpdateData =
-                std::make_unique<InstancedMeshShaderPipelineUpdateData>();
-        actorMeshShaderPipelineUpdateData->actor = actorPtr;
-        actorMeshShaderPipelineUpdateData->camera = camera_;
-        actorMeshShaderPipelineUpdateData->instances =
-            &registeredMesh->instances;
-        actorMeshShaderPipelineUpdateData->visibilityFunc =
-            &visibilityFunction_;
-        actorMeshShaderPipelineUpdateData->maxLODDistance = &maxLODDistance_;
-        actorMeshShaderPipelineUpdateData->lodExponent = &lodExponent_;
-        actorMeshShaderPipelineUpdateData->isLODOn = &isLODOn_;
-        actorMeshShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
-        actorMeshShaderPipelineUpdateData->rotationFrequency =
-            &rotationFrequency_;
-        actorMeshShaderPipelineUpdateData->timer = &timer_;
+        std::unique_ptr<InstancedMeshShaderPipelineUpdateData> updateData =
+            std::make_unique<InstancedMeshShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->instances = &registeredMesh->instances;
+        updateData->visibilityFunc = &visibilityFunction_;
+        updateData->maxLODDistance = &maxLODDistance_;
+        updateData->lodExponent = &lodExponent_;
+        updateData->isLODOn = &isLODOn_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->texture = resourceManager_.getTexture(name);
 
         std::unique_ptr<InstancedMeshVulkanShaderPipeline>
             actorMeshShaderPipeline =
@@ -405,7 +394,7 @@ bool Application::initialiseGeometry(
                 shaderPipelineManager_.registerShaderPipeline(
                     std::format("{}Mesh", name),
                     std::move(actorMeshShaderPipeline),
-                    std::move(actorMeshShaderPipelineUpdateData)
+                    std::move(updateData)
                 );
         // TODO - should init reference the pointer to this update data?
         registeredMeshShaderPipeline->init(

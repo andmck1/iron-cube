@@ -92,6 +92,7 @@ void main(
         float4x4 mvpMatrix =
             mul(scene.projection, mul(scene.view, modelMatrix));
         vertices[gtid].position = mul(mvpMatrix, modelPosition);
+        vertices[gtid].uv = modelVertices[vertexIndex].tex.xy;
 
         // TODO - add as flag
         // float4 colour =

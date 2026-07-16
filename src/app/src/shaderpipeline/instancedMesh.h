@@ -21,6 +21,7 @@ class InstancedMeshShaderPipelineUpdateData : public ShaderPipelineUpdateData
     bool *isAnimationOn = nullptr;
     float *rotationFrequency = nullptr;
     Timer *timer = nullptr;
+    Texture *texture = nullptr;
 };
 
 class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline

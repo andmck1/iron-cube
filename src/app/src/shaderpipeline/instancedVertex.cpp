@@ -79,6 +79,20 @@ void InstancedVertexVulkanShaderPipeline::initBufferDescriptions()
                 vk::ShaderStageFlagBits::eFragment
             )
     );
+    resourceDescriptions_.push_back(
+        ImageDescription()
+            .setBufferSlot(InstancedVF::BufferSlots::TEXTURE)
+            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+            .setExtent(
+                vk::Extent3D(
+                    static_cast<uint32_t>(updateData_->texture->texWidth),
+                    static_cast<uint32_t>(updateData_->texture->texHeight), 1
+                )
+            )
+            .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+            .setData(updateData_->texture->pixels)
+            .setDataSize(updateData_->texture->imageSize)
+    );
 }
 
 void InstancedVertexVulkanShaderPipeline::initBuffers()

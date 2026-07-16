@@ -13,15 +13,16 @@ namespace InstancedMesh
 {
     enum BufferSlots : uint
     {
-        SCENE = 0,
-        ANIMATION = 1,
-        DEBUG = 2,
-        MODEL_VERTICES = 3,
-        MESHLETS = 4,
-        VERTEX_INDICES = 5,
-        TRIANGLE_INDICES = 6,
-        INSTANCES = 7,
-        MESHLET_BOUNDING_SPHERES = 8,
+        SCENE,
+        ANIMATION,
+        DEBUG,
+        MODEL_VERTICES,
+        MESHLETS,
+        VERTEX_INDICES,
+        TRIANGLE_INDICES,
+        INSTANCES,
+        MESHLET_BOUNDING_SPHERES,
+        TEXTURE,
         LAST
     };
 
@@ -29,6 +30,7 @@ namespace InstancedMesh
     {
         float4 position SEMANTIC(SV_Position);
         float4 colour;
+        float2 uv;
     };
 
     struct InstancedVertexInputType

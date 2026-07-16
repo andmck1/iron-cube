@@ -41,6 +41,6 @@ InstancedVF::VertexOutputType main(InstancedVF::InstancedVertexInputType input)
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
     output.position = mul(mvpMatrix, modelPosition);
     output.colour = float4((input.normal + 1.f + input.tex[0]).xyz / 3.f, 1.0f);
-    // output.colour = {1.0, 1.0, 1.0, 1.0};
+    output.uv = input.tex.xy;
     return output;
 }

@@ -47,6 +47,7 @@ main(InstancedVFCompute::InstancedVertexInputType input)
         lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
         lodColour / MAX_LOD_COUNT / 5.0, 1.f
     );
+    output.uv = input.tex.xy;
 
     return output;
 }

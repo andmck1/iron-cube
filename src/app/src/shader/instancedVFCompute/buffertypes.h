@@ -18,6 +18,7 @@ namespace InstancedVFCompute
         LOD_STATS,
         INSTANCES,
         INDIRECT_COMMANDS,
+        TEXTURE,
         LAST
     };
 
@@ -25,6 +26,7 @@ namespace InstancedVFCompute
     {
         float4 position SEMANTIC(SV_Position);
         float4 colour;
+        float2 uv;
     };
 
     struct MVPBuffer
