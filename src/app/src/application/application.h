@@ -19,7 +19,7 @@
 #include <memory>
 #include <vector>
 
-static constexpr float MOUSE_SENSITIVITY = 1.5f;
+static constexpr float MOUSE_SENSITIVITY = 0.0015f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
 static constexpr float GPU_STATS_QUERY_FREQUENCY = 1.f;
 

@@ -18,10 +18,12 @@ import sys
 import shutil
 
 # --- Configuration ---
-src_obj = "/home/dtaunt/dev/iron-cube/assets/asteroid_lod/asteroid_LOD_4.obj"
+src_obj = "/home/dtaunt/dev/iron-cube/assets/asteroid/asteroid.obj"
 out_dir = "/home/dtaunt/dev/iron-cube/assets/asteroid_lod"
 base_name = "asteroid"
-lod_ratios = [0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625]
+num_lods = 10
+
+lod_ratios = [0.5 ** i for i in range(num_lods)]
 lod_offset = 5  # output as LOD_5..LOD_10
 min_faces = 4  # safety floor so decimate never collapses a mesh to nothing
 
@@ -221,6 +223,7 @@ def decimate_and_read(source_obj, ratio, target_name, material_names):
     dec = lod_obj.modifiers.new(name="Decimate", type="DECIMATE")
     dec.decimate_type = "COLLAPSE"
     dec.ratio = ratio
+    dec.use_dissolve_boundaries = True
     # Symmetry is off by default; only touch these if the Blender version
     # in use actually exposes them (the attribute names/shape have changed
     # across Blender releases).

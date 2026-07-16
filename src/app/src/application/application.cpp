@@ -21,6 +21,7 @@
 #include <format>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <algorithm>
 
 bool Application::init(int argc, char *argv[])
 {
@@ -241,9 +242,8 @@ bool Application::initialiseEntities(Scene *scene)
         );
         resourceManager_.loadGeometry(name, geometry);
 
-        Texture texture = ResourceManager::loadImage(
-            "assets/asteroid/texture/diffuse.jpg"
-        );
+        Texture texture =
+            ResourceManager::loadImage("assets/asteroid/texture/diffuse.jpg");
         resourceManager_.loadTexture("asteroid", texture);
         Transform transform =
             Transform{.position = {0.f, -1.f, 0.f}, .scale = {1.f, 1.f, 1.f}};
@@ -301,8 +301,7 @@ bool Application::initialiseGeometry(
         auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
             shaderPipelineManager_.registerShaderPipeline(
                 std::format("{}DefaultVertex", name),
-                std::move(actorShaderPipeline),
-                std::move(updateData)
+                std::move(actorShaderPipeline), std::move(updateData)
             );
 
         registeredShaderPipeline->init(
@@ -361,8 +360,7 @@ bool Application::initialiseGeometry(
         auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
             shaderPipelineManager_.registerShaderPipeline(
                 std::format("{}InstancedVertexCompute", name),
-                std::move(actorInstancedShaderPipeline),
-                std::move(updateData)
+                std::move(actorInstancedShaderPipeline), std::move(updateData)
             );
 
         registeredShaderPipeline->init(
@@ -393,8 +391,7 @@ bool Application::initialiseGeometry(
              registeredMeshShaderPipelineUpdateData] =
                 shaderPipelineManager_.registerShaderPipeline(
                     std::format("{}Mesh", name),
-                    std::move(actorMeshShaderPipeline),
-                    std::move(updateData)
+                    std::move(actorMeshShaderPipeline), std::move(updateData)
                 );
         // TODO - should init reference the pointer to this update data?
         registeredMeshShaderPipeline->init(
@@ -430,9 +427,9 @@ bool Application::initialiseCamera(Scene *scene)
 
 void Application::handleInput()
 {
-    float deltaSeconds = timer_.getDeltaSeconds();
+    // Clamp delta time to prevent rotation/movement spikes after frame stalls
+    float deltaSeconds = std::min(timer_.getDeltaSeconds(), 0.1f);
     float movementSpeed = MOVEMENT_SENSITIVITY * deltaSeconds;
-    float rotationSpeed = MOUSE_SENSITIVITY * deltaSeconds;
 
     IInput *input = platform_.getInput();
     if (!input)
@@ -446,8 +443,10 @@ void Application::handleInput()
     {
         MouseDelta delta = input->getMouseDelta();
 
-        rotationOffset.y -= delta.x * rotationSpeed;
-        rotationOffset.x = delta.y * rotationSpeed;
+        // Mouse delta is already frame-rate-independent (raw movement), so
+        // don't multiply by delta time - just apply sensitivity directly
+        rotationOffset.y -= delta.x * MOUSE_SENSITIVITY;
+        rotationOffset.x = delta.y * MOUSE_SENSITIVITY;
 
         if (input->isKeyPressed(KeyCode::W))
             positionOffset.z += movementSpeed;
