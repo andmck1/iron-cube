@@ -93,7 +93,6 @@ struct BufferDescription
     }
 };
 
-
 struct FrameBuffer
 {
     vk::raii::Buffer buffer = nullptr;

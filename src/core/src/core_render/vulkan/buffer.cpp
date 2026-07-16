@@ -126,6 +126,8 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
     }
     else if (description.useStaging)
     {
+        staging_.upload(data, bufferSize);
+
         vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
         vk::BufferMemoryBarrier barrier{
@@ -148,7 +150,6 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
             staging_.buffer(), frames_[frameIndex].buffer, copy
         );
 
-        // Barrier: transfer write -> shader read
         vk::BufferMemoryBarrier barrier2{
             vk::AccessFlagBits::eTransferWrite,
             vk::AccessFlagBits::eShaderRead,
