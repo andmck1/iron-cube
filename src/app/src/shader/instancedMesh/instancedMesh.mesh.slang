@@ -25,6 +25,9 @@ StructuredBuffer<uint> triangleIndices;
 [[vk::binding(InstancedMesh::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
+[[vk_push_constant]]
+InstancedMesh::Constants constants;
+
 // TODO - use the defines for the triange and vertex limits??
 [shader("mesh")]
 [outputtopology("triangle")]
@@ -94,15 +97,41 @@ void main(
         vertices[gtid].position = mul(mvpMatrix, modelPosition);
         vertices[gtid].uv = modelVertices[vertexIndex].tex.xy;
 
-        // TODO - add as flag
-        // float4 colour =
-        //     float4(float(gid & 1), float(gid & 3) / 4, float(gid & 7) /
-        //     8, 1.f);
-        float lodColour = lodLevel + 1.0;
-        float4 colour = float4(
-            lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
-            lodColour / MAX_LOD_COUNT / 5.0, 1.f
-        );
-        vertices[gtid].colour = colour;
+        float4 normal = modelVertices[vertexIndex].normal;
+
+        switch ((FragmentColourType) constants.fragmentColourType)
+        {
+        case FragmentColourType::TEXTURE:
+        {
+            vertices[gtid].colour = float4(1.f, 1.f, 1.f, 1.f);
+            break;
+        }
+        case FragmentColourType::LOD:
+        {
+            float lodColour = lodLevel + 1.0;
+            vertices[gtid].colour = float4(
+                lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
+                lodColour / MAX_LOD_COUNT / 5.0, 1.f
+            );
+            break;
+        }
+        case FragmentColourType::NORMALS:
+        {
+            vertices[gtid].colour = float4(normal.xyz / 2.f + 0.5f, 1.f);
+            break;
+        }
+        case FragmentColourType::PRIMITIVE:
+        {
+            vertices[gtid].colour = float4(
+                (normal + 1.f + modelVertices[vertexIndex].tex[0]).xyz / 3.f, 1.0f
+            );
+            break;
+        }
+        default:
+        {
+            vertices[gtid].colour = float4(1.f, 1.f, 1.f, 1.f);
+            break;
+        }
+        }
     }
 }

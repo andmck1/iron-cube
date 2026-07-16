@@ -10,6 +10,9 @@ ConstantBuffer<InstancedVFCompute::AnimationBuffer> animation;
 [[vk::binding(InstancedVFCompute::BufferSlots::DEBUG)]]
 RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 
+[[vk_push_constant]]
+InstancedVFCompute::Constants constants;
+
 [shader("vertex")]
 InstancedVFCompute::VertexOutputType
 main(InstancedVFCompute::InstancedVertexInputType input)
@@ -41,13 +44,40 @@ main(InstancedVFCompute::InstancedVertexInputType input)
 
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
     output.position = mul(mvpMatrix, modelPosition);
-
-    float lodColour = float(input.lodLevel.x) + 1.0;
-    output.colour = float4(
-        lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
-        lodColour / MAX_LOD_COUNT / 5.0, 1.f
-    );
     output.uv = input.tex.xy;
+
+    switch ((FragmentColourType) constants.fragmentColourType)
+    {
+    case FragmentColourType::TEXTURE:
+    {
+        output.colour = float4(1.f, 1.f, 1.f, 1.f);
+        break;
+    }
+    case FragmentColourType::LOD:
+    {
+        float lodColour = float(input.lodLevel.x) + 1.0;
+        output.colour = float4(
+            lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
+            lodColour / MAX_LOD_COUNT / 5.0, 1.f
+        );
+        break;
+    }
+    case FragmentColourType::NORMALS:
+    {
+        output.colour = float4(input.normal.xyz / 2.f + 0.5f, 1.f);
+        break;
+    }
+    case FragmentColourType::PRIMITIVE:
+    {
+        output.colour = float4((input.normal + 1.f + input.tex[0]).xyz / 3.f, 1.0f);
+        break;
+    }
+    default:
+    {
+        output.colour = float4(1.f, 1.f, 1.f, 1.f);
+        break;
+    }
+    }
 
     return output;
 }

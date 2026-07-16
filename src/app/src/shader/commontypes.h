@@ -74,7 +74,8 @@ enum FragmentColourType : int
 {
     TEXTURE,
     PRIMITIVE,
-    LOD
+    LOD,
+    NORMALS
 };
 
 #endif
