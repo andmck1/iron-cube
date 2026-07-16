@@ -65,7 +65,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::shutdown()
 
 void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
 {
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         UniformBuffer.setBufferSlot(InstancedVFCompute::BufferSlots::MVP)
             .setBufferSize(sizeof(InstancedVFCompute::MVPBuffer))
             .setData(static_cast<InstancedVFCompute::MVPBuffer *>(nullptr))
@@ -75,14 +75,14 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
             )
     );
 
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         UniformBuffer.setBufferSlot(InstancedVFCompute::BufferSlots::SCENE)
             .setBufferSize(sizeof(InstancedVFCompute::SceneBuffer))
             .setData(static_cast<InstancedVFCompute::SceneBuffer *>(nullptr))
             .setStageFlags(vk::ShaderStageFlagBits::eCompute)
     );
 
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         UniformBuffer.setBufferSlot(InstancedVFCompute::BufferSlots::ANIMATION)
             .setBufferSize(sizeof(InstancedVFCompute::AnimationBuffer))
             .setData(
@@ -94,7 +94,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
             )
     );
 
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageReadWrite.setBufferSlot(InstancedVFCompute::BufferSlots::DEBUG)
             .setBufferSize(sizeof(InstancedVFCompute::DebugDataBuffer))
             .setData(debugDataBufferData_.data())
@@ -105,7 +105,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
             )
     );
 
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageReadWrite
             .setBufferSlot(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)
             .setBufferSize(
@@ -116,7 +116,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
             .setStageFlags(vk::ShaderStageFlagBits::eCompute)
     );
 
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageReadWrite
             .setBufferSlot(InstancedVFCompute::BufferSlots::LOD_STATS)
             .setBufferSize(sizeof(InstancedVFCompute::LODStats) * MAX_LOD_COUNT)
@@ -124,7 +124,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
             .setStageFlags(vk::ShaderStageFlagBits::eCompute)
     );
 
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedVFCompute::BufferSlots::INSTANCES)
             .setBufferSize(
                 sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
@@ -137,7 +137,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
             )
     );
 
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageReadWrite
             .setBufferSlot(InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS)
             .setBufferSize(
@@ -156,8 +156,8 @@ void InstancedVertexComputeVulkanShaderPipeline::initBuffers()
 {
     initBufferDescriptions();
 
-    for (auto bufferDescription : bufferDescriptions_)
-        addBuffer(bufferDescription);
+    for (auto bufferDescription : resourceDescriptions_)
+        addResource(bufferDescription);
 
     BufferDescription vertexDesc = VertexBuffer;
     vertexDesc.bufferSize =
@@ -468,7 +468,7 @@ void InstancedVertexComputeVulkanShaderPipeline::updateSceneData()
         static_cast<uint32_t>(*updateData_->visibilityFunc), 0, 0, 0
     };
 
-    buffers_[InstancedVFCompute::BufferSlots::SCENE].update(
+    resources_[InstancedVFCompute::BufferSlots::SCENE].update(
         sizeof(sceneData), &sceneData
     );
 }
@@ -480,7 +480,7 @@ void InstancedVertexComputeVulkanShaderPipeline::updateMVPData()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
-    buffers_[InstancedVFCompute::BufferSlots::MVP].update(sizeof(mvp), &mvp);
+    resources_[InstancedVFCompute::BufferSlots::MVP].update(sizeof(mvp), &mvp);
 }
 
 void InstancedVertexComputeVulkanShaderPipeline::updateAnimationData()
@@ -496,7 +496,7 @@ void InstancedVertexComputeVulkanShaderPipeline::updateAnimationData()
     animation.currentTime = {
         updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
     };
-    buffers_[InstancedVFCompute::BufferSlots::ANIMATION].update(
+    resources_[InstancedVFCompute::BufferSlots::ANIMATION].update(
         sizeof(animation), &animation
     );
 }
@@ -505,7 +505,7 @@ void InstancedVertexComputeVulkanShaderPipeline::updateInstancesData()
 {
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * updateData_->instances->size();
-    buffers_[InstancedVFCompute::BufferSlots::INSTANCES].update(
+    resources_[InstancedVFCompute::BufferSlots::INSTANCES].update(
         instancesBufferSize, updateData_->instances->data()
     );
 }
@@ -518,7 +518,7 @@ void InstancedVertexComputeVulkanShaderPipeline::updateDebugData()
         debugDataBufferData_.size();
     debugDataBufferData_ = {InstancedVFCompute::DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    buffers_[InstancedVFCompute::BufferSlots::DEBUG].update(
+    resources_[InstancedVFCompute::BufferSlots::DEBUG].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 }
@@ -538,7 +538,7 @@ void InstancedVertexComputeVulkanShaderPipeline::resetIndirectDrawCommands()
         indirectCommandsData[lodIndex].vertexOffset = 0;
         indirectCommandsData[lodIndex].firstInstance = 0;
     }
-    buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS].update(
+    resources_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS].update(
         sizeof(vk::DrawIndexedIndirectCommand) * MAX_LOD_COUNT,
         indirectCommandsData.data()
     );
@@ -549,7 +549,7 @@ void InstancedVertexComputeVulkanShaderPipeline::resetLODStats()
     std::vector<InstancedVFCompute::LODStats> lodStats(
         MAX_LOD_COUNT, InstancedVFCompute::LODStats()
     );
-    buffers_[InstancedVFCompute::BufferSlots::LOD_STATS].update(
+    resources_[InstancedVFCompute::BufferSlots::LOD_STATS].update(
         sizeof(InstancedVFCompute::LODStats) * MAX_LOD_COUNT, lodStats.data()
     );
 }
@@ -593,10 +593,12 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
     commandBuffer.dispatch(dispatchCount, 1, 1);
 
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
-    VulkanBuffer &reorderedInstancesBuffer =
-        buffers_[InstancedVFCompute::BufferSlots::REORDERED_INSTANCES];
-    VulkanBuffer &indirectBuffer =
-        buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS];
+    VulkanBuffer *reorderedInstancesBuffer =
+        resources_[InstancedVFCompute::BufferSlots::REORDERED_INSTANCES]
+            .asBuffer();
+    VulkanBuffer *indirectBuffer =
+        resources_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS]
+            .asBuffer();
 
     BufferBarrierInfo barrierInfo;
 
@@ -605,7 +607,7 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
         .destinationAccess = vk::AccessFlagBits2::eTransferRead,
         .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
         .destinationStage = vk::PipelineStageFlagBits2::eTransfer,
-        .buffer = reorderedInstancesBuffer.getBuffer(frameIndex)
+        .buffer = reorderedInstancesBuffer->getBuffer(frameIndex)
     };
     addBarrier(barrierInfo);
 
@@ -624,7 +626,7 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
                                       MAX_N_INSTANCE_LAYERS *
                                       MAX_N_INSTANCE_ROWS;
     commandBuffer.copyBuffer(
-        *reorderedInstancesBuffer.getBuffer(frameIndex),
+        *reorderedInstancesBuffer->getBuffer(frameIndex),
         *instanceBuffer_.getBuffer(frameIndex),
         vk::BufferCopy(0, 0, maxInstancesSize)
     );
@@ -634,7 +636,7 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
         .destinationAccess = vk::AccessFlagBits2::eIndirectCommandRead,
         .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
         .destinationStage = vk::PipelineStageFlagBits2::eDrawIndirect,
-        .buffer = indirectBuffer.getBuffer(frameIndex)
+        .buffer = indirectBuffer->getBuffer(frameIndex)
     };
     addBarrier(barrierInfo);
     setBarrier();
@@ -673,9 +675,9 @@ bool InstancedVertexComputeVulkanShaderPipeline::draw()
 
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
     renderer_->getCommandBuffer().drawIndexedIndirect(
-        *buffers_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS].getBuffer(
-            frameIndex
-        ),
+        *resources_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS]
+             .asBuffer()
+             ->getBuffer(frameIndex),
         0, MAX_LOD_COUNT, sizeof(vk::DrawIndexedIndirectCommand)
     );
     nDrawCalls_++;
@@ -694,12 +696,14 @@ bool InstancedVertexComputeVulkanShaderPipeline::postRender()
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    buffers_[InstancedVFCompute::BufferSlots::DEBUG].copyToStaging(
-        debugDataBufferSize,
-        vk::PipelineStageFlagBits::eVertexShader |
-            vk::PipelineStageFlagBits::eFragmentShader,
-        renderer_->getCurrentFrameIndex()
-    );
+    resources_[InstancedVFCompute::BufferSlots::DEBUG]
+        .asBuffer()
+        ->copyToStaging(
+            debugDataBufferSize,
+            vk::PipelineStageFlagBits::eVertexShader |
+                vk::PipelineStageFlagBits::eFragmentShader,
+            renderer_->getCurrentFrameIndex()
+        );
     return true;
 }
 
@@ -720,7 +724,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::updatePipelineStatistics()
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    buffers_[InstancedVFCompute::BufferSlots::DEBUG].readData(
+    resources_[InstancedVFCompute::BufferSlots::DEBUG].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =

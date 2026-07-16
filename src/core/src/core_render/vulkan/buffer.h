@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core_render/vulkan/renderer.h"
+#include "core_render/vulkan/stagingtransfer.h"
 #include <vulkan/vulkan_raii.hpp>
 
 struct BufferDescription
@@ -125,10 +126,8 @@ class VulkanBuffer
     );
 
     std::vector<FrameBuffer> frames_;
-    vk::raii::Buffer stagingBuffer_ = nullptr;
-    vk::raii::DeviceMemory stagingBufferMemory_ = nullptr;
+    StagingTransfer staging_;
     VulkanRenderer *renderer_ = nullptr;
-    vk::DeviceSize bufferSize_ = 0;
 };
 
 extern BufferDescription UniformBuffer;

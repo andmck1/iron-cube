@@ -180,7 +180,7 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
 void InstancedMeshVulkanShaderPipeline::initBufferDescriptions()
 {
     // TODO - the dream is having this as pure config
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         UniformBuffer.setBufferSlot(InstancedMesh::BufferSlots::SCENE)
             .setBufferSize(sizeof(InstancedMesh::SceneBuffer))
             .setData(static_cast<InstancedMesh::SceneBuffer *>(nullptr))
@@ -189,13 +189,13 @@ void InstancedMeshVulkanShaderPipeline::initBufferDescriptions()
                 vk::ShaderStageFlagBits::eMeshEXT
             )
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         UniformBuffer.setBufferSlot(InstancedMesh::BufferSlots::ANIMATION)
             .setBufferSize(sizeof(InstancedMesh::AnimationBuffer))
             .setData(static_cast<InstancedMesh::AnimationBuffer *>(nullptr))
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT)
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageReadWrite.setBufferSlot(InstancedMesh::BufferSlots::DEBUG)
             .setBufferSize(sizeof(InstancedMesh::DebugDataBuffer))
             .setData(debugDataBufferData_.data())
@@ -205,25 +205,25 @@ void InstancedMeshVulkanShaderPipeline::initBufferDescriptions()
                 vk::ShaderStageFlagBits::eFragment
             )
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedMesh::BufferSlots::MODEL_VERTICES)
             .setBufferSize(sizeof(VertexInputType) * geometry_->vertices.size())
             .setData(geometry_->vertices.data())
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT)
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedMesh::BufferSlots::MESHLETS)
             .setBufferSize(sizeof(meshopt_Meshlet) * geometry_->meshlets.size())
             .setData(geometry_->meshlets.data())
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT)
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedMesh::BufferSlots::VERTEX_INDICES)
             .setBufferSize(sizeof(uint32_t) * geometry_->meshletVertices.size())
             .setData(geometry_->meshletVertices.data())
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT)
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedMesh::BufferSlots::TRIANGLE_INDICES)
             .setBufferSize(
                 sizeof(uint32_t) * geometry_->meshletTrianglesU32.size()
@@ -231,7 +231,7 @@ void InstancedMeshVulkanShaderPipeline::initBufferDescriptions()
             .setData(geometry_->meshletTrianglesU32.data())
             .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT)
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedMesh::BufferSlots::INSTANCES)
             .setBufferSize(
                 sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
@@ -243,7 +243,7 @@ void InstancedMeshVulkanShaderPipeline::initBufferDescriptions()
                 vk::ShaderStageFlagBits::eMeshEXT
             )
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageRead
             .setBufferSlot(InstancedMesh::BufferSlots::MESHLET_BOUNDING_SPHERES)
             .setBufferSize(
@@ -261,8 +261,8 @@ void InstancedMeshVulkanShaderPipeline::initBuffers()
 {
     initBufferDescriptions();
 
-    for (auto bufferDescription : bufferDescriptions_)
-        addBuffer(bufferDescription);
+    for (auto bufferDescription : resourceDescriptions_)
+        addResource(bufferDescription);
 }
 
 bool InstancedMeshVulkanShaderPipeline::bind()
@@ -332,7 +332,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
     sceneData.visibilityFunc =
         static_cast<uint32_t>(*updateData_->visibilityFunc);
 
-    buffers_[InstancedMesh::BufferSlots::SCENE].update(
+    resources_[InstancedMesh::BufferSlots::SCENE].update(
         sizeof(sceneData), &sceneData
     );
 
@@ -347,14 +347,14 @@ bool InstancedMeshVulkanShaderPipeline::update()
     animation.currentTime = {
         updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
     };
-    buffers_[InstancedMesh::BufferSlots::ANIMATION].update(
+    resources_[InstancedMesh::BufferSlots::ANIMATION].update(
         sizeof(animation), &animation
     );
 
     // This takes up most of the frame time
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * updateData_->instances->size();
-    buffers_[InstancedMesh::BufferSlots::INSTANCES].update(
+    resources_[InstancedMesh::BufferSlots::INSTANCES].update(
         instancesBufferSize, updateData_->instances->data()
     );
 
@@ -363,7 +363,7 @@ bool InstancedMeshVulkanShaderPipeline::update()
         sizeof(InstancedMesh::DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {InstancedMesh::DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    buffers_[InstancedMesh::BufferSlots::DEBUG].update(
+    resources_[InstancedMesh::BufferSlots::DEBUG].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -425,7 +425,7 @@ bool InstancedMeshVulkanShaderPipeline::postRender()
         return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedMesh::DebugDataBuffer) * debugDataBufferData_.size();
-    buffers_[InstancedMesh::BufferSlots::DEBUG].copyToStaging(
+    resources_[InstancedMesh::BufferSlots::DEBUG].asBuffer()->copyToStaging(
         debugDataBufferSize,
         vk::PipelineStageFlagBits::eTaskShaderEXT |
             vk::PipelineStageFlagBits::eMeshShaderEXT |
@@ -451,7 +451,7 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
     // a pointer
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedMesh::DebugDataBuffer) * debugDataBufferData_.size();
-    buffers_[InstancedMesh::BufferSlots::DEBUG].readData(
+    resources_[InstancedMesh::BufferSlots::DEBUG].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nTaskShaderInvocations =

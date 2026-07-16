@@ -55,7 +55,7 @@ bool InstancedVertexVulkanShaderPipeline::shutdown()
 
 void InstancedVertexVulkanShaderPipeline::initBufferDescriptions()
 {
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         UniformBuffer.setBufferSlot(InstancedVF::BufferSlots::MVP)
             .setBufferSize(sizeof(InstancedVF::MVPBuffer))
             .setData(static_cast<InstancedVF::MVPBuffer *>(nullptr))
@@ -64,13 +64,13 @@ void InstancedVertexVulkanShaderPipeline::initBufferDescriptions()
                 vk::ShaderStageFlagBits::eFragment
             )
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         UniformBuffer.setBufferSlot(InstancedVF::BufferSlots::ANIMATION)
             .setBufferSize(sizeof(InstancedVF::AnimationBuffer))
             .setData(static_cast<InstancedVF::AnimationBuffer *>(nullptr))
             .setStageFlags(vk::ShaderStageFlagBits::eVertex)
     );
-    bufferDescriptions_.push_back(
+    resourceDescriptions_.push_back(
         StorageReadWrite.setBufferSlot(InstancedVF::BufferSlots::DEBUG)
             .setBufferSize(sizeof(InstancedVF::DebugDataBuffer))
             .setData(debugDataBufferData_.data())
@@ -85,8 +85,8 @@ void InstancedVertexVulkanShaderPipeline::initBuffers()
 {
     initBufferDescriptions();
 
-    for (auto bufferDescription : bufferDescriptions_)
-        addBuffer(bufferDescription);
+    for (auto bufferDescription : resourceDescriptions_)
+        addResource(bufferDescription);
 
     BufferDescription vertexDesc = VertexBuffer;
     vertexDesc.bufferSize =
@@ -314,7 +314,7 @@ bool InstancedVertexVulkanShaderPipeline::update()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
-    buffers_[InstancedVF::BufferSlots::MVP].update(sizeof(mvp), &mvp);
+    resources_[InstancedVF::BufferSlots::MVP].update(sizeof(mvp), &mvp);
 
     InstancedVF::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
@@ -327,7 +327,7 @@ bool InstancedVertexVulkanShaderPipeline::update()
     animation.currentTime = {
         updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
     };
-    buffers_[InstancedVF::BufferSlots::ANIMATION].update(
+    resources_[InstancedVF::BufferSlots::ANIMATION].update(
         sizeof(animation), &animation
     );
 
@@ -340,7 +340,7 @@ bool InstancedVertexVulkanShaderPipeline::update()
         sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
     debugDataBufferData_ = {InstancedVF::DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    buffers_[InstancedVF::BufferSlots::DEBUG].update(
+    resources_[InstancedVF::BufferSlots::DEBUG].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -377,7 +377,7 @@ bool InstancedVertexVulkanShaderPipeline::postRender()
         return true;
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
-    buffers_[InstancedVF::BufferSlots::DEBUG].copyToStaging(
+    resources_[InstancedVF::BufferSlots::DEBUG].asBuffer()->copyToStaging(
         debugDataBufferSize,
         vk::PipelineStageFlagBits::eVertexShader |
             vk::PipelineStageFlagBits::eFragmentShader,
@@ -401,7 +401,7 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
 
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
-    buffers_[InstancedVF::BufferSlots::DEBUG].readData(
+    resources_[InstancedVF::BufferSlots::DEBUG].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
     pipelineStatistics_.nVertexShaderInvocations =
@@ -409,7 +409,7 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
     pipelineStatistics_.nFragmentShaderInvocations =
         debugDataBufferData_[0].nFragmentShaderInvocations;
     pipelineStatistics_.nTriangles =
-        (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3) *
+        (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3.0) *
         updateData_->instances->size();
     pipelineStatistics_.nDrawCalls = nDrawCalls_;
     return true;

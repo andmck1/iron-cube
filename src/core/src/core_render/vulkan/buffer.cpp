@@ -55,70 +55,48 @@ BufferDescription IndexBuffer{
 void VulkanBuffer::init(BufferDescription bufferDescription)
 {
     description = bufferDescription;
-    bufferSize_ = bufferDescription.bufferSize;
     renderer_ = dynamic_cast<VulkanRenderer *>(
         ServiceLocator::instance().get<IRenderer>()
     );
 
-    stagingBuffer_ = nullptr;
-    stagingBufferMemory_ = nullptr;
     frames_.clear();
+    frames_.resize(renderer_->MAX_FRAMES_IN_FLIGHT);
 
     if (description.useStaging)
     {
-        // Create shared staging buffer (host-visible)
-        std::tie(stagingBuffer_, stagingBufferMemory_) =
-            renderer_->createBuffer(
-                bufferDescription.bufferSize, description.stagingUsage,
-                vk::MemoryPropertyFlagBits::eHostVisible |
-                    vk::MemoryPropertyFlagBits::eHostCoherent
-            );
+        staging_.init(renderer_, description.bufferSize);
 
-        // Create per-frame device buffers (device-local)
-        frames_.resize(renderer_->MAX_FRAMES_IN_FLIGHT);
-        for (uint32_t i = 0; i < renderer_->MAX_FRAMES_IN_FLIGHT; i++)
+        for (FrameBuffer &frame : frames_)
         {
-            std::tie(frames_[i].buffer, frames_[i].memory) =
-                renderer_->createBuffer(
-                    bufferDescription.bufferSize, description.deviceUsage,
-                    description.deviceMemory
-                );
-            frames_[i].mappedPointer = nullptr;
+            std::tie(frame.buffer, frame.memory) = renderer_->createBuffer(
+                bufferDescription.bufferSize, description.deviceUsage,
+                description.deviceMemory
+            );
+            frame.mappedPointer = nullptr;
 
             if (bufferDescription.data)
             {
-                void *stagingData = stagingBufferMemory_.mapMemory(
-                    0, bufferDescription.bufferSize
-                );
-                memcpy(
-                    stagingData, bufferDescription.data,
-                    bufferDescription.bufferSize
-                );
-                stagingBufferMemory_.unmapMemory();
+                staging_.upload(description.data, description.bufferSize);
                 renderer_->copyBuffer(
-                    stagingBuffer_, frames_[i].buffer,
-                    bufferDescription.bufferSize
+                    staging_.buffer(), frame.buffer, description.bufferSize
                 );
             }
         }
     }
     else if (description.persistentlyMapped)
     {
-        // Create per-frame persistently mapped buffers
-        frames_.resize(renderer_->MAX_FRAMES_IN_FLIGHT);
-        for (uint32_t i = 0; i < renderer_->MAX_FRAMES_IN_FLIGHT; i++)
+        for (FrameBuffer &frame : frames_)
         {
-            std::tie(frames_[i].buffer, frames_[i].memory) =
-                renderer_->createBuffer(
-                    bufferDescription.bufferSize, description.deviceUsage,
-                    description.deviceMemory
-                );
-            frames_[i].mappedPointer =
-                frames_[i].memory.mapMemory(0, bufferDescription.bufferSize);
+            std::tie(frame.buffer, frame.memory) = renderer_->createBuffer(
+                bufferDescription.bufferSize, description.deviceUsage,
+                description.deviceMemory
+            );
+            frame.mappedPointer =
+                frame.memory.mapMemory(0, bufferDescription.bufferSize);
             if (bufferDescription.data)
             {
                 memcpy(
-                    frames_[i].mappedPointer, bufferDescription.data,
+                    frame.mappedPointer, bufferDescription.data,
                     bufferDescription.bufferSize
                 );
             }
@@ -126,16 +104,13 @@ void VulkanBuffer::init(BufferDescription bufferDescription)
     }
     else
     {
-        // Simple buffer with no staging, no mapping — still per-frame
-        frames_.resize(renderer_->MAX_FRAMES_IN_FLIGHT);
-        for (uint32_t i = 0; i < renderer_->MAX_FRAMES_IN_FLIGHT; i++)
+        for (FrameBuffer &frame : frames_)
         {
-            std::tie(frames_[i].buffer, frames_[i].memory) =
-                renderer_->createBuffer(
-                    bufferDescription.bufferSize, description.deviceUsage,
-                    description.deviceMemory
-                );
-            frames_[i].mappedPointer = nullptr;
+            std::tie(frame.buffer, frame.memory) = renderer_->createBuffer(
+                bufferDescription.bufferSize, description.deviceUsage,
+                description.deviceMemory
+            );
+            frame.mappedPointer = nullptr;
         }
     }
 }
@@ -147,26 +122,18 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
 
     if (description.persistentlyMapped)
     {
-        // Direct write to current frame's mapped memory
         memcpy(frames_[frameIndex].mappedPointer, data, bufferSize);
     }
     else if (description.useStaging)
     {
-        // Copy through staging buffer with proper barriers
         vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
-        // Map staging buffer and copy data
-        void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
-        memcpy(stagingData, data, bufferSize);
-        stagingBufferMemory_.unmapMemory();
-
-        // Barrier: host write -> transfer read
         vk::BufferMemoryBarrier barrier{
             vk::AccessFlagBits::eHostWrite,
             vk::AccessFlagBits::eTransferRead,
             VK_QUEUE_FAMILY_IGNORED,
             VK_QUEUE_FAMILY_IGNORED,
-            stagingBuffer_,
+            staging_.buffer(),
             0,
             VK_WHOLE_SIZE
         };
@@ -176,10 +143,9 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
             vk::PipelineStageFlagBits::eTransfer, {}, nullptr, barrier, nullptr
         );
 
-        // Copy staging -> current frame's device buffer
         vk::BufferCopy copy{0, 0, bufferSize};
         commandBuffer.copyBuffer(
-            stagingBuffer_, frames_[frameIndex].buffer, copy
+            staging_.buffer(), frames_[frameIndex].buffer, copy
         );
 
         // Barrier: transfer write -> shader read
@@ -217,9 +183,7 @@ void VulkanBuffer::readData(vk::DeviceSize bufferSize, void *outputData)
     copyToStaging(
         bufferSize, vk::PipelineStageFlagBits::eAllGraphics, frameIndex
     );
-    void *stagingData = stagingBufferMemory_.mapMemory(0, bufferSize);
-    memcpy(outputData, stagingData, bufferSize);
-    stagingBufferMemory_.unmapMemory();
+    staging_.download(outputData, bufferSize);
 }
 
 void VulkanBuffer::copyToStaging(
@@ -245,14 +209,16 @@ void VulkanBuffer::copyToStaging(
     );
 
     vk::BufferCopy copy{0, 0, size};
-    commandBuffer.copyBuffer(frames_[frameIndex].buffer, stagingBuffer_, copy);
+    commandBuffer.copyBuffer(
+        frames_[frameIndex].buffer, staging_.buffer(), copy
+    );
 
     vk::BufferMemoryBarrier barrier2{
         vk::AccessFlagBits::eTransferWrite,
         vk::AccessFlagBits::eHostRead,
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED,
-        stagingBuffer_,
+        staging_.buffer(),
         0,
         VK_WHOLE_SIZE
     };
@@ -272,4 +238,3 @@ FrameBuffer *VulkanBuffer::getFrameBuffer(uint32_t frameIndex)
 {
     return &frames_[frameIndex];
 }
-
