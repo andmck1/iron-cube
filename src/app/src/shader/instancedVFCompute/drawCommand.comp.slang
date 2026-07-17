@@ -20,6 +20,9 @@ RWStructuredBuffer<Instance> reorderedInstances;
 [[vk::binding(InstancedVFCompute::BufferSlots::LOD_STATS)]]
 RWStructuredBuffer<InstancedVFCompute::LODStats> lodStats;
 
+[[vk::binding(InstancedVFCompute::BufferSlots::ANIMATION)]]
+ConstantBuffer<InstancedVFCompute::AnimationBuffer> animation;
+
 [shader("compute")]
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void main(uint3 dispatchThreadID: SV_DispatchThreadID)
@@ -42,9 +45,26 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 
     if (instanceIndex < scene.instanceCount.x)
     {
+
+        float4 instancePosition = instances[instanceIndex].position;
+        float4 instanceRotation = instances[instanceIndex].rotation;
+        if (animation.isAnimationOn > 0)
+        {
+            float rotationAngle =
+                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
+            float4 spin =
+                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
+            instanceRotation = quaternionMultiply(spin, instanceRotation);
+
+            float instanceDiscRadius = length(instancePosition.xz);
+            float discAngle =
+                PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
+            instancePosition =
+                rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
+        }
+
         float4x4 modelMatrix = calculateModelMatrix(
-            instances[instanceIndex].position,
-            instances[instanceIndex].rotation, instances[instanceIndex].scale
+            instancePosition, instanceRotation, instances[instanceIndex].scale
         );
         float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
             modelMatrix, scene.minMeshBounds, scene.maxMeshBounds
