@@ -23,6 +23,9 @@
 static constexpr float MOUSE_SENSITIVITY = 0.0015f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
 static constexpr float GPU_STATS_QUERY_FREQUENCY = 1.f;
+static constexpr float EPS = 1e-6f;
+static constexpr float INSTANCE_SCALE_LOWER = 0.5;
+static constexpr float INSTANCE_SCALE_UPPER = 2.0;
 
 class Application
 {
@@ -76,12 +79,15 @@ class Application
     VisibilityFunc visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
     bool isAnimationOn_ = false;
 
-    int nInstanceRows_ = 1;
-    int nInstanceColumns_ = 1;
-    int nInstanceLayers_ = 1;
-    int currentNInstanceRows_ = 1;
-    int currentNInstanceColumns_ = 1;
-    int currentNInstanceLayers_ = 1;
+    int nInstances_ = 1000;
+    float discOuterRadius_ = 1000.f;
+    float discInnerRadius_ = 50.f;
+    float discHeight_ = 50.f;
+
+    int currentNInstances_ = nInstances_;
+    float currentDiscOuterRadius_ = discOuterRadius_;
+    float currentDiscInnerRadius_ = discInnerRadius_;
+    float currentDiscHeight_ = discHeight_;
 
     bool isDebugQueryOn_ = true;
     std::vector<GPUStats> gpuStats_ = {};
@@ -92,4 +98,6 @@ class Application
     uint32_t nFramesSinceStart_ = 0;
     float rotationFrequency_ = 0.5f;
     FragmentColourType fragmentColourType = FragmentColourType::TEXTURE;
+
+    Random random = Random();
 };

@@ -18,6 +18,7 @@
 #include "shaderpipeline/instancedVertexWithCompute.h"
 #include "shaderpipeline/instancedMesh.h"
 
+#include <cmath>
 #include <format>
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -168,9 +169,12 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.timer = &timer_;
     debugLayerData_.visibilityFunc = &visibilityFunction_;
     debugLayerData_.isAnimationOn = &isAnimationOn_;
-    debugLayerData_.nInstanceRows = &nInstanceRows_;
-    debugLayerData_.nInstanceColumns = &nInstanceColumns_;
-    debugLayerData_.nInstanceLayers = &nInstanceLayers_;
+
+    debugLayerData_.nInstances = &nInstances_;
+    debugLayerData_.discOuterRadius = &discOuterRadius_;
+    debugLayerData_.discInnerRadius = &discInnerRadius_;
+    debugLayerData_.discHeight = &discHeight_;
+
     debugLayerData_.cameraFarPlane = &camera_->farClip_;
     debugLayerData_.isDebugStatsOn = &isDebugQueryOn_;
     debugLayerData_.gpuStats = &gpuStats_;
@@ -529,14 +533,20 @@ void Application::mainLoop()
 
 void Application::checkForEntitiyUpdates()
 {
-    bool checkRows = currentNInstanceRows_ != nInstanceRows_;
-    bool checkColumns = currentNInstanceColumns_ != nInstanceColumns_;
-    bool checkLayers = currentNInstanceLayers_ != nInstanceLayers_;
-    if (checkRows || checkColumns || checkLayers)
+    bool checkInstances = currentNInstances_ != nInstances_;
+
+    bool checkOuterRadius =
+        std::abs(currentDiscOuterRadius_ - discOuterRadius_) > EPS;
+    bool checkInnerRadius =
+        std::abs(currentDiscInnerRadius_ - discInnerRadius_) > EPS;
+    bool checkHeight = std::abs(currentDiscHeight_ - discHeight_) > EPS;
+    if (checkInstances || checkOuterRadius || checkInnerRadius || checkHeight)
         updateEntities();
-    currentNInstanceRows_ = nInstanceRows_;
-    currentNInstanceColumns_ = nInstanceColumns_;
-    currentNInstanceLayers_ = nInstanceLayers_;
+
+    currentNInstances_ = nInstances_;
+    currentDiscOuterRadius_ = discOuterRadius_;
+    currentDiscInnerRadius_ = discInnerRadius_;
+    currentDiscHeight_ = discHeight_;
 }
 
 void Application::checkForPipelineUpdates()
@@ -625,112 +635,44 @@ void Application::checkForPipelineUpdates()
 void Application::initialiseEntities()
 {
     Mesh *mesh = meshManager_.getMesh("asteroid");
-    mesh->instances.resize(
-        nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
-    );
-    float maxSpan = std::max<float>(
-        std::max<float>(
-            mesh->getGeometry()->meshBounds.getWidth(),
-            mesh->getGeometry()->meshBounds.getDepth()
-        ),
-        mesh->getGeometry()->meshBounds.getHeight()
-    );
-    float instanceSpanX = 2.0f * maxSpan;
-    float instanceSpanY = 2.0f * maxSpan;
-    float instanceSpanZ = 2.0f * maxSpan;
-    float totalSpanX = nInstanceColumns_ * instanceSpanX;
-    float totalSpanY = nInstanceLayers_ * instanceSpanY;
-    float totalSpanZ = nInstanceRows_ * instanceSpanZ;
+    mesh->instances.resize(nInstances_);
 
-    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows_; ++rowIndex)
+    for (uint instanceIndex = 0; instanceIndex < nInstances_; instanceIndex++)
     {
-        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers_;
-             ++layerIndex)
-        {
-            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns_;
-                 ++columnIndex)
-            {
-                float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
-                          instanceSpanX / 2.f;
-                float y = layerIndex * instanceSpanY - (totalSpanY / 2.f) +
-                          instanceSpanY / 2.f;
-                float z = rowIndex * instanceSpanZ - (totalSpanZ / 2.f) +
-                          instanceSpanZ / 2.f;
+        float theta = random.randomFloat(0.0, PI2);
+        float radius = random.randomFloat(discInnerRadius_, discOuterRadius_);
+        float height =
+            random.randomFloat(-discHeight_ / 2.0, discHeight_ / 2.0);
 
-                uint32_t index =
-                    (layerIndex * nInstanceRows_ * nInstanceColumns_) +
-                    (rowIndex * nInstanceColumns_) + columnIndex;
-                float t = static_cast<float>(glfwGetTime()) +
-                          ((columnIndex ^ rowIndex + columnIndex) / 10.f);
-                glm::vec4 rotationVector;
-                if (isAnimationOn_)
-                    rotationVector = glm::vec4(0.0, t, 0.0, 1.0);
-                else
-                    rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
+        float rotX = random.randomFloat(0.0, PI2);
+        float rotY = random.randomFloat(0.0, PI2);
+        float rotZ = random.randomFloat(0.0, PI2);
 
-                mesh->instances[index].position = glm::vec4(x, y, z, 1.0);
-                mesh->instances[index].rotation = rotationVector;
-                mesh->instances[index].scale = glm::vec4(1.0, 1.0, 1.0, 1.0);
-            }
-        }
+        float scaleX =
+            random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
+        float scaleY =
+            random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
+        float scaleZ =
+            random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
+
+        float x = radius * std::sin(theta);
+        float y = height;
+        float z = radius * std::cos(theta);
+        mesh->instances[instanceIndex].position = glm::vec4(x, y, z, 1.0);
+        mesh->instances[instanceIndex].rotation = {rotX, rotY, rotZ, 1.0};
+        mesh->instances[instanceIndex].scale =
+            glm::vec4(scaleX, scaleY, scaleZ, 1.0);
     }
 }
 
 // TODO - seems super hardcoded all of this - I think there might be an
 // animation component and I add a callback when initialising the horse
 // actor and then call animation update in the scene layer frame
+// TODO - not sure of the point in this function anymore....I guess for
+// animation frames later?
 void Application::updateEntities()
 {
-    Mesh *mesh = meshManager_.getMesh("asteroid");
-    mesh->instances.resize(
-        nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
-    );
-    float maxSpan = std::max<float>(
-        std::max<float>(
-            mesh->getGeometry()->meshBounds.getWidth(),
-            mesh->getGeometry()->meshBounds.getDepth()
-        ),
-        mesh->getGeometry()->meshBounds.getHeight()
-    );
-    float instanceSpanX = 2.0f * maxSpan;
-    float instanceSpanY = 2.0f * maxSpan;
-    float instanceSpanZ = 2.0f * maxSpan;
-    float totalSpanX = nInstanceColumns_ * instanceSpanX;
-    float totalSpanY = nInstanceLayers_ * instanceSpanY;
-    float totalSpanZ = nInstanceRows_ * instanceSpanZ;
-
-    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows_; ++rowIndex)
-    {
-        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers_;
-             ++layerIndex)
-        {
-            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns_;
-                 ++columnIndex)
-            {
-                float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
-                          instanceSpanX / 2.f;
-                float y = layerIndex * instanceSpanY - (totalSpanY / 2.f) +
-                          instanceSpanY / 2.f;
-                float z = rowIndex * instanceSpanZ - (totalSpanZ / 2.f) +
-                          instanceSpanZ / 2.f;
-
-                uint32_t index =
-                    (layerIndex * nInstanceRows_ * nInstanceColumns_) +
-                    (rowIndex * nInstanceColumns_) + columnIndex;
-                float t = static_cast<float>(glfwGetTime()) +
-                          ((columnIndex ^ rowIndex + columnIndex) / 10.f);
-                glm::vec4 rotationVector;
-                if (isAnimationOn_)
-                    rotationVector = glm::vec4(0.0, t, 0.0, 1.0);
-                else
-                    rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
-
-                mesh->instances[index].position = glm::vec4(x, y, z, 1.0);
-                mesh->instances[index].rotation = rotationVector;
-                mesh->instances[index].scale = glm::vec4(1.0, 1.0, 1.0, 1.0);
-            }
-        }
-    }
+    initialiseEntities();
 }
 
 void Application::shutdown()

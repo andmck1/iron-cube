@@ -114,8 +114,7 @@ void InstancedVertexVulkanShaderPipeline::initBuffers()
     indexBuffer_.init(indexDesc);
 
     BufferDescription instanceDesc = VertexBuffer;
-    instanceDesc.bufferSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
-                              MAX_N_INSTANCE_LAYERS * MAX_N_INSTANCE_ROWS;
+    instanceDesc.bufferSize = sizeof(Instance) * MAX_N_INSTANCES;
     instanceDesc.data = nullptr;
     instanceBuffer_.init(instanceDesc);
 }

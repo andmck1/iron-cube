@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include <string>
 #include <vector>
 
@@ -26,3 +27,14 @@ struct GPUStats
 void printUsage(const std::string &progName);
 std::vector<GPUStats> queryGPUStats();
 std::string formatNumber(double value);
+
+class Random
+{
+    public:
+    Random();
+    float randomFloat(float min, float max);
+
+    private:
+    std::random_device randomDevice_;
+    std::mt19937 generator_;
+};

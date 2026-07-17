@@ -238,10 +238,7 @@ void InstancedMeshVulkanShaderPipeline::initBufferDescriptions()
     );
     resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedMesh::BufferSlots::INSTANCES)
-            .setBufferSize(
-                sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
-                MAX_N_INSTANCE_ROWS
-            )
+            .setBufferSize(sizeof(Instance) * MAX_N_INSTANCES)
             .setData(static_cast<Instance *>(nullptr))
             .setStageFlags(
                 vk::ShaderStageFlagBits::eTaskEXT |

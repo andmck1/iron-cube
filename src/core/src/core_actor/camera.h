@@ -37,7 +37,7 @@ class CameraActor : public IActor
         return aspect_;
     }
 
-    float farClip_ = 40.0f;
+    float farClip_ = 100.0f;
 
     protected:
     void updateViewMatrix();

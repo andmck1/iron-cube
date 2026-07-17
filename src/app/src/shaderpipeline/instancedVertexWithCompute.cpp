@@ -108,10 +108,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
     resourceDescriptions_.push_back(
         StorageReadWrite
             .setBufferSlot(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)
-            .setBufferSize(
-                sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
-                MAX_N_INSTANCE_ROWS
-            )
+            .setBufferSize(sizeof(Instance) * MAX_N_INSTANCES)
             .setData(nullptr)
             .setStageFlags(vk::ShaderStageFlagBits::eCompute)
     );
@@ -126,10 +123,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
 
     resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedVFCompute::BufferSlots::INSTANCES)
-            .setBufferSize(
-                sizeof(Instance) * MAX_N_INSTANCE_COLS * MAX_N_INSTANCE_LAYERS *
-                MAX_N_INSTANCE_ROWS
-            )
+            .setBufferSize(sizeof(Instance) * MAX_N_INSTANCES)
             .setData(nullptr)
             .setStageFlags(
                 vk::ShaderStageFlagBits::eCompute |
@@ -186,8 +180,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBuffers()
     indexBuffer_.init(indexDesc);
 
     BufferDescription instanceDesc = VertexBuffer;
-    instanceDesc.bufferSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
-                              MAX_N_INSTANCE_LAYERS * MAX_N_INSTANCE_ROWS;
+    instanceDesc.bufferSize = sizeof(Instance) * MAX_N_INSTANCES;
     instanceDesc.data = nullptr;
     instanceBuffer_.init(instanceDesc);
 }
@@ -649,9 +642,7 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
 
     setBarrier();
 
-    vk::DeviceSize maxInstancesSize = sizeof(Instance) * MAX_N_INSTANCE_COLS *
-                                      MAX_N_INSTANCE_LAYERS *
-                                      MAX_N_INSTANCE_ROWS;
+    vk::DeviceSize maxInstancesSize = sizeof(Instance) * MAX_N_INSTANCES;
     commandBuffer.copyBuffer(
         *reorderedInstancesBuffer->getBuffer(frameIndex),
         *instanceBuffer_.getBuffer(frameIndex),
