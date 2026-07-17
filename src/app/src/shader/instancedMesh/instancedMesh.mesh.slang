@@ -72,26 +72,15 @@ void main(
         uint vertexIndex = m.vertexOffset + gtid;
         vertexIndex = vertexIndices[vertexIndex];
 
-        float4x4 modelMatrix = calculateModelMatrix(
-            instances[instanceIndex].position,
-            instances[instanceIndex].rotation, instances[instanceIndex].scale
-        );
-
         float4 instanceRotation = instances[instanceIndex].rotation;
         float4 instancePosition = instances[instanceIndex].position;
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
                 PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-            instanceRotation = {
-                rotateVectorWithQuaternion(
-                    instanceRotation.xyz,
-                    quaternionFromAxisAngle(
-                        float3(0.f, 1.f, 0.f), rotationAngle
-                    )
-                ),
-                1.f
-            };
+            float4 spin =
+                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
+            instanceRotation = quaternionMultiply(spin, instanceRotation);
 
             float instanceDiscRadius = length(instancePosition.xz);
             float discAngle =

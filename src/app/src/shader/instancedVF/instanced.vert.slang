@@ -29,13 +29,9 @@ InstancedVF::VertexOutputType main(InstancedVF::InstancedVertexInputType input)
     {
         float rotationAngle =
             PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-        instanceRotation = {
-            rotateVectorWithQuaternion(
-                instanceRotation.xyz,
-                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle)
-            ),
-            1.f
-        };
+        float4 spin =
+            quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
+        instanceRotation = quaternionMultiply(spin, instanceRotation);
 
         float instanceDiscRadius = length(instancePosition.xz);
         float discAngle =

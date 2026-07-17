@@ -42,10 +42,26 @@ void main(
     uint lod = 0;
     if (dtid < constants.workCount)
     {
+        float4 instanceRotation = instances[instanceIndex].rotation;
+        float4 instancePosition = instances[instanceIndex].position;
+        if (animation.isAnimationOn > 0)
+        {
+            float rotationAngle =
+                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
+            float4 spin =
+                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
+            instanceRotation = quaternionMultiply(spin, instanceRotation);
+
+            float instanceDiscRadius = length(instancePosition.xz);
+            float discAngle =
+                PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
+            instancePosition =
+                rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
+        }
+
         // TODO - I do this twice!
         float4x4 modelMatrix = calculateModelMatrix(
-            instances[instanceIndex].position,
-            instances[instanceIndex].rotation, instances[instanceIndex].scale
+            instancePosition, instanceRotation, instances[instanceIndex].scale
         );
 
         if (scene.isLODOn > 0)

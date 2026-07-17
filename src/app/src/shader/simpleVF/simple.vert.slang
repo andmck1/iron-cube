@@ -23,22 +23,6 @@ SimpleVF::VertexOutputType main(VertexInputType input)
     }
 
     SimpleVF::VertexOutputType output;
-
-    float4 modelPosition = input.position;
-
-    if (animation.isAnimationOn > 0)
-    {
-        float rotationAngle =
-            PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-        modelPosition = {
-            rotateVectorWithQuaternion(
-                modelPosition.xyz,
-                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle)
-            ),
-            1.f
-        };
-    }
-
     switch ((FragmentColourType) constants.fragmentColourType)
     {
     case FragmentColourType::NORMALS:
@@ -51,7 +35,7 @@ SimpleVF::VertexOutputType main(VertexInputType input)
     }
 
     output.position =
-        mul(mvp.projection, mul(mvp.view, mul(mvp.model, modelPosition)));
+        mul(mvp.projection, mul(mvp.view, mul(mvp.model, input.position)));
     output.uv = input.tex.xy;
     return output;
 }
