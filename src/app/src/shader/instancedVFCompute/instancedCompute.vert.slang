@@ -72,7 +72,8 @@ main(InstancedVFCompute::InstancedVertexInputType input)
     }
     case FragmentColourType::NORMALS:
     {
-        output.colour = float4(input.normal.xyz / 2.f + 0.5f, 1.f);
+        output.colour = (input.normal + 1.f) / 2.f;
+        output.colour.w = 1.f;
         break;
     }
     case FragmentColourType::PRIMITIVE:

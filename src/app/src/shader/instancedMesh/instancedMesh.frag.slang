@@ -22,6 +22,18 @@ float4 main(InstancedMesh::VertexOutputType inVert) : SV_Target
         colour = sampler.Sample(inVert.uv);
         break;
     }
+    case FragmentColourType::PRIMITIVE:
+    {
+        break;
+    }
+    case FragmentColourType::NORMALS:
+    {
+        break;
+    }
+    case FragmentColourType::LOD:
+    {
+        break;
+    }
     default:
         break;
     }

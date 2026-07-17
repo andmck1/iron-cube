@@ -44,6 +44,7 @@ SimpleVF::VertexOutputType main(VertexInputType input)
     case FragmentColourType::NORMALS:
     {
         output.colour = (input.normal + 1.f) / 2.f;
+        output.colour.w = 1.f;
     }
     default:
         break;

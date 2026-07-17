@@ -112,7 +112,8 @@ void main(
         }
         case FragmentColourType::NORMALS:
         {
-            vertices[gtid].colour = float4(normal.xyz / 2.f + 0.5f, 1.f);
+            vertices[gtid].colour = (normal + 1.f) / 2.f;
+            vertices[gtid].colour.w = 1.f;
             break;
         }
         case FragmentColourType::PRIMITIVE:
