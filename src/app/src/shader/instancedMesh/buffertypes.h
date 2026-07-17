@@ -126,8 +126,8 @@ namespace InstancedMesh
 
     struct Constants
     {
-        FragmentColourType fragmentColourType;
         uint32_t workStart;
         uint32_t workCount;
+        FragmentColourType fragmentColourType;
     };
 } // namespace InstancedMesh

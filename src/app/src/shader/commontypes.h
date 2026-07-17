@@ -70,7 +70,7 @@ struct FrustumCone
     float4 angle;
 };
 
-enum FragmentColourType : int
+enum FragmentColourType : uint32_t
 {
     TEXTURE,
     PRIMITIVE,
