@@ -198,7 +198,10 @@ void InstancedMeshVulkanShaderPipeline::initBufferDescriptions()
         UniformBuffer.setBufferSlot(InstancedMesh::BufferSlots::ANIMATION)
             .setBufferSize(sizeof(InstancedMesh::AnimationBuffer))
             .setData(static_cast<InstancedMesh::AnimationBuffer *>(nullptr))
-            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eTaskEXT |
+                vk::ShaderStageFlagBits::eMeshEXT
+            )
     );
     resourceDescriptions_.push_back(
         StorageReadWrite.setBufferSlot(InstancedMesh::BufferSlots::DEBUG)

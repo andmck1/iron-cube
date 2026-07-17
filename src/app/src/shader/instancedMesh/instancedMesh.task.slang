@@ -42,8 +42,9 @@ void main(
     uint lod = 0;
     if (dtid < constants.workCount)
     {
-        float4 instanceRotation = instances[instanceIndex].rotation;
+
         float4 instancePosition = instances[instanceIndex].position;
+        float4 instanceRotation = instances[instanceIndex].rotation;
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
@@ -58,7 +59,6 @@ void main(
             instancePosition =
                 rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
         }
-
         // TODO - I do this twice!
         float4x4 modelMatrix = calculateModelMatrix(
             instancePosition, instanceRotation, instances[instanceIndex].scale

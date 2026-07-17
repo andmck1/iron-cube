@@ -25,6 +25,9 @@ StructuredBuffer<uint> triangleIndices;
 [[vk::binding(InstancedMesh::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
+[[vk::binding(InstancedMesh::BufferSlots::MESHLET_BOUNDING_SPHERES)]]
+StructuredBuffer<float4> meshletBoundingSpheres;
+
 [[vk_push_constant]]
 InstancedMesh::Constants constants;
 
@@ -77,9 +80,11 @@ void main(
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
-                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
+                PI2 * animation.rotationFrequency.x *
+                animation.currentTime.x;
             float4 spin =
-                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
+                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f),
+                rotationAngle);
             instanceRotation = quaternionMultiply(spin, instanceRotation);
 
             float instanceDiscRadius = length(instancePosition.xz);
@@ -124,6 +129,15 @@ void main(
                 float(meshletIndex & 1), float(meshletIndex & 3) / 4,
                 float(meshletIndex & 7) / 8, 1.0
             );
+            // VISUALISE BOUNDING SPHERES
+            // float4 meshletBoundingSphere =
+            //     mul(worldMatrix,
+            //         float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
+            // meshletBoundingSphere.w = meshletBoundingSpheres[meshletIndex].w;
+            // float4 vertexWorld =
+            //     mul(worldMatrix, modelVertices[vertexIndex].position);
+            // vertices[gtid].colour = vertexWorld - meshletBoundingSphere;
+            // vertices[gtid].colour.w = 1.f;
             break;
         }
         default:

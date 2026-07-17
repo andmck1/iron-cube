@@ -68,9 +68,9 @@ float4 rotatePositionAboutOriginOnXZPlane(float4 position, float angle)
 {
     float cosAngle = cos(angle);
     float sinAngle = sin(angle);
-    float newX = position.x;
-    float newZ = position.z;
-    position.x = newX * cosAngle - newZ * sinAngle;
-    position.z = newX * sinAngle + newZ * cosAngle;
+    float x = position.x;
+    float z = position.z;
+    position.x = x * cosAngle - z * sinAngle;
+    position.z = x * sinAngle + z * cosAngle;
     return position;
 }
