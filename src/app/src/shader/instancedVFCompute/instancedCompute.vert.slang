@@ -48,11 +48,6 @@ main(InstancedVFCompute::InstancedVertexInputType input)
 
     switch ((FragmentColourType) constants.fragmentColourType)
     {
-    case FragmentColourType::TEXTURE:
-    {
-        output.colour = float4(1.f, 1.f, 1.f, 1.f);
-        break;
-    }
     case FragmentColourType::LOD:
     {
         float lodColour = float(input.lodLevel.x) + 1.0;
@@ -69,7 +64,6 @@ main(InstancedVFCompute::InstancedVertexInputType input)
     }
     case FragmentColourType::PRIMITIVE:
     {
-        output.colour = float4((input.normal + 1.f + input.tex[0]).xyz / 3.f, 1.0f);
         break;
     }
     default:

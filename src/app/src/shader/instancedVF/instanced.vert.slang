@@ -47,16 +47,12 @@ InstancedVF::VertexOutputType main(InstancedVF::InstancedVertexInputType input)
 
     switch ((FragmentColourType) constants.fragmentColourType)
     {
-    case FragmentColourType::TEXTURE:
-    {
-        output.colour = float4(1.f, 1.f, 1.f, 1.f);
-        break;
-    }
     case FragmentColourType::LOD:
     {
+        float lodColour = float(constants.lodLevel) + 1.0;
         output.colour = float4(
-            1.f / MAX_LOD_COUNT, 1.f / MAX_LOD_COUNT / 3.0,
-            1.f / MAX_LOD_COUNT / 5.0, 1.f
+            lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
+            lodColour / MAX_LOD_COUNT / 5.0, 1.f
         );
         break;
     }
@@ -67,7 +63,6 @@ InstancedVF::VertexOutputType main(InstancedVF::InstancedVertexInputType input)
     }
     case FragmentColourType::PRIMITIVE:
     {
-        output.colour = float4((input.normal + 1.f + input.tex[0]).xyz / 3.f, 1.0f);
         break;
     }
     default:

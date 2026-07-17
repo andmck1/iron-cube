@@ -101,11 +101,6 @@ void main(
 
         switch ((FragmentColourType) constants.fragmentColourType)
         {
-        case FragmentColourType::TEXTURE:
-        {
-            vertices[gtid].colour = float4(1.f, 1.f, 1.f, 1.f);
-            break;
-        }
         case FragmentColourType::LOD:
         {
             float lodColour = lodLevel + 1.0;
@@ -123,7 +118,8 @@ void main(
         case FragmentColourType::PRIMITIVE:
         {
             vertices[gtid].colour = float4(
-                (normal + 1.f + modelVertices[vertexIndex].tex[0]).xyz / 3.f, 1.0f
+                float(meshletIndex & 1), float(meshletIndex & 3) / 4,
+                float(meshletIndex & 7) / 8, 1.0
             );
             break;
         }

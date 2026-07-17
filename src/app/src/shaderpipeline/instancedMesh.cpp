@@ -136,7 +136,8 @@ bool InstancedMeshVulkanShaderPipeline::initGraphicsPipeline()
         vk::PushConstantRange{}
             .setStageFlags(
                 vk::ShaderStageFlagBits::eTaskEXT |
-                vk::ShaderStageFlagBits::eMeshEXT
+                vk::ShaderStageFlagBits::eMeshEXT |
+                vk::ShaderStageFlagBits::eFragment
             )
             .setOffset(0)
             .setSize(sizeof(InstancedMesh::Constants)),
@@ -422,7 +423,8 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         renderer_->getCommandBuffer().pushConstants(
             pipelineLayout_,
             vk::ShaderStageFlagBits::eTaskEXT |
-                vk::ShaderStageFlagBits::eMeshEXT,
+                vk::ShaderStageFlagBits::eMeshEXT |
+                vk::ShaderStageFlagBits::eFragment,
             0, sizeof(InstancedMesh::Constants), &constants
         );
 

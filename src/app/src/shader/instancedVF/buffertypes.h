@@ -61,5 +61,6 @@ namespace InstancedVF
     struct Constants
     {
         FragmentColourType fragmentColourType;
+        uint32_t lodLevel;
     };
 } // namespace InstancedVF

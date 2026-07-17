@@ -9,7 +9,6 @@ Sampler2D sampler;
 [[vk_push_constant]]
 SimpleVF::Constants constants;
 
-
 [shader("fragment")]
 float4 main(SimpleVF::VertexOutputType inVert) : SV_Target
 {
