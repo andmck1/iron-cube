@@ -207,7 +207,10 @@ bool StandardVulkanShaderPipeline::initGraphicsPipeline()
 
     std::vector<vk::PushConstantRange> pushConstantRanges = {
         vk::PushConstantRange{}
-            .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eVertex |
+                vk::ShaderStageFlagBits::eFragment
+            )
             .setOffset(0)
             .setSize(sizeof(SimpleVF::Constants)),
     };
@@ -322,8 +325,9 @@ bool StandardVulkanShaderPipeline::update()
     constants.fragmentColourType = *updateData_->fragmentColourType;
     constants.lodLevel = *updateData_->lodIndex;
     renderer_->getCommandBuffer().pushConstants(
-        pipelineLayout_, vk::ShaderStageFlagBits::eFragment, 0,
-        sizeof(SimpleVF::Constants), &constants
+        pipelineLayout_,
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+        0, sizeof(SimpleVF::Constants), &constants
     );
 
     updateTime =

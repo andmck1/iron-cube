@@ -14,7 +14,7 @@ float4 main(SimpleVF::VertexOutputType inVert) : SV_Target
 {
     InterlockedAdd(debugData[0].nFragmentShaderInvocations, 1);
 
-    float4 colour;
+    float4 colour = inVert.colour;
     switch ((FragmentColourType) constants.fragmentColourType)
     {
     case FragmentColourType::TEXTURE:
@@ -32,6 +32,10 @@ float4 main(SimpleVF::VertexOutputType inVert) : SV_Target
         break;
     }
     case FragmentColourType::PRIMITIVE:
+    {
+        break;
+    }
+    case FragmentColourType::NORMALS:
     {
         break;
     }

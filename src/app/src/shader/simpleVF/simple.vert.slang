@@ -10,6 +10,9 @@ ConstantBuffer<SimpleVF::AnimationBuffer> animation;
 [[vk::binding(SimpleVF::BufferSlots::DEBUG)]]
 RWStructuredBuffer<SimpleVF::DebugDataBuffer> debugData;
 
+[[vk_push_constant]]
+SimpleVF::Constants constants;
+
 [shader("vertex")]
 SimpleVF::VertexOutputType main(VertexInputType input)
 {
@@ -34,6 +37,16 @@ SimpleVF::VertexOutputType main(VertexInputType input)
             ),
             1.f
         };
+    }
+
+    switch ((FragmentColourType) constants.fragmentColourType)
+    {
+    case FragmentColourType::NORMALS:
+    {
+        output.colour = (input.normal + 1.f) / 2.f;
+    }
+    default:
+        break;
     }
 
     output.position =
