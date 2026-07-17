@@ -23,26 +23,33 @@ InstancedVF::VertexOutputType main(InstancedVF::InstancedVertexInputType input)
 
     InstancedVF::VertexOutputType output;
 
-    float4x4 worldMatrix = calculateModelMatrix(
-        input.instancePosition, input.instanceRotation, input.instanceScale
-    );
-
-    float4 modelPosition = input.position;
+    float4 instanceRotation = input.instanceRotation;
+    float4 instancePosition = input.instancePosition;
     if (animation.isAnimationOn > 0)
     {
         float rotationAngle =
             PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-        modelPosition = {
+        instanceRotation = {
             rotateVectorWithQuaternion(
-                modelPosition.xyz,
+                instanceRotation.xyz,
                 quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle)
             ),
             1.f
         };
+
+        float instanceDiscRadius = length(instancePosition.xz);
+        float discAngle =
+            PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
+        instancePosition =
+            rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
     }
 
+    float4x4 worldMatrix = calculateModelMatrix(
+        instancePosition, instanceRotation, input.instanceScale
+    );
+
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
-    output.position = mul(mvpMatrix, modelPosition);
+    output.position = mul(mvpMatrix, input.position);
     output.uv = input.tex.xy;
 
     switch ((FragmentColourType) constants.fragmentColourType)

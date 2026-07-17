@@ -1,3 +1,5 @@
+#include "commontypes.h"
+
 // TODO - define column/row major so is always consistent
 
 // Some help from AI for the quaternion stuff
@@ -61,3 +63,13 @@ float pointPlaneDistance(float4 testPoint, float4 planeEquation)
     return dot(testPoint.xyz, planeEquation.xyz) + planeEquation.w;
 }
 
+float4 rotatePositionAboutOriginOnXZPlane(float4 position, float angle)
+{
+    float cosAngle = cos(angle);
+    float sinAngle = sin(angle);
+    float newX = position.x;
+    float newZ = position.z;
+    position.x = newX * cosAngle - newZ * sinAngle;
+    position.z = newX * sinAngle + newZ * cosAngle;
+    return position;
+}

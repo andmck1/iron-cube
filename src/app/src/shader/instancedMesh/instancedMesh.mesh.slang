@@ -77,24 +77,37 @@ void main(
             instances[instanceIndex].rotation, instances[instanceIndex].scale
         );
 
-        float4 modelPosition = modelVertices[vertexIndex].position;
+        float4 instanceRotation = instances[instanceIndex].rotation;
+        float4 instancePosition = instances[instanceIndex].position;
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
                 PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-            modelPosition = {
+            instanceRotation = {
                 rotateVectorWithQuaternion(
-                    modelPosition.xyz, quaternionFromAxisAngle(
-                                           float3(0.f, 1.f, 0.f), rotationAngle
-                                       )
+                    instanceRotation.xyz,
+                    quaternionFromAxisAngle(
+                        float3(0.f, 1.f, 0.f), rotationAngle
+                    )
                 ),
                 1.f
             };
+
+            float instanceDiscRadius = length(instancePosition.xz);
+            float discAngle =
+                PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
+            instancePosition =
+                rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
         }
 
+        float4x4 worldMatrix = calculateModelMatrix(
+            instancePosition, instanceRotation, instances[instanceIndex].scale
+        );
+
         float4x4 mvpMatrix =
-            mul(scene.projection, mul(scene.view, modelMatrix));
-        vertices[gtid].position = mul(mvpMatrix, modelPosition);
+            mul(scene.projection, mul(scene.view, worldMatrix));
+        vertices[gtid].position =
+            mul(mvpMatrix, modelVertices[vertexIndex].position);
         vertices[gtid].uv = modelVertices[vertexIndex].tex.xy;
 
         float4 normal = modelVertices[vertexIndex].normal;

@@ -41,14 +41,8 @@ main(InstancedVFCompute::InstancedVertexInputType input)
         float instanceDiscRadius = length(instancePosition.xz);
         float discAngle =
             PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
-        float cosDiscAngle = cos(discAngle);
-        float sinDiscAngle = sin(discAngle);
-
-        float newX = instancePosition.x;
-        float newZ = instancePosition.z;
-
-        instancePosition.x = newX * cosDiscAngle - newZ * sinDiscAngle;
-        instancePosition.z = newX * sinDiscAngle + newZ * cosDiscAngle;
+        instancePosition =
+            rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
     }
 
     float4x4 worldMatrix = calculateModelMatrix(
