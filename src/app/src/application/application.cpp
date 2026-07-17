@@ -361,6 +361,9 @@ bool Application::initialiseGeometry(
         updateData->isLODOn = &isLODOn_;
         updateData->texture = resourceManager_.getTexture(name);
         updateData->fragmentColourType = &fragmentColourType;
+        updateData->discInnerRadius = &discInnerRadius_;
+        updateData->discOuterRadius = &discOuterRadius_;
+        updateData->discHeight = &discHeight_;
 
         std::unique_ptr<InstancedVertexComputeVulkanShaderPipeline>
             actorInstancedShaderPipeline =

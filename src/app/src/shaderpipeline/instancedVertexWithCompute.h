@@ -25,6 +25,9 @@ class InstancedVertexComputeShaderPipelineUpdateData
     Timer *timer = nullptr;
     Texture *texture = nullptr;
     FragmentColourType *fragmentColourType = nullptr;
+    float *discOuterRadius = nullptr;
+    float *discInnerRadius = nullptr;
+    float *discHeight = nullptr;
 };
 
 class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline

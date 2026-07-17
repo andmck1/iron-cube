@@ -78,4 +78,12 @@ enum FragmentColourType : int
     NORMALS
 };
 
+struct Disc
+{
+    float innerRadius;
+    float outerRadius;
+    float height;
+    float _pad0;
+};
+
 #endif

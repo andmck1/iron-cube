@@ -24,8 +24,8 @@ static constexpr float MOUSE_SENSITIVITY = 0.0015f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
 static constexpr float GPU_STATS_QUERY_FREQUENCY = 1.f;
 static constexpr float EPS = 1e-6f;
-static constexpr float INSTANCE_SCALE_LOWER = 0.5;
-static constexpr float INSTANCE_SCALE_UPPER = 2.0;
+static constexpr float INSTANCE_SCALE_LOWER = 0.6;
+static constexpr float INSTANCE_SCALE_UPPER = 1.4;
 
 class Application
 {
@@ -96,7 +96,7 @@ class Application
     float lodExponent_ = 1.2f;
     bool isLODOn_ = true;
     uint32_t nFramesSinceStart_ = 0;
-    float rotationFrequency_ = 0.5f;
+    float rotationFrequency_ = 0.01f;
     FragmentColourType fragmentColourType = FragmentColourType::TEXTURE;
 
     Random random = Random();

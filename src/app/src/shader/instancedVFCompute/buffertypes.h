@@ -59,6 +59,7 @@ namespace InstancedVFCompute
         float4 rotationFrequency;
         float4 deltaTime;
         float4 currentTime;
+        Disc disc;
     };
 
     struct FrustumData
