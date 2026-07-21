@@ -20,7 +20,8 @@ using uint4 = glm::uvec4;
 #endif
 
 #define MAX_LOD_COUNT 5
-#define PI2 6.28318530719
+#define PI 3.14159265359
+#define PI2 6.28318530718
 
 enum FrustumPlanes : uint
 {

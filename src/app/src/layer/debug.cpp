@@ -154,12 +154,12 @@ bool DebugLayer::frame()
                         percentGPUTimeOfTotalFrameTime
                     );
 
-                    double nInstances =
+                    long nInstances =
                         meshComponent->getMesh()->instances.size();
-                    double nVertices = meshComponent->getMesh()
-                                           ->getGeometry()
-                                           ->indexCounts[*debugData_->lodIndex];
-                    double nTriangles = (nVertices / 3) * nInstances;
+                    long nVertices = meshComponent->getMesh()
+                                         ->getGeometry()
+                                         ->indexCounts[*debugData_->lodIndex];
+                    long nTriangles = (nVertices / 3) * nInstances;
 
                     // Per-frame time line charts
                     {
@@ -214,7 +214,7 @@ bool DebugLayer::frame()
                         ImGui::TableSetColumnIndex(1);
                         ImGui::Text(
                             "%s",
-                            formatNumber((double) pipelineStatistics.nTriangles)
+                            formatNumber((long) pipelineStatistics.nTriangles)
                                 .c_str()
                         );
 
@@ -237,7 +237,7 @@ bool DebugLayer::frame()
                                 ImGui::TableSetColumnIndex(1);
                                 ImGui::Text(
                                     "%s",
-                                    formatNumber((double) pipelineStatistics
+                                    formatNumber((long) pipelineStatistics
                                                      .nComputeShaderInvocations)
                                         .c_str()
                                 );
@@ -249,7 +249,7 @@ bool DebugLayer::frame()
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%s",
-                                formatNumber((double) pipelineStatistics
+                                formatNumber((long) pipelineStatistics
                                                  .nVertexShaderInvocations)
                                     .c_str()
                             );
@@ -260,7 +260,7 @@ bool DebugLayer::frame()
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%s",
-                                formatNumber((double) pipelineStatistics
+                                formatNumber((long) pipelineStatistics
                                                  .nFragmentShaderInvocations)
                                     .c_str()
                             );
@@ -270,7 +270,7 @@ bool DebugLayer::frame()
                             PipelineStatistics::PipelineType::MESH
                         )
                         {
-                            double nMeshlets =
+                            long nMeshlets =
                                 meshComponent->getMesh()
                                     ->getGeometry()
                                     ->meshletLODCounts[*debugData_->lodIndex];
@@ -280,7 +280,7 @@ bool DebugLayer::frame()
                             ImGui::Text("TS Invocations");
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%s", formatNumber((double) pipelineStatistics
+                                "%s", formatNumber((long) pipelineStatistics
                                                        .nTaskShaderInvocations)
                                           .c_str()
                             );
@@ -290,9 +290,20 @@ bool DebugLayer::frame()
                             ImGui::Text("MS Invocations");
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
-                                "%s", formatNumber((double) pipelineStatistics
+                                "%s", formatNumber((long) pipelineStatistics
                                                        .nMeshShaderInvocations)
                                           .c_str()
+                            );
+
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text("Unused TS Invocations");
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(
+                                "%s",
+                                formatNumber((long) pipelineStatistics
+                                                 .nUnusedTaskShaderInvocations)
+                                    .c_str()
                             );
 
                             ImGui::TableNextRow();
@@ -301,7 +312,7 @@ bool DebugLayer::frame()
                             ImGui::TableSetColumnIndex(1);
                             ImGui::Text(
                                 "%s",
-                                formatNumber((double) pipelineStatistics
+                                formatNumber((long) pipelineStatistics
                                                  .nFragmentShaderInvocations)
                                     .c_str()
                             );
@@ -374,12 +385,12 @@ bool DebugLayer::frame()
             "N Instances", debugData_->nInstances, 1, MAX_N_INSTANCES
         );
         ImGui::SliderFloat(
-            "Disc Outer Radius", debugData_->discOuterRadius, 1.f, 10000.f
+            "Disc Outer Radius", debugData_->discOuterRadius, 1.f, 100000.f
         );
         ImGui::SliderFloat(
-            "Disc Inner Radius", debugData_->discInnerRadius, 1.f, 100.f
+            "Disc Inner Radius", debugData_->discInnerRadius, 1.f, 1000.f
         );
-        ImGui::SliderFloat("Disc Height", debugData_->discHeight, 1.f, 100.f);
+        ImGui::SliderFloat("Disc Height", debugData_->discHeight, 1.f, 1000.f);
     }
 
     // LOD

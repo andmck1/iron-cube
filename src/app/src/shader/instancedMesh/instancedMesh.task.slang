@@ -22,8 +22,10 @@ StructuredBuffer<float4> meshletBoundingSpheres;
 
 groupshared InstancedMesh::Payload sPayload;
 
+// dtid = global thread index (0 -> n dispatched threads ~ nInstance * nMeshlet)
+// gtid = local thread index (0 -> TS_GROUP_SIZE (32))
 [shader("task")]
-[numthreads(AS_GROUP_SIZE, 1, 1)]
+[numthreads(TS_GROUP_SIZE, 1, 1)]
 void main(
     uint gtid: SV_GroupThreadID, uint dtid: SV_DispatchThreadID,
     uint gid: SV_GroupID
@@ -39,10 +41,10 @@ void main(
     uint globalThreadIndex = dtid + constants.workStart;
     uint instanceIndex = globalThreadIndex / scene.meshletCount;
     uint meshletIndex = globalThreadIndex % scene.meshletCount;
+
     uint lod = 0;
     if (dtid < constants.workCount)
     {
-
         float4 instancePosition = instances[instanceIndex].position;
         float4 instanceRotation = instances[instanceIndex].rotation;
         if (animation.isAnimationOn > 0)
