@@ -93,3 +93,14 @@ std::vector<GPUStats> queryGPUStats()
 
     return stats;
 }
+
+Random::Random()
+{
+    generator_ = std::mt19937(randomDevice_());
+}
+
+float Random::randomFloat(float min, float max)
+{
+    std::uniform_real_distribution<float> dist(min, max);
+    return dist(generator_);
+}

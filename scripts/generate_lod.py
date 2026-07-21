@@ -5,12 +5,12 @@
 # Run with:
 #   cd /home/dtaunt/dev/iron-cube && blender -b -P generate_lod.py 2>&1
 #
-# LOD ratios (fraction of original faces kept):
-#   LOD 0: 1.000  (full detail)
-#   LOD 1: 0.500  (half)
-#   LOD 2: 0.250  (quarter)
-#   LOD 3: 0.125  (eighth)
-#   LOD 4: 0.0625 (sixteenth)
+# Recursive halving: each LOD step halves the previous LOD.
+#   LOD 5: 100%   (full detail)
+#   LOD 6: 50%   (half of LOD 5)
+#   LOD 7: 25%   (half of LOD 6)
+#   LOD 8: 12.5% (half of LOD 7)
+#   … and so on to LOD 14.
 
 import bpy
 import os
@@ -18,11 +18,14 @@ import sys
 import shutil
 
 # --- Configuration ---
-src_obj = "/home/dtaunt/dev/iron-cube/assets/horse_statue/horse_statue_01_4k.obj"
-out_dir = "/home/dtaunt/dev/iron-cube/assets/horse_statue_lod"
-base_name = "horse_statue_01_4k"
-lod_ratios = [1.0, 0.5, 0.25, 0.125, 0.0625]
+src_obj = "/home/dtaunt/dev/iron-cube/assets/asteroid/asteroid.obj"
+out_dir = "/home/dtaunt/dev/iron-cube/assets/asteroid_lod"
+base_name = "asteroid"
+num_lods = 20
+
+lod_offset = 0  # output as LOD_5..LOD_14
 min_faces = 4  # safety floor so decimate never collapses a mesh to nothing
+halving_ratio = 0.5  # each recursive step halves the previous LOD
 
 
 # ---------------------------------------------------------------------------
@@ -220,6 +223,7 @@ def decimate_and_read(source_obj, ratio, target_name, material_names):
     dec = lod_obj.modifiers.new(name="Decimate", type="DECIMATE")
     dec.decimate_type = "COLLAPSE"
     dec.ratio = ratio
+    dec.use_dissolve_boundaries = True
     # Symmetry is off by default; only touch these if the Blender version
     # in use actually exposes them (the attribute names/shape have changed
     # across Blender releases).
@@ -333,21 +337,27 @@ if mtllib:
         )
         mtllib = None
 
-source_obj = create_blender_mesh(
+# Start with the original mesh as the source for the first LOD.
+# Each subsequent LOD decimates from the *previous* LOD (recursive),
+# which better preserves features like craters.
+current_source_obj = create_blender_mesh(
     "SourceMesh", positions, uvs, normals, faces, face_mtl, material_names
 )
 
-for lod_index, ratio in enumerate(lod_ratios):
-    print(f"\nGenerating LOD {lod_index} (ratio={ratio})...")
+for lod_index in range(num_lods):
+    lod_num = lod_index + lod_offset
+    print(f"\nGenerating LOD {lod_num} (halving from previous)...")
 
-    if ratio >= 1.0:
+    if lod_index == 0:
+        # First LOD is the original mesh at full resolution
         lod_positions, lod_uvs, lod_normals = positions, uvs, normals
         lod_faces, lod_face_mtl = faces, face_mtl
     else:
-        effective_ratio = max(ratio, min_faces / max(len(faces), 1))
+        # Each step halves the previous LOD
+        effective_ratio = max(halving_ratio, min_faces / max(len(lod_faces), 1))
         lod_positions, lod_uvs, lod_normals, lod_faces, lod_face_mtl = (
             decimate_and_read(
-                source_obj, effective_ratio, f"LOD_{lod_index}", material_names
+                current_source_obj, effective_ratio, f"LOD_{lod_num}", material_names
             )
         )
 
@@ -356,7 +366,7 @@ for lod_index, ratio in enumerate(lod_ratios):
         f"{len(lod_uvs)} uvs, {len(lod_normals)} normals"
     )
 
-    out_path = os.path.join(out_dir, f"{base_name}_LOD_{lod_index}.obj")
+    out_path = os.path.join(out_dir, f"{base_name}_LOD_{lod_num}.obj")
     write_obj(
         out_path,
         lod_positions,
@@ -368,6 +378,18 @@ for lod_index, ratio in enumerate(lod_ratios):
     )
     print(f"  Written to {out_path}")
 
-bpy.data.objects.remove(source_obj, do_unlink=True)
+    # Build a Blender mesh from this LOD to serve as the source for the next one.
+    bpy.data.objects.remove(current_source_obj, do_unlink=True)
+    current_source_obj = create_blender_mesh(
+        f"LOD_{lod_num}_Source",
+        lod_positions,
+        lod_uvs,
+        lod_normals,
+        lod_faces,
+        lod_face_mtl,
+        material_names,
+    )
 
-print(f"\nDone. {len(lod_ratios)} LOD files in {out_dir}/")
+bpy.data.objects.remove(current_source_obj, do_unlink=True)
+
+print(f"\nDone. {num_lods} LOD files in {out_dir}/")

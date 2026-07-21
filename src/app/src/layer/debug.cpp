@@ -341,8 +341,27 @@ bool DebugLayer::frame()
             if (pipelineManager)
                 pipelineManager->recreatePipelines = true;
         }
+
         ImGui::SliderFloat(
-            "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 50.0
+            "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 1500.0
+        );
+
+        std::vector<const char *> fragmentColourTypes = {
+            "Texture", "Primitive", "LOD", "Normals"
+        };
+        ImGui::Combo(
+            "Fragment Colour Type",
+            reinterpret_cast<int *>(debugData_->fragmentColourType),
+            fragmentColourTypes.data(), fragmentColourTypes.size()
+        );
+
+        std::vector<const char *> cullingFunctions = {
+            "None", "Planes", "Sphere", "Cone", "Cone and Near Plane"
+        };
+        ImGui::Combo(
+            "Culling Function",
+            reinterpret_cast<int *>(debugData_->visibilityFunc),
+            cullingFunctions.data(), cullingFunctions.size()
         );
     }
 
@@ -350,17 +369,17 @@ bool DebugLayer::frame()
     if (ImGui::CollapsingHeader("Mesh Options"))
     {
         ImGui::Checkbox("Animate?", debugData_->isAnimationOn);
+
         ImGui::SliderInt(
-            "N Instance Rows", debugData_->nInstanceRows, 1, MAX_N_INSTANCE_ROWS
+            "N Instances", debugData_->nInstances, 1, MAX_N_INSTANCES
         );
-        ImGui::SliderInt(
-            "N Instance Columns", debugData_->nInstanceColumns, 1,
-            MAX_N_INSTANCE_COLS
+        ImGui::SliderFloat(
+            "Disc Outer Radius", debugData_->discOuterRadius, 1.f, 10000.f
         );
-        ImGui::SliderInt(
-            "N Instance Layers", debugData_->nInstanceLayers, 1,
-            MAX_N_INSTANCE_LAYERS
+        ImGui::SliderFloat(
+            "Disc Inner Radius", debugData_->discInnerRadius, 1.f, 100.f
         );
+        ImGui::SliderFloat("Disc Height", debugData_->discHeight, 1.f, 100.f);
     }
 
     // LOD
@@ -394,17 +413,6 @@ bool DebugLayer::frame()
             shaderTypeUpdate = selectedShaderType;
         else
             shaderTypeUpdate = -1;
-
-        // Culling controls
-        ImGui::SeparatorText("Culling");
-        std::vector<const char *> cullingFunctions = {
-            "None", "Planes", "Sphere", "Cone", "Cone and Near Plane"
-        };
-        ImGui::Combo(
-            "Culling Function",
-            reinterpret_cast<int *>(debugData_->visibilityFunc),
-            cullingFunctions.data(), cullingFunctions.size()
-        );
     }
 
     ImGui::End();

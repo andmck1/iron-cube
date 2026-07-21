@@ -40,9 +40,12 @@ class DebugLayerData
     Timer *timer;
     VisibilityFunc *visibilityFunc;
     bool *isAnimationOn;
-    int *nInstanceRows;
-    int *nInstanceColumns;
-    int *nInstanceLayers;
+
+    int *nInstances;
+    float *discOuterRadius;
+    float *discInnerRadius;
+    float *discHeight;
+
     float *cameraFarPlane;
     bool *isDebugStatsOn;
     std::vector<GPUStats> *gpuStats;
@@ -51,4 +54,5 @@ class DebugLayerData
     float *lodExponent;
     bool *isLODOn;
     std::vector<PipelineTimeHistory> timeHistories;
+    FragmentColourType *fragmentColourType;
 };

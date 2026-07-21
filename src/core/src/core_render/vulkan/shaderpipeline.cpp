@@ -2,34 +2,88 @@
 #include "core_render/vulkan/renderer.h"
 #include "core_service/servicelocator.h"
 #include <spdlog/spdlog.h>
+#include <variant>
 
 std::optional<vk::raii::Pipeline> &VulkanShaderPipeline::getGraphicsPipeline()
 {
     return graphicsPipeline_;
 }
 
-void VulkanShaderPipeline::addBufferWrite(
-    vk::raii::DescriptorSet &descriptorSet, uint32_t binding,
-    vk::DescriptorType bufferType, vk::raii::Buffer *buffer,
-    vk::DeviceSize bufferSize,
+void VulkanShaderPipeline::addResource(const ResourceDescription &description)
+{
+    uint slotNumber = std::visit(
+        [](const auto &desc) { return desc.bufferSlot; }, description
+    );
+    if ((slotNumber + 1) > resources_.size())
+        resources_.resize(slotNumber + 1);
+    resources_[slotNumber].init(description);
+}
+
+void VulkanShaderPipeline::addResourceWrite(
+    PipelineResource &resource, vk::DeviceSize bufferSize,
+    const ResourceDescription &description, uint32_t frameIndex,
+    vk::raii::DescriptorSet &descriptorSet,
     std::vector<vk::WriteDescriptorSet> &descriptorWrites,
-    std::vector<vk::DescriptorBufferInfo> &bufferInfos
+    std::vector<vk::DescriptorBufferInfo> &bufferInfos,
+    std::vector<vk::DescriptorImageInfo> &imageInfos
 )
 {
-    bufferInfos.emplace_back(
-        vk::DescriptorBufferInfo{}.setBuffer(*buffer).setOffset(0).setRange(
-            bufferSize
-        )
+    uint resourceSlot = std::visit(
+        [](const auto &desc) { return desc.bufferSlot; }, description
     );
-    descriptorWrites.emplace_back(
-        vk::WriteDescriptorSet{}
-            .setDstSet(descriptorSet)
-            .setDstBinding(binding)
-            .setDstArrayElement(0)
-            .setDescriptorCount(1)
-            .setDescriptorType(bufferType)
-            .setPBufferInfo(&bufferInfos.back())
+    vk::DescriptorType descriptorType = std::visit(
+        [](const auto &desc) { return desc.descriptorType; }, description
     );
+
+    if (const auto *buffer = std::get_if<BufferDescription>(&description))
+    {
+        bufferInfos.emplace_back(
+            vk::DescriptorBufferInfo{}
+                .setBuffer(
+                    *resource.asBuffer()->getFrameBuffer(frameIndex)->buffer
+                )
+                .setOffset(0)
+                .setRange(bufferSize)
+        );
+
+        descriptorWrites.emplace_back(
+            vk::WriteDescriptorSet{}
+                .setDstSet(descriptorSet)
+                .setDstBinding(static_cast<uint32_t>(resourceSlot))
+                .setDstArrayElement(0)
+                .setDescriptorCount(1)
+                .setDescriptorType(descriptorType)
+                .setPBufferInfo(&bufferInfos.back())
+        );
+    }
+    else if (const auto *image = std::get_if<ImageDescription>(&description))
+    {
+        VulkanImage *vulkanImage = resource.asImage();
+        FrameImage *frameImage = vulkanImage->getFrameImage(frameIndex);
+
+        vk::Sampler samplerHandle = nullptr;
+        if (vulkanImage->getSampler())
+        {
+            samplerHandle = *vulkanImage->getSampler();
+        }
+
+        imageInfos.emplace_back(
+            vk::DescriptorImageInfo{}
+                .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+                .setImageView(*frameImage->view)
+                .setSampler(samplerHandle)
+        );
+
+        descriptorWrites.emplace_back(
+            vk::WriteDescriptorSet{}
+                .setDstSet(descriptorSet)
+                .setDstBinding(static_cast<uint32_t>(resourceSlot))
+                .setDstArrayElement(0)
+                .setDescriptorCount(1)
+                .setDescriptorType(descriptorType)
+                .setPImageInfo(&imageInfos.back())
+        );
+    }
 }
 
 bool VulkanShaderPipeline::initDescriptorLayout()
@@ -39,14 +93,24 @@ bool VulkanShaderPipeline::initDescriptorLayout()
     );
 
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
-    for (const BufferDescription &desc : bufferDescriptions_)
+    for (const ResourceDescription &description : resourceDescriptions_)
     {
+        uint bufferSlot = std::visit(
+            [](const auto &desc) { return desc.bufferSlot; }, description
+        );
+        vk::DescriptorType descriptorType = std::visit(
+            [](const auto &desc) { return desc.descriptorType; }, description
+        );
+        vk::Flags stageFlags = std::visit(
+            [](const auto &desc) { return desc.stageFlags; }, description
+        );
+
         bindings.emplace_back(
             vk::DescriptorSetLayoutBinding{}
-                .setBinding(static_cast<uint32_t>(desc.bufferSlot))
-                .setDescriptorType(desc.descriptorType)
+                .setBinding(static_cast<uint32_t>(bufferSlot))
+                .setDescriptorType(descriptorType)
                 .setDescriptorCount(1)
-                .setStageFlags(desc.stageFlags)
+                .setStageFlags(stageFlags)
         );
     }
 
@@ -69,15 +133,23 @@ bool VulkanShaderPipeline::createDescriptorPool()
     // Count descriptors by type
     uint32_t uniformCount = 0;
     uint32_t storageCount = 0;
-    for (const BufferDescription &desc : bufferDescriptions_)
+    uint32_t imageCount = 0;
+    for (const ResourceDescription &description : resourceDescriptions_)
     {
-        if (desc.descriptorType == vk::DescriptorType::eUniformBuffer)
+        vk::DescriptorType descriptorType = std::visit(
+            [](const auto &desc) { return desc.descriptorType; }, description
+        );
+        if (descriptorType == vk::DescriptorType::eUniformBuffer)
         {
             uniformCount++;
         }
-        else if (desc.descriptorType == vk::DescriptorType::eStorageBuffer)
+        else if (descriptorType == vk::DescriptorType::eStorageBuffer)
         {
             storageCount++;
+        }
+        else if (descriptorType == vk::DescriptorType::eCombinedImageSampler)
+        {
+            imageCount++;
         }
     }
 
@@ -100,6 +172,14 @@ bool VulkanShaderPipeline::createDescriptorPool()
                 .setDescriptorCount(
                     renderer->MAX_FRAMES_IN_FLIGHT * storageCount
                 )
+        );
+    }
+    if (imageCount > 0)
+    {
+        poolSizes.emplace_back(
+            vk::DescriptorPoolSize{}
+                .setType(vk::DescriptorType::eCombinedImageSampler)
+                .setDescriptorCount(renderer->MAX_FRAMES_IN_FLIGHT * imageCount)
         );
     }
 
@@ -138,20 +218,23 @@ bool VulkanShaderPipeline::initDescriptorSets()
     {
         std::vector<vk::WriteDescriptorSet> descriptorWrites;
         std::vector<vk::DescriptorBufferInfo> bufferInfos;
+        std::vector<vk::DescriptorImageInfo> imageInfos;
 
-        size_t totalBuffers = bufferDescriptions_.size();
-        descriptorWrites.reserve(totalBuffers);
-        bufferInfos.reserve(totalBuffers);
+        size_t totalResources = resourceDescriptions_.size();
+        descriptorWrites.reserve(totalResources);
+        bufferInfos.reserve(totalResources);
+        imageInfos.reserve(totalResources);
 
-        for (const BufferDescription &bufferDescription : bufferDescriptions_)
+        for (const ResourceDescription &description : resourceDescriptions_)
         {
-            VulkanBuffer &buffer = buffers_[bufferDescription.bufferSlot];
+            PipelineResource &resource = resources_[std::visit(
+                [](const auto &desc) { return desc.bufferSlot; }, description
+            )];
 
-            addBufferWrite(
-                descriptorSets_[frameIndex],
-                static_cast<uint32_t>(bufferDescription.bufferSlot),
-                bufferDescription.descriptorType, buffer.getBuffer(frameIndex),
-                VK_WHOLE_SIZE, descriptorWrites, bufferInfos
+            addResourceWrite(
+                resource, VK_WHOLE_SIZE, description, frameIndex,
+                descriptorSets_[frameIndex], descriptorWrites, bufferInfos,
+                imageInfos
             );
         }
 
@@ -163,8 +246,8 @@ bool VulkanShaderPipeline::initDescriptorSets()
 
 void VulkanShaderPipeline::shutdownBuffers()
 {
-    bufferDescriptions_.clear();
-    buffers_.clear();
+    resourceDescriptions_.clear();
+    resources_.clear();
 }
 
 void VulkanShaderPipeline::addBarrier(BufferBarrierInfo barrierInfo)

@@ -1,3 +1,5 @@
+#include "commontypes.h"
+
 // TODO - define column/row major so is always consistent
 
 // Some help from AI for the quaternion stuff
@@ -8,13 +10,14 @@ float4 quaternionFromAxisAngle(float3 axis, float angle)
     return float4(normalize(axis) * sin(halfAngle), cos(halfAngle));
 }
 
-float3 rotateVectorWithQuaternion(float3 position, float4 q)
+float4 quaternionMultiply(float4 a, float4 b)
 {
-    float3 qVector = q.xyz;
-    float qScalar = q.w;
-
-    float3 t = 2.0 * cross(qVector, position);
-    return position + qScalar * t + cross(qVector, t);
+    return float4(
+        a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+        a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+        a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
+        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
+    );
 }
 
 float4x4 calculateModelMatrix(float4 transform, float4 rotation, float4 scale)
@@ -61,3 +64,13 @@ float pointPlaneDistance(float4 testPoint, float4 planeEquation)
     return dot(testPoint.xyz, planeEquation.xyz) + planeEquation.w;
 }
 
+float4 rotatePositionAboutOriginOnXZPlane(float4 position, float angle)
+{
+    float cosAngle = cos(angle);
+    float sinAngle = sin(angle);
+    float x = position.x;
+    float z = position.z;
+    position.x = x * cosAngle - z * sinAngle;
+    position.z = x * sinAngle + z * cosAngle;
+    return position;
+}

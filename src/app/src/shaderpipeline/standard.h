@@ -18,6 +18,8 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
     bool *isAnimationOn = nullptr;
     float *rotationFrequency = nullptr;
     Timer *timer = nullptr;
+    Texture *texture = nullptr;
+    FragmentColourType *fragmentColourType = nullptr;
 };
 
 class StandardVulkanShaderPipeline : public VulkanShaderPipeline
@@ -55,5 +57,4 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     std::vector<SimpleVF::DebugDataBuffer> debugDataBufferData_ = {
         SimpleVF::DebugDataBuffer()
     };
-
 };

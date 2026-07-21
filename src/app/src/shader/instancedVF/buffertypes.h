@@ -8,9 +8,10 @@ namespace InstancedVF
 {
     enum BufferSlots : uint
     {
-        MVP = 0,
-        ANIMATION = 1,
-        DEBUG = 2,
+        MVP,
+        ANIMATION,
+        DEBUG,
+        TEXTURE,
         LAST
     };
 
@@ -18,6 +19,7 @@ namespace InstancedVF
     {
         float4 position SEMANTIC(SV_Position);
         float4 colour;
+        float2 uv;
     };
 
     struct MVPBuffer
@@ -54,5 +56,11 @@ namespace InstancedVF
         uint32_t isDebugQueryOn = 0;
         uint32_t nVertexShaderInvocations = 0;
         uint32_t nFragmentShaderInvocations = 0;
+    };
+
+    struct Constants
+    {
+        FragmentColourType fragmentColourType;
+        uint32_t lodLevel;
     };
 } // namespace InstancedVF

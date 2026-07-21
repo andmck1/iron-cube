@@ -1,6 +1,7 @@
 #include "core_ecs/component/transform.h"
 
 #include "glm/ext/matrix_transform.hpp"
+#include "glm/gtc/quaternion.hpp"
 #include <spdlog/spdlog.h>
 
 const Transform &TransformComponent::getTransform() const
@@ -14,17 +15,14 @@ glm::mat4 *TransformComponent::getTransformMatrixRef()
     return &transformMatrix_;
 }
 
-// TODO - use quaternions
 glm::mat4 TransformComponent::getRotationMatrix() const
 {
-    glm::mat4 rotationMatrix = glm::mat4(1.0f);
-    rotationMatrix =
-        glm::rotate(rotationMatrix, transform_.rotation.y, glm::vec3(0, 1, 0));
-    rotationMatrix =
-        glm::rotate(rotationMatrix, transform_.rotation.x, glm::vec3(1, 0, 0));
-    rotationMatrix =
-        glm::rotate(rotationMatrix, transform_.rotation.z, glm::vec3(0, 0, 1));
-    return rotationMatrix;
+    return glm::mat4_cast(rotationQuaternion_);
+}
+
+const glm::quat &TransformComponent::getRotationQuaternion() const
+{
+    return rotationQuaternion_;
 }
 
 const glm::vec3 &TransformComponent::getPosition() const
@@ -42,13 +40,27 @@ void TransformComponent::setTransform(const Transform &transform)
         transform.scale.x, transform.scale.y, transform.scale.z
     );
     transform_ = transform;
+    updateRotationQuaternionFromEuler();
     updateTransformMatrix();
 }
 
 glm::vec3 TransformComponent::getForwardVector() const
 {
-    glm::mat4 rot = getRotationMatrix();
-    return glm::normalize(glm::vec3(-rot[2]));
+    return glm::normalize(
+        glm::vec3(rotationQuaternion_ * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f))
+    );
+}
+
+void TransformComponent::updateRotationQuaternionFromEuler()
+{
+    // Yaw (Y), Pitch (X), Roll (Z) order to match previous Euler behaviour
+    glm::quat yawQuaternion =
+        glm::angleAxis(transform_.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::quat pitchQuaternion =
+        glm::angleAxis(transform_.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::quat rollQuaternion =
+        glm::angleAxis(transform_.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+    rotationQuaternion_ = yawQuaternion * pitchQuaternion * rollQuaternion;
 }
 
 void TransformComponent::updateTransformMatrix()
@@ -96,6 +108,7 @@ void TransformComponent::moveRelativeToForwardVectorBy(
 void TransformComponent::rotateTo(float pitch, float yaw, float roll)
 {
     transform_.rotation = glm::vec3(pitch, yaw, roll);
+    updateRotationQuaternionFromEuler();
     updateTransformMatrix();
 }
 
@@ -103,7 +116,26 @@ void TransformComponent::rotateBy(
     float pitchOffset, float yawOffset, float rollOffset
 )
 {
-    transform_.rotation += glm::vec3(pitchOffset, yawOffset, rollOffset);
+    // Yaw is applied in world space (left multiply) so horizontal rotation
+    // is always around the global up axis. Pitch is applied in local space
+    // (right multiply) so it rotates around the camera's local right axis.
+    glm::quat yawDelta = glm::angleAxis(yawOffset, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::quat pitchDelta =
+        glm::angleAxis(pitchOffset, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::quat rollDelta =
+        glm::angleAxis(rollOffset, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    rotationQuaternion_ =
+        yawDelta * rotationQuaternion_ * pitchDelta * rollDelta;
+    rotationQuaternion_ = glm::normalize(rotationQuaternion_);
+
+    updateTransformMatrix();
+}
+
+void TransformComponent::rotateByQuaternion(const glm::quat &deltaQuaternion)
+{
+    rotationQuaternion_ = rotationQuaternion_ * deltaQuaternion;
+    rotationQuaternion_ = glm::normalize(rotationQuaternion_);
     updateTransformMatrix();
 }
 

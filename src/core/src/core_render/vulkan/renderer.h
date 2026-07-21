@@ -34,6 +34,8 @@ class VulkanRenderer : public IRenderer
     float getFrameWaitTime() override;
 
     vk::raii::Device &getDevice();
+    vk::raii::CommandPool &getCommandPool();
+    vk::raii::Queue &getQueue();
     vk::raii::PhysicalDevice &getPhysicalDevice();
     vk::raii::CommandBuffer &getCommandBuffer();
 
@@ -60,6 +62,18 @@ class VulkanRenderer : public IRenderer
 
     // TODO - incorporate this
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+
+    std::pair<vk::raii::Image, vk::raii::DeviceMemory> createImage(
+        uint32_t width, uint32_t height, vk::Format format,
+        vk::ImageTiling tiling, vk::ImageUsageFlags usage,
+        vk::MemoryPropertyFlags properties
+    );
+    vk::raii::ImageView createImageView(
+        vk::Image const &image, vk::Format format,
+        vk::ImageAspectFlags aspectFlags
+    );
+    vk::raii::Sampler
+    createSampler(vk::Filter filter, vk::SamplerAddressMode addressMode);
 
     private:
     bool initialisePipeline();
@@ -112,15 +126,6 @@ class VulkanRenderer : public IRenderer
         vk::FormatFeatureFlags features
     );
     vk::Format findDepthFormat();
-    std::pair<vk::raii::Image, vk::raii::DeviceMemory> createImage(
-        uint32_t width, uint32_t height, vk::Format format,
-        vk::ImageTiling tiling, vk::ImageUsageFlags usage,
-        vk::MemoryPropertyFlags properties
-    );
-    vk::raii::ImageView createImageView(
-        vk::Image const &image, vk::Format format,
-        vk::ImageAspectFlags aspectFlags
-    );
 
     uint32_t findQueueFamilyIndex() const;
 

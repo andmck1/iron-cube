@@ -10,6 +10,9 @@ ConstantBuffer<SimpleVF::AnimationBuffer> animation;
 [[vk::binding(SimpleVF::BufferSlots::DEBUG)]]
 RWStructuredBuffer<SimpleVF::DebugDataBuffer> debugData;
 
+[[vk_push_constant]]
+SimpleVF::Constants constants;
+
 [shader("vertex")]
 SimpleVF::VertexOutputType main(VertexInputType input)
 {
@@ -20,24 +23,19 @@ SimpleVF::VertexOutputType main(VertexInputType input)
     }
 
     SimpleVF::VertexOutputType output;
-
-    float4 modelPosition = input.position;
-
-    if (animation.isAnimationOn > 0)
+    switch ((FragmentColourType) constants.fragmentColourType)
     {
-        float rotationAngle =
-            PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-        modelPosition = {
-            rotateVectorWithQuaternion(
-                modelPosition.xyz,
-                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle)
-            ),
-            1.f
-        };
+    case FragmentColourType::NORMALS:
+    {
+        output.colour = (input.normal + 1.f) / 2.f;
+        output.colour.w = 1.f;
+    }
+    default:
+        break;
     }
 
     output.position =
-        mul(mvp.projection, mul(mvp.view, mul(mvp.model, modelPosition)));
-    output.colour = (input.normal + 1.f + input.tex[0]) / 3.f;
+        mul(mvp.projection, mul(mvp.view, mul(mvp.model, input.position)));
+    output.uv = input.tex.xy;
     return output;
 }

@@ -18,6 +18,7 @@ namespace InstancedVFCompute
         LOD_STATS,
         INSTANCES,
         INDIRECT_COMMANDS,
+        TEXTURE,
         LAST
     };
 
@@ -25,6 +26,7 @@ namespace InstancedVFCompute
     {
         float4 position SEMANTIC(SV_Position);
         float4 colour;
+        float2 uv;
     };
 
     struct MVPBuffer
@@ -57,6 +59,7 @@ namespace InstancedVFCompute
         float4 rotationFrequency;
         float4 deltaTime;
         float4 currentTime;
+        Disc disc;
     };
 
     struct FrustumData
@@ -84,6 +87,11 @@ namespace InstancedVFCompute
         uint32_t nComputeShaderInvocations = 0;
         uint32_t nVertexShaderInvocations = 0;
         uint32_t nFragmentShaderInvocations = 0;
+    };
+
+    struct Constants
+    {
+        FragmentColourType fragmentColourType;
     };
 
     // Must match vk::DrawIndexedIndirectCommand layout exactly

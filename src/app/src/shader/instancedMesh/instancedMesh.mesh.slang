@@ -25,6 +25,12 @@ StructuredBuffer<uint> triangleIndices;
 [[vk::binding(InstancedMesh::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
+[[vk::binding(InstancedMesh::BufferSlots::MESHLET_BOUNDING_SPHERES)]]
+StructuredBuffer<float4> meshletBoundingSpheres;
+
+[[vk_push_constant]]
+InstancedMesh::Constants constants;
+
 // TODO - use the defines for the triange and vertex limits??
 [shader("mesh")]
 [outputtopology("triangle")]
@@ -69,39 +75,76 @@ void main(
         uint vertexIndex = m.vertexOffset + gtid;
         vertexIndex = vertexIndices[vertexIndex];
 
-        float4x4 modelMatrix = calculateModelMatrix(
-            instances[instanceIndex].position,
-            instances[instanceIndex].rotation, instances[instanceIndex].scale
-        );
-
-        float4 modelPosition = modelVertices[vertexIndex].position;
+        float4 instanceRotation = instances[instanceIndex].rotation;
+        float4 instancePosition = instances[instanceIndex].position;
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
-                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-            modelPosition = {
-                rotateVectorWithQuaternion(
-                    modelPosition.xyz, quaternionFromAxisAngle(
-                                           float3(0.f, 1.f, 0.f), rotationAngle
-                                       )
-                ),
-                1.f
-            };
+                PI2 * animation.rotationFrequency.x *
+                animation.currentTime.x;
+            float4 spin =
+                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f),
+                rotationAngle);
+            instanceRotation = quaternionMultiply(spin, instanceRotation);
+
+            float instanceDiscRadius = length(instancePosition.xz);
+            float discAngle =
+                PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
+            instancePosition =
+                rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
         }
 
-        float4x4 mvpMatrix =
-            mul(scene.projection, mul(scene.view, modelMatrix));
-        vertices[gtid].position = mul(mvpMatrix, modelPosition);
-
-        // TODO - add as flag
-        // float4 colour =
-        //     float4(float(gid & 1), float(gid & 3) / 4, float(gid & 7) /
-        //     8, 1.f);
-        float lodColour = lodLevel + 1.0;
-        float4 colour = float4(
-            lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
-            lodColour / MAX_LOD_COUNT / 5.0, 1.f
+        float4x4 worldMatrix = calculateModelMatrix(
+            instancePosition, instanceRotation, instances[instanceIndex].scale
         );
-        vertices[gtid].colour = colour;
+
+        float4x4 mvpMatrix =
+            mul(scene.projection, mul(scene.view, worldMatrix));
+        vertices[gtid].position =
+            mul(mvpMatrix, modelVertices[vertexIndex].position);
+        vertices[gtid].uv = modelVertices[vertexIndex].tex.xy;
+
+        float4 normal = modelVertices[vertexIndex].normal;
+
+        switch ((FragmentColourType) constants.fragmentColourType)
+        {
+        case FragmentColourType::LOD:
+        {
+            float lodColour = lodLevel + 1.0;
+            vertices[gtid].colour = float4(
+                lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
+                lodColour / MAX_LOD_COUNT / 5.0, 1.f
+            );
+            break;
+        }
+        case FragmentColourType::NORMALS:
+        {
+            vertices[gtid].colour = (normal + 1.f) / 2.f;
+            vertices[gtid].colour.w = 1.f;
+            break;
+        }
+        case FragmentColourType::PRIMITIVE:
+        {
+            vertices[gtid].colour = float4(
+                float(meshletIndex & 1), float(meshletIndex & 3) / 4,
+                float(meshletIndex & 7) / 8, 1.0
+            );
+            // VISUALISE BOUNDING SPHERES
+            // float4 meshletBoundingSphere =
+            //     mul(worldMatrix,
+            //         float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
+            // meshletBoundingSphere.w = meshletBoundingSpheres[meshletIndex].w;
+            // float4 vertexWorld =
+            //     mul(worldMatrix, modelVertices[vertexIndex].position);
+            // vertices[gtid].colour = vertexWorld - meshletBoundingSphere;
+            // vertices[gtid].colour.w = 1.f;
+            break;
+        }
+        default:
+        {
+            vertices[gtid].colour = float4(1.f, 1.f, 1.f, 1.f);
+            break;
+        }
+        }
     }
 }

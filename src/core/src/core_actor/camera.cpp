@@ -115,16 +115,16 @@ std::array<FrustumPlane, 6> CameraActor::getFrustumPlanes()
         viewProjectionMatrix[3] - viewProjectionMatrix[2];
 
     planes[FrustumPlanes::BOTTOM].coefficients =
-        viewProjectionMatrix[1] + viewProjectionMatrix[3];
-
-    planes[FrustumPlanes::TOP].coefficients =
         viewProjectionMatrix[3] + viewProjectionMatrix[1];
 
+    planes[FrustumPlanes::TOP].coefficients =
+        viewProjectionMatrix[3] - viewProjectionMatrix[1];
+
     planes[FrustumPlanes::LEFT].coefficients =
-        viewProjectionMatrix[0] + viewProjectionMatrix[3];
+        viewProjectionMatrix[3] + viewProjectionMatrix[0];
 
     planes[FrustumPlanes::RIGHT].coefficients =
-        viewProjectionMatrix[3] + viewProjectionMatrix[0];
+        viewProjectionMatrix[3] - viewProjectionMatrix[0];
 
     // Normalise each plane so that the distance computed in the shader is
     // meaningful

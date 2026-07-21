@@ -18,9 +18,11 @@
 #include "shaderpipeline/instancedVertexWithCompute.h"
 #include "shaderpipeline/instancedMesh.h"
 
+#include <cmath>
 #include <format>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <algorithm>
 
 bool Application::init(int argc, char *argv[])
 {
@@ -167,9 +169,12 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.timer = &timer_;
     debugLayerData_.visibilityFunc = &visibilityFunction_;
     debugLayerData_.isAnimationOn = &isAnimationOn_;
-    debugLayerData_.nInstanceRows = &nInstanceRows_;
-    debugLayerData_.nInstanceColumns = &nInstanceColumns_;
-    debugLayerData_.nInstanceLayers = &nInstanceLayers_;
+
+    debugLayerData_.nInstances = &nInstances_;
+    debugLayerData_.discOuterRadius = &discOuterRadius_;
+    debugLayerData_.discInnerRadius = &discInnerRadius_;
+    debugLayerData_.discHeight = &discHeight_;
+
     debugLayerData_.cameraFarPlane = &camera_->farClip_;
     debugLayerData_.isDebugStatsOn = &isDebugQueryOn_;
     debugLayerData_.gpuStats = &gpuStats_;
@@ -177,6 +182,7 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.maxLODDistance = &maxLODDistance_;
     debugLayerData_.lodExponent = &lodExponent_;
     debugLayerData_.isLODOn = &isLODOn_;
+    debugLayerData_.fragmentColourType = &fragmentColourType;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -222,9 +228,30 @@ bool Application::initialiseEntities(Scene *scene)
             "./assets/horse_statue_lod"
         );
         resourceManager_.loadGeometry(name, geometry);
-        Transform transform = Transform{
-            .position = {0.f, -1.f, 0.f}, .scale = {10.f, 10.f, 10.f}
-        };
+        // Transform transform = Transform{
+        //     .position = {0.f, -1.f, 0.f}, .scale = {10.f, 10.f, 10.f}
+        // };
+        // initialiseGeometry(scene, name, transform);
+    }
+
+    {
+        // asteroid
+        std::string name = "asteroid";
+        Geometry geometry = ResourceManager::loadObj(
+            {"assets/asteroid_lod/asteroid_LOD_10.obj",
+             "assets/asteroid_lod/asteroid_LOD_11.obj",
+             "assets/asteroid_lod/asteroid_LOD_12.obj",
+             "assets/asteroid_lod/asteroid_LOD_13.obj",
+             "assets/asteroid_lod/asteroid_LOD_14.obj"},
+            "./assets/asteroid_lod"
+        );
+        resourceManager_.loadGeometry(name, geometry);
+
+        Texture texture =
+            ResourceManager::loadImage("assets/asteroid/texture/diffuse.jpg");
+        resourceManager_.loadTexture("asteroid", texture);
+        Transform transform =
+            Transform{.position = {0.f, -1.f, 0.f}, .scale = {1.f, 1.f, 1.f}};
         initialiseGeometry(scene, name, transform);
     }
 
@@ -263,88 +290,24 @@ bool Application::initialiseGeometry(
     // TODO - generalise
     {
         // vertex shader pipeline
-        std::unique_ptr<DefaultShaderPipelineUpdateData>
-            actorShaderPipelineUpdateData =
-                std::make_unique<DefaultShaderPipelineUpdateData>();
-        actorShaderPipelineUpdateData->actor = actorPtr;
-        actorShaderPipelineUpdateData->camera = camera_;
-        actorShaderPipelineUpdateData->lodIndex = &lodIndex_;
-        actorShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
-        actorShaderPipelineUpdateData->nFramesSinceStart = &nFramesSinceStart_;
-        actorShaderPipelineUpdateData->rotationFrequency = &rotationFrequency_;
-        actorShaderPipelineUpdateData->timer = &timer_;
+        std::unique_ptr<DefaultShaderPipelineUpdateData> updateData =
+            std::make_unique<DefaultShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->lodIndex = &lodIndex_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->nFramesSinceStart = &nFramesSinceStart_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
 
         std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
             std::make_unique<StandardVulkanShaderPipeline>();
         auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
             shaderPipelineManager_.registerShaderPipeline(
                 std::format("{}DefaultVertex", name),
-                std::move(actorShaderPipeline),
-                std::move(actorShaderPipelineUpdateData)
-            );
-
-        registeredShaderPipeline->init(
-            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
-        );
-    }
-    {
-        // instanced vertex shader pipeline
-        std::unique_ptr<InstancedVertexShaderPipelineUpdateData>
-            actorInstancedShaderPipelineUpdateData =
-                std::make_unique<InstancedVertexShaderPipelineUpdateData>();
-        actorInstancedShaderPipelineUpdateData->actor = actorPtr;
-        actorInstancedShaderPipelineUpdateData->camera = camera_;
-        actorInstancedShaderPipelineUpdateData->instances =
-            &registeredMesh->instances;
-        actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
-        actorInstancedShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
-        actorInstancedShaderPipelineUpdateData->rotationFrequency =
-            &rotationFrequency_;
-        actorInstancedShaderPipelineUpdateData->timer = &timer_;
-
-        std::unique_ptr<InstancedVertexVulkanShaderPipeline>
-            actorInstancedShaderPipeline =
-                std::make_unique<InstancedVertexVulkanShaderPipeline>();
-        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
-            shaderPipelineManager_.registerShaderPipeline(
-                std::format("{}InstancedVertex", name),
-                std::move(actorInstancedShaderPipeline),
-                std::move(actorInstancedShaderPipelineUpdateData)
-            );
-
-        registeredShaderPipeline->init(
-            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
-        );
-    }
-    {
-        // instanced vertex shader pipeline
-        std::unique_ptr<InstancedVertexComputeShaderPipelineUpdateData>
-            actorInstancedShaderPipelineUpdateData = std::make_unique<
-                InstancedVertexComputeShaderPipelineUpdateData>();
-        actorInstancedShaderPipelineUpdateData->actor = actorPtr;
-        actorInstancedShaderPipelineUpdateData->camera = camera_;
-        actorInstancedShaderPipelineUpdateData->instances =
-            &registeredMesh->instances;
-        actorInstancedShaderPipelineUpdateData->lodIndex = &lodIndex_;
-        actorInstancedShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
-        actorInstancedShaderPipelineUpdateData->rotationFrequency =
-            &rotationFrequency_;
-        actorInstancedShaderPipelineUpdateData->timer = &timer_;
-        actorInstancedShaderPipelineUpdateData->visibilityFunc =
-            &visibilityFunction_;
-        actorInstancedShaderPipelineUpdateData->maxLODDistance =
-            &maxLODDistance_;
-        actorInstancedShaderPipelineUpdateData->lodExponent = &lodExponent_;
-        actorInstancedShaderPipelineUpdateData->isLODOn = &isLODOn_;
-
-        std::unique_ptr<InstancedVertexComputeVulkanShaderPipeline>
-            actorInstancedShaderPipeline =
-                std::make_unique<InstancedVertexComputeVulkanShaderPipeline>();
-        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
-            shaderPipelineManager_.registerShaderPipeline(
-                std::format("{}InstancedVertexCompute", name),
-                std::move(actorInstancedShaderPipeline),
-                std::move(actorInstancedShaderPipelineUpdateData)
+                std::move(actorShaderPipeline), std::move(updateData)
             );
 
         registeredShaderPipeline->init(
@@ -354,23 +317,83 @@ bool Application::initialiseGeometry(
         meshComponent->setMesh(registeredMesh);
     }
     {
+        // instanced vertex shader pipeline
+        std::unique_ptr<InstancedVertexShaderPipelineUpdateData> updateData =
+            std::make_unique<InstancedVertexShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->instances = &registeredMesh->instances;
+        updateData->lodIndex = &lodIndex_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
+
+        std::unique_ptr<InstancedVertexVulkanShaderPipeline>
+            actorInstancedShaderPipeline =
+                std::make_unique<InstancedVertexVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("{}InstancedVertex", name),
+                std::move(actorInstancedShaderPipeline), std::move(updateData)
+            );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+    }
+    {
+        // instanced vertex shader pipeline
+        std::unique_ptr<InstancedVertexComputeShaderPipelineUpdateData>
+            updateData = std::make_unique<
+                InstancedVertexComputeShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->instances = &registeredMesh->instances;
+        updateData->lodIndex = &lodIndex_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->visibilityFunc = &visibilityFunction_;
+        updateData->maxLODDistance = &maxLODDistance_;
+        updateData->lodExponent = &lodExponent_;
+        updateData->isLODOn = &isLODOn_;
+        updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
+        updateData->discInnerRadius = &discInnerRadius_;
+        updateData->discOuterRadius = &discOuterRadius_;
+        updateData->discHeight = &discHeight_;
+
+        std::unique_ptr<InstancedVertexComputeVulkanShaderPipeline>
+            actorInstancedShaderPipeline =
+                std::make_unique<InstancedVertexComputeVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("{}InstancedVertexCompute", name),
+                std::move(actorInstancedShaderPipeline), std::move(updateData)
+            );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+    }
+    {
         // mesh shader pipeline
-        std::unique_ptr<InstancedMeshShaderPipelineUpdateData>
-            actorMeshShaderPipelineUpdateData =
-                std::make_unique<InstancedMeshShaderPipelineUpdateData>();
-        actorMeshShaderPipelineUpdateData->actor = actorPtr;
-        actorMeshShaderPipelineUpdateData->camera = camera_;
-        actorMeshShaderPipelineUpdateData->instances =
-            &registeredMesh->instances;
-        actorMeshShaderPipelineUpdateData->visibilityFunc =
-            &visibilityFunction_;
-        actorMeshShaderPipelineUpdateData->maxLODDistance = &maxLODDistance_;
-        actorMeshShaderPipelineUpdateData->lodExponent = &lodExponent_;
-        actorMeshShaderPipelineUpdateData->isLODOn = &isLODOn_;
-        actorMeshShaderPipelineUpdateData->isAnimationOn = &isAnimationOn_;
-        actorMeshShaderPipelineUpdateData->rotationFrequency =
-            &rotationFrequency_;
-        actorMeshShaderPipelineUpdateData->timer = &timer_;
+        std::unique_ptr<InstancedMeshShaderPipelineUpdateData> updateData =
+            std::make_unique<InstancedMeshShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->instances = &registeredMesh->instances;
+        updateData->visibilityFunc = &visibilityFunction_;
+        updateData->maxLODDistance = &maxLODDistance_;
+        updateData->lodExponent = &lodExponent_;
+        updateData->isLODOn = &isLODOn_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
 
         std::unique_ptr<InstancedMeshVulkanShaderPipeline>
             actorMeshShaderPipeline =
@@ -380,8 +403,7 @@ bool Application::initialiseGeometry(
              registeredMeshShaderPipelineUpdateData] =
                 shaderPipelineManager_.registerShaderPipeline(
                     std::format("{}Mesh", name),
-                    std::move(actorMeshShaderPipeline),
-                    std::move(actorMeshShaderPipelineUpdateData)
+                    std::move(actorMeshShaderPipeline), std::move(updateData)
                 );
         // TODO - should init reference the pointer to this update data?
         registeredMeshShaderPipeline->init(
@@ -417,9 +439,10 @@ bool Application::initialiseCamera(Scene *scene)
 
 void Application::handleInput()
 {
-    float deltaSeconds = timer_.getDeltaSeconds();
+    // Clamp delta time to prevent rotation/movement spikes after frame
+    // stalls
+    float deltaSeconds = std::min(timer_.getDeltaSeconds(), 0.1f);
     float movementSpeed = MOVEMENT_SENSITIVITY * deltaSeconds;
-    float rotationSpeed = MOUSE_SENSITIVITY * deltaSeconds;
 
     IInput *input = platform_.getInput();
     if (!input)
@@ -433,8 +456,10 @@ void Application::handleInput()
     {
         MouseDelta delta = input->getMouseDelta();
 
-        rotationOffset.y -= delta.x * rotationSpeed;
-        rotationOffset.x = delta.y * rotationSpeed;
+        // Mouse delta is already frame-rate-independent (raw movement), so
+        // don't multiply by delta time - just apply sensitivity directly
+        rotationOffset.y -= delta.x * MOUSE_SENSITIVITY;
+        rotationOffset.x = delta.y * MOUSE_SENSITIVITY;
 
         if (input->isKeyPressed(KeyCode::W))
             positionOffset.z += movementSpeed;
@@ -511,14 +536,20 @@ void Application::mainLoop()
 
 void Application::checkForEntitiyUpdates()
 {
-    bool checkRows = currentNInstanceRows_ != nInstanceRows_;
-    bool checkColumns = currentNInstanceColumns_ != nInstanceColumns_;
-    bool checkLayers = currentNInstanceLayers_ != nInstanceLayers_;
-    if (checkRows || checkColumns || checkLayers)
+    bool checkInstances = currentNInstances_ != nInstances_;
+
+    bool checkOuterRadius =
+        std::abs(currentDiscOuterRadius_ - discOuterRadius_) > EPS;
+    bool checkInnerRadius =
+        std::abs(currentDiscInnerRadius_ - discInnerRadius_) > EPS;
+    bool checkHeight = std::abs(currentDiscHeight_ - discHeight_) > EPS;
+    if (checkInstances || checkOuterRadius || checkInnerRadius || checkHeight)
         updateEntities();
-    currentNInstanceRows_ = nInstanceRows_;
-    currentNInstanceColumns_ = nInstanceColumns_;
-    currentNInstanceLayers_ = nInstanceLayers_;
+
+    currentNInstances_ = nInstances_;
+    currentDiscOuterRadius_ = discOuterRadius_;
+    currentDiscInnerRadius_ = discInnerRadius_;
+    currentDiscHeight_ = discHeight_;
 }
 
 void Application::checkForPipelineUpdates()
@@ -554,7 +585,7 @@ void Application::checkForPipelineUpdates()
         }
         default:
         {
-            shaderPipelineSuffix = "InstancedVertexCompute";
+            shaderPipelineSuffix = "DefaultVertex";
             break;
         }
         }
@@ -606,115 +637,45 @@ void Application::checkForPipelineUpdates()
 
 void Application::initialiseEntities()
 {
-    Mesh *horseMesh = meshManager_.getMesh("horsie");
-    horseMesh->instances.resize(
-        nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
-    );
-    float maxSpan = std::max<float>(
-        std::max<float>(
-            horseMesh->getGeometry()->meshBounds.getWidth(),
-            horseMesh->getGeometry()->meshBounds.getDepth()
-        ),
-        horseMesh->getGeometry()->meshBounds.getHeight()
-    );
-    float instanceSpanX = 2.0f * maxSpan;
-    float instanceSpanY = 2.0f * maxSpan;
-    float instanceSpanZ = 2.0f * maxSpan;
-    float totalSpanX = nInstanceColumns_ * instanceSpanX;
-    float totalSpanY = nInstanceLayers_ * instanceSpanY;
-    float totalSpanZ = nInstanceRows_ * instanceSpanZ;
+    Mesh *mesh = meshManager_.getMesh("asteroid");
+    mesh->instances.resize(nInstances_);
 
-    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows_; ++rowIndex)
+    for (uint instanceIndex = 0; instanceIndex < nInstances_; instanceIndex++)
     {
-        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers_;
-             ++layerIndex)
-        {
-            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns_;
-                 ++columnIndex)
-            {
-                float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
-                          instanceSpanX / 2.f;
-                float y = layerIndex * instanceSpanY - (totalSpanY / 2.f) +
-                          instanceSpanY / 2.f;
-                float z = rowIndex * instanceSpanZ - (totalSpanZ / 2.f) +
-                          instanceSpanZ / 2.f;
+        float theta = random.randomFloat(0.0, PI2);
+        float radius = random.randomFloat(discInnerRadius_, discOuterRadius_);
+        float height =
+            random.randomFloat(-discHeight_ / 2.0, discHeight_ / 2.0);
 
-                uint32_t index =
-                    (layerIndex * nInstanceRows_ * nInstanceColumns_) +
-                    (rowIndex * nInstanceColumns_) + columnIndex;
-                float t = static_cast<float>(glfwGetTime()) +
-                          ((columnIndex ^ rowIndex + columnIndex) / 10.f);
-                glm::vec4 rotationVector;
-                if (isAnimationOn_)
-                    rotationVector = glm::vec4(0.0, t, 0.0, 1.0);
-                else
-                    rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
+        float rotX = random.randomFloat(0.0, PI2);
+        float rotY = random.randomFloat(0.0, PI2);
+        float rotZ = random.randomFloat(0.0, PI2);
 
-                horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
-                horseMesh->instances[index].rotation = rotationVector;
-                horseMesh->instances[index].scale =
-                    glm::vec4(1.0, 1.0, 1.0, 1.0);
-            }
-        }
+        float scaleX =
+            random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
+        float scaleY =
+            random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
+        float scaleZ =
+            random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
+
+        float x = radius * std::sin(theta);
+        float y = height;
+        float z = radius * std::cos(theta);
+        mesh->instances[instanceIndex].position = glm::vec4(x, y, z, 1.0);
+        mesh->instances[instanceIndex].rotation = {rotX, rotY, rotZ, 1.0};
+        mesh->instances[instanceIndex].scale =
+            glm::vec4(scaleX, scaleY, scaleZ, 1.0);
     }
 }
 
 // TODO - seems super hardcoded all of this - I think there might be an
-// animation component and I add a callback when initialising the horse actor
-// and then call animation update in the scene layer frame
+// animation component and I add a callback when initialising the horse
+// actor and then call animation update in the scene layer frame
+// TODO - not sure of the point in this function anymore....I guess for
+// animation frames later?
 void Application::updateEntities()
 {
-    Mesh *horseMesh = meshManager_.getMesh("horsie");
-    horseMesh->instances.resize(
-        nInstanceColumns_ * nInstanceLayers_ * nInstanceRows_
-    );
-    float maxSpan = std::max<float>(
-        std::max<float>(
-            horseMesh->getGeometry()->meshBounds.getWidth(),
-            horseMesh->getGeometry()->meshBounds.getDepth()
-        ),
-        horseMesh->getGeometry()->meshBounds.getHeight()
-    );
-    float instanceSpanX = 2.0f * maxSpan;
-    float instanceSpanY = 2.0f * maxSpan;
-    float instanceSpanZ = 2.0f * maxSpan;
-    float totalSpanX = nInstanceColumns_ * instanceSpanX;
-    float totalSpanY = nInstanceLayers_ * instanceSpanY;
-    float totalSpanZ = nInstanceRows_ * instanceSpanZ;
-
-    for (uint32_t rowIndex = 0; rowIndex < nInstanceRows_; ++rowIndex)
-    {
-        for (uint32_t layerIndex = 0; layerIndex < nInstanceLayers_;
-             ++layerIndex)
-        {
-            for (uint32_t columnIndex = 0; columnIndex < nInstanceColumns_;
-                 ++columnIndex)
-            {
-                float x = columnIndex * instanceSpanX - (totalSpanX / 2.f) +
-                          instanceSpanX / 2.f;
-                float y = layerIndex * instanceSpanY - (totalSpanY / 2.f) +
-                          instanceSpanY / 2.f;
-                float z = rowIndex * instanceSpanZ - (totalSpanZ / 2.f) +
-                          instanceSpanZ / 2.f;
-
-                uint32_t index =
-                    (layerIndex * nInstanceRows_ * nInstanceColumns_) +
-                    (rowIndex * nInstanceColumns_) + columnIndex;
-                float t = static_cast<float>(glfwGetTime()) +
-                          ((columnIndex ^ rowIndex + columnIndex) / 10.f);
-                glm::vec4 rotationVector;
-                if (isAnimationOn_)
-                    rotationVector = glm::vec4(0.0, t, 0.0, 1.0);
-                else
-                    rotationVector = glm::vec4(0.0, 0.0, 0.0, 1.0);
-
-                horseMesh->instances[index].position = glm::vec4(x, y, z, 1.0);
-                horseMesh->instances[index].rotation = rotationVector;
-                horseMesh->instances[index].scale =
-                    glm::vec4(1.0, 1.0, 1.0, 1.0);
-            }
-        }
-    }
+    initialiseEntities();
 }
 
 void Application::shutdown()

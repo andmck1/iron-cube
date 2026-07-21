@@ -70,4 +70,20 @@ struct FrustumCone
     float4 angle;
 };
 
+enum FragmentColourType : uint32_t
+{
+    TEXTURE,
+    PRIMITIVE,
+    LOD,
+    NORMALS
+};
+
+struct Disc
+{
+    float innerRadius;
+    float outerRadius;
+    float height;
+    float _pad0;
+};
+
 #endif

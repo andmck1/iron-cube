@@ -21,6 +21,16 @@ vk::raii::CommandBuffer &VulkanRenderer::getCommandBuffer()
     return commandBuffers_[currentFrameIndex_];
 }
 
+vk::raii::CommandPool &VulkanRenderer::getCommandPool()
+{
+    return commandPool_;
+}
+
+vk::raii::Queue &VulkanRenderer::getQueue()
+{
+    return queue_;
+}
+
 vk::Extent2D &VulkanRenderer::getSwapChainExtent()
 {
     return swapChainExtent_;
@@ -454,6 +464,30 @@ vk::raii::ImageView VulkanRenderer::createImageView(
                                                    .setLayerCount(1)
                                            );
     return vk::raii::ImageView(device_, viewInfo);
+}
+
+vk::raii::Sampler VulkanRenderer::createSampler(
+    vk::Filter filter, vk::SamplerAddressMode addressMode
+)
+{
+    vk::SamplerCreateInfo samplerInfo =
+        vk::SamplerCreateInfo{}
+            .setMagFilter(filter)
+            .setMinFilter(filter)
+            .setAddressModeU(addressMode)
+            .setAddressModeV(addressMode)
+            .setAddressModeW(addressMode)
+            .setAnisotropyEnable(vk::False)
+            .setMaxAnisotropy(1.0f)
+            .setBorderColor(vk::BorderColor::eIntOpaqueBlack)
+            .setUnnormalizedCoordinates(vk::False)
+            .setCompareEnable(vk::False)
+            .setCompareOp(vk::CompareOp::eAlways)
+            .setMipmapMode(vk::SamplerMipmapMode::eLinear)
+            .setMipLodBias(0.0f)
+            .setMinLod(0.0f)
+            .setMaxLod(0.0f);
+    return vk::raii::Sampler(device_, samplerInfo);
 }
 
 bool VulkanRenderer::createRenderPass()

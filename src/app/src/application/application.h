@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commontypes.h"
 #include "core_actor/camera.h"
 #include "core_common/helpers.h"
 #include "core_common/logger.h"
@@ -19,9 +20,12 @@
 #include <memory>
 #include <vector>
 
-static constexpr float MOUSE_SENSITIVITY = 1.5f;
+static constexpr float MOUSE_SENSITIVITY = 0.0015f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
 static constexpr float GPU_STATS_QUERY_FREQUENCY = 1.f;
+static constexpr float EPS = 1e-6f;
+static constexpr float INSTANCE_SCALE_LOWER = 0.6;
+static constexpr float INSTANCE_SCALE_UPPER = 1.4;
 
 class Application
 {
@@ -75,19 +79,25 @@ class Application
     VisibilityFunc visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
     bool isAnimationOn_ = false;
 
-    int nInstanceRows_ = 1;
-    int nInstanceColumns_ = 1;
-    int nInstanceLayers_ = 1;
-    int currentNInstanceRows_ = 1;
-    int currentNInstanceColumns_ = 1;
-    int currentNInstanceLayers_ = 1;
+    int nInstances_ = 1000;
+    float discOuterRadius_ = 1000.f;
+    float discInnerRadius_ = 50.f;
+    float discHeight_ = 50.f;
+
+    int currentNInstances_ = nInstances_;
+    float currentDiscOuterRadius_ = discOuterRadius_;
+    float currentDiscInnerRadius_ = discInnerRadius_;
+    float currentDiscHeight_ = discHeight_;
 
     bool isDebugQueryOn_ = true;
     std::vector<GPUStats> gpuStats_ = {};
     uint32_t lodIndex_ = 0;
-    float maxLODDistance_ = 7.f;
+    float maxLODDistance_ = 14.f;
     float lodExponent_ = 1.2f;
     bool isLODOn_ = true;
     uint32_t nFramesSinceStart_ = 0;
-    float rotationFrequency_ = 0.5f;
+    float rotationFrequency_ = 0.01f;
+    FragmentColourType fragmentColourType = FragmentColourType::TEXTURE;
+
+    Random random = Random();
 };
