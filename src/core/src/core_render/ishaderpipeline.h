@@ -26,5 +26,5 @@ class IShaderPipeline
     float drawTime = 0.f;
 
     protected:
-    bool isDebugQuery_ = false;
+    uint32_t isDebugQuery_ = 0;
 };

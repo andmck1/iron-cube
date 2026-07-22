@@ -25,7 +25,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 
     if (debugData[0].isDebugQueryOn > 0)
     {
-        InterlockedAdd(debugData[0].nComputeShaderInvocations, 1);
+        InterlockedAdd(debugData[0].nComputeLODStatsInvocations, 1);
     }
 
     if (instanceIndex < scene.instanceCount.x)

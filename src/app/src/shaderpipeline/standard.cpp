@@ -386,21 +386,29 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
     if (!isDebugQuery_)
         return false;
 
-    pipelineStatistics_.pipelineType =
-        PipelineStatistics::PipelineType::TRADITIONAL;
-
     vk::DeviceSize debugDataBufferSize =
         sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
+
     if (auto *buffer = resources_[SimpleVF::BufferSlots::DEBUG].asBuffer())
     {
         buffer->readData(debugDataBufferSize, debugDataBufferData_.data());
-        pipelineStatistics_.nVertexShaderInvocations =
-            debugDataBufferData_[0].nVertexShaderInvocations;
-        pipelineStatistics_.nFragmentShaderInvocations =
-            debugDataBufferData_[0].nFragmentShaderInvocations;
-        pipelineStatistics_.nTriangles =
-            (int) (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3);
-        pipelineStatistics_.nDrawCalls = nDrawCalls_;
+        pipelineStatistics_.stats = {
+            {
+                "N Vertices",
+                geometry_->vertices.size(),
+            },
+            {
+                "N Triangles",
+                geometry_->vertices.size() / 3,
+            },
+            {"N VS Invocations",
+             debugDataBufferData_[0].nVertexShaderInvocations},
+            {"N FS Invocations",
+             debugDataBufferData_[0].nFragmentShaderInvocations},
+            {"N Triangles",
+             (long) (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3)},
+            {"N Draw Calls", nDrawCalls_},
+        };
     }
     return true;
 }

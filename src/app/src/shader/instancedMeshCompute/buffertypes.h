@@ -121,11 +121,13 @@ namespace InstancedMeshCompute
     struct DebugDataBuffer
     {
         uint32_t isDebugQueryOn = 0;
+        uint32_t nComputeLODStatsInvocations = 0;
+        uint32_t nComputeDrawCommandsInvocations = 0;
         uint32_t nTaskShaderInvocations = 0;
         uint32_t nMeshShaderInvocations = 0;
         uint32_t nFragmentShaderInvocations = 0;
-        uint32_t nComputeShaderInvocations = 0;
         uint32_t nTriangles = 0;
+        uint32_t _pad0;
     };
 
     struct MeshTasksIndirectCommand

@@ -750,24 +750,27 @@ bool InstancedVertexComputeVulkanShaderPipeline::updatePipelineStatistics()
     if (!isDebugQuery_)
         return false;
 
-    pipelineStatistics_.pipelineType =
-        PipelineStatistics::PipelineType::TRADITIONAL;
-
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
     resources_[InstancedVFCompute::BufferSlots::DEBUG].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
-    pipelineStatistics_.nVertexShaderInvocations =
-        debugDataBufferData_[0].nVertexShaderInvocations;
-    pipelineStatistics_.nComputeShaderInvocations =
-        debugDataBufferData_[0].nComputeShaderInvocations;
-    pipelineStatistics_.nFragmentShaderInvocations =
-        debugDataBufferData_[0].nFragmentShaderInvocations;
-    pipelineStatistics_.nTriangles =
-        (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3.0) *
-        updateData_->instances->size();
-    pipelineStatistics_.nDrawCalls = nDrawCalls_;
+
+    long nInstances = updateData_->instances->size();
+    pipelineStatistics_.stats = {
+        {"N Instances", nInstances},
+        {"N Max Vertices", nInstances * geometry_->vertexCounts[0]},
+        {"N Max Triangles", geometry_->vertexCounts[0] * nInstances / 3},
+        {"N CS (LOD Stats) (Pass 1) Invocations",
+         debugDataBufferData_[0].nComputeLODStatsInvocations},
+        {"N CS (Draw Commands) (Pass 2) Invocations",
+         debugDataBufferData_[0].nComputeDrawCommandsInvocations},
+        {"N VS Invocations", debugDataBufferData_[0].nVertexShaderInvocations},
+        {"N FS Invocations",
+         debugDataBufferData_[0].nFragmentShaderInvocations},
+        {"N Draw Calls", nDrawCalls_},
+    };
+
     return true;
 }

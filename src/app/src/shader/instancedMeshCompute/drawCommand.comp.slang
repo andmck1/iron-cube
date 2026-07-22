@@ -24,7 +24,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 
     if (debugData[0].isDebugQueryOn > 0)
     {
-        InterlockedAdd(debugData[0].nComputeShaderInvocations, 1);
+        InterlockedAdd(debugData[0].nComputeDrawCommandsInvocations, 1);
     }
 
     uint meshletLODWorkOffset = 0;
@@ -37,7 +37,8 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
     }
 
     // Total workgroups needed for all meshlet-instance work
-    uint totalGroups = (meshletLODWorkOffset + TS_GROUP_SIZE - 1) / TS_GROUP_SIZE;
+    uint totalGroups =
+        (meshletLODWorkOffset + TS_GROUP_SIZE - 1) / TS_GROUP_SIZE;
 
     // Split into multiple indirect draw commands, each capped at the device's
     // maxTaskWorkGroupTotalCount limit (passed via scene buffer)

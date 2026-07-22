@@ -75,8 +75,8 @@ bool DebugLayer::frame()
                 ))
             {
                 ImGui::TableSetupColumn("Device");
-                ImGui::TableSetupColumn("Kernel Busy %%");
-                ImGui::TableSetupColumn("Memory RW Busy %%");
+                ImGui::TableSetupColumn("Kernel Busy %");
+                ImGui::TableSetupColumn("Memory RW Busy %");
                 ImGui::TableSetupColumn("Memory Usage");
                 ImGui::TableHeadersRow();
 
@@ -154,13 +154,6 @@ bool DebugLayer::frame()
                         percentGPUTimeOfTotalFrameTime
                     );
 
-                    long nInstances =
-                        meshComponent->getMesh()->instances.size();
-                    long nVertices = meshComponent->getMesh()
-                                         ->getGeometry()
-                                         ->indexCounts[*debugData_->lodIndex];
-                    long nTriangles = (nVertices / 3) * nInstances;
-
                     // Per-frame time line charts
                     {
                         ImVec2 plotSize = ImVec2(300.f, 60.f);
@@ -187,150 +180,13 @@ bool DebugLayer::frame()
                         ImGui::TableSetupColumn("Value");
                         ImGui::TableHeadersRow();
 
-                        // Common rows
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Instances");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%s", formatNumber(nInstances).c_str());
-
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Total Maximum Vertices");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text(
-                            "%s", formatNumber(nVertices * nInstances).c_str()
-                        );
-
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Total Maximum Triangles");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%s", formatNumber(nTriangles).c_str());
-
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Drawn Triangles");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text(
-                            "%s",
-                            formatNumber((long) pipelineStatistics.nTriangles)
-                                .c_str()
-                        );
-
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("N Draw Calls");
-                        ImGui::TableSetColumnIndex(1);
-                        ImGui::Text("%d", (int) pipelineStatistics.nDrawCalls);
-
-                        // Pipeline-specific invocation rows
-                        if (pipelineStatistics.pipelineType ==
-                            PipelineStatistics::PipelineType::TRADITIONAL)
+                        for (auto [statName, stat] : pipelineStatistics.stats)
                         {
-                            // Only show CS invocations for compute shader
-                            if (selectedShaderType == 2)
-                            {
-                                ImGui::TableNextRow();
-                                ImGui::TableSetColumnIndex(0);
-                                ImGui::Text("CS Invocations");
-                                ImGui::TableSetColumnIndex(1);
-                                ImGui::Text(
-                                    "%s",
-                                    formatNumber((long) pipelineStatistics
-                                                     .nComputeShaderInvocations)
-                                        .c_str()
-                                );
-                            }
-
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("VS Invocations");
+                            ImGui::Text("%s", statName.c_str());
                             ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber((long) pipelineStatistics
-                                                 .nVertexShaderInvocations)
-                                    .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("PS Invocations");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber((long) pipelineStatistics
-                                                 .nFragmentShaderInvocations)
-                                    .c_str()
-                            );
-                        }
-                        else if (
-                            pipelineStatistics.pipelineType ==
-                            PipelineStatistics::PipelineType::MESH
-                        )
-                        {
-                            long nMeshlets =
-                                meshComponent->getMesh()
-                                    ->getGeometry()
-                                    ->meshletLODCounts[*debugData_->lodIndex];
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("TS Invocations");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s", formatNumber((long) pipelineStatistics
-                                                       .nTaskShaderInvocations)
-                                          .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("MS Invocations");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s", formatNumber((long) pipelineStatistics
-                                                       .nMeshShaderInvocations)
-                                          .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("Unused TS Invocations");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber((long) pipelineStatistics
-                                                 .nUnusedTaskShaderInvocations)
-                                    .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("PS Invocations");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber((long) pipelineStatistics
-                                                 .nFragmentShaderInvocations)
-                                    .c_str()
-                            );
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("N Meshlets per Instance");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text("%s", formatNumber(nMeshlets).c_str());
-
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("Total Maximum Meshlets");
-                            ImGui::TableSetColumnIndex(1);
-                            ImGui::Text(
-                                "%s",
-                                formatNumber(nMeshlets * nInstances).c_str()
-                            );
+                            ImGui::Text("%s", formatNumber(stat).c_str());
                         }
 
                         ImGui::EndTable();

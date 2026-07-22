@@ -429,21 +429,28 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
     if (!isDebugQuery_)
         return false;
 
-    pipelineStatistics_.pipelineType =
-        PipelineStatistics::PipelineType::TRADITIONAL;
-
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
     resources_[InstancedVF::BufferSlots::DEBUG].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
-    pipelineStatistics_.nVertexShaderInvocations =
-        debugDataBufferData_[0].nVertexShaderInvocations;
-    pipelineStatistics_.nFragmentShaderInvocations =
-        debugDataBufferData_[0].nFragmentShaderInvocations;
-    pipelineStatistics_.nTriangles =
-        (geometry_->meshletLODCounts[*updateData_->lodIndex] / 3.0) *
-        updateData_->instances->size();
-    pipelineStatistics_.nDrawCalls = nDrawCalls_;
+
+    long nInstances = updateData_->instances->size();
+    pipelineStatistics_.stats = {
+        {"N Instances", nInstances},
+        {
+            "N Vertices",
+            geometry_->vertices.size() * nInstances,
+        },
+        {
+            "N Triangles",
+            geometry_->vertices.size() / 3 * nInstances,
+        },
+        {"N VS Invocations", debugDataBufferData_[0].nVertexShaderInvocations},
+        {"N FS Invocations",
+         debugDataBufferData_[0].nFragmentShaderInvocations},
+        {"N Draw Calls", nDrawCalls_},
+    };
+
     return true;
 }

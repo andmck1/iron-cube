@@ -745,23 +745,30 @@ bool InstancedMeshComputeVulkanShaderPipeline::updatePipelineStatistics()
     if (!isDebugQuery_)
         return true;
 
-    pipelineStatistics_.pipelineType = PipelineStatistics::PipelineType::MESH;
-
-    // TODO - debug buffer should be it's own allocation tbh, or I track it as
-    // a pointer
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedMeshCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
     resources_[InstancedMeshCompute::BufferSlots::DEBUG].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
-    pipelineStatistics_.nTaskShaderInvocations =
-        debugDataBufferData_[0].nTaskShaderInvocations;
-    pipelineStatistics_.nMeshShaderInvocations =
-        debugDataBufferData_[0].nMeshShaderInvocations;
-    pipelineStatistics_.nFragmentShaderInvocations =
-        debugDataBufferData_[0].nFragmentShaderInvocations;
-    pipelineStatistics_.nTriangles = debugDataBufferData_[0].nTriangles;
-    pipelineStatistics_.nDrawCalls = nDrawCalls_;
+
+    // TODO - possible to track meshlets? would requiring copying the data back
+    uint32_t nInstances = updateData_->instances->size();
+    pipelineStatistics_.stats = {
+        {"N Instances", nInstances},
+        {"N Max Vertices", nInstances * geometry_->vertexCounts[0]},
+        {"N Max Meshlets", geometry_->meshletLODCounts[0] * nInstances},
+        {"N CS (LOD Stats) (Pass 1) Invocations",
+         debugDataBufferData_[0].nComputeLODStatsInvocations},
+        {"N CS (Draw Commands) (Pass 2) Invocations",
+         debugDataBufferData_[0].nComputeDrawCommandsInvocations},
+        {"N TS Invocations", debugDataBufferData_[0].nTaskShaderInvocations},
+        {"N MS Invocations", debugDataBufferData_[0].nMeshShaderInvocations},
+        {"N FS Invocations",
+         debugDataBufferData_[0].nFragmentShaderInvocations},
+        {"N Triangles", debugDataBufferData_[0].nTriangles},
+        {"N Draw Calls", nDrawCalls_},
+    };
+
     return true;
 }
