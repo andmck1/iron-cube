@@ -60,10 +60,9 @@ void main(
         (lod > 0) ? indirectCommandData[0].meshletWorkOffsets[lod - 1] : 0;
     uint lodLocalOffset = globalThreadIndex - lodBaseOffset;
     uint localLODInstanceIndex = lodLocalOffset / nLODMeshlets;
-    uint meshletIndex =
-        lodLocalOffset % nLODMeshlets + scene.meshletLODOffsets[lod].x;
-    uint instanceIndex = lod * scene.instanceCount.x + localLODInstanceIndex;
 
+    uint meshletIndex = lodLocalOffset % nLODMeshlets;
+    uint instanceIndex = lod * scene.instanceCount.x + localLODInstanceIndex;
     if (dtid < constants.workCount)
     {
         float4x4 modelMatrix = computedInstances[instanceIndex].modelMatrix;
@@ -71,24 +70,23 @@ void main(
         if (meshletIndex < lodMeshletCount)
         {
             meshletIndex += scene.meshletLODOffsets[lod].x;
-
-            // Don't multiply w (which is radius here) by transform
             float4 meshletBoundingSphere =
                 mul(modelMatrix,
                     float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
             meshletBoundingSphere.w = meshletBoundingSpheres[meshletIndex].w;
-
             visible = isVisible(
                 meshletBoundingSphere, (VisibilityFunc) scene.visibilityFunc.x,
                 scene.frustum.planes, scene.frustum.sphere, scene.frustum.cone
             );
         }
+    }
 
+    if (visible)
+    {
         uint index = WavePrefixCountBits(visible);
         sPayload.instanceIndices[index] = instanceIndex;
         sPayload.meshletIndices[index] = meshletIndex;
     }
-
     // This must be called from task shader
     uint visibleCount = WaveActiveCountBits(visible);
     DispatchMesh(visibleCount, 1, 1, sPayload);

@@ -52,8 +52,9 @@ bool InstancedMeshComputeVulkanShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down default vulkan pipeline");
     pipelineLayout_ = nullptr;
-    graphicsPipeline_ = nullptr;
+    computePasses_.clear();
     shutdownBuffers();
+    graphicsPipeline_ = nullptr;
     spdlog::debug("Shutdown complete for default vulkan pipeline");
     return true;
 }
@@ -138,7 +139,6 @@ bool InstancedMeshComputeVulkanShaderPipeline::initGraphicsPipeline()
     std::vector<vk::PushConstantRange> pushConstantRanges = {
         vk::PushConstantRange{}
             .setStageFlags(
-                vk::ShaderStageFlagBits::eCompute |
                 vk::ShaderStageFlagBits::eTaskEXT |
                 vk::ShaderStageFlagBits::eMeshEXT |
                 vk::ShaderStageFlagBits::eFragment
@@ -375,7 +375,9 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
     resourceDescriptions_.push_back(
         StorageReadWrite
             .setBufferSlot(InstancedMeshCompute::BufferSlots::LOD_INSTANCES)
-            .setBufferSize(sizeof(ComputedInstance) * MAX_N_INSTANCES)
+            .setBufferSize(
+                sizeof(ComputedInstance) * MAX_N_INSTANCES * MAX_LOD_COUNT
+            )
             .setData(nullptr)
             .setStageFlags(
                 vk::ShaderStageFlagBits::eCompute |
@@ -692,8 +694,7 @@ bool InstancedMeshComputeVulkanShaderPipeline::draw()
         constants.fragmentColourType = *updateData_->fragmentColourType;
         commandBuffer.pushConstants(
             pipelineLayout_,
-            vk::ShaderStageFlagBits::eCompute |
-                vk::ShaderStageFlagBits::eTaskEXT |
+            vk::ShaderStageFlagBits::eTaskEXT |
                 vk::ShaderStageFlagBits::eMeshEXT |
                 vk::ShaderStageFlagBits::eFragment,
             0, sizeof(InstancedMeshCompute::Constants), &constants
