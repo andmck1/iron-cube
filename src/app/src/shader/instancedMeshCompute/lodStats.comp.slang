@@ -15,7 +15,7 @@ StructuredBuffer<Instance> instances;
 ConstantBuffer<InstancedMeshCompute::AnimationBuffer> animation;
 
 [[vk::binding(InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS)]]
-RWStructuredBuffer<InstancedMeshCompute::IndirectDrawCommandBuffer>
+RWStructuredBuffer<InstancedMeshCompute::IndirectCommandBuffer>
     indirectCommandData;
 
 // Sized based on total nInstances 

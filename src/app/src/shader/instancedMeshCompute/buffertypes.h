@@ -8,6 +8,7 @@
 #define N_MAX_VERTICES 64
 
 #define TS_GROUP_SIZE 32
+#define MAX_INDIRECT_COMMAND_COUNT 4096
 
 namespace InstancedMeshCompute
 {
@@ -24,6 +25,7 @@ namespace InstancedMeshCompute
         MESHLET_BOUNDING_SPHERES,
         TEXTURE,
         INDIRECT_COMMANDS,
+        INDIRECT_DRAW_COMMANDS,
         LOD_INSTANCES,
         LAST
     };
@@ -94,7 +96,7 @@ namespace InstancedMeshCompute
         uint32_t instanceCount;
         uint32_t meshletCount;
         uint32_t visibilityFunc;
-        uint32_t pad0;
+        uint32_t maxGroupsPerDraw;
         uint4 indexCounts[MAX_LOD_COUNT];
         uint4 indexOffsets[MAX_LOD_COUNT];
         uint4 vertexOffsets[MAX_LOD_COUNT];
@@ -133,9 +135,9 @@ namespace InstancedMeshCompute
         uint32_t groupCountZ;
     };
 
-    struct IndirectDrawCommandBuffer
+    struct IndirectCommandBuffer
     {
-        MeshTasksIndirectCommand drawCommand;
+        uint32_t indirectDrawCommandCount;
         uint32_t visibleInstanceCount;
         uint32_t lodHistogram[MAX_LOD_COUNT];
         uint32_t meshletWorkOffsets[MAX_LOD_COUNT];

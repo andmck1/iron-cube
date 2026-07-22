@@ -18,7 +18,7 @@ RWStructuredBuffer<InstancedMeshCompute::DebugDataBuffer> debugData;
 StructuredBuffer<Instance> instances;
 
 [[vk::binding(InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS)]]
-RWStructuredBuffer<InstancedMeshCompute::IndirectDrawCommandBuffer>
+RWStructuredBuffer<InstancedMeshCompute::IndirectCommandBuffer>
     indirectCommandData;
 
 [[vk::binding(InstancedMeshCompute::BufferSlots::LOD_INSTANCES)]]
