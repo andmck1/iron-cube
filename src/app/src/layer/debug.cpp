@@ -415,7 +415,7 @@ bool DebugLayer::frame()
         ImGui::SeparatorText("Shader");
         std::vector<const char *> shaderTypes = {
             "Default Vertex", "Instanced Vertex",
-            "Instanced Vertex With Compute", "Mesh"
+            "Instanced Vertex With Compute", "Mesh", "Mesh With Compute"
         };
         if (ImGui::Combo(
                 "Shader Type", &selectedShaderType, shaderTypes.data(),

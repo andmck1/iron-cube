@@ -402,7 +402,7 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         static_cast<uint32_t>(updateData_->instances->size());
     uint32_t maximumPossibleWork = meshletCount * instanceCount;
     uint32_t maximumPossibleThreads =
-        (maximumPossibleWork + AS_GROUP_SIZE - 1) / AS_GROUP_SIZE;
+        (maximumPossibleWork + TS_GROUP_SIZE - 1) / TS_GROUP_SIZE;
 
     uint32_t workRemaining = maximumPossibleWork;
     uint32_t threadsRemaining = maximumPossibleThreads;
@@ -414,7 +414,7 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         nDrawCalls_++;
         uint32_t currentThreads =
             std::min(threadsRemaining, maxTaskShaderThreadCount_);
-        uint32_t currentWork = currentThreads * AS_GROUP_SIZE;
+        uint32_t currentWork = currentThreads * TS_GROUP_SIZE;
 
         constants = {};
         constants.workStart = workOffset;
