@@ -595,7 +595,6 @@ void InstancedMeshComputeVulkanShaderPipeline::drawCommandComputePass(
     };
     addBarrier(barrierInfo);
 
-    // Barrier for the indirect draw commands buffer
     VulkanBuffer *indirectDrawBuffer =
         resources_[InstancedMeshCompute::BufferSlots::INDIRECT_DRAW_COMMANDS]
             .asBuffer();

@@ -52,6 +52,7 @@ BufferDescription IndexBuffer{
     .useStaging = true
 };
 
+// TODO - I don't use the frame buffer getter
 void VulkanBuffer::init(BufferDescription bufferDescription)
 {
     description = bufferDescription;
@@ -64,10 +65,10 @@ void VulkanBuffer::init(BufferDescription bufferDescription)
 
     if (description.useStaging)
     {
-        staging_.init(renderer_, description.bufferSize);
 
         for (FrameBuffer &frame : frames_)
         {
+            frame.staging.init(renderer_, description.bufferSize);
             std::tie(frame.buffer, frame.memory) = renderer_->createBuffer(
                 bufferDescription.bufferSize, description.deviceUsage,
                 description.deviceMemory
@@ -76,9 +77,9 @@ void VulkanBuffer::init(BufferDescription bufferDescription)
 
             if (bufferDescription.data)
             {
-                staging_.upload(description.data, description.bufferSize);
+                frame.staging.upload(description.data, description.bufferSize);
                 renderer_->copyBuffer(
-                    staging_.buffer(), frame.buffer, description.bufferSize
+                    frame.staging.buffer(), frame.buffer, description.bufferSize
                 );
             }
         }
@@ -121,14 +122,15 @@ void VulkanBuffer::init(BufferDescription bufferDescription)
 void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
 {
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
+    FrameBuffer &frame = frames_[frameIndex];
 
     if (description.persistentlyMapped)
     {
-        memcpy(frames_[frameIndex].mappedPointer, data, bufferSize);
+        memcpy(frame.mappedPointer, data, bufferSize);
     }
     else if (description.useStaging)
     {
-        staging_.upload(data, bufferSize);
+        frame.staging.upload(data, bufferSize);
 
         vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
@@ -137,7 +139,7 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
             vk::AccessFlagBits::eTransferRead,
             VK_QUEUE_FAMILY_IGNORED,
             VK_QUEUE_FAMILY_IGNORED,
-            staging_.buffer(),
+            frame.staging.buffer(),
             0,
             VK_WHOLE_SIZE
         };
@@ -149,7 +151,7 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
 
         vk::BufferCopy copy{0, 0, bufferSize};
         commandBuffer.copyBuffer(
-            staging_.buffer(), frames_[frameIndex].buffer, copy
+            frame.staging.buffer(), frames_[frameIndex].buffer, copy
         );
 
         vk::BufferMemoryBarrier barrier2{
@@ -183,7 +185,9 @@ vk::raii::DeviceMemory *VulkanBuffer::getDeviceMemory(uint32_t frameIndex)
 
 void VulkanBuffer::readData(vk::DeviceSize bufferSize, void *outputData)
 {
-    staging_.download(outputData, bufferSize);
+    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
+    FrameBuffer &frame = frames_[frameIndex];
+    frame.staging.download(outputData, bufferSize);
 }
 
 void VulkanBuffer::copyToStaging(
@@ -192,6 +196,7 @@ void VulkanBuffer::copyToStaging(
 )
 {
     vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    FrameBuffer &frame = frames_[frameIndex];
 
     vk::BufferMemoryBarrier barrier{
         vk::AccessFlagBits::eShaderWrite,
@@ -210,7 +215,7 @@ void VulkanBuffer::copyToStaging(
 
     vk::BufferCopy copy{0, 0, size};
     commandBuffer.copyBuffer(
-        frames_[frameIndex].buffer, staging_.buffer(), copy
+        frames_[frameIndex].buffer, frame.staging.buffer(), copy
     );
 
     vk::BufferMemoryBarrier barrier2{
@@ -218,7 +223,7 @@ void VulkanBuffer::copyToStaging(
         vk::AccessFlagBits::eHostRead,
         VK_QUEUE_FAMILY_IGNORED,
         VK_QUEUE_FAMILY_IGNORED,
-        staging_.buffer(),
+        frame.staging.buffer(),
         0,
         VK_WHOLE_SIZE
     };

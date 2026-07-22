@@ -94,6 +94,7 @@ struct FrameImage
     vk::raii::Image image = nullptr;
     vk::raii::DeviceMemory memory = nullptr;
     vk::raii::ImageView view = nullptr;
+    StagingTransfer staging;
 };
 
 class VulkanImage
@@ -111,7 +112,6 @@ class VulkanImage
 
     protected:
     std::vector<FrameImage> frames_;
-    StagingTransfer staging_;
     vk::raii::Sampler sampler_ = nullptr;
     VulkanRenderer *renderer_ = nullptr;
 };
