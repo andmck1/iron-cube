@@ -116,6 +116,8 @@ void VulkanBuffer::init(BufferDescription bufferDescription)
 }
 
 // TODO - refactor this (ie use functions for barrier add and set
+// TODO - this does not feel general at all (eg read/write and all pipeline
+// stages)
 void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
 {
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
@@ -152,7 +154,7 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
 
         vk::BufferMemoryBarrier barrier2{
             vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eShaderRead,
+            vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite,
             VK_QUEUE_FAMILY_IGNORED,
             VK_QUEUE_FAMILY_IGNORED,
             frames_[frameIndex].buffer,
@@ -162,8 +164,9 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
 
         commandBuffer.pipelineBarrier(
             vk::PipelineStageFlagBits::eTransfer,
-            vk::PipelineStageFlagBits::eAllGraphics, {}, nullptr, barrier2,
-            nullptr
+            vk::PipelineStageFlagBits::eAllGraphics |
+                vk::PipelineStageFlagBits::eComputeShader,
+            {}, nullptr, barrier2, nullptr
         );
     }
 }
@@ -180,10 +183,6 @@ vk::raii::DeviceMemory *VulkanBuffer::getDeviceMemory(uint32_t frameIndex)
 
 void VulkanBuffer::readData(vk::DeviceSize bufferSize, void *outputData)
 {
-    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
-    copyToStaging(
-        bufferSize, vk::PipelineStageFlagBits::eAllGraphics, frameIndex
-    );
     staging_.download(outputData, bufferSize);
 }
 
