@@ -17,6 +17,13 @@ RWStructuredBuffer<InstancedMeshCompute::DebugDataBuffer> debugData;
 [[vk::binding(InstancedMeshCompute::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
+[[vk::binding(InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS)]]
+RWStructuredBuffer<InstancedMeshCompute::IndirectDrawCommandBuffer>
+    indirectCommandData;
+
+[[vk::binding(InstancedMeshCompute::BufferSlots::LOD_INSTANCES)]]
+RWStructuredBuffer<ComputedInstance> computedInstances;
+
 [[vk::binding(InstancedMeshCompute::BufferSlots::MESHLET_BOUNDING_SPHERES)]]
 StructuredBuffer<float4> meshletBoundingSpheres;
 
@@ -39,40 +46,27 @@ void main(
     bool visible = false;
 
     uint globalThreadIndex = dtid + constants.workStart;
-    uint instanceIndex = globalThreadIndex / scene.meshletCount;
-    uint meshletIndex = globalThreadIndex % scene.meshletCount;
-
     uint lod = 0;
+    uint meshletWorkOffset = 0;
+    for (lod = 0; lod < MAX_LOD_COUNT; lod++)
+    {
+        meshletWorkOffset = indirectCommandData[0].meshletWorkOffsets[lod];
+        if (globalThreadIndex < meshletWorkOffset)
+            break;
+    }
+    uint nLODMeshlets = scene.meshletLODCounts[lod].x;
+
+    uint lodBaseOffset =
+        (lod > 0) ? indirectCommandData[0].meshletWorkOffsets[lod - 1] : 0;
+    uint lodLocalOffset = globalThreadIndex - lodBaseOffset;
+    uint localLODInstanceIndex = lodLocalOffset / nLODMeshlets;
+    uint meshletIndex =
+        lodLocalOffset % nLODMeshlets + scene.meshletLODOffsets[lod].x;
+    uint instanceIndex = lod * scene.instanceCount.x + localLODInstanceIndex;
+
     if (dtid < constants.workCount)
     {
-        float4 instancePosition = instances[instanceIndex].position;
-        float4 instanceRotation = instances[instanceIndex].rotation;
-        if (animation.isAnimationOn > 0)
-        {
-            float rotationAngle =
-                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-            float4 spin =
-                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
-            instanceRotation = quaternionMultiply(spin, instanceRotation);
-
-            float instanceDiscRadius = length(instancePosition.xz);
-            float discAngle =
-                PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
-            instancePosition =
-                rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
-        }
-        // TODO - I do this twice!
-        float4x4 modelMatrix = calculateModelMatrix(
-            instancePosition, instanceRotation, instances[instanceIndex].scale
-        );
-
-        if (scene.isLODOn > 0)
-            lod = calculateLOD(
-                modelMatrix, scene.minMeshBounds, scene.maxMeshBounds,
-                scene.eyePosition.xyz, scene.maxLODDistance.x,
-                scene.lodExponent.x, MAX_LOD_COUNT
-            );
-
+        float4x4 modelMatrix = computedInstances[instanceIndex].modelMatrix;
         uint lodMeshletCount = scene.meshletLODCounts[lod].x;
         if (meshletIndex < lodMeshletCount)
         {
@@ -89,15 +83,13 @@ void main(
                 scene.frustum.planes, scene.frustum.sphere, scene.frustum.cone
             );
         }
-    }
 
-    if (visible)
-    {
         uint index = WavePrefixCountBits(visible);
         sPayload.instanceIndices[index] = instanceIndex;
         sPayload.meshletIndices[index] = meshletIndex;
-        sPayload.lodLevel[index] = float(lod);
     }
+
+    // This must be called from task shader
     uint visibleCount = WaveActiveCountBits(visible);
     DispatchMesh(visibleCount, 1, 1, sPayload);
 }

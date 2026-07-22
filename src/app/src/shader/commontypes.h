@@ -58,6 +58,12 @@ struct Instance
     float4 lodLevel;
 };
 
+struct ComputedInstance
+{
+    float4x4 modelMatrix;
+    uint4 lodLevel;
+};
+
 struct FrustumPlane
 {
     float4 coefficients;

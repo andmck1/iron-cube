@@ -36,6 +36,8 @@ bool InstancedMeshComputeVulkanShaderPipeline::initPipeline(Geometry *geometry)
         return false;
     if (!initGraphicsPipeline())
         return false;
+    if (!initComputeShaderPipeline())
+        return false;
     return true;
 }
 
@@ -183,6 +185,58 @@ bool InstancedMeshComputeVulkanShaderPipeline::initGraphicsPipeline()
     return true;
 }
 
+bool InstancedMeshComputeVulkanShaderPipeline::initComputeShaderPipeline()
+{
+    IShaderManager *shaderManager =
+        ServiceLocator::instance().get<IShaderManager>();
+
+    VulkanShader *lodStatsComputeShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("instancedMCLODStats")
+    );
+    VulkanShader *drawCommandComputeShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("instancedMCDrawCommand")
+    );
+
+    {
+        vk::PipelineShaderStageCreateInfo lodStatsStageInfo =
+            vk::PipelineShaderStageCreateInfo{}
+                .setStage(vk::ShaderStageFlagBits::eCompute)
+                .setModule(lodStatsComputeShader->getShaderModule())
+                .setPName("main");
+
+        vk::ComputePipelineCreateInfo computePipelineCreateInfo =
+            vk::ComputePipelineCreateInfo{}
+                .setStage(lodStatsStageInfo)
+                .setLayout(pipelineLayout_);
+
+        computePasses_.emplace_back(
+            vk::raii::Pipeline(
+                renderer_->getDevice(), nullptr, computePipelineCreateInfo
+            )
+        );
+    }
+
+    {
+        vk::PipelineShaderStageCreateInfo drawCommandStageInfo =
+            vk::PipelineShaderStageCreateInfo{}
+                .setStage(vk::ShaderStageFlagBits::eCompute)
+                .setModule(drawCommandComputeShader->getShaderModule())
+                .setPName("main");
+
+        vk::ComputePipelineCreateInfo computePipelineCreateInfo =
+            vk::ComputePipelineCreateInfo{}
+                .setStage(drawCommandStageInfo)
+                .setLayout(pipelineLayout_);
+
+        computePasses_.emplace_back(
+            vk::raii::Pipeline(
+                renderer_->getDevice(), nullptr, computePipelineCreateInfo
+            )
+        );
+    }
+    return true;
+}
+
 void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
 {
     // TODO - the dream is having this as pure config
@@ -192,7 +246,8 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
             .setData(static_cast<InstancedMeshCompute::SceneBuffer *>(nullptr))
             .setStageFlags(
                 vk::ShaderStageFlagBits::eTaskEXT |
-                vk::ShaderStageFlagBits::eMeshEXT
+                vk::ShaderStageFlagBits::eMeshEXT |
+                vk::ShaderStageFlagBits::eCompute
             )
     );
     resourceDescriptions_.push_back(
@@ -204,7 +259,8 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
             )
             .setStageFlags(
                 vk::ShaderStageFlagBits::eTaskEXT |
-                vk::ShaderStageFlagBits::eMeshEXT
+                vk::ShaderStageFlagBits::eMeshEXT |
+                vk::ShaderStageFlagBits::eCompute
             )
     );
     resourceDescriptions_.push_back(
@@ -214,6 +270,7 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
             .setStageFlags(
                 vk::ShaderStageFlagBits::eTaskEXT |
                 vk::ShaderStageFlagBits::eMeshEXT |
+                vk::ShaderStageFlagBits::eCompute |
                 vk::ShaderStageFlagBits::eFragment
             )
     );
@@ -252,7 +309,8 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
             .setData(static_cast<Instance *>(nullptr))
             .setStageFlags(
                 vk::ShaderStageFlagBits::eTaskEXT |
-                vk::ShaderStageFlagBits::eMeshEXT
+                vk::ShaderStageFlagBits::eMeshEXT |
+                vk::ShaderStageFlagBits::eCompute
             )
     );
     resourceDescriptions_.push_back(
@@ -282,6 +340,34 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
             .setStageFlags(vk::ShaderStageFlagBits::eFragment)
             .setData(updateData_->texture->pixels)
             .setDataSize(updateData_->texture->imageSize)
+    );
+    resourceDescriptions_.push_back(
+        StorageReadWrite
+            .setBufferSlot(InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS)
+            .setBufferSize(sizeof(vk::DrawIndirect2InfoKHR))
+            .setDeviceUsage(
+                StorageReadWrite.deviceUsage |
+                vk::BufferUsageFlagBits::eIndirectBuffer
+            )
+            .setData(nullptr)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eCompute |
+                vk::ShaderStageFlagBits::eTaskEXT
+            )
+    );
+    // TODO - this is an excessive reservation
+    resourceDescriptions_.push_back(
+        StorageReadWrite
+            .setBufferSlot(InstancedMeshCompute::BufferSlots::LOD_INSTANCES)
+            .setBufferSize(
+                sizeof(ComputedInstance) * MAX_N_INSTANCES * MAX_LOD_COUNT
+            )
+            .setData(nullptr)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eCompute |
+                vk::ShaderStageFlagBits::eTaskEXT |
+                vk::ShaderStageFlagBits::eMeshEXT
+            )
     );
 }
 
@@ -316,10 +402,8 @@ bool InstancedMeshComputeVulkanShaderPipeline::bind()
     return true;
 }
 
-bool InstancedMeshComputeVulkanShaderPipeline::update()
+void InstancedMeshComputeVulkanShaderPipeline::updateSceneData()
 {
-
-    std::chrono::time_point now = std::chrono::steady_clock::now();
     InstancedMeshCompute::SceneBuffer sceneData{};
     sceneData.eyePosition = {
         updateData_->camera->getComponent<TransformComponent>()->getPosition(),
@@ -363,7 +447,10 @@ bool InstancedMeshComputeVulkanShaderPipeline::update()
     resources_[InstancedMeshCompute::BufferSlots::SCENE].update(
         sizeof(sceneData), &sceneData
     );
+}
 
+void InstancedMeshComputeVulkanShaderPipeline::updateAnimationData()
+{
     InstancedMeshCompute::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
     animation.rotationFrequency = {
@@ -378,14 +465,19 @@ bool InstancedMeshComputeVulkanShaderPipeline::update()
     resources_[InstancedMeshCompute::BufferSlots::ANIMATION].update(
         sizeof(animation), &animation
     );
+}
 
-    // This takes up most of the frame time
+void InstancedMeshComputeVulkanShaderPipeline::updateInstancesData()
+{
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * updateData_->instances->size();
     resources_[InstancedMeshCompute::BufferSlots::INSTANCES].update(
         instancesBufferSize, updateData_->instances->data()
     );
+}
 
+void InstancedMeshComputeVulkanShaderPipeline::updateDebugData()
+{
     updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedMeshCompute::DebugDataBuffer) *
@@ -395,6 +487,106 @@ bool InstancedMeshComputeVulkanShaderPipeline::update()
     resources_[InstancedMeshCompute::BufferSlots::DEBUG].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
+}
+
+void InstancedMeshComputeVulkanShaderPipeline::resetIndirectDrawCommands()
+{
+    InstancedMeshCompute::IndirectDrawCommandBuffer resetData{};
+    resources_[InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS].update(
+        sizeof(InstancedMeshCompute::IndirectDrawCommandBuffer), &resetData
+    );
+}
+
+void InstancedMeshComputeVulkanShaderPipeline::bindComputePipeline(uint pass)
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eCompute, *computePasses_[pass]
+    );
+    commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eCompute, pipelineLayout_, 0,
+        *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
+    );
+}
+
+void InstancedMeshComputeVulkanShaderPipeline::lodStatsComputePass(
+    uint dispatchCount
+)
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+
+    commandBuffer.dispatch(dispatchCount, 1, 1);
+
+    MemoryBarrierInfo memoryBarrierInfo = {
+        .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
+        .destinationAccess = vk::AccessFlagBits2::eShaderRead |
+                             vk::AccessFlagBits2::eShaderWrite,
+        .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
+        .destinationStage = vk::PipelineStageFlagBits2::eComputeShader,
+    };
+    renderer_->createPipelineMemoryBarrier(memoryBarrierInfo);
+}
+
+void InstancedMeshComputeVulkanShaderPipeline::drawCommandComputePass(
+    uint dispatchCount
+)
+{
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+
+    commandBuffer.dispatch(dispatchCount, 1, 1);
+
+    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
+    VulkanBuffer *lodInstancesBuffer =
+        resources_[InstancedMeshCompute::BufferSlots::LOD_INSTANCES].asBuffer();
+    VulkanBuffer *indirectBuffer =
+        resources_[InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS]
+            .asBuffer();
+
+    BufferBarrierInfo barrierInfo;
+
+    barrierInfo = BufferBarrierInfo{
+        .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
+        .destinationAccess = vk::AccessFlagBits2::eIndirectCommandRead |
+                             vk::AccessFlagBits2::eShaderRead,
+        .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
+        .destinationStage = vk::PipelineStageFlagBits2::eDrawIndirect |
+                            vk::PipelineStageFlagBits2::eTaskShaderEXT,
+        .buffer = lodInstancesBuffer->getBuffer(frameIndex)
+    };
+    addBarrier(barrierInfo);
+
+    barrierInfo = BufferBarrierInfo{
+        .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
+        .destinationAccess = vk::AccessFlagBits2::eIndirectCommandRead,
+        .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
+        .destinationStage = vk::PipelineStageFlagBits2::eDrawIndirect,
+        .buffer = indirectBuffer->getBuffer(frameIndex)
+    };
+    addBarrier(barrierInfo);
+    setBarrier();
+}
+
+bool InstancedMeshComputeVulkanShaderPipeline::update()
+{
+
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
+    uint32_t instanceCount =
+        static_cast<uint32_t>(updateData_->instances->size());
+    uint32_t lodStatsComputePassGroupCount =
+        (instanceCount + TS_GROUP_SIZE - 1) / TS_GROUP_SIZE;
+
+    updateSceneData();
+    updateAnimationData();
+    updateInstancesData();
+    updateDebugData();
+
+    resetIndirectDrawCommands();
+
+    bindComputePipeline(0);
+    lodStatsComputePass(lodStatsComputePassGroupCount);
+    bindComputePipeline(1);
+    drawCommandComputePass(1);
 
     updateTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
@@ -405,6 +597,7 @@ bool InstancedMeshComputeVulkanShaderPipeline::update()
 bool InstancedMeshComputeVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
+    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
 
     uint32_t meshletCount =
         static_cast<uint32_t>(geometry_->meshletLODCounts[0]);
@@ -432,13 +625,19 @@ bool InstancedMeshComputeVulkanShaderPipeline::draw()
         constants.fragmentColourType = *updateData_->fragmentColourType;
         renderer_->getCommandBuffer().pushConstants(
             pipelineLayout_,
-            vk::ShaderStageFlagBits::eTaskEXT |
+            vk::ShaderStageFlagBits::eCompute |
+                vk::ShaderStageFlagBits::eTaskEXT |
                 vk::ShaderStageFlagBits::eMeshEXT |
                 vk::ShaderStageFlagBits::eFragment,
             0, sizeof(InstancedMeshCompute::Constants), &constants
         );
 
-        renderer_->getCommandBuffer().drawMeshTasksEXT(currentThreads, 1, 1);
+        renderer_->getCommandBuffer().drawMeshTasksIndirectEXT(
+            *resources_[InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS]
+                 .asBuffer()
+                 ->getBuffer(frameIndex),
+            0, 1, sizeof(vk::DrawMeshTasksIndirectCommandEXT)
+        );
 
         workOffset += currentWork;
         workRemaining -= currentWork;
@@ -463,7 +662,8 @@ bool InstancedMeshComputeVulkanShaderPipeline::postRender()
         .asBuffer()
         ->copyToStaging(
             debugDataBufferSize,
-            vk::PipelineStageFlagBits::eTaskShaderEXT |
+            vk::PipelineStageFlagBits::eComputeShader |
+                vk::PipelineStageFlagBits::eTaskShaderEXT |
                 vk::PipelineStageFlagBits::eMeshShaderEXT |
                 vk::PipelineStageFlagBits::eFragmentShader,
             renderer_->getCurrentFrameIndex()

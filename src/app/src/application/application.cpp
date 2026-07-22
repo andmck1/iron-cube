@@ -161,6 +161,14 @@ bool Application::initialiseShaders()
     );
 
     initialiseShader(
+        "build/shader/instancedMeshCompute/lodStats.comp.spv",
+        "instancedMCLODStats"
+    );
+    initialiseShader(
+        "build/shader/instancedMeshCompute/drawCommand.comp.spv",
+        "instancedMCDrawCommand"
+    );
+    initialiseShader(
         "build/shader/instancedMeshCompute/instancedMeshCompute.task.spv",
         "instancedMeshComputeTask"
     );

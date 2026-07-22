@@ -50,10 +50,23 @@ class InstancedMeshComputeVulkanShaderPipeline : public VulkanShaderPipeline
     PipelineStatistics pipelineStatistics_{};
 
     bool initGraphicsPipeline();
+    bool initComputeShaderPipeline();
     bool initPipeline(Geometry *geometry);
     void initBufferDescriptions() override;
-
     void initBuffers() override;
+
+    void updateSceneData();
+    void updateAnimationData();
+    void updateInstancesData();
+    void updateDebugData();
+
+    void resetIndirectDrawCommands();
+
+    void bindComputePipeline(uint pass);
+    void lodStatsComputePass(uint dispatchCount);
+    void drawCommandComputePass(uint dispatchCount);
+
+    std::vector<std::optional<vk::raii::Pipeline>> computePasses_;
 
     InstancedMeshComputeShaderPipelineUpdateData *updateData_ = nullptr;
     uint32_t maxTaskShaderThreadCount_;

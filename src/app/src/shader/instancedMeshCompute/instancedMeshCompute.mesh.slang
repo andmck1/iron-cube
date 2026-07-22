@@ -28,6 +28,9 @@ StructuredBuffer<Instance> instances;
 [[vk::binding(InstancedMeshCompute::BufferSlots::MESHLET_BOUNDING_SPHERES)]]
 StructuredBuffer<float4> meshletBoundingSpheres;
 
+[[vk::binding(InstancedMeshCompute::BufferSlots::LOD_INSTANCES)]]
+RWStructuredBuffer<ComputedInstance> computedInstances;
+
 [[vk_push_constant]]
 InstancedMeshCompute::Constants constants;
 
@@ -44,8 +47,9 @@ void main(
 {
     uint instanceIndex = payload.instanceIndices[gid];
     uint meshletIndex = payload.meshletIndices[gid];
-    float lodLevel = payload.lodLevel[gid];
     InstancedMeshCompute::OptimisedMeshlet m = meshlets[meshletIndex];
+    float4x4 modelMatrix = computedInstances[instanceIndex].modelMatrix;
+    uint lodLevel = computedInstances[instanceIndex].lodLevel.x;
 
     SetMeshOutputCounts(m.vertexCount, m.triangleCount);
     if (debugData[0].isDebugQueryOn > 0)
@@ -75,29 +79,9 @@ void main(
         uint vertexIndex = m.vertexOffset + gtid;
         vertexIndex = vertexIndices[vertexIndex];
 
-        float4 instanceRotation = instances[instanceIndex].rotation;
-        float4 instancePosition = instances[instanceIndex].position;
-        if (animation.isAnimationOn > 0)
-        {
-            float rotationAngle =
-                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-            float4 spin =
-                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
-            instanceRotation = quaternionMultiply(spin, instanceRotation);
-
-            float instanceDiscRadius = length(instancePosition.xz);
-            float discAngle =
-                PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
-            instancePosition =
-                rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
-        }
-
-        float4x4 worldMatrix = calculateModelMatrix(
-            instancePosition, instanceRotation, instances[instanceIndex].scale
-        );
-
         float4x4 mvpMatrix =
-            mul(scene.projection, mul(scene.view, worldMatrix));
+            mul(scene.projection, mul(scene.view, modelMatrix));
+
         vertices[gtid].position =
             mul(mvpMatrix, modelVertices[vertexIndex].position);
         vertices[gtid].uv = modelVertices[vertexIndex].tex.xy;

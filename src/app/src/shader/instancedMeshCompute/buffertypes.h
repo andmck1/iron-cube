@@ -23,6 +23,8 @@ namespace InstancedMeshCompute
         INSTANCES,
         MESHLET_BOUNDING_SPHERES,
         TEXTURE,
+        INDIRECT_COMMANDS,
+        LOD_INSTANCES,
         LAST
     };
 
@@ -112,7 +114,6 @@ namespace InstancedMeshCompute
     {
         uint instanceIndices[TS_GROUP_SIZE];
         uint meshletIndices[TS_GROUP_SIZE];
-        float lodLevel[TS_GROUP_SIZE];
     };
 
     struct DebugDataBuffer
@@ -121,7 +122,25 @@ namespace InstancedMeshCompute
         uint32_t nTaskShaderInvocations = 0;
         uint32_t nMeshShaderInvocations = 0;
         uint32_t nFragmentShaderInvocations = 0;
+        uint32_t nComputeShaderInvocations = 0;
         uint32_t nTriangles = 0;
+    };
+
+    struct MeshTasksIndirectCommand
+    {
+        uint32_t groupCountX;
+        uint32_t groupCountY;
+        uint32_t groupCountZ;
+    };
+
+    struct IndirectDrawCommandBuffer
+    {
+        MeshTasksIndirectCommand drawCommand;
+        uint32_t visibleInstanceCount;
+        uint32_t lodHistogram[MAX_LOD_COUNT];
+        uint32_t meshletWorkOffsets[MAX_LOD_COUNT];
+        uint32_t _pad0;
+        uint32_t _pad1;
     };
 
     struct Constants
@@ -130,4 +149,4 @@ namespace InstancedMeshCompute
         uint32_t workCount;
         FragmentColourType fragmentColourType;
     };
-} // namespace InstancedMesh
+} // namespace InstancedMeshCompute

@@ -332,7 +332,7 @@ bool VulkanRenderer::createLogicalDevice()
     // Which features to enable in vulkan
     vk::StructureChain<
         vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
-        vk::PhysicalDeviceVulkan13Features,
+        vk::PhysicalDeviceVulkan12Features, vk::PhysicalDeviceVulkan13Features,
         vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
         vk::PhysicalDeviceMeshShaderFeaturesEXT>
         featureChain = {
@@ -345,6 +345,7 @@ bool VulkanRenderer::createLogicalDevice()
                     .setMultiDrawIndirect(true)
             ),
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
+            vk::PhysicalDeviceVulkan12Features{}.setBufferDeviceAddress(true),
             vk::PhysicalDeviceVulkan13Features{}
                 .setDynamicRendering(true)
                 .setSynchronization2(true),
