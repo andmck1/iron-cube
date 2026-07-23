@@ -348,6 +348,10 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
         StorageReadWrite
             .setBufferSlot(InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS)
             .setBufferSize(sizeof(InstancedMeshCompute::IndirectCommandBuffer))
+            .setDeviceUsage(
+                StorageReadWrite.deviceUsage |
+                vk::BufferUsageFlagBits::eIndirectBuffer
+            )
             .setData(nullptr)
             .setStageFlags(
                 vk::ShaderStageFlagBits::eCompute |
