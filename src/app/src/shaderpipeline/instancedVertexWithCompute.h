@@ -46,7 +46,7 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
 
     bool initGraphicsPipeline();
     bool initComputeShaderPipeline();
-    bool initPipeline();
+    bool initPipeline() override;
     void initBufferDescriptions() override;
 
     void initBuffers() override;

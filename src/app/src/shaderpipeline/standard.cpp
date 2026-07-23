@@ -13,7 +13,7 @@ bool StandardVulkanShaderPipeline::init(
     );
     updateData_ = dynamic_cast<DefaultShaderPipelineUpdateData *>(updateData);
     geometry_ = geometry;
-    return initPipeline();
+    return true;
 }
 
 // TODO - you can have the vertex and index buffers in one buffer and use

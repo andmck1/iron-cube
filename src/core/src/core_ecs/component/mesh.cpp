@@ -9,7 +9,10 @@ void MeshComponent::setMesh(Mesh *mesh)
 }
 void MeshComponent::setShaderPipeline(IShaderPipeline *shaderPipeline)
 {
+    if (shaderPipeline_)
+        shaderPipeline_->shutdown();
     shaderPipeline_ = shaderPipeline;
+    shaderPipeline_->initPipeline();
 }
 
 Mesh *MeshComponent::getMesh() const

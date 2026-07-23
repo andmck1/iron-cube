@@ -27,6 +27,7 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     public:
     bool
     init(Geometry *geometry, ShaderPipelineUpdateData *updateData) override;
+    bool initPipeline() override;
     bool update() override;
     bool bind() override;
     bool shutdown() override;
@@ -38,7 +39,6 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
 
     protected:
     bool initGraphicsPipeline();
-    bool initPipeline();
 
     void initBufferDescriptions() override;
     void initBuffers() override;

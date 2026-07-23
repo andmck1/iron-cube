@@ -27,6 +27,7 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     public:
     bool
     init(Geometry *geometry, ShaderPipelineUpdateData *updateData) override;
+    bool initPipeline() override;
     bool update() override;
     bool bind() override;
     bool shutdown() override;
@@ -41,7 +42,6 @@ class StandardVulkanShaderPipeline : public VulkanShaderPipeline
     void initBuffers() override;
 
     bool initGraphicsPipeline();
-    bool initPipeline();
 
     VulkanBuffer vertexBuffer_;
     VulkanBuffer indexBuffer_;

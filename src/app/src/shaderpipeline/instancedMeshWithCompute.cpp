@@ -22,13 +22,13 @@ bool InstancedMeshComputeVulkanShaderPipeline::init(
     physicalDeviceProperties.pNext = &meshShaderProperties;
     renderer_->getPhysicalDevice().getProperties2(&physicalDeviceProperties);
     maxTaskShaderThreadCount_ = meshShaderProperties.maxTaskWorkGroupTotalCount;
+    geometry_ = geometry;
 
-    return initPipeline(geometry);
+    return true;
 }
 
-bool InstancedMeshComputeVulkanShaderPipeline::initPipeline(Geometry *geometry)
+bool InstancedMeshComputeVulkanShaderPipeline::initPipeline()
 {
-    geometry_ = geometry;
     initBuffers();
     if (!initDescriptorLayout())
         return false;

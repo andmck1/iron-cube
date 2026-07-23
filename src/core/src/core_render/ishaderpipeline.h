@@ -9,6 +9,7 @@ class IShaderPipeline
     virtual ~IShaderPipeline() = default;
     virtual bool
     init(Geometry *geometry, ShaderPipelineUpdateData *updateData) = 0;
+    virtual bool initPipeline() = 0;
     virtual bool update() = 0;
     virtual bool bind() = 0;
     virtual bool recreateGraphicsPipeline() = 0;

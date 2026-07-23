@@ -623,6 +623,7 @@ void Application::checkForPipelineUpdates()
         sceneLayer_->scene.getEntities();
     if (debugLayer_->shaderTypeUpdate > -1)
     {
+        renderer_.waitAllFramesComplete();
         std::string shaderPipelineSuffix = "";
         switch (debugLayer_->shaderTypeUpdate)
         {
@@ -663,10 +664,12 @@ void Application::checkForPipelineUpdates()
                 entity->getComponent<MeshComponent>();
             if (meshComponent)
             {
-                IShaderPipeline *shaderPipeline = nullptr;
-                shaderPipeline = shaderPipelineManager->getShaderPipeline(
-                    std::format("{}{}", entity->getName(), shaderPipelineSuffix)
-                );
+                IShaderPipeline *shaderPipeline =
+                    shaderPipelineManager->getShaderPipeline(
+                        std::format(
+                            "{}{}", entity->getName(), shaderPipelineSuffix
+                        )
+                    );
                 if (shaderPipeline)
                 {
                     MeshComponent *meshComp =
