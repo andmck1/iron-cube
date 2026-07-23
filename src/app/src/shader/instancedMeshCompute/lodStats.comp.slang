@@ -18,7 +18,6 @@ ConstantBuffer<InstancedMeshCompute::AnimationBuffer> animation;
 RWStructuredBuffer<InstancedMeshCompute::IndirectCommandBuffer>
     indirectCommandData;
 
-// Sized based on total nInstances 
 [[vk::binding(InstancedMeshCompute::BufferSlots::LOD_INSTANCES)]]
 RWStructuredBuffer<ComputedInstance> computedInstances;
 
@@ -52,12 +51,11 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
                 rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
         }
 
-        // TODO - confusing name, actually world matrix
-        float4x4 modelMatrix = calculateModelMatrix(
+        float4x4 worldMatrix = calculateModelMatrix(
             instancePosition, instanceRotation, instances[instanceIndex].scale
         );
         float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
-            modelMatrix, scene.minMeshBounds, scene.maxMeshBounds
+            worldMatrix, scene.minMeshBounds, scene.maxMeshBounds
         );
 
         bool visible = isVisible(
@@ -67,7 +65,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
         if (visible)
         {
             uint lod = calculateLOD(
-                modelMatrix, scene.minMeshBounds, scene.maxMeshBounds,
+                worldMatrix, scene.minMeshBounds, scene.maxMeshBounds,
                 scene.eyePosition.xyz, scene.maxLODDistance.x,
                 scene.lodExponent.x, MAX_LOD_COUNT
             );
@@ -76,7 +74,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
                 indirectCommandData[0].lodHistogram[lod], 1, localLODIndex
             );
             ComputedInstance computedInstance;
-            computedInstance.modelMatrix = modelMatrix;
+            computedInstance.worldMatrix = worldMatrix;
             computedInstance.lodLevel.x = lod;
             computedInstances[lod * scene.instanceCount.x + localLODIndex] =
                 computedInstance;

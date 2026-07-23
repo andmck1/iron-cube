@@ -48,7 +48,7 @@ void main(
     uint instanceIndex = payload.instanceIndices[gid];
     uint meshletIndex = payload.meshletIndices[gid];
     InstancedMeshCompute::OptimisedMeshlet m = meshlets[meshletIndex];
-    float4x4 modelMatrix = computedInstances[instanceIndex].modelMatrix;
+    float4x4 worldMatrix = computedInstances[instanceIndex].worldMatrix;
     uint lodLevel = computedInstances[instanceIndex].lodLevel.x;
 
     SetMeshOutputCounts(m.vertexCount, m.triangleCount);
@@ -80,7 +80,7 @@ void main(
         vertexIndex = vertexIndices[vertexIndex];
 
         float4x4 mvpMatrix =
-            mul(scene.projection, mul(scene.view, modelMatrix));
+            mul(scene.projection, mul(scene.view, worldMatrix));
 
         vertices[gtid].position =
             mul(mvpMatrix, modelVertices[vertexIndex].position);

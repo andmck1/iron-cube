@@ -60,7 +60,7 @@ struct Instance
 
 struct ComputedInstance
 {
-    float4x4 modelMatrix;
+    float4x4 worldMatrix;
     uint4 lodLevel;
 };
 

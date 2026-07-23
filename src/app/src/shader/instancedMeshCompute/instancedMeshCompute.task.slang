@@ -44,6 +44,8 @@ void main(
         dtid + (drawIndex * scene.maxGroupsPerDraw * TS_GROUP_SIZE);
     uint lod = 0;
     uint meshletWorkOffset = 0;
+
+    // TODO - use LOD flag
     for (lod = 0; lod < MAX_LOD_COUNT; lod++)
     {
         meshletWorkOffset = indirectCommandData[0].meshletWorkOffsets[lod];
@@ -65,13 +67,13 @@ void main(
 
     if (globalThreadIndex < totalValidWork)
     {
-        float4x4 modelMatrix = computedInstances[instanceIndex].modelMatrix;
+        float4x4 worldMatrix = computedInstances[instanceIndex].worldMatrix;
         uint lodMeshletCount = scene.meshletLODCounts[lod].x;
         if (meshletIndex < lodMeshletCount)
         {
             meshletIndex += scene.meshletLODOffsets[lod].x;
             float4 meshletBoundingSphere =
-                mul(modelMatrix,
+                mul(worldMatrix,
                     float4(meshletBoundingSpheres[meshletIndex].xyz, 1.f));
             meshletBoundingSphere.w = meshletBoundingSpheres[meshletIndex].w;
             visible = isVisible(
