@@ -98,6 +98,7 @@ struct FrameBuffer
     vk::raii::Buffer buffer = nullptr;
     vk::raii::DeviceMemory memory = nullptr;
     void *mappedPointer = nullptr;
+    StagingTransfer staging;
 };
 
 class VulkanBuffer
@@ -125,7 +126,6 @@ class VulkanBuffer
     );
 
     std::vector<FrameBuffer> frames_;
-    StagingTransfer staging_;
     VulkanRenderer *renderer_ = nullptr;
 };
 

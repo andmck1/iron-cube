@@ -1,27 +1,16 @@
 #pragma once
 
 #include "core_platform/iplatform.h"
+#include <string>
+#include <utility>
+#include <vector>
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
 struct PipelineStatistics
 {
     public:
-    enum PipelineType
-    {
-        TRADITIONAL,
-        MESH
-    };
-
-    PipelineType pipelineType = PipelineType::TRADITIONAL;
-    double nVertices = 0;
-    double nTriangles = 0;
-    double nVertexShaderInvocations = 0;
-    double nFragmentShaderInvocations = 0;
-    double nTaskShaderInvocations = 0;
-    double nMeshShaderInvocations = 0;
-    double nComputeShaderInvocations = 0;
-    double nDrawCalls = 0;
+    std::vector<std::pair<std::string, long>> stats;
 };
 
 class IRenderer

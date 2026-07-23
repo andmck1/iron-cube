@@ -41,7 +41,6 @@ void main(
     out vertices InstancedMesh::VertexOutputType vertices[64]
 )
 {
-
     uint instanceIndex = payload.instanceIndices[gid];
     uint meshletIndex = payload.meshletIndices[gid];
     float lodLevel = payload.lodLevel[gid];
@@ -80,11 +79,9 @@ void main(
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
-                PI2 * animation.rotationFrequency.x *
-                animation.currentTime.x;
+                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
             float4 spin =
-                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f),
-                rotationAngle);
+                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
             instanceRotation = quaternionMultiply(spin, instanceRotation);
 
             float instanceDiscRadius = length(instancePosition.xz);

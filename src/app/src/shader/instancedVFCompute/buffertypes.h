@@ -84,7 +84,8 @@ namespace InstancedVFCompute
     struct DebugDataBuffer
     {
         uint32_t isDebugQueryOn = 0;
-        uint32_t nComputeShaderInvocations = 0;
+        uint32_t nComputeLODStatsInvocations = 0;
+        uint32_t nComputeDrawCommandsInvocations = 0;
         uint32_t nVertexShaderInvocations = 0;
         uint32_t nFragmentShaderInvocations = 0;
     };

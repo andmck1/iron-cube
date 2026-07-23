@@ -402,7 +402,7 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         static_cast<uint32_t>(updateData_->instances->size());
     uint32_t maximumPossibleWork = meshletCount * instanceCount;
     uint32_t maximumPossibleThreads =
-        (maximumPossibleWork + AS_GROUP_SIZE - 1) / AS_GROUP_SIZE;
+        (maximumPossibleWork + TS_GROUP_SIZE - 1) / TS_GROUP_SIZE;
 
     uint32_t workRemaining = maximumPossibleWork;
     uint32_t threadsRemaining = maximumPossibleThreads;
@@ -414,7 +414,7 @@ bool InstancedMeshVulkanShaderPipeline::draw()
         nDrawCalls_++;
         uint32_t currentThreads =
             std::min(threadsRemaining, maxTaskShaderThreadCount_);
-        uint32_t currentWork = currentThreads * AS_GROUP_SIZE;
+        uint32_t currentWork = currentThreads * TS_GROUP_SIZE;
 
         constants = {};
         constants.workStart = workOffset;
@@ -468,22 +468,25 @@ bool InstancedMeshVulkanShaderPipeline::updatePipelineStatistics()
     if (!isDebugQuery_)
         return true;
 
-    pipelineStatistics_.pipelineType = PipelineStatistics::PipelineType::MESH;
-
-    // TODO - debug buffer should be it's own allocation tbh, or I track it as
-    // a pointer
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedMesh::DebugDataBuffer) * debugDataBufferData_.size();
     resources_[InstancedMesh::BufferSlots::DEBUG].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
-    pipelineStatistics_.nTaskShaderInvocations =
-        debugDataBufferData_[0].nTaskShaderInvocations;
-    pipelineStatistics_.nMeshShaderInvocations =
-        debugDataBufferData_[0].nMeshShaderInvocations;
-    pipelineStatistics_.nFragmentShaderInvocations =
-        debugDataBufferData_[0].nFragmentShaderInvocations;
-    pipelineStatistics_.nTriangles = debugDataBufferData_[0].nTriangles;
-    pipelineStatistics_.nDrawCalls = nDrawCalls_;
+
+    // TODO - possible to track meshlets? would requiring copying the data back
+    uint32_t nInstances = updateData_->instances->size();
+    pipelineStatistics_.stats = {
+        {"N Instances", nInstances},
+        {"N Max Vertices", nInstances * geometry_->vertexCounts[0]},
+        {"N Max Meshlets", geometry_->meshletLODCounts[0] * nInstances},
+        {"N TS Invocations", debugDataBufferData_[0].nTaskShaderInvocations},
+        {"N MS Invocations", debugDataBufferData_[0].nMeshShaderInvocations},
+        {"N FS Invocations",
+         debugDataBufferData_[0].nFragmentShaderInvocations},
+        {"N Triangles", debugDataBufferData_[0].nTriangles},
+        {"N Draw Calls", nDrawCalls_},
+    };
+
     return true;
 }

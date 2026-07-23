@@ -17,6 +17,7 @@
 #include "shaderpipeline/instancedVertex.h"
 #include "shaderpipeline/instancedVertexWithCompute.h"
 #include "shaderpipeline/instancedMesh.h"
+#include "shaderpipeline/instancedMeshWithCompute.h"
 
 #include <cmath>
 #include <format>
@@ -157,6 +158,27 @@ bool Application::initialiseShaders()
     initialiseShader(
         "build/shader/instancedMesh/instancedMesh.frag.spv",
         "instancedMeshFragment"
+    );
+
+    initialiseShader(
+        "build/shader/instancedMeshCompute/lodStats.comp.spv",
+        "instancedMCLODStats"
+    );
+    initialiseShader(
+        "build/shader/instancedMeshCompute/drawCommand.comp.spv",
+        "instancedMCDrawCommand"
+    );
+    initialiseShader(
+        "build/shader/instancedMeshCompute/instancedMeshCompute.task.spv",
+        "instancedMeshComputeTask"
+    );
+    initialiseShader(
+        "build/shader/instancedMeshCompute/instancedMeshCompute.mesh.spv",
+        "instancedMeshComputeMesh"
+    );
+    initialiseShader(
+        "build/shader/instancedMeshCompute/instancedMeshCompute.frag.spv",
+        "instancedMeshComputeFragment"
     );
 
     spdlog::debug("Finished initialising shaders");
@@ -394,6 +416,9 @@ bool Application::initialiseGeometry(
         updateData->timer = &timer_;
         updateData->texture = resourceManager_.getTexture(name);
         updateData->fragmentColourType = &fragmentColourType;
+        updateData->discInnerRadius = &discInnerRadius_;
+        updateData->discOuterRadius = &discOuterRadius_;
+        updateData->discHeight = &discHeight_;
 
         std::unique_ptr<InstancedMeshVulkanShaderPipeline>
             actorMeshShaderPipeline =
@@ -403,6 +428,43 @@ bool Application::initialiseGeometry(
              registeredMeshShaderPipelineUpdateData] =
                 shaderPipelineManager_.registerShaderPipeline(
                     std::format("{}Mesh", name),
+                    std::move(actorMeshShaderPipeline), std::move(updateData)
+                );
+        // TODO - should init reference the pointer to this update data?
+        registeredMeshShaderPipeline->init(
+            registeredMesh->getGeometry(),
+            registeredMeshShaderPipelineUpdateData
+        );
+    }
+    {
+        // mesh shader pipeline
+        std::unique_ptr<InstancedMeshComputeShaderPipelineUpdateData>
+            updateData = std::make_unique<
+                InstancedMeshComputeShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->instances = &registeredMesh->instances;
+        updateData->visibilityFunc = &visibilityFunction_;
+        updateData->maxLODDistance = &maxLODDistance_;
+        updateData->lodExponent = &lodExponent_;
+        updateData->isLODOn = &isLODOn_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
+        updateData->discInnerRadius = &discInnerRadius_;
+        updateData->discOuterRadius = &discOuterRadius_;
+        updateData->discHeight = &discHeight_;
+
+        std::unique_ptr<InstancedMeshComputeVulkanShaderPipeline>
+            actorMeshShaderPipeline =
+                std::make_unique<InstancedMeshComputeVulkanShaderPipeline>();
+        auto
+            [registeredMeshShaderPipeline,
+             registeredMeshShaderPipelineUpdateData] =
+                shaderPipelineManager_.registerShaderPipeline(
+                    std::format("{}MeshCompute", name),
                     std::move(actorMeshShaderPipeline), std::move(updateData)
                 );
         // TODO - should init reference the pointer to this update data?
@@ -552,6 +614,7 @@ void Application::checkForEntitiyUpdates()
     currentDiscHeight_ = discHeight_;
 }
 
+// TODO - please use a map or something
 void Application::checkForPipelineUpdates()
 {
     IShaderPipelineManager *shaderPipelineManager =
@@ -581,6 +644,11 @@ void Application::checkForPipelineUpdates()
         case 3:
         {
             shaderPipelineSuffix = "Mesh";
+            break;
+        }
+        case 4:
+        {
+            shaderPipelineSuffix = "MeshCompute";
             break;
         }
         default:

@@ -7,7 +7,7 @@
 #define N_MAX_TRIANGLES 124
 #define N_MAX_VERTICES 64
 
-#define AS_GROUP_SIZE 32
+#define TS_GROUP_SIZE 32
 
 namespace InstancedMesh
 {
@@ -110,9 +110,9 @@ namespace InstancedMesh
 
     struct Payload
     {
-        uint instanceIndices[AS_GROUP_SIZE];
-        uint meshletIndices[AS_GROUP_SIZE];
-        float lodLevel[AS_GROUP_SIZE];
+        uint instanceIndices[TS_GROUP_SIZE];
+        uint meshletIndices[TS_GROUP_SIZE];
+        float lodLevel[TS_GROUP_SIZE];
     };
 
     struct DebugDataBuffer

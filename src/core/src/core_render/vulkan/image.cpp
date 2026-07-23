@@ -20,8 +20,6 @@ void VulkanImage::init(ImageDescription imageDescription)
 
     if (description.data)
     {
-        staging_.init(renderer_, description.dataSize);
-        staging_.upload(description.data, description.dataSize);
 
         vk::CommandBufferAllocateInfo allocInfo =
             vk::CommandBufferAllocateInfo{}
@@ -37,6 +35,8 @@ void VulkanImage::init(ImageDescription imageDescription)
 
         for (FrameImage &frame : frames_)
         {
+            frame.staging.init(renderer_, description.dataSize);
+            frame.staging.upload(description.data, description.dataSize);
             std::tie(frame.image, frame.memory) = renderer_->createImage(
                 description.extent.width, description.extent.height,
                 description.format, vk::ImageTiling::eOptimal,
@@ -71,7 +71,7 @@ void VulkanImage::init(ImageDescription imageDescription)
                 description.extent
             };
             commandCopyBuffer.copyBufferToImage(
-                staging_.buffer(), frame.image,
+                frame.staging.buffer(), frame.image,
                 vk::ImageLayout::eTransferDstOptimal, copy
             );
 
@@ -106,15 +106,14 @@ void VulkanImage::init(ImageDescription imageDescription)
 void VulkanImage::update(vk::DeviceSize size, void *data)
 {
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
+    FrameImage &frame = frames_[frameIndex];
 
-    if (!staging_.isInitialized())
-        staging_.init(renderer_, size);
-
-    staging_.upload(data, size);
+    if (!frame.staging.isInitialized())
+        frame.staging.init(renderer_, size);
+    frame.staging.upload(data, size);
 
     vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
     vk::ImageMemoryBarrier barrier;
-    FrameImage &frame = frames_[frameIndex];
 
     barrier = {
         vk::AccessFlagBits::eShaderRead,
@@ -138,8 +137,8 @@ void VulkanImage::update(vk::DeviceSize size, void *data)
         {0, 0, 0}, description.extent
     };
     commandBuffer.copyBufferToImage(
-        staging_.buffer(), frame.image, vk::ImageLayout::eTransferDstOptimal,
-        copy
+        frame.staging.buffer(), frame.image,
+        vk::ImageLayout::eTransferDstOptimal, copy
     );
 
     barrier = {
