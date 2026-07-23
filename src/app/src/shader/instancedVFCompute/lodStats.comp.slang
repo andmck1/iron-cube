@@ -30,8 +30,8 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 
     if (instanceIndex < scene.instanceCount.x)
     {
-        float4 instancePosition = instances[instanceIndex].position;
-        float4 instanceRotation = instances[instanceIndex].rotation;
+        float4 instancePosition = { instances[instanceIndex].position, 1.f };
+        float4 instanceRotation = { instances[instanceIndex].rotation, 1.f };
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
@@ -48,7 +48,8 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
         }
 
         float4x4 modelMatrix = calculateModelMatrix(
-            instancePosition, instanceRotation, instances[instanceIndex].scale
+            instancePosition, instanceRotation,
+            float4(instances[instanceIndex].scale, 1.f)
         );
         float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
             modelMatrix, scene.minMeshBounds, scene.maxMeshBounds

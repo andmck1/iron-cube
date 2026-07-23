@@ -18,7 +18,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::init(
             updateData
         );
     geometry_ = geometry;
-    return initPipeline();
+    return true;
 }
 
 // TODO - you can have the vertex and index buffers in one buffer and use
@@ -55,6 +55,9 @@ bool InstancedVertexComputeVulkanShaderPipeline::recreateGraphicsPipeline()
 bool InstancedVertexComputeVulkanShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down instanced vulkan pipeline");
+    descriptorSetLayout_ = nullptr;
+    descriptorSets_ = nullptr;
+    descriptorPool_ = nullptr;
     pipelineLayout_ = nullptr;
     computePasses_.clear();
     shutdownBuffers();

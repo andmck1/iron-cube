@@ -45,8 +45,8 @@ void main(
     uint lod = 0;
     if (dtid < constants.workCount)
     {
-        float4 instancePosition = instances[instanceIndex].position;
-        float4 instanceRotation = instances[instanceIndex].rotation;
+        float4 instancePosition = { instances[instanceIndex].position, 1.f };
+        float4 instanceRotation = { instances[instanceIndex].rotation, 1.f };
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
@@ -63,7 +63,8 @@ void main(
         }
         // TODO - I do this twice!
         float4x4 modelMatrix = calculateModelMatrix(
-            instancePosition, instanceRotation, instances[instanceIndex].scale
+            instancePosition, instanceRotation,
+            float4(instances[instanceIndex].scale, 1.f)
         );
 
         if (scene.isLODOn > 0)
@@ -96,7 +97,7 @@ void main(
         uint index = WavePrefixCountBits(visible);
         sPayload.instanceIndices[index] = instanceIndex;
         sPayload.meshletIndices[index] = meshletIndex;
-        sPayload.lodLevel[index] = float(lod);
+        sPayload.lodLevel[index] = lod;
     }
     uint visibleCount = WaveActiveCountBits(visible);
     DispatchMesh(visibleCount, 1, 1, sPayload);

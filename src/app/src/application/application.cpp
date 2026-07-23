@@ -623,6 +623,7 @@ void Application::checkForPipelineUpdates()
         sceneLayer_->scene.getEntities();
     if (debugLayer_->shaderTypeUpdate > -1)
     {
+        renderer_.waitAllFramesComplete();
         std::string shaderPipelineSuffix = "";
         switch (debugLayer_->shaderTypeUpdate)
         {
@@ -663,10 +664,12 @@ void Application::checkForPipelineUpdates()
                 entity->getComponent<MeshComponent>();
             if (meshComponent)
             {
-                IShaderPipeline *shaderPipeline = nullptr;
-                shaderPipeline = shaderPipelineManager->getShaderPipeline(
-                    std::format("{}{}", entity->getName(), shaderPipelineSuffix)
-                );
+                IShaderPipeline *shaderPipeline =
+                    shaderPipelineManager->getShaderPipeline(
+                        std::format(
+                            "{}{}", entity->getName(), shaderPipelineSuffix
+                        )
+                    );
                 if (shaderPipeline)
                 {
                     MeshComponent *meshComp =
@@ -729,10 +732,9 @@ void Application::initialiseEntities()
         float x = radius * std::sin(theta);
         float y = height;
         float z = radius * std::cos(theta);
-        mesh->instances[instanceIndex].position = glm::vec4(x, y, z, 1.0);
-        mesh->instances[instanceIndex].rotation = {rotX, rotY, rotZ, 1.0};
-        mesh->instances[instanceIndex].scale =
-            glm::vec4(scaleX, scaleY, scaleZ, 1.0);
+        mesh->instances[instanceIndex].position = {x, y, z};
+        mesh->instances[instanceIndex].rotation = {rotX, rotY, rotZ};
+        mesh->instances[instanceIndex].scale = {scaleX, scaleY, scaleZ};
     }
 }
 

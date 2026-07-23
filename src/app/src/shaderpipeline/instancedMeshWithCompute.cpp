@@ -22,13 +22,13 @@ bool InstancedMeshComputeVulkanShaderPipeline::init(
     physicalDeviceProperties.pNext = &meshShaderProperties;
     renderer_->getPhysicalDevice().getProperties2(&physicalDeviceProperties);
     maxTaskShaderThreadCount_ = meshShaderProperties.maxTaskWorkGroupTotalCount;
+    geometry_ = geometry;
 
-    return initPipeline(geometry);
+    return true;
 }
 
-bool InstancedMeshComputeVulkanShaderPipeline::initPipeline(Geometry *geometry)
+bool InstancedMeshComputeVulkanShaderPipeline::initPipeline()
 {
-    geometry_ = geometry;
     initBuffers();
     if (!initDescriptorLayout())
         return false;
@@ -51,6 +51,9 @@ bool InstancedMeshComputeVulkanShaderPipeline::recreateGraphicsPipeline()
 bool InstancedMeshComputeVulkanShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down default vulkan pipeline");
+    descriptorSetLayout_ = nullptr;
+    descriptorSets_ = nullptr;
+    descriptorPool_ = nullptr;
     pipelineLayout_ = nullptr;
     computePasses_.clear();
     shutdownBuffers();

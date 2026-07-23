@@ -1,5 +1,19 @@
 // Core buffer types shared between app and core layers
 
+// Make sure each variable is in a group of 16 bytes, eg.
+// {
+//      float4 a;
+//      float3 b;
+//      uint32_t _pad0;
+//      float3 c;
+//      float d;
+// }
+//
+// float = 4 bytes
+// float4 = 16 bytes
+// uint32_t = 4 bytes
+// uint4 = 16 bytes
+
 #pragma once
 
 #ifndef SHARED_TYPES_H
@@ -52,16 +66,21 @@ struct VertexInputType
 
 struct Instance
 {
-    float4 position;
-    float4 rotation;
-    float4 scale;
-    float4 lodLevel;
+    float3 position;
+    uint32_t _pad0;
+    float3 rotation;
+    uint32_t _pad1;
+    float3 scale;
+    uint32_t lodLevel;
 };
 
 struct ComputedInstance
 {
     float4x4 worldMatrix;
-    uint4 lodLevel;
+    uint lodLevel;
+    uint _pad0;
+    uint _pad1;
+    uint _pad2;
 };
 
 struct FrustumPlane

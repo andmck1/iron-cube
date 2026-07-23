@@ -33,6 +33,7 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     public:
     bool
     init(Geometry *geometry, ShaderPipelineUpdateData *updateData) override;
+    bool initPipeline() override;
     bool update() override;
     bool bind() override;
     bool shutdown() override;
@@ -49,7 +50,6 @@ class InstancedMeshVulkanShaderPipeline : public VulkanShaderPipeline
     PipelineStatistics pipelineStatistics_{};
 
     bool initGraphicsPipeline();
-    bool initPipeline(Geometry *geometry);
     void initBufferDescriptions() override;
 
     void initBuffers() override;

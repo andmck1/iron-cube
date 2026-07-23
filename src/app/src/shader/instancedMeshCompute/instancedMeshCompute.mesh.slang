@@ -49,7 +49,7 @@ void main(
     uint meshletIndex = payload.meshletIndices[gid];
     InstancedMeshCompute::OptimisedMeshlet m = meshlets[meshletIndex];
     float4x4 worldMatrix = computedInstances[instanceIndex].worldMatrix;
-    uint lodLevel = computedInstances[instanceIndex].lodLevel.x;
+    uint lodLevel = computedInstances[instanceIndex].lodLevel;
 
     SetMeshOutputCounts(m.vertexCount, m.triangleCount);
     if (debugData[0].isDebugQueryOn > 0)
