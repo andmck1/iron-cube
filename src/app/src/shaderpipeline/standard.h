@@ -20,6 +20,7 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
     Timer *timer = nullptr;
     Texture *texture = nullptr;
     FragmentColourType *fragmentColourType = nullptr;
+    bool *isLODOn = nullptr;
 };
 
 class StandardVulkanShaderPipeline : public VulkanShaderPipeline

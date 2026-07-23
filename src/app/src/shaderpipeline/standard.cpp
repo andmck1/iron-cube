@@ -326,7 +326,8 @@ bool StandardVulkanShaderPipeline::update()
 
     SimpleVF::Constants constants = SimpleVF::Constants();
     constants.fragmentColourType = *updateData_->fragmentColourType;
-    constants.lodLevel = *updateData_->lodIndex;
+    uint32_t lodLevel = *updateData_->lodIndex ? *updateData_->isLODOn : 0;
+    constants.lodLevel = lodLevel; 
     renderer_->getCommandBuffer().pushConstants(
         pipelineLayout_,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
@@ -345,8 +346,9 @@ bool StandardVulkanShaderPipeline::draw()
     std::chrono::time_point now = std::chrono::steady_clock::now();
     nDrawCalls_ = 0;
 
-    uint32_t nIndices = geometry_->indexCounts[*updateData_->lodIndex];
-    uint32_t indexOffset = geometry_->indexOffsets[*updateData_->lodIndex];
+    uint32_t lodLevel = *updateData_->lodIndex ? *updateData_->isLODOn : 0;
+    uint32_t nIndices = geometry_->indexCounts[lodLevel];
+    uint32_t indexOffset = geometry_->indexOffsets[lodLevel];
     renderer_->getCommandBuffer().drawIndexed(
         static_cast<uint32_t>(nIndices), 1, static_cast<uint32_t>(indexOffset),
         0, 0

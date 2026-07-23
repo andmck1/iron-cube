@@ -61,11 +61,13 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
         );
         if (visible)
         {
-            uint lod = calculateLOD(
-                modelMatrix, scene.minMeshBounds, scene.maxMeshBounds,
-                scene.eyePosition.xyz, scene.maxLODDistance.x,
-                scene.lodExponent.x, MAX_LOD_COUNT
-            );
+            uint lod = 0;
+            if (scene.isLODOn > 0)
+                lod = calculateLOD(
+                    modelMatrix, scene.minMeshBounds, scene.maxMeshBounds,
+                    scene.eyePosition.xyz, scene.maxLODDistance.x,
+                    scene.lodExponent.x, MAX_LOD_COUNT
+                );
             InterlockedAdd(indirectCommands[lod].instanceCount, 1);
         }
     }

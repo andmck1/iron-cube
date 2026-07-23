@@ -65,11 +65,13 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
         );
         if (visible)
         {
-            uint lod = calculateLOD(
-                worldMatrix, scene.minMeshBounds, scene.maxMeshBounds,
-                scene.eyePosition.xyz, scene.maxLODDistance.x,
-                scene.lodExponent.x, MAX_LOD_COUNT
-            );
+            uint lod = 0;
+            if (scene.isLODOn > 0)
+                lod = calculateLOD(
+                    worldMatrix, scene.minMeshBounds, scene.maxMeshBounds,
+                    scene.eyePosition.xyz, scene.maxLODDistance.x,
+                    scene.lodExponent.x, MAX_LOD_COUNT
+                );
             uint localLODIndex;
             InterlockedAdd(
                 indirectCommandData[0].lodHistogram[lod], 1, localLODIndex

@@ -26,6 +26,8 @@ main(InstancedVFCompute::InstancedVertexInputType input)
 
     float4 instanceRotation = input.instanceRotation;
     float4 instancePosition = input.instancePosition;
+    float4 instanceScale = input.instanceScale;
+
     if (animation.isAnimationOn > 0)
     {
         float rotationAngle =
@@ -42,7 +44,7 @@ main(InstancedVFCompute::InstancedVertexInputType input)
     }
 
     float4x4 worldMatrix = calculateModelMatrix(
-        instancePosition, instanceRotation, input.instanceScale
+        instancePosition, instanceRotation, instanceScale 
     );
 
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));

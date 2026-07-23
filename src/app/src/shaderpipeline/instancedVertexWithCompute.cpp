@@ -472,6 +472,7 @@ void InstancedVertexComputeVulkanShaderPipeline::updateSceneData()
     sceneData.maxMeshBounds = {geometry_->meshBounds.maxCorner, 1.0f};
     sceneData.maxLODDistance = {*updateData_->maxLODDistance, 0.f, 0.f, 0.f};
     sceneData.lodExponent = {*updateData_->lodExponent, 0.f, 0.f, 0.f};
+    sceneData.isLODOn = *updateData_->isLODOn;
 
     std::array<FrustumPlane, 6> frustumPlanes =
         updateData_->camera->getFrustumPlanes();
