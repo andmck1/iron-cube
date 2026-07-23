@@ -149,8 +149,6 @@ namespace InstancedMeshCompute
 
     struct Constants
     {
-        uint32_t workStart;
-        uint32_t workCount;
         FragmentColourType fragmentColourType;
     };
 } // namespace InstancedMeshCompute

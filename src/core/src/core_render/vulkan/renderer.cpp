@@ -330,6 +330,7 @@ bool VulkanRenderer::createLogicalDevice()
             .setPQueuePriorities(&queuePriority);
 
     // Which features to enable in vulkan
+    // TODO - should I use vk::True/vk::False?
     vk::StructureChain<
         vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
         vk::PhysicalDeviceVulkan12Features, vk::PhysicalDeviceVulkan13Features,
@@ -345,7 +346,9 @@ bool VulkanRenderer::createLogicalDevice()
                     .setMultiDrawIndirect(true)
             ),
             vk::PhysicalDeviceVulkan11Features{}.setShaderDrawParameters(true),
-            vk::PhysicalDeviceVulkan12Features{}.setBufferDeviceAddress(true),
+            vk::PhysicalDeviceVulkan12Features{}
+                .setBufferDeviceAddress(true)
+                .setDrawIndirectCount(true),
             vk::PhysicalDeviceVulkan13Features{}
                 .setDynamicRendering(true)
                 .setSynchronization2(true),

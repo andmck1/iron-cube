@@ -139,7 +139,6 @@ bool InstancedMeshComputeVulkanShaderPipeline::initGraphicsPipeline()
     std::vector<vk::PushConstantRange> pushConstantRanges = {
         vk::PushConstantRange{}
             .setStageFlags(
-                vk::ShaderStageFlagBits::eTaskEXT |
                 vk::ShaderStageFlagBits::eMeshEXT |
                 vk::ShaderStageFlagBits::eFragment
             )
@@ -588,9 +587,11 @@ void InstancedMeshComputeVulkanShaderPipeline::drawCommandComputePass(
 
     barrierInfo = BufferBarrierInfo{
         .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
-        .destinationAccess = vk::AccessFlagBits2::eShaderRead,
+        .destinationAccess = vk::AccessFlagBits2::eIndirectCommandRead |
+                             vk::AccessFlagBits2::eShaderRead,
         .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
-        .destinationStage = vk::PipelineStageFlagBits2::eTaskShaderEXT,
+        .destinationStage = vk::PipelineStageFlagBits2::eDrawIndirect |
+                            vk::PipelineStageFlagBits2::eTaskShaderEXT,
         .buffer = indirectBuffer->getBuffer(frameIndex)
     };
     addBarrier(barrierInfo);
@@ -642,71 +643,34 @@ bool InstancedMeshComputeVulkanShaderPipeline::draw()
     std::chrono::time_point now = std::chrono::steady_clock::now();
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
 
-    // Calculate maximum possible work across all LODs to bound the loop.
-    // The reset ensures any uninitialised indirect commands are zero (no-ops).
-    uint32_t maximumPossibleWork = 0;
-    for (uint32_t lodIndex = 0;
-         lodIndex < static_cast<uint32_t>(geometry_->meshletLODCounts.size());
-         lodIndex++)
-    {
-        maximumPossibleWork +=
-            static_cast<uint32_t>(geometry_->meshletLODCounts[lodIndex]);
-    }
-    maximumPossibleWork *=
-        static_cast<uint32_t>(updateData_->instances->size());
-    uint32_t maximumPossibleGroups =
-        (maximumPossibleWork + TS_GROUP_SIZE - 1) / TS_GROUP_SIZE;
-    uint32_t maximumDrawCalls =
-        (maximumPossibleGroups + maxTaskShaderThreadCount_ - 1) /
-        maxTaskShaderThreadCount_;
-
-    // Cap to avoid over-iteration; the compute shader won't write more than
-    // MAX_INDIRECT_COMMAND_COUNT entries anyway.
-    maximumDrawCalls = std::min(
-        maximumDrawCalls, static_cast<uint32_t>(MAX_INDIRECT_COMMAND_COUNT)
-    );
-
     vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
     vk::raii::Buffer &indirectDrawBuffer =
         *resources_[InstancedMeshCompute::BufferSlots::INDIRECT_DRAW_COMMANDS]
              .asBuffer()
              ->getBuffer(frameIndex);
+    vk::raii::Buffer &indirectCommandBuffer =
+        *resources_[InstancedMeshCompute::BufferSlots::INDIRECT_COMMANDS]
+             .asBuffer()
+             ->getBuffer(frameIndex);
 
-    uint32_t workOffset = 0;
+    constants = {};
+    constants.fragmentColourType = *updateData_->fragmentColourType;
+    commandBuffer.pushConstants(
+        pipelineLayout_,
+        vk::ShaderStageFlagBits::eMeshEXT | vk::ShaderStageFlagBits::eFragment,
+        0, sizeof(InstancedMeshCompute::Constants), &constants
+    );
+
     nDrawCalls_ = 0;
-    for (uint32_t drawIndex = 0; drawIndex < maximumDrawCalls; drawIndex++)
-    {
-        // Each indirect command is MeshTasksIndirectCommand (3 x uint32 = 12
-        // bytes), matching vk::DrawMeshTasksIndirectCommandEXT layout.
-        vk::DeviceSize commandOffset =
-            drawIndex * sizeof(InstancedMeshCompute::MeshTasksIndirectCommand);
-
-        // Calculate work range for this draw based on groups this command will
-        // dispatch. The actual group count comes from the GPU-written indirect
-        // command; we use maxTaskShaderThreadCount_ as the per-draw cap for
-        // push constant tracking.
-        uint32_t currentWork = maxTaskShaderThreadCount_ * TS_GROUP_SIZE;
-
-        constants = {};
-        constants.workStart = workOffset;
-        constants.workCount = currentWork;
-        constants.fragmentColourType = *updateData_->fragmentColourType;
-        commandBuffer.pushConstants(
-            pipelineLayout_,
-            vk::ShaderStageFlagBits::eTaskEXT |
-                vk::ShaderStageFlagBits::eMeshEXT |
-                vk::ShaderStageFlagBits::eFragment,
-            0, sizeof(InstancedMeshCompute::Constants), &constants
-        );
-
-        commandBuffer.drawMeshTasksIndirectEXT(
-            indirectDrawBuffer, commandOffset, 1,
-            sizeof(vk::DrawMeshTasksIndirectCommandEXT)
-        );
-
-        workOffset += currentWork;
-        nDrawCalls_++;
-    }
+    commandBuffer.drawMeshTasksIndirectCountEXT(
+        indirectDrawBuffer, 0, indirectCommandBuffer,
+        offsetof(
+            InstancedMeshCompute::IndirectCommandBuffer,
+            indirectDrawCommandCount
+        ),
+        MAX_INDIRECT_COMMAND_COUNT, sizeof(vk::DrawMeshTasksIndirectCommandEXT)
+    );
+    nDrawCalls_ = 1;
 
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)

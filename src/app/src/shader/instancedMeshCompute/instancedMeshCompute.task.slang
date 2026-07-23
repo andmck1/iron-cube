@@ -2,9 +2,6 @@
 #include "shader/helpers/visibility.slangh"
 #include "shader/helpers/lod.slangh"
 
-[[vk::push_constant]]
-ConstantBuffer<InstancedMeshCompute::Constants> constants;
-
 [[vk::binding(InstancedMeshCompute::BufferSlots::SCENE)]]
 ConstantBuffer<InstancedMeshCompute::SceneBuffer> scene;
 
@@ -29,13 +26,11 @@ StructuredBuffer<float4> meshletBoundingSpheres;
 
 groupshared InstancedMeshCompute::Payload sPayload;
 
-// dtid = global thread index (0 -> n dispatched threads ~ nInstance * nMeshlet)
-// gtid = local thread index (0 -> TS_GROUP_SIZE (32))
 [shader("task")]
 [numthreads(TS_GROUP_SIZE, 1, 1)]
 void main(
     uint gtid: SV_GroupThreadID, uint dtid: SV_DispatchThreadID,
-    uint gid: SV_GroupID
+    uint gid: SV_GroupID, uint drawIndex: SV_DrawIndex
 )
 {
     if (debugData[0].isDebugQueryOn > 0)
@@ -45,7 +40,8 @@ void main(
 
     bool visible = false;
 
-    uint globalThreadIndex = dtid + constants.workStart;
+    uint globalThreadIndex =
+        dtid + (drawIndex * scene.maxGroupsPerDraw * TS_GROUP_SIZE);
     uint lod = 0;
     uint meshletWorkOffset = 0;
     for (lod = 0; lod < MAX_LOD_COUNT; lod++)
@@ -63,7 +59,11 @@ void main(
 
     uint meshletIndex = lodLocalOffset % nLODMeshlets;
     uint instanceIndex = lod * scene.instanceCount.x + localLODInstanceIndex;
-    if (dtid < constants.workCount)
+
+    uint totalValidWork =
+        indirectCommandData[0].meshletWorkOffsets[MAX_LOD_COUNT - 1];
+
+    if (globalThreadIndex < totalValidWork)
     {
         float4x4 modelMatrix = computedInstances[instanceIndex].modelMatrix;
         uint lodMeshletCount = scene.meshletLODCounts[lod].x;
