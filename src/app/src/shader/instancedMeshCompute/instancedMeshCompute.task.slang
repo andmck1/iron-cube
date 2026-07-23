@@ -46,6 +46,7 @@ void main(
     uint meshletWorkOffset = 0;
 
     // TODO - use LOD flag
+    [unroll]
     for (lod = 0; lod < MAX_LOD_COUNT; lod++)
     {
         meshletWorkOffset = indirectCommandData[0].meshletWorkOffsets[lod];

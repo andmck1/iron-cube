@@ -36,6 +36,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 
     // Guarantee this is available to all threads
     uint offset = 0;
+    [unroll]
     for (uint lod = 0; lod < MAX_LOD_COUNT; lod++)
     {
         lodStats[lod].offset = offset;

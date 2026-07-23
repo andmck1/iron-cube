@@ -28,6 +28,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
     }
 
     uint meshletLODWorkOffset = 0;
+    [unroll]
     for (uint lodIndex = 0; lodIndex < MAX_LOD_COUNT; lodIndex++)
     {
         meshletLODWorkOffset += indirectCommandData[0].lodHistogram[lodIndex] *
@@ -54,6 +55,8 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
             (totalGroups + maxGroupsPerDraw - 1) / maxGroupsPerDraw;
         nDrawCommands = min(nDrawCommands, MAX_INDIRECT_COMMAND_COUNT);
         uint remainingGroups = totalGroups;
+
+        [unroll]
         for (uint drawCommandIndex = 0; drawCommandIndex < nDrawCommands;
              drawCommandIndex++)
         {
