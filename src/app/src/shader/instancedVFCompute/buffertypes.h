@@ -36,6 +36,7 @@ namespace InstancedVFCompute
         float4x4 projection;
     };
 
+    // TODO - this packing is really fragile
     struct InstancedVertexInputType
     {
         // VertexInputType vertex;
@@ -79,6 +80,10 @@ namespace InstancedVFCompute
         float4 maxMeshBounds;
         float4 maxLODDistance;
         float4 lodExponent;
+        uint32_t isLODOn;
+        uint32_t pad1;
+        uint32_t pad2;
+        uint32_t pad3;
     };
 
     struct DebugDataBuffer
