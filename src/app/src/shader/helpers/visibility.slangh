@@ -3,6 +3,7 @@
 
 bool visibleFrustumPlanes(float4 sphere, FrustumPlane planes[6])
 {
+    [unroll]
     for (int i = 0; i < 6; i++)
     {
         float planeDistance =
