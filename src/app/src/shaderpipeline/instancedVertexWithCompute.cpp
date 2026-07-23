@@ -55,6 +55,9 @@ bool InstancedVertexComputeVulkanShaderPipeline::recreateGraphicsPipeline()
 bool InstancedVertexComputeVulkanShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down instanced vulkan pipeline");
+    descriptorSetLayout_ = nullptr;
+    descriptorSets_ = nullptr;
+    descriptorPool_ = nullptr;
     pipelineLayout_ = nullptr;
     computePasses_.clear();
     shutdownBuffers();

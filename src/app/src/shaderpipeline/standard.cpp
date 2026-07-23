@@ -44,6 +44,9 @@ bool StandardVulkanShaderPipeline::recreateGraphicsPipeline()
 bool StandardVulkanShaderPipeline::shutdown()
 {
     spdlog::debug("Shutting down default vulkan pipeline");
+    descriptorSetLayout_ = nullptr;
+    descriptorSets_ = nullptr;
+    descriptorPool_ = nullptr;
     pipelineLayout_ = nullptr;
     graphicsPipeline_ = nullptr;
     shutdownBuffers();

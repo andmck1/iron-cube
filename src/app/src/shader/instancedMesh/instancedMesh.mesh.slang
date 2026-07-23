@@ -74,8 +74,8 @@ void main(
         uint vertexIndex = m.vertexOffset + gtid;
         vertexIndex = vertexIndices[vertexIndex];
 
-        float4 instanceRotation = instances[instanceIndex].rotation;
-        float4 instancePosition = instances[instanceIndex].position;
+        float4 instanceRotation = { instances[instanceIndex].rotation, 1.f };
+        float4 instancePosition = { instances[instanceIndex].position, 1.f };
         if (animation.isAnimationOn > 0)
         {
             float rotationAngle =
@@ -92,7 +92,8 @@ void main(
         }
 
         float4x4 worldMatrix = calculateModelMatrix(
-            instancePosition, instanceRotation, instances[instanceIndex].scale
+            instancePosition, instanceRotation,
+            float4(instances[instanceIndex].scale, 1.f)
         );
 
         float4x4 mvpMatrix =

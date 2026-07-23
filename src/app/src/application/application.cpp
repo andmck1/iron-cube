@@ -732,10 +732,9 @@ void Application::initialiseEntities()
         float x = radius * std::sin(theta);
         float y = height;
         float z = radius * std::cos(theta);
-        mesh->instances[instanceIndex].position = glm::vec4(x, y, z, 1.0);
-        mesh->instances[instanceIndex].rotation = {rotX, rotY, rotZ, 1.0};
-        mesh->instances[instanceIndex].scale =
-            glm::vec4(scaleX, scaleY, scaleZ, 1.0);
+        mesh->instances[instanceIndex].position = {x, y, z};
+        mesh->instances[instanceIndex].rotation = {rotX, rotY, rotZ};
+        mesh->instances[instanceIndex].scale = {scaleX, scaleY, scaleZ};
     }
 }
 
