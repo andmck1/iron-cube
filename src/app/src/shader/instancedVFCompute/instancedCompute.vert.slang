@@ -11,7 +11,7 @@ ConstantBuffer<InstancedVFCompute::AnimationBuffer> animation;
 RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 
 [[vk::binding(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)]]
-RWStructuredBuffer<InstancedVFCompute::VFCInstance> reorderedInstances;
+RWStructuredBuffer<InstancedVFCompute::CalculatedInstance> reorderedInstances;
 
 [[vk_push_constant]]
 InstancedVFCompute::Constants constants;

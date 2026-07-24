@@ -9,7 +9,10 @@ ConstantBuffer<InstancedVFCompute::SceneBuffer> scene;
 RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 
 [[vk::binding(InstancedVFCompute::BufferSlots::INSTANCES)]]
-RWStructuredBuffer<InstancedVFCompute::VFCInstance> instances;
+StructuredBuffer<Instance> instances;
+
+[[vk::binding(InstancedVFCompute::BufferSlots::CALCULATED_INSTANCES)]]
+RWStructuredBuffer<InstancedVFCompute::CalculatedInstance> calculatedInstances;
 
 [[vk::binding(InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS)]]
 RWStructuredBuffer<InstancedVFCompute::IndirectDrawCommand> indirectCommands;
@@ -70,8 +73,8 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
                 );
             InterlockedAdd(indirectCommands[lod].instanceCount, 1);
         }
-        instances[instanceIndex].worldMatrix = worldMatrix;
-        instances[instanceIndex].lodLevel = lod;
-        instances[instanceIndex].isVisible = visible;
+        calculatedInstances[instanceIndex].worldMatrix = worldMatrix;
+        calculatedInstances[instanceIndex].lodLevel = lod;
+        calculatedInstances[instanceIndex].isVisible = (uint32_t) visible;
     }
 }

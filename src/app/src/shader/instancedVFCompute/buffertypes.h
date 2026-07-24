@@ -14,9 +14,10 @@ namespace InstancedVFCompute
         SCENE,
         ANIMATION,
         DEBUG,
+        INSTANCES,
+        CALCULATED_INSTANCES,
         REORDERED_INSTANCES,
         LOD_STATS,
-        INSTANCES,
         INDIRECT_COMMANDS,
         TEXTURE,
         LAST
@@ -36,23 +37,13 @@ namespace InstancedVFCompute
         float4x4 projection;
     };
 
-    struct VFCInstance
+    struct CalculatedInstance
     {
-        float3 position;
-        uint32_t _pad0;
-
-        float3 rotation;
-        uint32_t _pad1;
-
-        float3 scale;
-        uint32_t lodLevel;
-
         float4x4 worldMatrix;
-
+        uint32_t lodLevel;
         uint32_t isVisible;
-        uint32_t _pad2;
-        uint32_t _pad3;
-        uint32_t _pad4;
+        uint32_t _pad0;
+        uint32_t _pad1;
     };
 
     struct AnimationBuffer

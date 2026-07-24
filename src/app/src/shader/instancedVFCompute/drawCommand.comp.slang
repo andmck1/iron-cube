@@ -8,14 +8,14 @@ ConstantBuffer<InstancedVFCompute::SceneBuffer> scene;
 [[vk::binding(InstancedVFCompute::BufferSlots::DEBUG)]]
 RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::INSTANCES)]]
-StructuredBuffer<InstancedVFCompute::VFCInstance> instances;
+[[vk::binding(InstancedVFCompute::BufferSlots::CALCULATED_INSTANCES)]]
+RWStructuredBuffer<InstancedVFCompute::CalculatedInstance> calculatedInstances;
 
 [[vk::binding(InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS)]]
 RWStructuredBuffer<InstancedVFCompute::IndirectDrawCommand> indirectCommands;
 
 [[vk::binding(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)]]
-RWStructuredBuffer<InstancedVFCompute::VFCInstance> reorderedInstances;
+RWStructuredBuffer<InstancedVFCompute::CalculatedInstance> reorderedInstances;
 
 [[vk::binding(InstancedVFCompute::BufferSlots::LOD_STATS)]]
 RWStructuredBuffer<InstancedVFCompute::LODStats> lodStats;
@@ -46,9 +46,9 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
 
     if (instanceIndex < scene.instanceCount.x)
     {
-        float4x4 worldMatrix = instances[instanceIndex].worldMatrix;
-        uint lod = instances[instanceIndex].lodLevel;
-        bool visible = instances[instanceIndex].isVisible > 0;
+        float4x4 worldMatrix = calculatedInstances[instanceIndex].worldMatrix;
+        uint lod = calculatedInstances[instanceIndex].lodLevel;
+        bool visible = calculatedInstances[instanceIndex].isVisible > 0;
         if (visible)
         {
             uint lodInstanceOffset = lodStats[lod].offset;
@@ -57,8 +57,7 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
             uint previousLODInstanceCount;
             InterlockedAdd(lodStats[lod].count, 1, previousLODInstanceCount);
             uint slot = lodInstanceOffset + previousLODInstanceCount;
-            reorderedInstances[slot] = instances[instanceIndex];
-            reorderedInstances[slot].lodLevel = lod;
+            reorderedInstances[slot] = calculatedInstances[instanceIndex];
         }
     }
 }

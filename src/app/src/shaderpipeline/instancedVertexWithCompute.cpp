@@ -109,10 +109,19 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
     );
 
     resourceDescriptions_.push_back(
+        StorageRead.setBufferSlot(InstancedVFCompute::BufferSlots::INSTANCES)
+            .setBufferSize(sizeof(Instance) * MAX_N_INSTANCES)
+            .setData(nullptr)
+            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
+    );
+
+    resourceDescriptions_.push_back(
         StorageReadWrite
-            .setBufferSlot(InstancedVFCompute::BufferSlots::INSTANCES)
+            .setBufferSlot(
+                InstancedVFCompute::BufferSlots::CALCULATED_INSTANCES
+            )
             .setBufferSize(
-                sizeof(InstancedVFCompute::VFCInstance) * MAX_N_INSTANCES
+                sizeof(InstancedVFCompute::CalculatedInstance) * MAX_N_INSTANCES
             )
             .setData(nullptr)
             .setStageFlags(vk::ShaderStageFlagBits::eCompute)
@@ -122,7 +131,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
         StorageReadWrite
             .setBufferSlot(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)
             .setBufferSize(
-                sizeof(InstancedVFCompute::VFCInstance) * MAX_N_INSTANCES
+                sizeof(InstancedVFCompute::CalculatedInstance) * MAX_N_INSTANCES
             )
             .setData(nullptr)
             .setStageFlags(
@@ -501,8 +510,7 @@ void InstancedVertexComputeVulkanShaderPipeline::updateAnimationData()
 void InstancedVertexComputeVulkanShaderPipeline::updateInstancesData()
 {
     vk::DeviceSize instancesBufferSize =
-        sizeof(InstancedVFCompute::VFCInstance) *
-        updateData_->instances->size();
+        sizeof(Instance) * updateData_->instances->size();
     resources_[InstancedVFCompute::BufferSlots::INSTANCES].update(
         instancesBufferSize, updateData_->instances->data()
     );
@@ -598,19 +606,8 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
     VulkanBuffer *indirectBuffer =
         resources_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS]
             .asBuffer();
-    VulkanBuffer *instanceBuffer =
-        resources_[InstancedVFCompute::BufferSlots::INSTANCES].asBuffer();
 
     BufferBarrierInfo barrierInfo;
-
-    barrierInfo = BufferBarrierInfo{
-        .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
-        .destinationAccess = vk::AccessFlagBits2::eShaderRead,
-        .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
-        .destinationStage = vk::PipelineStageFlagBits2::eComputeShader,
-        .buffer = instanceBuffer->getBuffer(frameIndex)
-    };
-    addBarrier(barrierInfo);
 
     barrierInfo = BufferBarrierInfo{
         .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
