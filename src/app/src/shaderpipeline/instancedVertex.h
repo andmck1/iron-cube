@@ -23,6 +23,7 @@ class InstancedVertexShaderPipelineUpdateData : public ShaderPipelineUpdateData
     bool *isLODOn = nullptr;
     float *maxLODDistance = nullptr;
     float *lodExponent = nullptr;
+    VisibilityFunc *visibilityFunc = nullptr;
 };
 
 class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
@@ -53,6 +54,22 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     );
     static glm::mat4x4
     calculateModelMatrix(float4 transform, float4 rotation, float4 scale);
+    static bool visibleFrustumPlanes(float4 sphere, FrustumPlane planes[6]);
+    static bool visibleFrustumSphere(float4 sphere, float4 frustumSphere);
+
+    static bool visibleFrustumCone(float4 sphere, FrustumCone cone);
+
+    static bool visibleFrustumConeAndNearPlane(
+        float4 sphere, FrustumCone cone, FrustumPlane planes[6]
+    );
+    static bool isVisible(
+        float4 sphere, VisibilityFunc visibilityFunction,
+        FrustumPlane planes[6], float4 frustumSphere, FrustumCone cone
+    );
+    static float pointPlaneDistance(float4 testPoint, float4 planeEquation);
+    static float4 calculateInstanceBoundingSphere(
+        float4x4 modelMatrix, float4 minMeshBounds, float4 maxMeshBounds
+    );
 
     void updateMVPBuffer();
     void updateAnimationBuffer();

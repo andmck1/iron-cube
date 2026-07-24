@@ -372,7 +372,6 @@ void InstancedVertexVulkanShaderPipeline::updateInstancesBuffer()
 
     if (*updateData_->isLODOn)
     {
-
         glm::vec4 minMeshBounds = {geometry_->meshBounds.minCorner, 1.0f};
         glm::vec4 maxMeshBounds = {geometry_->meshBounds.maxCorner, 1.0f};
         glm::vec4 eyePosition = {
@@ -382,19 +381,36 @@ void InstancedVertexVulkanShaderPipeline::updateInstancesBuffer()
         };
         float maxLODDistance = *updateData_->maxLODDistance;
         float lodExponent = *updateData_->lodExponent;
+
+        std::array<FrustumPlane, 6> frustumPlanes =
+            updateData_->camera->getFrustumPlanes();
+        FrustumCone frustumCone = updateData_->camera->getFrustumCone(true);
+        float4 frustumSphere = updateData_->camera->getFrustumSphere();
+
         for (const Instance &instance : *updateData_->instances)
         {
             glm::mat4x4 worldMatrix = calculateModelMatrix(
                 {instance.position, 1.f}, {instance.rotation, 1.f},
                 {instance.scale, 1.f}
             );
-            uint lodLevel = calculateLOD(
-                worldMatrix, minMeshBounds, maxMeshBounds, eyePosition,
-                maxLODDistance, lodExponent, MAX_LOD_COUNT
+            float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
+                worldMatrix, minMeshBounds, maxMeshBounds
             );
 
-            lodInstances[lodLevel].push_back(instance);
-            lodCounts_[lodLevel]++;
+            bool visible = isVisible(
+                instanceBoundingSphere, *updateData_->visibilityFunc,
+                frustumPlanes.data(), frustumSphere, frustumCone
+            );
+            if (visible)
+            {
+                uint lodLevel = calculateLOD(
+                    worldMatrix, minMeshBounds, maxMeshBounds, eyePosition,
+                    maxLODDistance, lodExponent, MAX_LOD_COUNT
+                );
+
+                lodInstances[lodLevel].push_back(instance);
+                lodCounts_[lodLevel]++;
+            }
         }
         for (uint lodLevel = 0; lodLevel < MAX_LOD_COUNT; lodLevel++)
         {
@@ -594,4 +610,103 @@ glm::mat4x4 InstancedVertexVulkanShaderPipeline::calculateModelMatrix(
         // row 4
         0.0, 0.0, 0.0, 1.0
     );
+}
+
+bool InstancedVertexVulkanShaderPipeline::visibleFrustumPlanes(
+    float4 sphere, FrustumPlane planes[6]
+)
+{
+    for (int i = 0; i < 6; i++)
+    {
+        float planeDistance =
+            pointPlaneDistance(sphere, planes[i].coefficients);
+        if (planeDistance < -sphere.w)
+            return false;
+    }
+    return true;
+}
+
+bool InstancedVertexVulkanShaderPipeline::visibleFrustumSphere(
+    float4 sphere, float4 frustumSphere
+)
+{
+    return (
+        distance(float3(sphere), float3(frustumSphere)) <
+        (sphere.w + frustumSphere.w)
+    );
+}
+
+bool InstancedVertexVulkanShaderPipeline::visibleFrustumCone(
+    float4 sphere, FrustumCone cone
+)
+{
+    float3 coneDir = float3(cone.direction);
+    float3 coneTip = float3(cone.tip);
+    float coneHeight = cone.height.x;
+    float coneAngle = cone.angle.x;
+    float coneRadius = coneHeight * tan(coneAngle);
+
+    float pointDistance = dot(float3(sphere) - coneTip, coneDir);
+    if ((pointDistance > coneHeight) || (pointDistance < 0.f))
+        return false;
+
+    float coneRadiusAtPoint = (pointDistance / coneHeight) * coneRadius;
+    float pointConeCentreDistance =
+        length((float3(sphere) - coneTip) - (pointDistance * coneDir));
+    return (pointConeCentreDistance < (coneRadiusAtPoint + sphere.w));
+}
+
+bool InstancedVertexVulkanShaderPipeline::visibleFrustumConeAndNearPlane(
+    float4 sphere, FrustumCone cone, FrustumPlane planes[6]
+)
+{
+    bool i0 = visibleFrustumCone(sphere, cone);
+
+    FrustumPlane frNear = planes[FrustumPlanes::NEAR];
+
+    float planeDistance = pointPlaneDistance(sphere, frNear.coefficients);
+    bool i1 = (abs(planeDistance) < sphere.w);
+    bool i2 = (planeDistance > 0);
+
+    return i0 && (i1 || i2);
+}
+
+bool InstancedVertexVulkanShaderPipeline::isVisible(
+    float4 sphere, VisibilityFunc visibilityFunction, FrustumPlane planes[6],
+    float4 frustumSphere, FrustumCone cone
+)
+{
+    switch (visibilityFunction)
+    {
+    case (VisibilityFunc::VISIBILITY_FUNC_NONE):
+        return true;
+    case (VisibilityFunc::VISIBILITY_FUNC_PLANES):
+        return visibleFrustumPlanes(sphere, planes);
+    case (VisibilityFunc::VISIBILITY_FUNC_SPHERE):
+        return visibleFrustumSphere(sphere, frustumSphere);
+    case (VisibilityFunc::VISIBILITY_FUNC_CONE):
+        return visibleFrustumCone(sphere, cone);
+    case (VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE):
+        return visibleFrustumConeAndNearPlane(sphere, cone, planes);
+    }
+    return true;
+}
+
+float InstancedVertexVulkanShaderPipeline::pointPlaneDistance(
+    float4 testPoint, float4 planeEquation
+)
+{
+    return dot(float3(testPoint), float3(planeEquation)) + planeEquation.w;
+}
+
+float4 InstancedVertexVulkanShaderPipeline::calculateInstanceBoundingSphere(
+    float4x4 modelMatrix, float4 minMeshBounds, float4 maxMeshBounds
+)
+{
+    float4 instanceBoundsMinWS = modelMatrix * minMeshBounds;
+    float4 instanceBoundsMaxWS = modelMatrix * maxMeshBounds;
+    float4 centre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
+    float3 extent = float3(instanceBoundsMaxWS - instanceBoundsMinWS) / 2.f;
+    float radius = length(extent);
+    return float4(float3(centre), radius);
 }

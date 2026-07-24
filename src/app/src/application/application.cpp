@@ -355,6 +355,7 @@ bool Application::initialiseGeometry(
         updateData->isLODOn = &isLODOn_;
         updateData->maxLODDistance = &maxLODDistance_;
         updateData->lodExponent = &lodExponent_;
+        updateData->visibilityFunc = &visibilityFunction_;
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =
