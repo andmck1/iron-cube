@@ -11,6 +11,9 @@ RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 [[vk::binding(InstancedVFCompute::BufferSlots::INSTANCES)]]
 StructuredBuffer<Instance> instances;
 
+[[vk::binding(InstancedVFCompute::BufferSlots::CALCULATED_INSTANCES)]]
+RWStructuredBuffer<InstancedVFCompute::CalculatedInstance> calculatedInstances;
+
 [[vk::binding(InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS)]]
 RWStructuredBuffer<InstancedVFCompute::IndirectDrawCommand> indirectCommands;
 
@@ -47,28 +50,31 @@ void main(uint3 dispatchThreadID: SV_DispatchThreadID)
                 rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
         }
 
-        float4x4 modelMatrix = calculateModelMatrix(
+        float4x4 worldMatrix = calculateModelMatrix(
             instancePosition, instanceRotation,
             float4(instances[instanceIndex].scale, 1.f)
         );
         float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
-            modelMatrix, scene.minMeshBounds, scene.maxMeshBounds
+            worldMatrix, scene.minMeshBounds, scene.maxMeshBounds
         );
 
         bool visible = isVisible(
             instanceBoundingSphere, (VisibilityFunc) scene.visibilityFunc.x,
             scene.frustum.planes, scene.frustum.sphere, scene.frustum.cone
         );
+        uint lod = 0;
         if (visible)
         {
-            uint lod = 0;
             if (scene.isLODOn > 0)
                 lod = calculateLOD(
-                    modelMatrix, scene.minMeshBounds, scene.maxMeshBounds,
+                    worldMatrix, scene.minMeshBounds, scene.maxMeshBounds,
                     scene.eyePosition.xyz, scene.maxLODDistance.x,
                     scene.lodExponent.x, MAX_LOD_COUNT
                 );
             InterlockedAdd(indirectCommands[lod].instanceCount, 1);
         }
+        calculatedInstances[instanceIndex].worldMatrix = worldMatrix;
+        calculatedInstances[instanceIndex].lodLevel = lod;
+        calculatedInstances[instanceIndex].isVisible = (uint32_t) visible;
     }
 }

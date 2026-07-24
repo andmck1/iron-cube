@@ -10,12 +10,15 @@ ConstantBuffer<InstancedVFCompute::AnimationBuffer> animation;
 [[vk::binding(InstancedVFCompute::BufferSlots::DEBUG)]]
 RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 
+[[vk::binding(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)]]
+RWStructuredBuffer<InstancedVFCompute::CalculatedInstance> reorderedInstances;
+
 [[vk_push_constant]]
 InstancedVFCompute::Constants constants;
 
 [shader("vertex")]
 InstancedVFCompute::VertexOutputType
-main(InstancedVFCompute::InstancedVertexInputType input)
+main(VertexInputType input, uint instanceID: SV_InstanceID)
 {
     if (debugData[0].isDebugQueryOn > 0)
     {
@@ -24,29 +27,7 @@ main(InstancedVFCompute::InstancedVertexInputType input)
 
     InstancedVFCompute::VertexOutputType output;
 
-    float4 instanceRotation = input.instanceRotation;
-    float4 instancePosition = input.instancePosition;
-    float4 instanceScale = input.instanceScale;
-
-    if (animation.isAnimationOn > 0)
-    {
-        float rotationAngle =
-            PI2 * animation.rotationFrequency.x * animation.currentTime.x;
-        float4 spin =
-            quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
-        instanceRotation = quaternionMultiply(spin, instanceRotation);
-
-        float instanceDiscRadius = length(instancePosition.xz);
-        float discAngle =
-            PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
-        instancePosition =
-            rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
-    }
-
-    float4x4 worldMatrix = calculateModelMatrix(
-        instancePosition, instanceRotation, instanceScale 
-    );
-
+    float4x4 worldMatrix = reorderedInstances[instanceID].worldMatrix;
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
     output.position = mul(mvpMatrix, input.position);
     output.uv = input.tex.xy;
@@ -55,7 +36,8 @@ main(InstancedVFCompute::InstancedVertexInputType input)
     {
     case FragmentColourType::LOD:
     {
-        float lodColour = float(input.lodLevel.x) + 1.0;
+        uint lodLevel = reorderedInstances[instanceID].lodLevel;
+        float lodColour = float(lodLevel) + 1.0;
         output.colour = float4(
             lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
             lodColour / MAX_LOD_COUNT / 5.0, 1.f

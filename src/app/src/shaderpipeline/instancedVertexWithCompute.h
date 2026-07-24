@@ -67,7 +67,6 @@ class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline
 
     VulkanBuffer vertexBuffer_;
     VulkanBuffer indexBuffer_;
-    VulkanBuffer instanceBuffer_;
 
     Geometry *geometry_ = nullptr;
 

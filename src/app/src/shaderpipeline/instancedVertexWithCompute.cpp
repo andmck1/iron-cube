@@ -109,11 +109,35 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
     );
 
     resourceDescriptions_.push_back(
-        StorageReadWrite
-            .setBufferSlot(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)
+        StorageRead.setBufferSlot(InstancedVFCompute::BufferSlots::INSTANCES)
             .setBufferSize(sizeof(Instance) * MAX_N_INSTANCES)
             .setData(nullptr)
             .setStageFlags(vk::ShaderStageFlagBits::eCompute)
+    );
+
+    resourceDescriptions_.push_back(
+        StorageReadWrite
+            .setBufferSlot(
+                InstancedVFCompute::BufferSlots::CALCULATED_INSTANCES
+            )
+            .setBufferSize(
+                sizeof(InstancedVFCompute::CalculatedInstance) * MAX_N_INSTANCES
+            )
+            .setData(nullptr)
+            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
+    );
+
+    resourceDescriptions_.push_back(
+        StorageReadWrite
+            .setBufferSlot(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)
+            .setBufferSize(
+                sizeof(InstancedVFCompute::CalculatedInstance) * MAX_N_INSTANCES
+            )
+            .setData(nullptr)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eCompute |
+                vk::ShaderStageFlagBits::eVertex
+            )
     );
 
     resourceDescriptions_.push_back(
@@ -122,16 +146,6 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
             .setBufferSize(sizeof(InstancedVFCompute::LODStats) * MAX_LOD_COUNT)
             .setData(nullptr)
             .setStageFlags(vk::ShaderStageFlagBits::eCompute)
-    );
-
-    resourceDescriptions_.push_back(
-        StorageRead.setBufferSlot(InstancedVFCompute::BufferSlots::INSTANCES)
-            .setBufferSize(sizeof(Instance) * MAX_N_INSTANCES)
-            .setData(nullptr)
-            .setStageFlags(
-                vk::ShaderStageFlagBits::eCompute |
-                vk::ShaderStageFlagBits::eVertex
-            )
     );
 
     resourceDescriptions_.push_back(
@@ -181,11 +195,6 @@ void InstancedVertexComputeVulkanShaderPipeline::initBuffers()
     indexDesc.bufferSize = sizeof(uint32_t) * geometry_->indices.size();
     indexDesc.data = geometry_->indices.data();
     indexBuffer_.init(indexDesc);
-
-    BufferDescription instanceDesc = VertexBuffer;
-    instanceDesc.bufferSize = sizeof(Instance) * MAX_N_INSTANCES;
-    instanceDesc.data = nullptr;
-    instanceBuffer_.init(instanceDesc);
 }
 
 bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
@@ -212,18 +221,13 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setModule(instancedFragmentShader->getShaderModule())
             .setPName("main");
 
-    std::array<vk::VertexInputBindingDescription, 2> bindingDescriptions = {
+    std::array<vk::VertexInputBindingDescription, 1> bindingDescriptions = {
         vk::VertexInputBindingDescription{}
             .setBinding(0)
             .setStride(sizeof(VertexInputType))
             .setInputRate(vk::VertexInputRate::eVertex),
-        vk::VertexInputBindingDescription{}
-            .setBinding(1)
-            .setStride(sizeof(Instance))
-            .setInputRate(vk::VertexInputRate::eInstance),
     };
-    std::array<vk::VertexInputAttributeDescription, 7> attributeDescriptions = {
-        // vertex
+    std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions = {
         vk::VertexInputAttributeDescription{}
             .setBinding(0)
             .setLocation(0)
@@ -239,35 +243,10 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setLocation(2)
             .setFormat(vk::Format::eR32G32B32A32Sfloat)
             .setOffset(offsetof(VertexInputType, normal)),
-
-        // instance
-        vk::VertexInputAttributeDescription{}
-            .setBinding(1)
-            .setLocation(3)
-            .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(Instance, position)),
-        vk::VertexInputAttributeDescription{}
-            .setBinding(1)
-            .setLocation(4)
-            .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(Instance, rotation)),
-        vk::VertexInputAttributeDescription{}
-            .setBinding(1)
-            .setLocation(5)
-            .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(Instance, scale)),
-
-        // other
-        vk::VertexInputAttributeDescription{}
-            .setBinding(1)
-            .setLocation(6)
-            .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(Instance, lodLevel)),
-
     };
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
         vk::PipelineVertexInputStateCreateInfo{}
-            .setVertexBindingDescriptionCount(2)
+            .setVertexBindingDescriptionCount(1)
             .setPVertexBindingDescriptions(bindingDescriptions.data())
             .setVertexAttributeDescriptionCount(
                 static_cast<uint32_t>(attributeDescriptions.size())
@@ -442,9 +421,6 @@ bool InstancedVertexComputeVulkanShaderPipeline::bind()
     commandBuffer.bindIndexBuffer(
         **indexBuffer_.getBuffer(frameIndex), 0, vk::IndexType::eUint32
     );
-    commandBuffer.bindVertexBuffers(
-        1, **instanceBuffer_.getBuffer(frameIndex), {0}
-    );
     commandBuffer.bindDescriptorSets(
         vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
         *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
@@ -605,7 +581,8 @@ void InstancedVertexComputeVulkanShaderPipeline::lodStatsComputePass(
     commandBuffer.dispatch(dispatchCount, 1, 1);
 
     MemoryBarrierInfo memoryBarrierInfo = {
-        .sourceAccess = vk::AccessFlagBits2::eShaderRead,
+        .sourceAccess = vk::AccessFlagBits2::eShaderRead |
+                        vk::AccessFlagBits2::eShaderWrite,
         .destinationAccess = vk::AccessFlagBits2::eShaderRead |
                              vk::AccessFlagBits2::eShaderWrite,
         .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
@@ -634,30 +611,14 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
 
     barrierInfo = BufferBarrierInfo{
         .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
-        .destinationAccess = vk::AccessFlagBits2::eTransferRead,
+        .destinationAccess = vk::AccessFlagBits2::eShaderRead,
         .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
-        .destinationStage = vk::PipelineStageFlagBits2::eTransfer,
+        .destinationStage = vk::PipelineStageFlagBits2::eVertexShader,
         .buffer = reorderedInstancesBuffer->getBuffer(frameIndex)
     };
     addBarrier(barrierInfo);
 
-    barrierInfo = BufferBarrierInfo{
-        .sourceAccess = vk::AccessFlagBits2::eHostWrite,
-        .destinationAccess = vk::AccessFlagBits2::eTransferWrite,
-        .sourceStage = vk::PipelineStageFlagBits2::eHost,
-        .destinationStage = vk::PipelineStageFlagBits2::eTransfer,
-        .buffer = instanceBuffer_.getBuffer(frameIndex)
-    };
-    addBarrier(barrierInfo);
-
     setBarrier();
-
-    vk::DeviceSize maxInstancesSize = sizeof(Instance) * MAX_N_INSTANCES;
-    commandBuffer.copyBuffer(
-        *reorderedInstancesBuffer->getBuffer(frameIndex),
-        *instanceBuffer_.getBuffer(frameIndex),
-        vk::BufferCopy(0, 0, maxInstancesSize)
-    );
 
     barrierInfo = BufferBarrierInfo{
         .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
