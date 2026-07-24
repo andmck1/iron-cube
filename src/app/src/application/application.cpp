@@ -353,6 +353,8 @@ bool Application::initialiseGeometry(
         updateData->texture = resourceManager_.getTexture(name);
         updateData->fragmentColourType = &fragmentColourType;
         updateData->isLODOn = &isLODOn_;
+        updateData->maxLODDistance = &maxLODDistance_;
+        updateData->lodExponent = &lodExponent_;
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -368,7 +370,7 @@ bool Application::initialiseGeometry(
         );
     }
     {
-        // instanced vertex shader pipeline
+        // instanced vertex compute shader pipeline
         std::unique_ptr<InstancedVertexComputeShaderPipelineUpdateData>
             updateData = std::make_unique<
                 InstancedVertexComputeShaderPipelineUpdateData>();

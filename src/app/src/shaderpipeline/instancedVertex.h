@@ -21,6 +21,8 @@ class InstancedVertexShaderPipelineUpdateData : public ShaderPipelineUpdateData
     Texture *texture = nullptr;
     FragmentColourType *fragmentColourType = nullptr;
     bool *isLODOn = nullptr;
+    float *maxLODDistance = nullptr;
+    float *lodExponent = nullptr;
 };
 
 class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
@@ -44,6 +46,20 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     void initBufferDescriptions() override;
     void initBuffers() override;
 
+    static uint calculateLOD(
+        glm::mat4x4 modelMatrix, glm::vec4 minMeshBounds,
+        glm::vec4 maxMeshBounds, glm::vec3 eyePosition, float maxLODDistance,
+        float lodExponent, uint maxLODCount
+    );
+    static glm::mat4x4
+    calculateModelMatrix(float4 transform, float4 rotation, float4 scale);
+
+    void updateMVPBuffer();
+    void updateAnimationBuffer();
+    void updateInstancesBuffer();
+    void updateDebugBuffer();
+    void updateConstantsBuffer(uint lodLevel);
+
     VulkanBuffer vertexBuffer_;
     VulkanBuffer indexBuffer_;
     VulkanBuffer instanceBuffer_;
@@ -53,6 +69,9 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
     PipelineStatistics pipelineStatistics_{};
     InstancedVertexShaderPipelineUpdateData *updateData_ = nullptr;
+
+    std::array<uint32_t, MAX_LOD_COUNT> lodCounts_;
+    std::array<uint32_t, MAX_LOD_COUNT> lodCumulativeCounts_;
 
     uint32_t nDrawCalls_ = 0;
 

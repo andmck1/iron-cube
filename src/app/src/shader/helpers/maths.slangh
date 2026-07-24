@@ -20,6 +20,7 @@ float4 quaternionMultiply(float4 a, float4 b)
     );
 }
 
+// TODO - create overrides/templates for this (eg float3, float4 variations)
 float4x4 calculateModelMatrix(float4 transform, float4 rotation, float4 scale)
 {
     float cosX = cos(rotation.x);
