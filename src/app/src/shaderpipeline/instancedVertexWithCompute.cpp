@@ -111,9 +111,14 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
     resourceDescriptions_.push_back(
         StorageReadWrite
             .setBufferSlot(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)
-            .setBufferSize(sizeof(Instance) * MAX_N_INSTANCES)
+            .setBufferSize(
+                sizeof(InstancedVFCompute::VFCInstance) * MAX_N_INSTANCES
+            )
             .setData(nullptr)
-            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eCompute |
+                vk::ShaderStageFlagBits::eVertex
+            )
     );
 
     resourceDescriptions_.push_back(
@@ -126,7 +131,9 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
 
     resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(InstancedVFCompute::BufferSlots::INSTANCES)
-            .setBufferSize(sizeof(Instance) * MAX_N_INSTANCES)
+            .setBufferSize(
+                sizeof(InstancedVFCompute::VFCInstance) * MAX_N_INSTANCES
+            )
             .setData(nullptr)
             .setStageFlags(
                 vk::ShaderStageFlagBits::eCompute |
@@ -183,7 +190,8 @@ void InstancedVertexComputeVulkanShaderPipeline::initBuffers()
     indexBuffer_.init(indexDesc);
 
     BufferDescription instanceDesc = VertexBuffer;
-    instanceDesc.bufferSize = sizeof(Instance) * MAX_N_INSTANCES;
+    instanceDesc.bufferSize =
+        sizeof(InstancedVFCompute::VFCInstance) * MAX_N_INSTANCES;
     instanceDesc.data = nullptr;
     instanceBuffer_.init(instanceDesc);
 }
@@ -212,18 +220,13 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setModule(instancedFragmentShader->getShaderModule())
             .setPName("main");
 
-    std::array<vk::VertexInputBindingDescription, 2> bindingDescriptions = {
+    std::array<vk::VertexInputBindingDescription, 1> bindingDescriptions = {
         vk::VertexInputBindingDescription{}
             .setBinding(0)
             .setStride(sizeof(VertexInputType))
             .setInputRate(vk::VertexInputRate::eVertex),
-        vk::VertexInputBindingDescription{}
-            .setBinding(1)
-            .setStride(sizeof(Instance))
-            .setInputRate(vk::VertexInputRate::eInstance),
     };
-    std::array<vk::VertexInputAttributeDescription, 7> attributeDescriptions = {
-        // vertex
+    std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions = {
         vk::VertexInputAttributeDescription{}
             .setBinding(0)
             .setLocation(0)
@@ -239,35 +242,10 @@ bool InstancedVertexComputeVulkanShaderPipeline::initGraphicsPipeline()
             .setLocation(2)
             .setFormat(vk::Format::eR32G32B32A32Sfloat)
             .setOffset(offsetof(VertexInputType, normal)),
-
-        // instance
-        vk::VertexInputAttributeDescription{}
-            .setBinding(1)
-            .setLocation(3)
-            .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(Instance, position)),
-        vk::VertexInputAttributeDescription{}
-            .setBinding(1)
-            .setLocation(4)
-            .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(Instance, rotation)),
-        vk::VertexInputAttributeDescription{}
-            .setBinding(1)
-            .setLocation(5)
-            .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(Instance, scale)),
-
-        // other
-        vk::VertexInputAttributeDescription{}
-            .setBinding(1)
-            .setLocation(6)
-            .setFormat(vk::Format::eR32G32B32A32Sfloat)
-            .setOffset(offsetof(Instance, lodLevel)),
-
     };
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
         vk::PipelineVertexInputStateCreateInfo{}
-            .setVertexBindingDescriptionCount(2)
+            .setVertexBindingDescriptionCount(1)
             .setPVertexBindingDescriptions(bindingDescriptions.data())
             .setVertexAttributeDescriptionCount(
                 static_cast<uint32_t>(attributeDescriptions.size())
@@ -534,7 +512,8 @@ void InstancedVertexComputeVulkanShaderPipeline::updateAnimationData()
 void InstancedVertexComputeVulkanShaderPipeline::updateInstancesData()
 {
     vk::DeviceSize instancesBufferSize =
-        sizeof(Instance) * updateData_->instances->size();
+        sizeof(InstancedVFCompute::VFCInstance) *
+        updateData_->instances->size();
     resources_[InstancedVFCompute::BufferSlots::INSTANCES].update(
         instancesBufferSize, updateData_->instances->data()
     );
@@ -652,7 +631,8 @@ void InstancedVertexComputeVulkanShaderPipeline::drawCommandComputePass(
 
     setBarrier();
 
-    vk::DeviceSize maxInstancesSize = sizeof(Instance) * MAX_N_INSTANCES;
+    vk::DeviceSize maxInstancesSize =
+        sizeof(InstancedVFCompute::VFCInstance) * MAX_N_INSTANCES;
     commandBuffer.copyBuffer(
         *reorderedInstancesBuffer->getBuffer(frameIndex),
         *instanceBuffer_.getBuffer(frameIndex),

@@ -36,19 +36,23 @@ namespace InstancedVFCompute
         float4x4 projection;
     };
 
-    // TODO - this packing is really fragile
-    struct InstancedVertexInputType
+    struct VFCInstance
     {
-        // VertexInputType vertex;
-        // Instance instance;
-        float4 position;
-        float4 tex;
-        float4 normal;
+        float3 position;
+        uint32_t _pad0;
 
-        float4 instancePosition;
-        float4 instanceRotation;
-        float4 instanceScale;
-        float4 lodLevel;
+        float3 rotation;
+        uint32_t _pad1;
+
+        float3 scale;
+        uint32_t lodLevel;
+
+        float4x4 worldMatrix;
+
+        uint32_t isVisible;
+        uint32_t _pad2;
+        uint32_t _pad3;
+        uint32_t _pad4;
     };
 
     struct AnimationBuffer
