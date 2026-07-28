@@ -270,8 +270,12 @@ bool DebugLayer::frame()
     {
         ImGui::SeparatorText("Shader");
         std::vector<const char *> shaderTypes = {
-            "Default Vertex", "Instanced Vertex",
-            "Instanced Vertex With Compute", "Mesh", "Mesh With Compute"
+            "Default Vertex",
+            "Instanced Vertex",
+            "Instanced Vertex With Compute",
+            "Mesh",
+            "Mesh With Compute",
+            "Mesh DX Example"
         };
         if (ImGui::Combo(
                 "Shader Type", &selectedShaderType, shaderTypes.data(),

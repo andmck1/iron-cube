@@ -61,6 +61,7 @@ add_executable(
     src/shaderpipeline/instancedVertexWithCompute.cpp
     src/shaderpipeline/instancedMesh.cpp
     src/shaderpipeline/instancedMeshWithCompute.cpp
+    src/shaderpipeline/meshDXExample.cpp
 )
 
 target_link_libraries(iron-cube PRIVATE iron-core)

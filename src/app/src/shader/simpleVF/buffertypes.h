@@ -1,5 +1,3 @@
-// Simple vertex/fragment pipeline buffer types
-
 #pragma once
 
 #include "shader/commontypes.h"

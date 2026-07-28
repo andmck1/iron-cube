@@ -18,6 +18,7 @@
 #include "shaderpipeline/instancedVertexWithCompute.h"
 #include "shaderpipeline/instancedMesh.h"
 #include "shaderpipeline/instancedMeshWithCompute.h"
+#include "shaderpipeline/meshDXExample.h"
 
 #include <cmath>
 #include <format>
@@ -179,6 +180,17 @@ bool Application::initialiseShaders()
     initialiseShader(
         "build/shader/instancedMeshCompute/instancedMeshCompute.frag.spv",
         "instancedMeshComputeFragment"
+    );
+
+    initialiseShader(
+        "build/shader/meshDXExample/meshDXExample.task.spv", "meshDXExampleTask"
+    );
+    initialiseShader(
+        "build/shader/meshDXExample/meshDXExample.mesh.spv", "meshDXExampleMesh"
+    );
+    initialiseShader(
+        "build/shader/meshDXExample/meshDXExample.frag.spv",
+        "meshDXExampleFragment"
     );
 
     spdlog::debug("Finished initialising shaders");
@@ -478,6 +490,42 @@ bool Application::initialiseGeometry(
             registeredMeshShaderPipelineUpdateData
         );
     }
+    {
+        // mesh shader pipeline
+        std::unique_ptr<MeshDXExampleShaderPipelineUpdateData> updateData =
+            std::make_unique<MeshDXExampleShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->instances = &registeredMesh->instances;
+        updateData->visibilityFunc = &visibilityFunction_;
+        updateData->maxLODDistance = &maxLODDistance_;
+        updateData->lodExponent = &lodExponent_;
+        updateData->isLODOn = &isLODOn_;
+        updateData->isAnimationOn = &isAnimationOn_;
+        updateData->rotationFrequency = &rotationFrequency_;
+        updateData->timer = &timer_;
+        updateData->texture = resourceManager_.getTexture(name);
+        updateData->fragmentColourType = &fragmentColourType;
+        updateData->discInnerRadius = &discInnerRadius_;
+        updateData->discOuterRadius = &discOuterRadius_;
+        updateData->discHeight = &discHeight_;
+
+        std::unique_ptr<MeshDXExampleVulkanShaderPipeline>
+            actorMeshShaderPipeline =
+                std::make_unique<MeshDXExampleVulkanShaderPipeline>();
+        auto
+            [registeredMeshShaderPipeline,
+             registeredMeshShaderPipelineUpdateData] =
+                shaderPipelineManager_.registerShaderPipeline(
+                    std::format("{}MeshDXExample", name),
+                    std::move(actorMeshShaderPipeline), std::move(updateData)
+                );
+        // TODO - should init reference the pointer to this update data?
+        registeredMeshShaderPipeline->init(
+            registeredMesh->getGeometry(),
+            registeredMeshShaderPipelineUpdateData
+        );
+    }
 
     spdlog::debug("Finished initialising triangle entity");
     return true;
@@ -655,6 +703,11 @@ void Application::checkForPipelineUpdates()
         case 4:
         {
             shaderPipelineSuffix = "MeshCompute";
+            break;
+        }
+        case 5:
+        {
+            shaderPipelineSuffix = "MeshDXExample";
             break;
         }
         default:

@@ -1,5 +1,3 @@
-// Instanced vertex/fragment with compute pipeline buffer types
-
 #pragma once
 
 #include "shader/commontypes.h"

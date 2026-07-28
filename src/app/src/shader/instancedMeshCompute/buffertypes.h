@@ -1,5 +1,3 @@
-// Instanced mesh shader pipeline buffer types
-
 #pragma once
 
 #include "shader/commontypes.h"
