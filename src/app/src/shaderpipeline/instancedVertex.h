@@ -21,6 +21,9 @@ class InstancedVertexShaderPipelineUpdateData : public ShaderPipelineUpdateData
     Texture *texture = nullptr;
     FragmentColourType *fragmentColourType = nullptr;
     bool *isLODOn = nullptr;
+    float *maxLODDistance = nullptr;
+    float *lodExponent = nullptr;
+    VisibilityFunc *visibilityFunc = nullptr;
 };
 
 class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
@@ -44,6 +47,36 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     void initBufferDescriptions() override;
     void initBuffers() override;
 
+    static uint calculateLOD(
+        glm::mat4x4 modelMatrix, glm::vec4 minMeshBounds,
+        glm::vec4 maxMeshBounds, glm::vec3 eyePosition, float maxLODDistance,
+        float lodExponent, uint maxLODCount
+    );
+    static glm::mat4x4
+    calculateModelMatrix(float4 transform, float4 rotation, float4 scale);
+    static bool visibleFrustumPlanes(float4 sphere, FrustumPlane planes[6]);
+    static bool visibleFrustumSphere(float4 sphere, float4 frustumSphere);
+
+    static bool visibleFrustumCone(float4 sphere, FrustumCone cone);
+
+    static bool visibleFrustumConeAndNearPlane(
+        float4 sphere, FrustumCone cone, FrustumPlane planes[6]
+    );
+    static bool isVisible(
+        float4 sphere, VisibilityFunc visibilityFunction,
+        FrustumPlane planes[6], float4 frustumSphere, FrustumCone cone
+    );
+    static float pointPlaneDistance(float4 testPoint, float4 planeEquation);
+    static float4 calculateInstanceBoundingSphere(
+        float4x4 modelMatrix, float4 minMeshBounds, float4 maxMeshBounds
+    );
+
+    void updateMVPBuffer();
+    void updateAnimationBuffer();
+    void updateInstancesBuffer();
+    void updateDebugBuffer();
+    void updateConstantsBuffer(uint lodLevel);
+
     VulkanBuffer vertexBuffer_;
     VulkanBuffer indexBuffer_;
     VulkanBuffer instanceBuffer_;
@@ -53,6 +86,9 @@ class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline
     std::array<uint64_t, 1> pipelineStatisticsRaw_ = {0};
     PipelineStatistics pipelineStatistics_{};
     InstancedVertexShaderPipelineUpdateData *updateData_ = nullptr;
+
+    std::array<uint32_t, MAX_LOD_COUNT> lodCounts_;
+    std::array<uint32_t, MAX_LOD_COUNT> lodCumulativeCounts_;
 
     uint32_t nDrawCalls_ = 0;
 

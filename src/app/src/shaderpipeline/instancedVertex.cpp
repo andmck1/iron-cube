@@ -331,18 +331,18 @@ bool InstancedVertexVulkanShaderPipeline::bind()
     return true;
 }
 
-bool InstancedVertexVulkanShaderPipeline::update()
+void InstancedVertexVulkanShaderPipeline::updateMVPBuffer()
 {
-    std::chrono::time_point now = std::chrono::steady_clock::now();
-
-    // MVP uniform buffer (slot 0)
     InstancedVF::MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();
     mvp.view = *updateData_->camera->getViewMatrixRef();
     mvp.projection = *updateData_->camera->getProjectionMatrixRef();
     resources_[InstancedVF::BufferSlots::MVP].update(sizeof(mvp), &mvp);
+}
 
+void InstancedVertexVulkanShaderPipeline::updateAnimationBuffer()
+{
     InstancedVF::AnimationBuffer animation{};
     animation.isAnimationOn = *updateData_->isAnimationOn;
     animation.rotationFrequency = {
@@ -357,11 +357,85 @@ bool InstancedVertexVulkanShaderPipeline::update()
     resources_[InstancedVF::BufferSlots::ANIMATION].update(
         sizeof(animation), &animation
     );
+}
+
+void InstancedVertexVulkanShaderPipeline::updateInstancesBuffer()
+{
+    std::array<std::vector<Instance>, MAX_LOD_COUNT> lodInstances;
+    std::vector<Instance> sortedInstances;
+    sortedInstances.reserve(updateData_->instances->size());
+    lodCounts_.fill(0);
+    lodCumulativeCounts_.fill(0);
 
     vk::DeviceSize instanceBufferSize =
         sizeof(Instance) * updateData_->instances->size();
-    instanceBuffer_.update(instanceBufferSize, updateData_->instances->data());
 
+    if (*updateData_->isLODOn)
+    {
+        glm::vec4 minMeshBounds = {geometry_->meshBounds.minCorner, 1.0f};
+        glm::vec4 maxMeshBounds = {geometry_->meshBounds.maxCorner, 1.0f};
+        glm::vec4 eyePosition = {
+            updateData_->camera->getComponent<TransformComponent>()
+                ->getPosition(),
+            1.0f
+        };
+        float maxLODDistance = *updateData_->maxLODDistance;
+        float lodExponent = *updateData_->lodExponent;
+
+        std::array<FrustumPlane, 6> frustumPlanes =
+            updateData_->camera->getFrustumPlanes();
+        FrustumCone frustumCone = updateData_->camera->getFrustumCone(true);
+        float4 frustumSphere = updateData_->camera->getFrustumSphere();
+
+        for (const Instance &instance : *updateData_->instances)
+        {
+            glm::mat4x4 worldMatrix = calculateModelMatrix(
+                {instance.position, 1.f}, {instance.rotation, 1.f},
+                {instance.scale, 1.f}
+            );
+            float4 instanceBoundingSphere = calculateInstanceBoundingSphere(
+                worldMatrix, minMeshBounds, maxMeshBounds
+            );
+
+            bool visible = isVisible(
+                instanceBoundingSphere, *updateData_->visibilityFunc,
+                frustumPlanes.data(), frustumSphere, frustumCone
+            );
+            if (visible)
+            {
+                uint lodLevel = calculateLOD(
+                    worldMatrix, minMeshBounds, maxMeshBounds, eyePosition,
+                    maxLODDistance, lodExponent, MAX_LOD_COUNT
+                );
+
+                lodInstances[lodLevel].push_back(instance);
+                lodCounts_[lodLevel]++;
+            }
+        }
+        for (uint lodLevel = 0; lodLevel < MAX_LOD_COUNT; lodLevel++)
+        {
+            sortedInstances.insert(
+                sortedInstances.end(), lodInstances[lodLevel].begin(),
+                lodInstances[lodLevel].end()
+            );
+            lodCumulativeCounts_[lodLevel] +=
+                lodLevel > 0 ? lodCumulativeCounts_[lodLevel - 1] +
+                                   lodCounts_[lodLevel - 1]
+                             : 0;
+        }
+
+        instanceBuffer_.update(instanceBufferSize, sortedInstances.data());
+    }
+    else
+    {
+        instanceBuffer_.update(
+            instanceBufferSize, updateData_->instances->data()
+        );
+    }
+}
+
+void InstancedVertexVulkanShaderPipeline::updateDebugBuffer()
+{
     updatePipelineStatistics();
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVF::DebugDataBuffer) * debugDataBufferData_.size();
@@ -370,16 +444,28 @@ bool InstancedVertexVulkanShaderPipeline::update()
     resources_[InstancedVF::BufferSlots::DEBUG].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
+}
 
-    uint32_t lodLevel = *updateData_->lodIndex ? *updateData_->isLODOn : 0;
+void InstancedVertexVulkanShaderPipeline::updateConstantsBuffer(uint lodLevel)
+{
     InstancedVF::Constants constants = InstancedVF::Constants();
     constants.fragmentColourType = *updateData_->fragmentColourType;
-    constants.lodLevel = lodLevel; 
+    constants.lodLevel = lodLevel;
     renderer_->getCommandBuffer().pushConstants(
         pipelineLayout_,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
         0, sizeof(InstancedVF::Constants), &constants
     );
+}
+
+bool InstancedVertexVulkanShaderPipeline::update()
+{
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
+    updateMVPBuffer();
+    updateAnimationBuffer();
+    updateInstancesBuffer();
+    updateDebugBuffer();
 
     updateTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
@@ -393,18 +479,37 @@ bool InstancedVertexVulkanShaderPipeline::draw()
     std::chrono::time_point now = std::chrono::steady_clock::now();
     nDrawCalls_ = 0;
 
-    uint32_t lodLevel = *updateData_->lodIndex ? *updateData_->isLODOn : 0;
-    uint32_t nIndices = geometry_->indexCounts[lodLevel];
-    uint32_t indexOffset = geometry_->indexOffsets[lodLevel];
-    renderer_->getCommandBuffer().drawIndexed(
-        static_cast<uint32_t>(nIndices), updateData_->instances->size(),
-        static_cast<uint32_t>(indexOffset), 0, 0
-    );
+    if (*updateData_->isLODOn)
+    {
+        for (uint lodLevel = 0; lodLevel < MAX_LOD_COUNT; lodLevel++)
+        {
+            uint32_t lodCount = lodCounts_[lodLevel];
+            if (lodCount > 0)
+            {
+                updateConstantsBuffer(lodLevel);
+                uint32_t nIndices = geometry_->indexCounts[lodLevel];
+                uint32_t indexOffset = geometry_->indexOffsets[lodLevel];
+                renderer_->getCommandBuffer().drawIndexed(
+                    nIndices, lodCount, indexOffset, 0,
+                    lodCumulativeCounts_[lodLevel]
+                );
+                nDrawCalls_++;
+            }
+        }
+    }
+    else
+    {
+        updateConstantsBuffer(0);
+        uint32_t nIndices = geometry_->indexCounts[0];
+        uint32_t indexOffset = geometry_->indexOffsets[0];
+        renderer_->getCommandBuffer().drawIndexed(
+            nIndices, updateData_->instances->size(), indexOffset, 0, 0
+        );
+    }
 
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
             .count();
-    nDrawCalls_++;
 
     return true;
 }
@@ -458,4 +563,150 @@ bool InstancedVertexVulkanShaderPipeline::updatePipelineStatistics()
     };
 
     return true;
+}
+
+uint InstancedVertexVulkanShaderPipeline::calculateLOD(
+    glm::mat4x4 modelMatrix, glm::vec4 minMeshBounds, glm::vec4 maxMeshBounds,
+    glm::vec3 eyePosition, float maxLODDistance, float lodExponent,
+    uint maxLODCount
+)
+{
+    float4 instanceBoundsMinWS = modelMatrix * minMeshBounds;
+    float4 instanceBoundsMaxWS = modelMatrix * maxMeshBounds;
+    float4 instanceCentre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
+    float distanceToMesh =
+        glm::distance(glm::vec3(instanceCentre), eyePosition);
+    float normalisedDistanceToMesh =
+        std::clamp(distanceToMesh / maxLODDistance, 0.f, 1.f);
+    uint lod =
+        (uint) (pow(normalisedDistanceToMesh, lodExponent) * (maxLODCount - 1));
+    return lod;
+}
+
+glm::mat4x4 InstancedVertexVulkanShaderPipeline::calculateModelMatrix(
+    float4 transform, float4 rotation, float4 scale
+)
+{
+    float cosX = cos(rotation.x);
+    float cosY = cos(rotation.y);
+    float cosZ = cos(rotation.z);
+
+    float sinX = sin(rotation.x);
+    float sinY = sin(rotation.y);
+    float sinZ = sin(rotation.z);
+
+    return float4x4(
+        // row1
+        scale.x * (cosY * cosZ), scale.y * (cosY * sinZ), scale.z * (-sinY),
+        transform.x,
+        // row 2
+        scale.x * (sinX * sinY * cosZ - cosX * sinZ),
+        scale.y * (sinX * sinY * sinZ + cosX * cosZ), scale.z * (sinX * cosY),
+        transform.y,
+        // row 3
+        scale.x * (cosX * sinY * cosZ + sinX * sinZ),
+        scale.y * (cosX * sinY * sinZ - sinX * cosZ), scale.z * (cosX * cosY),
+        transform.z,
+        // row 4
+        0.0, 0.0, 0.0, 1.0
+    );
+}
+
+bool InstancedVertexVulkanShaderPipeline::visibleFrustumPlanes(
+    float4 sphere, FrustumPlane planes[6]
+)
+{
+    for (int i = 0; i < 6; i++)
+    {
+        float planeDistance =
+            pointPlaneDistance(sphere, planes[i].coefficients);
+        if (planeDistance < -sphere.w)
+            return false;
+    }
+    return true;
+}
+
+bool InstancedVertexVulkanShaderPipeline::visibleFrustumSphere(
+    float4 sphere, float4 frustumSphere
+)
+{
+    return (
+        distance(float3(sphere), float3(frustumSphere)) <
+        (sphere.w + frustumSphere.w)
+    );
+}
+
+bool InstancedVertexVulkanShaderPipeline::visibleFrustumCone(
+    float4 sphere, FrustumCone cone
+)
+{
+    float3 coneDir = float3(cone.direction);
+    float3 coneTip = float3(cone.tip);
+    float coneHeight = cone.height.x;
+    float coneAngle = cone.angle.x;
+    float coneRadius = coneHeight * tan(coneAngle);
+
+    float pointDistance = dot(float3(sphere) - coneTip, coneDir);
+    if ((pointDistance > coneHeight) || (pointDistance < 0.f))
+        return false;
+
+    float coneRadiusAtPoint = (pointDistance / coneHeight) * coneRadius;
+    float pointConeCentreDistance =
+        length((float3(sphere) - coneTip) - (pointDistance * coneDir));
+    return (pointConeCentreDistance < (coneRadiusAtPoint + sphere.w));
+}
+
+bool InstancedVertexVulkanShaderPipeline::visibleFrustumConeAndNearPlane(
+    float4 sphere, FrustumCone cone, FrustumPlane planes[6]
+)
+{
+    bool i0 = visibleFrustumCone(sphere, cone);
+
+    FrustumPlane frNear = planes[FrustumPlanes::NEAR];
+
+    float planeDistance = pointPlaneDistance(sphere, frNear.coefficients);
+    bool i1 = (abs(planeDistance) < sphere.w);
+    bool i2 = (planeDistance > 0);
+
+    return i0 && (i1 || i2);
+}
+
+bool InstancedVertexVulkanShaderPipeline::isVisible(
+    float4 sphere, VisibilityFunc visibilityFunction, FrustumPlane planes[6],
+    float4 frustumSphere, FrustumCone cone
+)
+{
+    switch (visibilityFunction)
+    {
+    case (VisibilityFunc::VISIBILITY_FUNC_NONE):
+        return true;
+    case (VisibilityFunc::VISIBILITY_FUNC_PLANES):
+        return visibleFrustumPlanes(sphere, planes);
+    case (VisibilityFunc::VISIBILITY_FUNC_SPHERE):
+        return visibleFrustumSphere(sphere, frustumSphere);
+    case (VisibilityFunc::VISIBILITY_FUNC_CONE):
+        return visibleFrustumCone(sphere, cone);
+    case (VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE):
+        return visibleFrustumConeAndNearPlane(sphere, cone, planes);
+    }
+    return true;
+}
+
+float InstancedVertexVulkanShaderPipeline::pointPlaneDistance(
+    float4 testPoint, float4 planeEquation
+)
+{
+    return dot(float3(testPoint), float3(planeEquation)) + planeEquation.w;
+}
+
+float4 InstancedVertexVulkanShaderPipeline::calculateInstanceBoundingSphere(
+    float4x4 modelMatrix, float4 minMeshBounds, float4 maxMeshBounds
+)
+{
+    float4 instanceBoundsMinWS = modelMatrix * minMeshBounds;
+    float4 instanceBoundsMaxWS = modelMatrix * maxMeshBounds;
+    float4 centre = (instanceBoundsMinWS + instanceBoundsMaxWS) / 2.f;
+    float3 extent = float3(instanceBoundsMaxWS - instanceBoundsMinWS) / 2.f;
+    float radius = length(extent);
+    return float4(float3(centre), radius);
 }
