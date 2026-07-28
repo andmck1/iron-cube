@@ -226,7 +226,10 @@ void MeshDXExampleVulkanShaderPipeline::initBufferDescriptions()
         StorageRead.setBufferSlot(MeshDXExample::BufferSlots::MESHLETS)
             .setBufferSize(sizeof(meshopt_Meshlet) * geometry_->meshlets.size())
             .setData(geometry_->meshlets.data())
-            .setStageFlags(vk::ShaderStageFlagBits::eMeshEXT)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eTaskEXT |
+                vk::ShaderStageFlagBits::eMeshEXT
+            )
     );
     resourceDescriptions_.push_back(
         StorageRead.setBufferSlot(MeshDXExample::BufferSlots::VERTEX_INDICES)
@@ -399,30 +402,27 @@ bool MeshDXExampleVulkanShaderPipeline::draw()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
-    uint32_t meshletCount =
-        static_cast<uint32_t>(geometry_->meshletLODCounts[0]);
     uint32_t instanceCount =
         static_cast<uint32_t>(updateData_->instances->size());
-    uint32_t maximumPossibleWork = meshletCount * instanceCount;
-    uint32_t maximumPossibleThreads =
-        (maximumPossibleWork + TS_GROUP_SIZE - 1) / TS_GROUP_SIZE;
 
-    uint32_t workRemaining = maximumPossibleWork;
-    uint32_t threadsRemaining = maximumPossibleThreads;
-    uint32_t workOffset = 0;
+    // maxTaskShaderThreadCount_ is actually a *group* count limit
+    // (maxTaskWorkGroupTotalCount), analogous to c_maxGroupDispatchCount.
+    uint32_t instancesPerDispatch = maxTaskShaderThreadCount_ * TS_GROUP_SIZE;
+    uint32_t dispatchCount =
+        (instanceCount + instancesPerDispatch - 1) / instancesPerDispatch;
 
-    nDrawCalls_ = 0;
-    while (threadsRemaining > 0)
+    nDrawCalls_ = dispatchCount;
+
+    for (uint32_t i = 0; i < dispatchCount; ++i)
     {
-        nDrawCalls_++;
-        uint32_t currentThreads =
-            std::min(threadsRemaining, maxTaskShaderThreadCount_);
-        uint32_t currentWork = currentThreads * TS_GROUP_SIZE;
+        uint32_t offset = instancesPerDispatch * i;
+        uint32_t count = std::min(instanceCount - offset, instancesPerDispatch);
 
         constants = {};
-        constants.workStart = workOffset;
-        constants.workCount = currentWork;
+        constants.workStart = offset;
+        constants.workCount = count;
         constants.fragmentColourType = *updateData_->fragmentColourType;
+
         renderer_->getCommandBuffer().pushConstants(
             pipelineLayout_,
             vk::ShaderStageFlagBits::eTaskEXT |
@@ -431,14 +431,10 @@ bool MeshDXExampleVulkanShaderPipeline::draw()
             0, sizeof(MeshDXExample::Constants), &constants
         );
 
-        renderer_->getCommandBuffer().drawMeshTasksEXT(currentThreads, 1, 1);
-
-        workOffset += currentWork;
-        workRemaining -= currentWork;
-        threadsRemaining -= currentThreads;
-        // TODO - wonder if you want to ensure that this is a nice number? eg
-        // 256,
+        uint32_t groupCount = (count + TS_GROUP_SIZE - 1) / TS_GROUP_SIZE;
+        renderer_->getCommandBuffer().drawMeshTasksEXT(groupCount, 1, 1);
     }
+
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
             .count();

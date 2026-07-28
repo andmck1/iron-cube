@@ -75,3 +75,8 @@ float4 rotatePositionAboutOriginOnXZPlane(float4 position, float angle)
     position.z = x * sinAngle + z * cosAngle;
     return position;
 }
+
+int divRoundUp(int a, int b)
+{
+    return (a + b - 1) / b;
+}
