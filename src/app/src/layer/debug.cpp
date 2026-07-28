@@ -53,11 +53,61 @@ bool DebugLayer::frame()
             ImGui::TableSetColumnIndex(1);
             ImGui::Text("%.1f", debugData_->timer->getFps());
 
+            float currentFrameTime = debugData_->timer->getFrameTime();
+            frameTimes_.push_back(currentFrameTime);
             ImGui::TableNextRow();
+            uint nFrameTimes = frameTimes_.size();
+            if (nFrameTimes > MAX_N_FRAME_TIMES)
+                frameTimes_.pop_front();
+
+            timeSinceFrameTimeUpdate_ += currentFrameTime;
+            if (timeSinceFrameTimeUpdate_ > FRAME_TIME_UPDATE_PERIOD * 1000.f)
+            {
+                timeSinceFrameTimeUpdate_ = 0.f;
+                averageFrameTime_ = 0.f;
+                stdFrameTime_ = 0.f;
+                maxFrameTime_ = 0.f;
+                for (float frameTime : frameTimes_)
+                {
+                    averageFrameTime_ += frameTime;
+                    if (maxFrameTime_ < frameTime)
+                        maxFrameTime_ = frameTime;
+                }
+                averageFrameTime_ /= nFrameTimes;
+
+                for (float frameTime : frameTimes_)
+                {
+                    stdFrameTime_ += (frameTime - averageFrameTime_) *
+                                     (frameTime - averageFrameTime_);
+                }
+                stdFrameTime_ /= nFrameTimes;
+                stdFrameTime_ = std::pow(stdFrameTime_, 0.5);
+
+                maxFrameTime_ =
+                    std::max(std::round(maxFrameTime_ / 10.0f) * 10.0f, 1.f);
+                maxFrameTime_ *= 2.f;
+            }
+
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Frame Time");
+            ImGui::Text("Average Frame Time");
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text("%.2f ms", debugData_->timer->getFrameTime());
+            ImGui::Text(
+                "%.2f ms (+-%.2f ms)", averageFrameTime_, stdFrameTime_
+            );
+
+            std::vector<float> plotValues(
+                frameTimes_.begin(), frameTimes_.end()
+            );
+            ImVec2 plotSize = ImVec2(300.f, 60.f);
+            ImGui::Text("%.2f", maxFrameTime_);
+            ImGui::SameLine();
+            ImGui::PlotLines(
+                "Frame Time (ms)", plotValues.data(), MAX_N_FRAME_TIMES, 0,
+                "Frame Time (ms)", 0.f, maxFrameTime_, plotSize
+            );
+            ImGui::Text("%.2f", 0.0);
+            ImGui::SameLine();
+            ImGui::Dummy(ImVec2(0.f, 0.f));
 
             ImGui::EndTable();
         }

@@ -3,9 +3,10 @@
 #include "core_render/irenderer.h"
 #include "layer/debuglayerdata.h"
 #include "core_layer/ilayer.h"
-#include "core_common/types.h"
-#include <string>
-#include <unordered_map>
+#include <deque>
+
+constexpr uint MAX_N_FRAME_TIMES = 60;
+constexpr float FRAME_TIME_UPDATE_PERIOD = 1.f;
 
 class DebugLayer : public ILayer
 {
@@ -24,6 +25,9 @@ class DebugLayer : public ILayer
     protected:
     IRenderer *renderer_;
     DebugLayerData *debugData_;
-    std::unordered_map<std::string, Transform> entityTransforms_;
-    glm::vec3 cubeColor_ = {1.0f, 0.5f, 0.2f};
+    std::deque<float> frameTimes_;
+    float timeSinceFrameTimeUpdate_ = 0.f;
+    float averageFrameTime_ = 0.f;
+    float stdFrameTime_ = 0.f;
+    float maxFrameTime_ = 10.f;
 };
