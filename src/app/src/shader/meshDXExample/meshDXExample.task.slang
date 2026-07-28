@@ -73,6 +73,21 @@ void main(
         float4 instanceRotation = { instance.rotation, 1.f };
         float4 instanceScale = { instance.scale, 1.f };
 
+        if (animation.isAnimationOn > 0)
+        {
+            float rotationAngle =
+                PI2 * animation.rotationFrequency.x * animation.currentTime.x;
+            float4 spin =
+                quaternionFromAxisAngle(float3(0.f, 1.f, 0.f), rotationAngle);
+            instanceRotation = quaternionMultiply(spin, instanceRotation);
+
+            float instanceDiscRadius = length(instancePosition.xz);
+            float discAngle =
+                PI2 * 1.0 * animation.currentTime.x / instanceDiscRadius;
+            instancePosition =
+                rotatePositionAboutOriginOnXZPlane(instancePosition, discAngle);
+        }
+
         float4x4 worldMatrix = calculateModelMatrix(
             instancePosition, instanceRotation, instanceScale
         );
