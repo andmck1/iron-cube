@@ -100,6 +100,8 @@ void main(
                     scene.eyePosition.xyz, scene.maxLODDistance.x,
                     scene.lodExponent.x, MAX_LOD_COUNT
                 );
+            else
+                lodLevel = 0;
         }
     }
 
