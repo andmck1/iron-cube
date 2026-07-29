@@ -24,9 +24,6 @@ StructuredBuffer<float4> meshletBoundingSpheres;
 StructuredBuffer<MeshDXExample::OptimisedMeshlet> meshlets;
 
 groupshared MeshDXExample::Payload s_Payload;
-
-// Working groupshared memory for accumulating counts & offsets (copied to
-// payload)
 groupshared uint s_InstanceCounts[MAX_LOD_COUNT];
 groupshared uint s_GroupOffsets[MAX_LOD_COUNT + 1];
 groupshared uint s_InstanceList[TS_GROUP_SIZE];
@@ -47,23 +44,19 @@ void main(
         InterlockedAdd(debugData[0].nTaskShaderInvocations, 1);
     }
 
-    // Zero out groupshared memory which requires it.
     s_InstanceList[gtid] = 0;
-
     if (gtid == 0)
     {
         s_InstanceOffsets[0] = 0;
         s_GroupOffsets[0] = 0;
     }
-
     if (gtid < MAX_LOD_COUNT)
     {
         s_InstanceCounts[gtid] = 0;
     }
 
-    // Cull & compact the instances
-    uint lodLevel = MAX_LOD_COUNT; // LOD level of this thread's instance
-    uint lodOffset = 0;            // Offset into its LOD-level instance list
+    uint lodLevel = MAX_LOD_COUNT;
+    uint lodOffset = 0;
 
     uint instanceIndex = dtid;
     if (instanceIndex < constants.workCount)
@@ -110,48 +103,34 @@ void main(
         }
     }
 
-    // Determine counts for each LOD and each thread's offset into its LOD
-    // instance list
+    // Wave level histogram of LOD assignments (with position in LOD bucket)
     [unroll]
     for (uint i = 0; i < MAX_LOD_COUNT; ++i)
     {
-        bool lodMatch =
-            lodLevel ==
-            i; // Whether this thread's calculated LOD matches the current one.
-
+        bool lodMatch = lodLevel == i;
         if (lodMatch)
-        {
             lodOffset = WavePrefixCountBits(lodMatch);
-        }
-
         s_InstanceCounts[i] = WaveActiveCountBits(lodMatch);
     }
 
-    // Compute instance and Level-of-detail
     if (gtid < MAX_LOD_COUNT)
     {
         uint lodInstanceCount = s_InstanceCounts[gtid];
-
         s_InstanceOffsets[gtid + 1] = lodInstanceCount;
 
         uint unpackedGroupCount =
             (scene.meshletLODCounts[gtid].x - 1) * lodInstanceCount;
-
         uint lastMeshletIndex = scene.meshletLODOffsets[gtid].x +
                                 scene.meshletLODCounts[gtid].x - 1;
         MeshDXExample::OptimisedMeshlet lastMeshlet =
             meshlets[lastMeshletIndex];
-
         uint packCount =
             min(N_MAX_VERTICES / lastMeshlet.vertexCount,
                 N_MAX_TRIANGLES / lastMeshlet.triangleCount);
         uint packedGroupCount = divRoundUp(lodInstanceCount, packCount);
-
         s_GroupOffsets[gtid + 1] = unpackedGroupCount + packedGroupCount;
     }
 
-    // Accumulate LOD & instance counts to create offset lookup tables for mesh
-    // shader threadgroups
     if (gtid <= MAX_LOD_COUNT)
     {
         uint instanceCount = s_InstanceOffsets[gtid];
@@ -161,21 +140,15 @@ void main(
         s_GroupOffsets[gtid] = lodCount + WavePrefixSum(lodCount);
     }
 
-    // Place this thread's instance index at its assigned slot from compaction.
     if (lodLevel != MAX_LOD_COUNT)
     {
         uint lodStart = s_InstanceOffsets[lodLevel];
-
         s_InstanceList[lodStart + lodOffset] = instanceIndex;
     }
 
-    // Copy groupshared memory to payload
     s_Payload.instanceList[gtid] = s_InstanceList[gtid];
-
     if (gtid < MAX_LOD_COUNT)
-    {
         s_Payload.instanceCounts[gtid] = s_InstanceCounts[gtid];
-    }
 
     if (gtid <= MAX_LOD_COUNT)
     {
@@ -183,10 +156,6 @@ void main(
         s_Payload.instanceOffsets[gtid] = s_InstanceOffsets[gtid];
     }
 
-    // NOTE: Be aware that the maximum threadgroup count of a single dimension
-    // is 65536.
-    //       This method is limited to an LOD 0 size of (65536 / AS_GROUP_SIZE)
-    //       meshlets.
     DispatchMesh(s_GroupOffsets[MAX_LOD_COUNT], 1, 1, s_Payload);
 }
 

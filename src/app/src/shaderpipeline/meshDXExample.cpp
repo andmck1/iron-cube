@@ -405,8 +405,6 @@ bool MeshDXExampleVulkanShaderPipeline::draw()
     uint32_t instanceCount =
         static_cast<uint32_t>(updateData_->instances->size());
 
-    // maxTaskShaderThreadCount_ is actually a *group* count limit
-    // (maxTaskWorkGroupTotalCount), analogous to c_maxGroupDispatchCount.
     uint32_t instancesPerDispatch = maxTaskShaderThreadCount_ * TS_GROUP_SIZE;
     uint32_t dispatchCount =
         (instanceCount + instancesPerDispatch - 1) / instancesPerDispatch;
