@@ -60,18 +60,6 @@ void main(
 
     uint relativeMeshletIndex = (gid - lodOffset) / lodCount;
     uint meshletLODCount = scene.meshletLODCounts[lodIndex].x;
-    if (relativeMeshletIndex == meshletLODCount - 1)
-    {
-        uint unpackedGroupCount = (meshletLODCount - 1) * lodCount;
-        uint packedIndex = gid - (unpackedGroupCount + lodOffset);
-
-        uint instancesPerGroup =
-            min(N_MAX_VERTICES / m.vertexCount,
-                N_MAX_TRIANGLES / m.triangleCount);
-        uint startInstance = packedIndex * instancesPerGroup;
-
-        instanceCount = min(lodCount - startInstance, instancesPerGroup);
-    }
 
     uint totalVertCount = m.vertexCount * instanceCount;
     uint totalPrimCount = m.triangleCount * instanceCount;

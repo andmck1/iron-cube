@@ -291,12 +291,18 @@ bool DebugLayer::frame()
             "N Instances", debugData_->nInstances, 1, MAX_N_INSTANCES
         );
         ImGui::SliderFloat(
-            "Disc Outer Radius", debugData_->discOuterRadius, 1.f, 100000.f
+            "Disc Outer Radius", debugData_->discOuterRadius, 10.f, 100000.f
         );
         ImGui::SliderFloat(
             "Disc Inner Radius", debugData_->discInnerRadius, 1.f, 1000.f
         );
         ImGui::SliderFloat("Disc Height", debugData_->discHeight, 1.f, 1000.f);
+
+        if (*debugData_->discInnerRadius >= *debugData_->discOuterRadius)
+        {
+            *debugData_->discInnerRadius = 10.f;
+            *debugData_->discOuterRadius = 100.f;
+        }
     }
 
     // LOD

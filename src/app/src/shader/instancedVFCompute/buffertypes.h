@@ -53,7 +53,6 @@ namespace InstancedVFCompute
         float4 rotationFrequency;
         float4 deltaTime;
         float4 currentTime;
-        Disc disc;
     };
 
     struct FrustumData
@@ -91,6 +90,7 @@ namespace InstancedVFCompute
     struct Constants
     {
         FragmentColourType fragmentColourType;
+        uint32_t currentLOD;
     };
 
     // Must match vk::DrawIndexedIndirectCommand layout exactly

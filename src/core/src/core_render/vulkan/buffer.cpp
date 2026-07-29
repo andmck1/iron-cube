@@ -134,42 +134,50 @@ void VulkanBuffer::update(vk::DeviceSize bufferSize, void *data)
 
         vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
 
-        vk::BufferMemoryBarrier barrier{
-            vk::AccessFlagBits::eHostWrite,
-            vk::AccessFlagBits::eTransferRead,
-            VK_QUEUE_FAMILY_IGNORED,
-            VK_QUEUE_FAMILY_IGNORED,
-            frame.staging.buffer(),
-            0,
-            VK_WHOLE_SIZE
-        };
+        vk::BufferMemoryBarrier2 stagingBarrier =
+            vk::BufferMemoryBarrier2{}
+                .setSrcAccessMask(vk::AccessFlagBits2::eHostWrite)
+                .setDstAccessMask(vk::AccessFlagBits2::eTransferRead)
+                .setSrcStageMask(vk::PipelineStageFlagBits2::eHost)
+                .setDstStageMask(vk::PipelineStageFlagBits2::eTransfer)
+                .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                .setBuffer(*frame.staging.buffer())
+                .setSize(VK_WHOLE_SIZE);
 
-        commandBuffer.pipelineBarrier(
-            vk::PipelineStageFlagBits::eHost,
-            vk::PipelineStageFlagBits::eTransfer, {}, nullptr, barrier, nullptr
-        );
+        vk::DependencyInfo stagingDependency =
+            vk::DependencyInfo{}
+                .setBufferMemoryBarrierCount(1)
+                .setPBufferMemoryBarriers(&stagingBarrier);
+        commandBuffer.pipelineBarrier2(stagingDependency);
 
         vk::BufferCopy copy{0, 0, bufferSize};
         commandBuffer.copyBuffer(
-            frame.staging.buffer(), frames_[frameIndex].buffer, copy
+            *frame.staging.buffer(), *frames_[frameIndex].buffer, copy
         );
 
-        vk::BufferMemoryBarrier barrier2{
-            vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite,
-            VK_QUEUE_FAMILY_IGNORED,
-            VK_QUEUE_FAMILY_IGNORED,
-            frames_[frameIndex].buffer,
-            0,
-            VK_WHOLE_SIZE
-        };
+        vk::BufferMemoryBarrier2 deviceBarrier =
+            vk::BufferMemoryBarrier2{}
+                .setSrcAccessMask(vk::AccessFlagBits2::eTransferWrite)
+                .setDstAccessMask(
+                    vk::AccessFlagBits2::eShaderRead |
+                    vk::AccessFlagBits2::eShaderWrite
+                )
+                .setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer)
+                .setDstStageMask(
+                    vk::PipelineStageFlagBits2::eAllGraphics |
+                    vk::PipelineStageFlagBits2::eComputeShader
+                )
+                .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                .setBuffer(*frames_[frameIndex].buffer)
+                .setSize(VK_WHOLE_SIZE);
 
-        commandBuffer.pipelineBarrier(
-            vk::PipelineStageFlagBits::eTransfer,
-            vk::PipelineStageFlagBits::eAllGraphics |
-                vk::PipelineStageFlagBits::eComputeShader,
-            {}, nullptr, barrier2, nullptr
-        );
+        vk::DependencyInfo deviceDependency =
+            vk::DependencyInfo{}
+                .setBufferMemoryBarrierCount(1)
+                .setPBufferMemoryBarriers(&deviceBarrier);
+        commandBuffer.pipelineBarrier2(deviceDependency);
     }
 }
 
@@ -198,40 +206,49 @@ void VulkanBuffer::copyToStaging(
     vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
     FrameBuffer &frame = frames_[frameIndex];
 
-    vk::BufferMemoryBarrier barrier{
-        vk::AccessFlagBits::eShaderWrite,
-        vk::AccessFlagBits::eTransferRead,
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        frames_[frameIndex].buffer,
-        0,
-        VK_WHOLE_SIZE
-    };
+    // Shader write -> transfer read (device buffer)
+    vk::BufferMemoryBarrier2 deviceBarrier =
+        vk::BufferMemoryBarrier2{}
+            .setSrcAccessMask(vk::AccessFlagBits2::eShaderWrite)
+            .setDstAccessMask(vk::AccessFlagBits2::eTransferRead)
+            .setSrcStageMask(
+                vk::PipelineStageFlagBits2::eComputeShader |
+                vk::PipelineStageFlagBits2::eAllGraphics
+            )
+            .setDstStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+            .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+            .setBuffer(*frames_[frameIndex].buffer)
+            .setSize(VK_WHOLE_SIZE);
 
-    commandBuffer.pipelineBarrier(
-        pipelineStages, vk::PipelineStageFlagBits::eTransfer, {}, nullptr,
-        barrier, nullptr
-    );
+    vk::DependencyInfo deviceDependency =
+        vk::DependencyInfo{}
+            .setBufferMemoryBarrierCount(1)
+            .setPBufferMemoryBarriers(&deviceBarrier);
+    commandBuffer.pipelineBarrier2(deviceDependency);
 
     vk::BufferCopy copy{0, 0, size};
     commandBuffer.copyBuffer(
-        frames_[frameIndex].buffer, frame.staging.buffer(), copy
+        *frames_[frameIndex].buffer, *frame.staging.buffer(), copy
     );
 
-    vk::BufferMemoryBarrier barrier2{
-        vk::AccessFlagBits::eTransferWrite,
-        vk::AccessFlagBits::eHostRead,
-        VK_QUEUE_FAMILY_IGNORED,
-        VK_QUEUE_FAMILY_IGNORED,
-        frame.staging.buffer(),
-        0,
-        VK_WHOLE_SIZE
-    };
+    // Transfer write -> host read (staging buffer)
+    vk::BufferMemoryBarrier2 stagingBarrier =
+        vk::BufferMemoryBarrier2{}
+            .setSrcAccessMask(vk::AccessFlagBits2::eTransferWrite)
+            .setDstAccessMask(vk::AccessFlagBits2::eHostRead)
+            .setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setDstStageMask(vk::PipelineStageFlagBits2::eHost)
+            .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+            .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+            .setBuffer(*frame.staging.buffer())
+            .setSize(VK_WHOLE_SIZE);
 
-    commandBuffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eHost,
-        {}, nullptr, barrier2, nullptr
-    );
+    vk::DependencyInfo stagingDependency =
+        vk::DependencyInfo{}
+            .setBufferMemoryBarrierCount(1)
+            .setPBufferMemoryBarriers(&stagingBarrier);
+    commandBuffer.pipelineBarrier2(stagingDependency);
 }
 
 void *VulkanBuffer::getMappedPointer(uint32_t frameIndex)

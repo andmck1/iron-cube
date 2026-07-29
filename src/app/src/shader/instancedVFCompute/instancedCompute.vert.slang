@@ -13,6 +13,9 @@ RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 [[vk::binding(InstancedVFCompute::BufferSlots::REORDERED_INSTANCES)]]
 RWStructuredBuffer<InstancedVFCompute::CalculatedInstance> reorderedInstances;
 
+[[vk::binding(InstancedVFCompute::BufferSlots::LOD_STATS)]]
+StructuredBuffer<InstancedVFCompute::LODStats> lodStats;
+
 [[vk_push_constant]]
 InstancedVFCompute::Constants constants;
 
@@ -27,7 +30,8 @@ main(VertexInputType input, uint instanceID: SV_InstanceID)
 
     InstancedVFCompute::VertexOutputType output;
 
-    float4x4 worldMatrix = reorderedInstances[instanceID].worldMatrix;
+    uint instanceIndex = instanceID + lodStats[constants.currentLOD].offset;
+    float4x4 worldMatrix = reorderedInstances[instanceIndex].worldMatrix;
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
     output.position = mul(mvpMatrix, input.position);
     output.uv = input.tex.xy;
@@ -36,7 +40,7 @@ main(VertexInputType input, uint instanceID: SV_InstanceID)
     {
     case FragmentColourType::LOD:
     {
-        uint lodLevel = reorderedInstances[instanceID].lodLevel;
+        uint lodLevel = reorderedInstances[instanceIndex].lodLevel;
         float lodColour = float(lodLevel) + 1.0;
         output.colour = float4(
             lodColour / MAX_LOD_COUNT, lodColour / MAX_LOD_COUNT / 3.0,
