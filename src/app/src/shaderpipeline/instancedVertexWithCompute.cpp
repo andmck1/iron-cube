@@ -145,7 +145,10 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
             .setBufferSlot(InstancedVFCompute::BufferSlots::LOD_STATS)
             .setBufferSize(sizeof(InstancedVFCompute::LODStats) * MAX_LOD_COUNT)
             .setData(nullptr)
-            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eCompute |
+                vk::ShaderStageFlagBits::eVertex
+            )
     );
 
     resourceDescriptions_.push_back(
@@ -575,8 +578,7 @@ void InstancedVertexComputeVulkanShaderPipeline::lodStatsComputePass(
     commandBuffer.dispatch(dispatchCount, 1, 1);
 
     MemoryBarrierInfo memoryBarrierInfo = {
-        .sourceAccess = vk::AccessFlagBits2::eShaderRead |
-                        vk::AccessFlagBits2::eShaderWrite,
+        .sourceAccess = vk::AccessFlagBits2::eShaderWrite,
         .destinationAccess = vk::AccessFlagBits2::eShaderRead |
                              vk::AccessFlagBits2::eShaderWrite,
         .sourceStage = vk::PipelineStageFlagBits2::eComputeShader,
@@ -665,13 +667,31 @@ bool InstancedVertexComputeVulkanShaderPipeline::draw()
     nDrawCalls_ = 0;
 
     uint32_t frameIndex = renderer_->getCurrentFrameIndex();
-    renderer_->getCommandBuffer().drawIndexedIndirect(
-        *resources_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS]
-             .asBuffer()
-             ->getBuffer(frameIndex),
-        0, MAX_LOD_COUNT, sizeof(vk::DrawIndexedIndirectCommand)
-    );
-    nDrawCalls_++;
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+
+    for (uint32_t lod = 0; lod < MAX_LOD_COUNT; lod++)
+    {
+        VulkanBuffer *indirectBuffer =
+            resources_[InstancedVFCompute::BufferSlots::INDIRECT_COMMANDS]
+                .asBuffer();
+
+        InstancedVFCompute::Constants constants{};
+        constants.fragmentColourType = *updateData_->fragmentColourType;
+        constants.currentLOD = lod;
+        commandBuffer.pushConstants(
+            pipelineLayout_,
+            vk::ShaderStageFlagBits::eVertex |
+                vk::ShaderStageFlagBits::eFragment,
+            0, sizeof(InstancedVFCompute::Constants), &constants
+        );
+
+        commandBuffer.drawIndexedIndirect(
+            *indirectBuffer->getBuffer(frameIndex),
+            lod * sizeof(vk::DrawIndexedIndirectCommand), 1,
+            sizeof(vk::DrawIndexedIndirectCommand)
+        );
+        nDrawCalls_++;
+    }
 
     drawTime =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
@@ -691,7 +711,8 @@ bool InstancedVertexComputeVulkanShaderPipeline::postRender()
         .asBuffer()
         ->copyToStaging(
             debugDataBufferSize,
-            vk::PipelineStageFlagBits::eVertexShader |
+            vk::PipelineStageFlagBits::eComputeShader |
+                vk::PipelineStageFlagBits::eVertexShader |
                 vk::PipelineStageFlagBits::eFragmentShader,
             renderer_->getCurrentFrameIndex()
         );

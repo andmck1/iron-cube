@@ -90,6 +90,7 @@ namespace InstancedVFCompute
     struct Constants
     {
         FragmentColourType fragmentColourType;
+        uint32_t currentLOD;
     };
 
     // Must match vk::DrawIndexedIndirectCommand layout exactly

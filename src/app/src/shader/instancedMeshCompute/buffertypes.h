@@ -134,7 +134,7 @@ namespace InstancedMeshCompute
         uint32_t groupCountY;
         uint32_t groupCountZ;
     };
-    
+
     // Separate out count for command buffer and stat data
     struct IndirectCommandBuffer
     {
