@@ -496,12 +496,6 @@ void InstancedVertexComputeVulkanShaderPipeline::updateAnimationData()
     animation.currentTime = {
         updateData_->timer->getTotalSecondsElapsed(), 0.f, 0.f, 0.f
     };
-    // TODO - make disc data a struct
-    Disc disc = Disc();
-    disc.height = *updateData_->discHeight;
-    disc.innerRadius = *updateData_->discInnerRadius;
-    disc.outerRadius = *updateData_->discInnerRadius;
-    animation.disc = disc;
     resources_[InstancedVFCompute::BufferSlots::ANIMATION].update(
         sizeof(animation), &animation
     );
