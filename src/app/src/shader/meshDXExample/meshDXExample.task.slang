@@ -121,16 +121,8 @@ void main(
         s_InstanceOffsets[gtid + 1] = lodInstanceCount;
 
         uint unpackedGroupCount =
-            (scene.meshletLODCounts[gtid].x - 1) * lodInstanceCount;
-        uint lastMeshletIndex = scene.meshletLODOffsets[gtid].x +
-                                scene.meshletLODCounts[gtid].x - 1;
-        MeshDXExample::OptimisedMeshlet lastMeshlet =
-            meshlets[lastMeshletIndex];
-        uint packCount =
-            min(N_MAX_VERTICES / lastMeshlet.vertexCount,
-                N_MAX_TRIANGLES / lastMeshlet.triangleCount);
-        uint packedGroupCount = divRoundUp(lodInstanceCount, packCount);
-        s_GroupOffsets[gtid + 1] = unpackedGroupCount + packedGroupCount;
+            scene.meshletLODCounts[gtid].x * lodInstanceCount;
+        s_GroupOffsets[gtid + 1] = unpackedGroupCount;
     }
 
     if (gtid <= MAX_LOD_COUNT)
