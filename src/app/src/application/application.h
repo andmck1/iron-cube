@@ -76,24 +76,25 @@ class Application
     std::vector<std::unique_ptr<ILayer>> layers_;
 
     float timeSinceGPUStatsQuery_ = 0.f;
-    VisibilityFunc visibilityFunction_ = VisibilityFunc::VISIBILITY_FUNC_NONE;
-    bool isAnimationOn_ = false;
+    VisibilityFunc visibilityFunction_ =
+        VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE;
+    bool isAnimationOn_ = true;
 
-    int nInstances_ = 1000;
-    float discOuterRadius_ = 1000.f;
-    float discInnerRadius_ = 50.f;
-    float discHeight_ = 50.f;
+    int nInstances_ = 3250000;
+    float discOuterRadius_ = 100000.f;
+    float discInnerRadius_ = 10.f;
+    float discHeight_ = 1000.f;
 
     int currentNInstances_ = nInstances_;
     float currentDiscOuterRadius_ = discOuterRadius_;
     float currentDiscInnerRadius_ = discInnerRadius_;
     float currentDiscHeight_ = discHeight_;
 
-    bool isDebugQueryOn_ = true;
+    bool isDebugQueryOn_ = false;
     std::vector<GPUStats> gpuStats_ = {};
     uint32_t lodIndex_ = 0;
-    float maxLODDistance_ = 14.f;
-    float lodExponent_ = 1.2f;
+    float maxLODDistance_ = 100.f;
+    float lodExponent_ = 5.f;
     bool isLODOn_ = true;
     uint32_t nFramesSinceStart_ = 0;
     float rotationFrequency_ = 0.01f;

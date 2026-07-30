@@ -348,8 +348,6 @@ bool Application::initialiseGeometry(
         registeredShaderPipeline->init(
             registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
-        meshComponent->setShaderPipeline(registeredShaderPipeline);
-        meshComponent->setMesh(registeredMesh);
     }
     {
         // instanced vertex shader pipeline
@@ -513,18 +511,17 @@ bool Application::initialiseGeometry(
         std::unique_ptr<MeshDXExampleVulkanShaderPipeline>
             actorMeshShaderPipeline =
                 std::make_unique<MeshDXExampleVulkanShaderPipeline>();
-        auto
-            [registeredMeshShaderPipeline,
-             registeredMeshShaderPipelineUpdateData] =
-                shaderPipelineManager_.registerShaderPipeline(
-                    std::format("{}MeshDXExample", name),
-                    std::move(actorMeshShaderPipeline), std::move(updateData)
-                );
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("{}MeshDXExample", name),
+                std::move(actorMeshShaderPipeline), std::move(updateData)
+            );
         // TODO - should init reference the pointer to this update data?
-        registeredMeshShaderPipeline->init(
-            registeredMesh->getGeometry(),
-            registeredMeshShaderPipelineUpdateData
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
+        meshComponent->setShaderPipeline(registeredShaderPipeline);
+        meshComponent->setMesh(registeredMesh);
     }
 
     spdlog::debug("Finished initialising triangle entity");
