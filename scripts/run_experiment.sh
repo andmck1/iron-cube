@@ -6,18 +6,18 @@ set -euxo pipefail
 timestamp=$(date +"%y%m%d_%H%M%S")
 shaderpipelines=(
     "asteroidInstancedVertex"
-    "asteroidInstancedVertexCompute"
-    "asteroidMesh"
-    "asteroidMeshCompute"
-    "asteroidMeshDXExample"
+    # "asteroidInstancedVertexCompute"
+    # "asteroidMesh"
+    # "asteroidMeshCompute"
+    # "asteroidMeshDXExample"
 )
 ninstances=(
     10
-    100
-    1000
-    10000
-    100000
-    1000000
+    # 100
+    # 1000
+    # 10000
+    # 100000
+    # 1000000
 )
 
 dro_instance_ratio=376.923
@@ -37,21 +37,41 @@ for shaderpipeline in "${shaderpipelines[@]}"; do
 
         save_directory="$(pwd)/data/$timestamp/$shaderpipeline/i$ninstances"
         mkdir -p $save_directory
+        mkdir "$save_directory/report"
 
-        /home/dtaunt/nvidia/NVIDIA-Nsight-Graphics-2026.2/host/linux-desktop-nomad-x64/ngfx \
-            --activity "GPU Trace Profiler" \
-            --exe "$exe_command" \
-            --args "$exe_args" \
-            --dir "$(pwd)" \
-            --limit-to-frames 100 \
-            --max-duration-ms 1000000 \
-            --architecture "Ampere GA10x" \
-            --metric-set-id 0 \
-            --hes-enabled 1 \
-            --per-line-active-threads-per-warp 1 \
-            --multi-pass-metrics \
-            --time-every-action \
-            --auto-export \
-            --output-dir "$save_directory"
+        # /home/dtaunt/nvidia/NVIDIA-Nsight-Graphics-2026.2/host/linux-desktop-nomad-x64/ngfx \
+        #     --activity "GPU Trace Profiler" \
+        #     --exe "$exe_command" \
+        #     --args "$exe_args" \
+        #     --dir "$(pwd)" \
+        #     --limit-to-frames 60 \
+        #     --architecture "Ampere GA10x" \
+        #     --no-timeout \
+        #     --metric-set-id 0 \
+        #     --hes-enabled 1 \
+        #     --per-line-active-threads-per-warp 1 \
+        #     --multi-pass-metrics \
+        #     --time-every-action \
+        #     --auto-export \
+        #     --output-dir "$save_directory"
+        nsys profile \
+            --trace=vulkan \
+            --sample=cpu \
+            --cpuctxsw=process-tree \
+            --gpu-metrics-devices=all \
+            --gpu-metrics-frequency=10000 \
+            --force-overwrite=true \
+            --duration=10 \
+            --output "$save_directory/report" \
+            "$exe_command" $exe_args
+
+        nsys stats \
+            --report vulkan_api_sum \
+            --report vulkan_gpu_trace \
+            --report vulkan_marker_sum \
+            --format csv \
+            --force-overwrite=true \
+            --output "$save_directory/report" \
+            "$save_directory/report.nsys-rep"
     done
 done

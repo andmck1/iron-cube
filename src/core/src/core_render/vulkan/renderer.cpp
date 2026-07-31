@@ -148,8 +148,10 @@ bool VulkanRenderer::createInstance()
     {
         requiredLayers.assign(validationLayers.begin(), validationLayers.end());
     }
+
     std::vector<vk::LayerProperties> layerProperties =
         context_.enumerateInstanceLayerProperties();
+
     if (std::ranges::any_of(
             requiredLayers,
             [&layerProperties](const char *&requiredLayer)

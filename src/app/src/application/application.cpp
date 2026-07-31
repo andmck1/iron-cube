@@ -56,6 +56,12 @@ bool Application::init(int argc, char *argv[])
         "Number of instances"
     );
 
+    app.add_flag(
+        "--enable-vulkan-validation", [this](std::int64_t count)
+        { renderer_.enableValidationLayers_ = true; },
+        "Enable/Disable Vulkan validation layers"
+    );
+
     try
     {
         app.parse(argc, argv);
