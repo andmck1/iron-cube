@@ -3,7 +3,7 @@
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
 #include "core_render/ishaderpipelinemanager.h"
-#include "core_render/vulkan/shader.h"
+#include "core_render/vulkan/renderer.h"
 #include "core_platform/iinput.h"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
@@ -12,10 +12,11 @@
 #include "layer/scene.h"
 #include "layer/debug.h"
 #include "core_common/helpers.h"
+#include "CLI/CLI.hpp"
 
 #include "shaderpipeline/standard.h"
 #include "shaderpipeline/instancedVertex.h"
-#include "shaderpipeline/instancedVertexWithCompute.h"
+#include "shaderpipeline/instanchVertexWithCompute.h"
 #include "shaderpipeline/instancedMesh.h"
 #include "shaderpipeline/instancedMeshWithCompute.h"
 #include "shaderpipeline/meshDXExample.h"
@@ -28,24 +29,31 @@
 
 bool Application::init(int argc, char *argv[])
 {
-    for (int i = 1; i < argc; ++i)
+    CLI::App app{"IronCube"};
+
+    app.add_flag("--debug", debugMode_, "Enable debug mode");
+
+    app.add_option("--shader-pipeline", shaderPipelineName_, "Shader pipeline name");
+
+    app.add_option("--n-instances", nInstances_, "Number of instances")
+        ->callback([this]() { currentNInstances_ = nInstances_; });
+
+    app.add_option("--disc-outer-radius", discOuterRadius_, "Outer radius of the disc")
+        ->callback([this]() { currentDiscOuterRadius_ = discOuterRadius_; });
+
+    app.add_option("--disc-inner-radius", discInnerRadius_, "Inner radius of the disc")
+        ->callback([this]() { currentDiscInnerRadius_ = discInnerRadius_; });
+
+    app.add_option("--disc-height", discHeight_, "Height of the disc")
+        ->callback([this]() { currentDiscHeight_ = discHeight_; });
+
+    try
     {
-        std::string arg = argv[i];
-        if (arg == "--debug")
-        {
-            debugMode_ = true;
-        }
-        else if (arg == "--help")
-        {
-            printUsage(argv[0]);
-            return false;
-        }
-        else
-        {
-            std::cerr << "Unknown option: " << arg << "\n";
-            printUsage(argv[0]);
-            return false;
-        }
+        app.parse(argc, argv);
+    }
+    catch (const CLI::ParseError &e)
+    {
+        return app.exit(e);
     }
 
     return true;
@@ -320,6 +328,7 @@ bool Application::initialiseGeometry(
 
     // mesh component
     MeshComponent *meshComponent = actorPtr->getComponent<MeshComponent>();
+    meshComponent->setMesh(registeredMesh);
 
     // TODO - generalise
     {
@@ -520,9 +529,11 @@ bool Application::initialiseGeometry(
         registeredShaderPipeline->init(
             registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
-        meshComponent->setShaderPipeline(registeredShaderPipeline);
-        meshComponent->setMesh(registeredMesh);
     }
+
+    meshComponent->setShaderPipeline(
+        shaderPipelineManager_.getShaderPipeline(shaderPipelineName_)
+    );
 
     spdlog::debug("Finished initialising triangle entity");
     return true;

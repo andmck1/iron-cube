@@ -100,7 +100,6 @@ class Application
     float rotationFrequency_ = 0.01f;
     FragmentColourType fragmentColourType = FragmentColourType::TEXTURE;
 
-    bool isExperimentModeOn_ = true;
-
+    std::string shaderPipelineName_ = "asteroidMeshDXExample";
     Random random = Random();
 };
