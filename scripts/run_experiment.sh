@@ -5,18 +5,18 @@ set -euxo pipefail
 
 timestamp=$(date +"%y%m%d_%H%M%S")
 shaderpipelines=(
-    "asteroidInstancedVertex"
+    # "asteroidInstancedVertex"
     # "asteroidInstancedVertexCompute"
     # "asteroidMesh"
     # "asteroidMeshCompute"
-    # "asteroidMeshDXExample"
+    "asteroidMeshDXExample"
 )
 ninstances=(
-    10
+    # 10
     # 100
     # 1000
     # 10000
-    # 100000
+    100000
     # 1000000
 )
 
@@ -54,24 +54,19 @@ for shaderpipeline in "${shaderpipelines[@]}"; do
         #     --time-every-action \
         #     --auto-export \
         #     --output-dir "$save_directory"
+
         nsys profile \
-            --trace=vulkan \
+            --trace="vulkan,nvtx,cuda,vulkan-annotations"\
             --sample=cpu \
             --cpuctxsw=process-tree \
             --gpu-metrics-devices=all \
+            --cuda-memory-usage=true \
             --gpu-metrics-frequency=10000 \
             --force-overwrite=true \
             --duration=10 \
             --output "$save_directory/report" \
             "$exe_command" $exe_args
 
-        nsys stats \
-            --report vulkan_api_sum \
-            --report vulkan_gpu_trace \
-            --report vulkan_marker_sum \
-            --format csv \
-            --force-overwrite=true \
-            --output "$save_directory/report" \
-            "$save_directory/report.nsys-rep"
+        # nsys stats "$save_directory/report.sqlite"
     done
 done
