@@ -64,7 +64,7 @@ add_executable(
     src/shaderpipeline/meshDXExample.cpp
 )
 
-target_link_libraries(iron-cube PRIVATE iron-core cli11)
+target_link_libraries(iron-cube PRIVATE iron-core CLI11)
 
 target_include_directories(iron-cube PRIVATE src src/shader)
 

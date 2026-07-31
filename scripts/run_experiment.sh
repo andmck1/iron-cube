@@ -20,6 +20,7 @@ ninstances_power=(
 )
 
 for i in $(seq 0 4); do
+    shaderpipeline = $shaderpipelines[i]
     ngfx --activity "GPU Trace Profiler" \
         --exe "$(pwd)/build/bin/iron-cube --shader-pipeline $shaderpipeline " \
         --dir "$(pwd)" \

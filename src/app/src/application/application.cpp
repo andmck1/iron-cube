@@ -3,7 +3,7 @@
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
 #include "core_render/ishaderpipelinemanager.h"
-#include "core_render/vulkan/renderer.h"
+#include "core_render/vulkan/shader.h"
 #include "core_platform/iinput.h"
 #include "glm/ext/vector_float3.hpp"
 #include "core_mesh/mesh.h"
@@ -16,14 +16,13 @@
 
 #include "shaderpipeline/standard.h"
 #include "shaderpipeline/instancedVertex.h"
-#include "shaderpipeline/instanchVertexWithCompute.h"
+#include "shaderpipeline/instancedVertexWithCompute.h"
 #include "shaderpipeline/instancedMesh.h"
 #include "shaderpipeline/instancedMeshWithCompute.h"
 #include "shaderpipeline/meshDXExample.h"
 
 #include <cmath>
 #include <format>
-#include <iostream>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
@@ -33,19 +32,29 @@ bool Application::init(int argc, char *argv[])
 
     app.add_flag("--debug", debugMode_, "Enable debug mode");
 
-    app.add_option("--shader-pipeline", shaderPipelineName_, "Shader pipeline name");
+    app.add_option(
+        "--shader-pipeline", shaderPipelineName_, "Shader pipeline name"
+    );
 
-    app.add_option("--n-instances", nInstances_, "Number of instances")
-        ->callback([this]() { currentNInstances_ = nInstances_; });
+    app.add_option_function<int>(
+        "--n-instances", [this](int nInstances) { nInstances_ = nInstances; },
+        "Number of instances"
+    );
 
-    app.add_option("--disc-outer-radius", discOuterRadius_, "Outer radius of the disc")
-        ->callback([this]() { currentDiscOuterRadius_ = discOuterRadius_; });
+    app.add_option_function<float>(
+        "--disc-outer-radius", [this](float discOuterRadius)
+        { discOuterRadius_ = discOuterRadius; }, "Outer radius of the disc"
+    );
 
-    app.add_option("--disc-inner-radius", discInnerRadius_, "Inner radius of the disc")
-        ->callback([this]() { currentDiscInnerRadius_ = discInnerRadius_; });
+    app.add_option_function<float>(
+        "--disc-inner-radius", [this](float discInnerRadius)
+        { discInnerRadius_ = discInnerRadius; }, "Inner radius of the disc"
+    );
 
-    app.add_option("--disc-height", discHeight_, "Height of the disc")
-        ->callback([this]() { currentDiscHeight_ = discHeight_; });
+    app.add_option_function<float>(
+        "--disc-height", [this](float discHeight) { discHeight_ = discHeight; },
+        "Number of instances"
+    );
 
     try
     {
