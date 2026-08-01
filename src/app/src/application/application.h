@@ -19,6 +19,7 @@
 #include "core_config/config.h"
 #include <memory>
 #include <vector>
+#include <fstream>
 
 static constexpr float MOUSE_SENSITIVITY = 0.0015f;
 static constexpr float MOVEMENT_SENSITIVITY = 5.f;
@@ -56,6 +57,10 @@ class Application
 
     void checkForPipelineUpdates();
     void checkForEntitiyUpdates();
+    
+    void initDebugDataFile();
+    void closeDebugDataFile();
+    void writeDebugData();
 
     bool debugMode_ = false;
     Logger logger_;
@@ -101,5 +106,13 @@ class Application
     FragmentColourType fragmentColourType = FragmentColourType::TEXTURE;
 
     std::string shaderPipelineName_ = "asteroidMeshDXExample";
+    bool isWriteDebugDataEnabled_ = false;
+    bool isGPUDebugDataEnabled_ = false;
+    std::string debugDataPath_ = "";
+
+    std::string debugDataColumns_ =
+        "shader_pipeline,ninstances,frame_number,frame_time";
+    std::unique_ptr<std::ofstream> debugDataFile_;
+
     Random random = Random();
 };

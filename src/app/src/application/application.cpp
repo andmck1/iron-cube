@@ -56,10 +56,25 @@ bool Application::init(int argc, char *argv[])
         "Number of instances"
     );
 
+    app.add_option_function<std::string>(
+        "--output-debug-data-filepath", [this](std::string outputDirectory)
+        { debugDataPath_ = outputDirectory; }, "Output directory for debug data"
+    );
+
     app.add_flag(
         "--enable-vulkan-validation", [this](std::int64_t count)
         { renderer_.enableValidationLayers_ = true; },
-        "Enable/Disable Vulkan validation layers"
+        "Enable Vulkan validation layers"
+    );
+
+    app.add_flag(
+        "--enable-debug-write", [this](std::int64_t count)
+        { isWriteDebugDataEnabled_ = true; }, "Enable debug data write"
+    );
+
+    app.add_flag(
+        "--enable-gpu-debug-write", [this](std::int64_t count)
+        { isGPUDebugDataEnabled_ = true; }, "Enable gpu debug data write"
     );
 
     try
@@ -68,8 +83,22 @@ bool Application::init(int argc, char *argv[])
     }
     catch (const CLI::ParseError &e)
     {
-        return app.exit(e);
+        app.exit(e);
+        return false;
     }
+
+    // TODO - move to CLI lambda?
+    if (isWriteDebugDataEnabled_ && (debugDataPath_.empty()))
+    {
+        spdlog::error(
+            "Must include --output-directory when setting "
+            "--enable-debug-write"
+        );
+        return false;
+    }
+
+    if (isGPUDebugDataEnabled_)
+        debugDataColumns_ += ",vram_used";
 
     return true;
 }
@@ -668,6 +697,8 @@ void Application::mainLoop()
             layer->end();
         }
 
+        writeDebugData();
+
         nFramesSinceStart_++;
     }
 }
@@ -777,6 +808,10 @@ void Application::checkForPipelineUpdates()
     }
 
     timeSinceGPUStatsQuery_ += timer_.getDeltaSeconds();
+    if (isGPUDebugDataEnabled_)
+    {
+        gpuStats_ = queryGPUStats();
+    }
     if (isDebugQueryOn_)
     {
         if (timeSinceGPUStatsQuery_ > 1.0 / GPU_STATS_QUERY_FREQUENCY)
@@ -829,10 +864,38 @@ void Application::updateEntities()
     initialiseEntities();
 }
 
+void Application::initDebugDataFile()
+{
+    debugDataFile_ = std::make_unique<std::ofstream>(debugDataPath_);
+    *debugDataFile_ << debugDataColumns_ << "\n";
+}
+
+void Application::closeDebugDataFile()
+{
+    debugDataFile_->close();
+}
+
+void Application::writeDebugData()
+{
+    *debugDataFile_ << shaderPipelineName_ << ",";
+    *debugDataFile_ << nInstances_ << ",";
+    *debugDataFile_ << nFramesSinceStart_ << ",";
+    *debugDataFile_ << timer_.getFrameTime() << ",";
+    if (isGPUDebugDataEnabled_)
+    {
+        if (!gpuStats_.empty())
+            *debugDataFile_ << gpuStats_[0].memory.used;
+        else
+            spdlog::warn("GPU Stats not populated!");
+    }
+    *debugDataFile_ << "\n";
+}
+
 void Application::shutdown()
 {
     spdlog::info("Shutting application down");
     renderer_.shutdown();
+    closeDebugDataFile();
 }
 
 bool Application::run()
@@ -854,6 +917,8 @@ bool Application::run()
             return false;
         if (!createAndInitialiseLayers())
             return false;
+
+        initDebugDataFile();
 
         mainLoop();
         shutdown();
