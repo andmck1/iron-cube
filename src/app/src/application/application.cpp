@@ -896,11 +896,11 @@ void Application::writeDebugData()
     *debugDataFile_ << shaderPipelineName_ << ",";
     *debugDataFile_ << nInstances_ << ",";
     *debugDataFile_ << nFramesSinceStart_ << ",";
-    *debugDataFile_ << timer_.getFrameTime() << ",";
+    *debugDataFile_ << timer_.getFrameTime();
     if (isGPUDebugDataEnabled_)
     {
         if (!gpuStats_.empty())
-            *debugDataFile_ << gpuStats_[0].memory.used;
+            *debugDataFile_ << "," << gpuStats_[0].memory.used;
         else
             spdlog::warn("GPU Stats not populated!");
     }
