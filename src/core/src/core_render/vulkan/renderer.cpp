@@ -150,6 +150,7 @@ bool VulkanRenderer::createInstance()
     }
     std::vector<vk::LayerProperties> layerProperties =
         context_.enumerateInstanceLayerProperties();
+
     if (std::ranges::any_of(
             requiredLayers,
             [&layerProperties](const char *&requiredLayer)

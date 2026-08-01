@@ -12,6 +12,7 @@
 #include "layer/scene.h"
 #include "layer/debug.h"
 #include "core_common/helpers.h"
+#include "CLI/CLI.hpp"
 
 #include "shaderpipeline/standard.h"
 #include "shaderpipeline/instancedVertex.h"
@@ -22,31 +23,87 @@
 
 #include <cmath>
 #include <format>
-#include <iostream>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
 bool Application::init(int argc, char *argv[])
 {
-    for (int i = 1; i < argc; ++i)
+    CLI::App app{"IronCube"};
+
+    app.add_flag("--debug", debugMode_, "Enable debug mode");
+
+    app.add_option(
+        "--shader-pipeline", shaderPipelineName_, "Shader pipeline name"
+    );
+
+    app.add_option_function<int>(
+        "--n-instances", [this](int nInstances) { nInstances_ = nInstances; },
+        "Number of instances"
+    );
+
+    app.add_option_function<float>(
+        "--disc-outer-radius", [this](float discOuterRadius)
+        { discOuterRadius_ = discOuterRadius; }, "Outer radius of the disc"
+    );
+
+    app.add_option_function<float>(
+        "--disc-inner-radius", [this](float discInnerRadius)
+        { discInnerRadius_ = discInnerRadius; }, "Inner radius of the disc"
+    );
+
+    app.add_option_function<float>(
+        "--disc-height", [this](float discHeight) { discHeight_ = discHeight; },
+        "Number of instances"
+    );
+
+    app.add_option_function<std::string>(
+        "--output-debug-data-filepath", [this](std::string outputDirectory)
+        { debugDataPath_ = outputDirectory; }, "Output directory for debug data"
+    );
+
+    app.add_option_function<int>(
+        "--frame-limit", [this](int maxNFrames) { maxNFrames_ = maxNFrames; },
+        "Limit number of frames app runs for"
+    );
+
+    app.add_flag(
+        "--enable-vulkan-validation", [this](std::int64_t count)
+        { renderer_.enableValidationLayers_ = true; },
+        "Enable Vulkan validation layers"
+    );
+
+    app.add_flag(
+        "--enable-debug-write", [this](std::int64_t count)
+        { isWriteDebugDataEnabled_ = true; }, "Enable debug data write"
+    );
+
+    app.add_flag(
+        "--enable-gpu-debug-write", [this](std::int64_t count)
+        { isGPUDebugDataEnabled_ = true; }, "Enable gpu debug data write"
+    );
+
+    try
     {
-        std::string arg = argv[i];
-        if (arg == "--debug")
-        {
-            debugMode_ = true;
-        }
-        else if (arg == "--help")
-        {
-            printUsage(argv[0]);
-            return false;
-        }
-        else
-        {
-            std::cerr << "Unknown option: " << arg << "\n";
-            printUsage(argv[0]);
-            return false;
-        }
+        app.parse(argc, argv);
     }
+    catch (const CLI::ParseError &e)
+    {
+        app.exit(e);
+        return false;
+    }
+
+    // TODO - move to CLI lambda?
+    if (isWriteDebugDataEnabled_ && (debugDataPath_.empty()))
+    {
+        spdlog::error(
+            "Must include --output-directory when setting "
+            "--enable-debug-write"
+        );
+        return false;
+    }
+
+    if (isGPUDebugDataEnabled_)
+        debugDataColumns_ += ",vram_used";
 
     return true;
 }
@@ -320,6 +377,7 @@ bool Application::initialiseGeometry(
 
     // mesh component
     MeshComponent *meshComponent = actorPtr->getComponent<MeshComponent>();
+    meshComponent->setMesh(registeredMesh);
 
     // TODO - generalise
     {
@@ -348,8 +406,6 @@ bool Application::initialiseGeometry(
         registeredShaderPipeline->init(
             registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
-        meshComponent->setShaderPipeline(registeredShaderPipeline);
-        meshComponent->setMesh(registeredMesh);
     }
     {
         // instanced vertex shader pipeline
@@ -513,19 +569,20 @@ bool Application::initialiseGeometry(
         std::unique_ptr<MeshDXExampleVulkanShaderPipeline>
             actorMeshShaderPipeline =
                 std::make_unique<MeshDXExampleVulkanShaderPipeline>();
-        auto
-            [registeredMeshShaderPipeline,
-             registeredMeshShaderPipelineUpdateData] =
-                shaderPipelineManager_.registerShaderPipeline(
-                    std::format("{}MeshDXExample", name),
-                    std::move(actorMeshShaderPipeline), std::move(updateData)
-                );
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("{}MeshDXExample", name),
+                std::move(actorMeshShaderPipeline), std::move(updateData)
+            );
         // TODO - should init reference the pointer to this update data?
-        registeredMeshShaderPipeline->init(
-            registeredMesh->getGeometry(),
-            registeredMeshShaderPipelineUpdateData
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
         );
     }
+
+    meshComponent->setShaderPipeline(
+        shaderPipelineManager_.getShaderPipeline(shaderPipelineName_)
+    );
 
     spdlog::debug("Finished initialising triangle entity");
     return true;
@@ -604,6 +661,17 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
+        // TODO - confusing as while loop condition doesn't reflect actual
+        // conditions?
+        if (maxNFrames_ > 0)
+        {
+            if (nFramesSinceStart_ >= maxNFrames_)
+            {
+                spdlog::info("Frame limit hit, exiting");
+                break;
+            }
+        }
+
         // app updates
         timer_.tick();
         platform_.pollEvents();
@@ -644,6 +712,8 @@ void Application::mainLoop()
         {
             layer->end();
         }
+
+        writeDebugData();
 
         nFramesSinceStart_++;
     }
@@ -754,6 +824,10 @@ void Application::checkForPipelineUpdates()
     }
 
     timeSinceGPUStatsQuery_ += timer_.getDeltaSeconds();
+    if (isGPUDebugDataEnabled_)
+    {
+        gpuStats_ = queryGPUStats();
+    }
     if (isDebugQueryOn_)
     {
         if (timeSinceGPUStatsQuery_ > 1.0 / GPU_STATS_QUERY_FREQUENCY)
@@ -806,10 +880,38 @@ void Application::updateEntities()
     initialiseEntities();
 }
 
+void Application::initDebugDataFile()
+{
+    debugDataFile_ = std::make_unique<std::ofstream>(debugDataPath_);
+    *debugDataFile_ << debugDataColumns_ << "\n";
+}
+
+void Application::closeDebugDataFile()
+{
+    debugDataFile_->close();
+}
+
+void Application::writeDebugData()
+{
+    *debugDataFile_ << shaderPipelineName_ << ",";
+    *debugDataFile_ << nInstances_ << ",";
+    *debugDataFile_ << nFramesSinceStart_ << ",";
+    *debugDataFile_ << timer_.getFrameTime();
+    if (isGPUDebugDataEnabled_)
+    {
+        if (!gpuStats_.empty())
+            *debugDataFile_ << "," << gpuStats_[0].memory.used;
+        else
+            spdlog::warn("GPU Stats not populated!");
+    }
+    *debugDataFile_ << "\n";
+}
+
 void Application::shutdown()
 {
     spdlog::info("Shutting application down");
     renderer_.shutdown();
+    closeDebugDataFile();
 }
 
 bool Application::run()
@@ -831,6 +933,8 @@ bool Application::run()
             return false;
         if (!createAndInitialiseLayers())
             return false;
+
+        initDebugDataFile();
 
         mainLoop();
         shutdown();

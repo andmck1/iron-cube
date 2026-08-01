@@ -260,7 +260,7 @@ bool DebugLayer::frame()
         }
 
         ImGui::SliderFloat(
-            "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 1500.0
+            "Camera Far Plane", debugData_->cameraFarPlane, 1.0, 15000.0
         );
 
         std::vector<const char *> fragmentColourTypes = {

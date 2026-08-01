@@ -71,12 +71,11 @@ find_package(Vulkan REQUIRED)
 find_program(SLANGC_EXECUTABLE slangc REQUIRED)
 
 FetchContent_Declare(
-    yaml-cpp
-    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-    GIT_TAG master
+    cli11
+    GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+    GIT_TAG v2.7.0
 )
-set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
-FetchContent_MakeAvailable(yaml-cpp)
+FetchContent_MakeAvailable(cli11)
 
 find_library(
     NVML_LIBRARY

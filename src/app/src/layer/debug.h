@@ -20,7 +20,7 @@ class DebugLayer : public ILayer
     void setDebugData(DebugLayerData *debugData);
 
     int shaderTypeUpdate = -1;
-    int selectedShaderType = 0;
+    int selectedShaderType = 5;
 
     protected:
     IRenderer *renderer_;

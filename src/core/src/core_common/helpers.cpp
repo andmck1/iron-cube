@@ -96,7 +96,7 @@ std::vector<GPUStats> queryGPUStats()
 
 Random::Random()
 {
-    generator_ = std::mt19937(randomDevice_());
+    generator_ = std::mt19937(0);
 }
 
 float Random::randomFloat(float min, float max)

@@ -74,6 +74,9 @@ class VulkanRenderer : public IRenderer
     );
     vk::raii::Sampler
     createSampler(vk::Filter filter, vk::SamplerAddressMode addressMode);
+    
+    // TODO - getter/setter
+    bool enableValidationLayers_ = false;
 
     private:
     bool initialisePipeline();
@@ -216,9 +219,6 @@ class VulkanRenderer : public IRenderer
     const std::vector<const char *> requiredDeviceExtension_ = {
         vk::KHRSwapchainExtensionName
     };
-
-    // Unlikely I'll ever want to turn these off
-    bool enableValidationLayers_ = true;
 
     float frameWaitTime_;
 };
