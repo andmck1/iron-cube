@@ -114,5 +114,7 @@ class Application
         "shader_pipeline,ninstances,frame_number,frame_time";
     std::unique_ptr<std::ofstream> debugDataFile_;
 
+    int maxNFrames_ = -1;
+
     Random random = Random();
 };

@@ -61,6 +61,11 @@ bool Application::init(int argc, char *argv[])
         { debugDataPath_ = outputDirectory; }, "Output directory for debug data"
     );
 
+    app.add_option_function<int>(
+        "--frame-limit", [this](int maxNFrames) { maxNFrames_ = maxNFrames; },
+        "Limit number of frames app runs for"
+    );
+
     app.add_flag(
         "--enable-vulkan-validation", [this](std::int64_t count)
         { renderer_.enableValidationLayers_ = true; },
@@ -656,6 +661,17 @@ void Application::mainLoop()
     spdlog::info("Starting main loop");
     while (!platform_.shouldExit())
     {
+        // TODO - confusing as while loop condition doesn't reflect actual
+        // conditions?
+        if (maxNFrames_ > 0)
+        {
+            if (nFramesSinceStart_ >= maxNFrames_)
+            {
+                spdlog::info("Frame limit hit, exiting");
+                break;
+            }
+        }
+
         // app updates
         timer_.tick();
         platform_.pollEvents();

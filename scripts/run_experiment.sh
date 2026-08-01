@@ -33,30 +33,32 @@ for shaderpipeline in "${shaderpipelines[@]}"; do
             --disc-inner-radius 25 \
             --disc-outer-radius $disc_outer_radius \
             --disc-height 100 \
-            --n-instances $ninstances"
+            --n-instances $ninstances \
+            --enable-debug-write \
+            --output-debug-data-filepath $save_directory/app_metrics.csv"
 
         save_directory="$(pwd)/data/$timestamp/$shaderpipeline/i$ninstances"
         mkdir -p $save_directory
         mkdir "$save_directory/report"
 
-        # /home/dtaunt/nvidia/NVIDIA-Nsight-Graphics-2026.2/host/linux-desktop-nomad-x64/ngfx \
-        #     --activity "GPU Trace Profiler" \
-        #     --exe "$exe_command" \
-        #     --args "$exe_args" \
-        #     --dir "$(pwd)" \
-        #     --limit-to-frames 60 \
-        #     --architecture "Ampere GA10x" \
-        #     --no-timeout \
-        #     --metric-set-id 0 \
-        #     --hes-enabled 1 \
-        #     --per-line-active-threads-per-warp 1 \
-        #     --multi-pass-metrics \
-        #     --time-every-action \
-        #     --auto-export \
-        #     --output-dir "$save_directory"
+        /home/dtaunt/nvidia/NVIDIA-Nsight-Graphics-2026.2/host/linux-desktop-nomad-x64/ngfx \
+            --activity "GPU Trace Profiler" \
+            --exe "$exe_command" \
+            --args "$exe_args" \
+            --dir "$(pwd)" \
+            --limit-to-frames 60 \
+            --architecture "Ampere GA10x" \
+            --no-timeout \
+            --metric-set-id 0 \
+            --hes-enabled 1 \
+            --per-line-active-threads-per-warp 1 \
+            --multi-pass-metrics \
+            --time-every-action \
+            --auto-export \
+            --output-dir "$save_directory"
 
         nsys profile \
-            --trace="vulkan,nvtx,cuda,vulkan-annotations"\
+            --trace="vulkan,nvtx,cuda,vulkan-annotations" \
             --sample=cpu \
             --cpuctxsw=process-tree \
             --gpu-metrics-devices=all \
