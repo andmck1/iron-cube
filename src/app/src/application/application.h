@@ -85,10 +85,10 @@ class Application
         VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE;
     bool isAnimationOn_ = true;
 
-    int nInstances_ = 3250000;
-    float discOuterRadius_ = 100000.f;
+    int nInstances_ = 1000000;
+    float discOuterRadius_ = 18000.f;
     float discInnerRadius_ = 10.f;
-    float discHeight_ = 1000.f;
+    float discHeight_ = 300.f;
 
     int currentNInstances_ = nInstances_;
     float currentDiscOuterRadius_ = discOuterRadius_;
