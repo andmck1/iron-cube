@@ -1,3 +1,5 @@
+// Vulkan docs help here
+
 #include "core_render/vulkan/shader.h"
 #include "core_render/irenderer.h"
 #include "core_render/vulkan/renderer.h"

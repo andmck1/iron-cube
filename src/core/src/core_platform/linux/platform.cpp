@@ -1,3 +1,5 @@
+// AI help here
+
 #include "core_platform/linux/platform.h"
 #include "imgui_impl_glfw.h"
 #include <spdlog/spdlog.h>
@@ -7,10 +9,15 @@ PlatformLinux::~PlatformLinux()
     shutdown();
 }
 
+// TODO - create a different platform for windows!
 bool PlatformLinux::initialise()
 {
     spdlog::debug("Initialising platform (GLFW)");
+
+#ifdef __linux__
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+#endif
+
     if (glfwInit())
     {
         initialised_ = true;

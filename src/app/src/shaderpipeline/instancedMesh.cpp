@@ -373,7 +373,6 @@ bool InstancedMeshVulkanShaderPipeline::update()
         sizeof(animation), &animation
     );
 
-    // This takes up most of the frame time
     vk::DeviceSize instancesBufferSize =
         sizeof(Instance) * updateData_->instances->size();
     resources_[InstancedMesh::BufferSlots::INSTANCES].update(

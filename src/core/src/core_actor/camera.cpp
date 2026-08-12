@@ -128,7 +128,7 @@ std::array<FrustumPlane, 6> CameraActor::getFrustumPlanes()
 
     // Normalise each plane so that the distance computed in the shader is
     // meaningful
-    for (auto &plane : planes)
+    for (FrustumPlane &plane : planes)
     {
         float length = glm::length(
             glm::vec3(
@@ -158,7 +158,6 @@ glm::vec4 CameraActor::getFrustumSphere()
 
     float maxDistance = 0.0f;
 
-    // Check far plane corners
     glm::vec3 farCorners[4] = {
         eyePosition + viewDirection * farClip_ +
             glm::vec3(farHalfWidth, farHalfHeight, 0.0f),
@@ -170,7 +169,7 @@ glm::vec4 CameraActor::getFrustumSphere()
             glm::vec3(-farHalfWidth, -farHalfHeight, 0.0f),
     };
 
-    for (const auto &corner : farCorners)
+    for (const glm::vec3 &corner : farCorners)
     {
         float distance = glm::distance(eyePosition, corner);
         if (distance > maxDistance)
@@ -179,7 +178,6 @@ glm::vec4 CameraActor::getFrustumSphere()
         }
     }
 
-    // Check near plane corners
     float nearHalfHeight = std::tan(fovRadians / 2.0f) * nearClip_;
     float nearHalfWidth = nearHalfHeight * aspect_;
 
@@ -194,7 +192,7 @@ glm::vec4 CameraActor::getFrustumSphere()
             glm::vec3(-nearHalfWidth, -nearHalfHeight, 0.0f),
     };
 
-    for (const auto &corner : nearCorners)
+    for (const glm::vec3 &corner : nearCorners)
     {
         float distance = glm::distance(eyePosition, corner);
         if (distance > maxDistance)

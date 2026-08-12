@@ -1,3 +1,5 @@
+// Vulkan docs big help here
+
 #include "core_render/vulkan/renderer.h"
 #include "core_platform/linux/platform.h"
 #include <GLFW/glfw3.h>

@@ -1,3 +1,5 @@
+// AI help here
+
 #include "core_render/vulkan/stagingtransfer.h"
 #include <cstring>
 

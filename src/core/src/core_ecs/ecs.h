@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-// ty Vulkan!
+// ty Vulkan docs!
 class Entity;
 
 class Component

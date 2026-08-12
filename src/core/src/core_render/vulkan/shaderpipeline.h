@@ -1,3 +1,5 @@
+// AI help here
+
 #pragma once
 
 #include "core_render/ishaderpipeline.h"
@@ -5,6 +7,7 @@
 #include "core_render/vulkan/renderer.h"
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
+#include <optional>
 
 struct BufferBarrierInfo
 {
