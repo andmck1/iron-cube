@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shader/commontypes.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/stagingtransfer.h"
 #include <vulkan/vulkan_raii.hpp>

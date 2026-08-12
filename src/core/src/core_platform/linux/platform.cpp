@@ -7,10 +7,15 @@ PlatformLinux::~PlatformLinux()
     shutdown();
 }
 
+// TODO - create a different platform for windows!
 bool PlatformLinux::initialise()
 {
     spdlog::debug("Initialising platform (GLFW)");
+
+#ifdef __linux__
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+#endif
+
     if (glfwInit())
     {
         initialised_ = true;
