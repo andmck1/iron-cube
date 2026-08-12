@@ -1,3 +1,5 @@
+// AI help here
+
 #include "core_render/vulkan/pipelineresource.h"
 
 void PipelineResource::init(const ResourceDescription &desc)

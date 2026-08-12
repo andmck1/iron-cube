@@ -1,3 +1,5 @@
+// Vulkan docs big help here
+
 #pragma once
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

@@ -1,3 +1,5 @@
+# AI help here
+
 # Compile Slang shaders to SPIR-V
 set(SHADER_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/shader)
 set(SPIRV_BASE_DIR ${CMAKE_BINARY_DIR}/shader)

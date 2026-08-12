@@ -1,3 +1,5 @@
+// AI help here
+
 #pragma once
 #include "core_render/vulkan/buffer.h"
 #include "core_render/vulkan/image.h"

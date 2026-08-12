@@ -1,3 +1,6 @@
+// AI help here
+
+
 #pragma once
 #include "core_render/vulkan/renderer.h"
 #include "core_render/vulkan/stagingtransfer.h"

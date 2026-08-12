@@ -1,3 +1,6 @@
+// AI help here
+
+
 #include "core_render/vulkan/buffer.h"
 #include "core_render/vulkan/renderer.h"
 #include "core_service/servicelocator.h"
