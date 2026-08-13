@@ -103,7 +103,7 @@ class Application
     bool isLODOn_ = true;
     uint32_t nFramesSinceStart_ = 0;
     float rotationFrequency_ = 0.01f;
-    FragmentColourType fragmentColourType = FragmentColourType::TEXTURE;
+    FragmentColourType fragmentColourType = FragmentColourType::LIGHTING;
 
     std::string shaderPipelineName_ = "asteroidMeshDXExample";
     bool isWriteDebugDataEnabled_ = false;

@@ -26,7 +26,9 @@ namespace MeshDXExample
 
     struct VertexOutputType
     {
-        float4 position SEMANTIC(SV_Position);
+        float4 positionCS SEMANTIC(SV_Position);
+        float4 positionWS;
+        float4 normalWS;
         float4 colour;
         float2 uv;
     };

@@ -264,7 +264,7 @@ bool DebugLayer::frame()
         );
 
         std::vector<const char *> fragmentColourTypes = {
-            "Texture", "Primitive", "LOD", "Normals"
+            "Lighting", "Texture Only", "Primitive", "LOD", "Normals"
         };
         ImGui::Combo(
             "Fragment Colour Type",

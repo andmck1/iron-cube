@@ -80,6 +80,7 @@ void main(
         VertexInputType v = modelVertices[vertexIndex];
 
         float4 vertexPosition = v.position;
+        float4 vertexNormal = v.normal;
         float4 instancePosition = { n.position, 1.f };
         float4 instanceRotation = { n.rotation, 1.f };
         float4 instanceScale = { n.scale, 1.f };
@@ -102,12 +103,17 @@ void main(
         float4x4 worldMatrix = calculateModelMatrix(
             instancePosition, instanceRotation, instanceScale
         );
+        float4 positionWS = mul(worldMatrix, vertexPosition);
+        float3 normalWS =
+            normalize(mul(float3x3(worldMatrix), vertexNormal.xyz));
 
         float4x4 mvpMatrix =
             mul(scene.projection, mul(scene.view, worldMatrix));
-        float4 positionWS = mul(mvpMatrix, vertexPosition);
+        float4 positionCS = mul(mvpMatrix, vertexPosition);
 
-        vertices[gtid].position = positionWS;
+        vertices[gtid].positionCS = positionCS;
+        vertices[gtid].positionWS = positionWS;
+        vertices[gtid].normalWS = { normalWS, 0.f };
         vertices[gtid].colour = float4(1.f, 1.f, 1.f, 1.f);
         vertices[gtid].uv = v.tex.xy;
 
@@ -124,8 +130,7 @@ void main(
         }
         case FragmentColourType::NORMALS:
         {
-            float4 normal = modelVertices[vertexIndex].normal;
-            vertices[gtid].colour = (normal + 1.f) / 2.f;
+            vertices[gtid].colour = (normalWS.rgbb + 1.f) / 2.f;
             vertices[gtid].colour.w = 1.f;
             break;
         }

@@ -595,7 +595,7 @@ void Application::handleInput()
 {
     // Clamp delta time to prevent rotation/movement spikes after frame
     // stalls
-    float deltaSeconds = std::min(timer_.getDeltaSeconds(), 0.1f);
+    float deltaSeconds = std::min(timer_.getDeltaSeconds(), 0.01f);
     float movementSpeed = MOVEMENT_SENSITIVITY * deltaSeconds;
 
     IInput *input = platform_.getInput();

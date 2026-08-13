@@ -1,0 +1,48 @@
+#include "commontypes.h"
+
+// Blinn-Phong lighting
+float3 calculateSpecularLighting(
+    float3 specularColour, float specularPower, float3 viewWorldPosition,
+    float3 lightVector, float3 fragmentNormal
+)
+{
+    float3 halfVector = normalize(viewWorldPosition + lightVector);
+    float specularIntensity =
+        pow(max(dot(fragmentNormal, halfVector), 0.0), specularPower);
+    return specularIntensity * specularColour;
+}
+
+float3 calculateDiffuseLighting(
+    float3 diffuseColour, float3 normal, float3 lightVector
+)
+{
+    float3 diffuseLighting;
+    float diffuseIntensity = max(dot(normal, lightVector), 0.f);
+    diffuseLighting = diffuseColour * diffuseIntensity;
+    return diffuseLighting;
+}
+
+float3 calculateDirectionalLighting(
+    DirectionalLight directionalLightData, float3 fragmentWorldPosition,
+    float3 fragmentNormal, float3 viewWorldPosition
+)
+{
+    float3 directionalLighting;
+    float3 diffuse = { 0.f, 0.f, 0.f };
+    float3 specular = { 0.f, 0.f, 0.f };
+    float distance;
+
+    diffuse = calculateDiffuseLighting(
+        directionalLightData.diffuseColour.rgb, fragmentNormal,
+        -directionalLightData.directionVector.xyz
+    );
+    specular = calculateSpecularLighting(
+        directionalLightData.specularColour.rgb,
+        directionalLightData.specularPower.r, viewWorldPosition,
+        -directionalLightData.directionVector.xyz, fragmentNormal
+    );
+
+    directionalLighting = diffuse + specular;
+    return directionalLighting;
+}
+

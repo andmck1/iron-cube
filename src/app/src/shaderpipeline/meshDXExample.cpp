@@ -194,7 +194,8 @@ void MeshDXExampleVulkanShaderPipeline::initBufferDescriptions()
             .setData(static_cast<MeshDXExample::SceneBuffer *>(nullptr))
             .setStageFlags(
                 vk::ShaderStageFlagBits::eTaskEXT |
-                vk::ShaderStageFlagBits::eMeshEXT
+                vk::ShaderStageFlagBits::eMeshEXT |
+                vk::ShaderStageFlagBits::eFragment
             )
     );
     resourceDescriptions_.push_back(

@@ -98,10 +98,11 @@ struct FrustumCone
 
 enum FragmentColourType : uint32_t
 {
+    LIGHTING,
     TEXTURE,
     PRIMITIVE,
     LOD,
-    NORMALS
+    NORMALS,
 };
 
 struct Disc
@@ -110,6 +111,21 @@ struct Disc
     float outerRadius;
     float height;
     float _pad0;
+};
+
+struct DirectionalLight
+{
+    float4 directionVector;
+    float3 diffuseColour;
+    uint isEnabled;
+    float3 specularColour;
+    float specularPower;
+};
+
+struct AmbientLight
+{
+    float3 colour;
+    uint isEnabled;
 };
 
 #endif
