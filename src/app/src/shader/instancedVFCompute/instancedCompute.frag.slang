@@ -4,7 +4,7 @@
 [[vk::binding(InstancedVFCompute::BufferSlots::SCENE)]]
 ConstantBuffer<InstancedVFCompute::SceneBuffer> scene;
 
-[[vk::binding(InstancedVFCompute::BufferSlots::DEBUG)]]
+[[vk::binding(InstancedVFCompute::BufferSlots::DEBUGDATA)]]
 RWStructuredBuffer<InstancedVFCompute::DebugDataBuffer> debugData;
 
 [[vk::binding(InstancedVFCompute::BufferSlots::TEXTURE)]]

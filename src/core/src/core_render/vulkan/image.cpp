@@ -42,11 +42,20 @@ void VulkanImage::init(ImageDescription imageDescription)
             std::tie(frame.image, frame.memory) = renderer_->createImage(
                 description.extent.width, description.extent.height,
                 description.format, vk::ImageTiling::eOptimal,
-                description.usage, description.deviceMemory
+                description.usage, description.deviceMemory,
+                description.arrayLayers, description.mipLevels,
+                description.flags
             );
             frame.view = renderer_->createImageView(
-                frame.image, description.format, description.aspectMask
+                frame.image, description.format, description.aspectMask,
+                description.viewType, description.arrayLayers,
+                description.mipLevels
             );
+
+            vk::ImageSubresourceRange fullRange{
+                description.aspectMask, 0, description.mipLevels, 0,
+                description.arrayLayers
+            };
 
             vk::ImageMemoryBarrier barrier = {
                 {},
@@ -56,7 +65,7 @@ void VulkanImage::init(ImageDescription imageDescription)
                 VK_QUEUE_FAMILY_IGNORED,
                 VK_QUEUE_FAMILY_IGNORED,
                 frame.image,
-                vk::ImageSubresourceRange{description.aspectMask, 0, 1, 0, 1}
+                fullRange
             };
             commandCopyBuffer.pipelineBarrier(
                 vk::PipelineStageFlagBits::eTopOfPipe,
@@ -64,17 +73,27 @@ void VulkanImage::init(ImageDescription imageDescription)
                 barrier
             );
 
-            vk::BufferImageCopy copy{
-                0,
-                0,
-                0,
-                vk::ImageSubresourceLayers{description.aspectMask, 0, 0, 1},
-                {0, 0, 0},
-                description.extent
-            };
+            // Fall back to the old single-region behaviour when nothing was
+            // supplied
+            std::vector<vk::BufferImageCopy> regions = description.copyRegions;
+            if (regions.empty())
+            {
+                regions.push_back(
+                    vk::BufferImageCopy{
+                        0,
+                        0,
+                        0,
+                        vk::ImageSubresourceLayers{
+                            description.aspectMask, 0, 0, 1
+                        },
+                        {0, 0, 0},
+                        description.extent
+                    }
+                );
+            }
             commandCopyBuffer.copyBufferToImage(
                 frame.staging.buffer(), frame.image,
-                vk::ImageLayout::eTransferDstOptimal, copy
+                vk::ImageLayout::eTransferDstOptimal, regions
             );
 
             barrier = {
@@ -85,7 +104,7 @@ void VulkanImage::init(ImageDescription imageDescription)
                 VK_QUEUE_FAMILY_IGNORED,
                 VK_QUEUE_FAMILY_IGNORED,
                 frame.image,
-                vk::ImageSubresourceRange{description.aspectMask, 0, 1, 0, 1}
+                fullRange
             };
             commandCopyBuffer.pipelineBarrier(
                 vk::PipelineStageFlagBits::eTransfer,

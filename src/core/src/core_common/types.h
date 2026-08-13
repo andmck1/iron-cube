@@ -1,9 +1,11 @@
 #pragma once
 #include <stb_image.h>
+#include <ktx.h>
 #include "glm/ext/vector_float3.hpp"
 #include "shader/commontypes.h"
 #include "meshoptimizer.h"
 #include <vector>
+#include <vulkan/vulkan_raii.hpp>
 
 struct MeshBounds
 {
@@ -57,6 +59,15 @@ struct Texture
     int texWidth = 0;
     int texHeight = 0;
     int texChannels = 0;
+};
+
+struct Cubemap
+{
+    ktxTexture *texture = nullptr;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t mipLevels = 0;
+    vk::Format format = vk::Format::eUndefined;
 };
 
 struct ShaderPipelineUpdateData

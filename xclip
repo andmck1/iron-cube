@@ -1,0 +1,934 @@
+[1/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/null.cpp.o
+[2/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/ostream_wrapper.cpp.o
+[3/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/exp.cpp.o
+[4/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/exceptions.cpp.o
+[5/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/fptostring.cpp.o
+[6/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/memory.cpp.o
+[7/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/nodeevents.cpp.o
+[8/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/parser.cpp.o
+[9/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/node.cpp.o
+[10/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/regex_yaml.cpp.o
+[11/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/parse.cpp.o
+[12/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/checkheader.c.o
+[13/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/nodebuilder.cpp.o
+[14/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/node_data.cpp.o
+[15/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/filestream.c.o
+[16/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/scanscalar.cpp.o
+[17/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/glformat_str.c.o
+[18/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/memstream.c.o
+[19/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/hashlist.c.o
+[20/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/strings.c.o
+[21/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/scantag.cpp.o
+[22/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/swap.c.o
+[23/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/info.c.o
+[24/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/vkformat_check_variant.c.o
+[25/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/vkformat_check.c.o
+[26/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/texture.c.o
+[27/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/vkformat_str.c.o
+[28/190] Building CXX object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/etcunpack.cxx.o
+[29/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/vkformat_typesize.c.o
+[30/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/gl_funcs.c.o
+[31/190] Building CXX object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/miniz_wrapper.cpp.o
+[32/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/texture2.c.o
+[33/190] Building CXX object _deps/spdlog-build/CMakeFiles/spdlog.dir/src/bundled_fmtlib_format.cpp.o
+FAILED: [code=1] _deps/spdlog-build/CMakeFiles/spdlog.dir/src/bundled_fmtlib_format.cpp.o 
+/usr/bin/clang++ -DSPDLOG_COMPILED_LIB -I/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include -g -gdwarf-4 -O0 -std=c++20 -MD -MT _deps/spdlog-build/CMakeFiles/spdlog.dir/src/bundled_fmtlib_format.cpp.o -MF _deps/spdlog-build/CMakeFiles/spdlog.dir/src/bundled_fmtlib_format.cpp.o.d -o _deps/spdlog-build/CMakeFiles/spdlog.dir/src/bundled_fmtlib_format.cpp.o -c /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/bundled_fmtlib_format.cpp
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/bundled_fmtlib_format.cpp:11:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:61:24: error: call to consteval function 'fmt::basic_format_string<char, fmt::basic_string_view<char> &, const char (&)[3]>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+   61 |     fmt::format_to(it, FMT_STRING("{}{}"), message, SEP);
+      |                        ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{}{}"[1])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"{}{}"[1], &"{}{}"[1])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"{}{}"[1])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, fmt::basic_string_view<char>, char[3]> &>(&"{}{}"[1], &"{}{}"[4], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, fmt::basic_string_view<char>, char[3]>>({&"{}{}"[0], 4}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:61:24: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{}{}"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{}{}");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+   61 |     fmt::format_to(it, FMT_STRING("{}{}"), message, SEP);
+      |                        ^~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/bundled_fmtlib_format.cpp:11:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:62:22: error: call to consteval function 'fmt::basic_format_string<char, const char (&)[7], int &>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+   62 |   fmt::format_to(it, FMT_STRING("{}{}"), ERROR_STR, error_code);
+      |                      ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{}{}"[1])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"{}{}"[1], &"{}{}"[1])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"{}{}"[1])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, char[7], int> &>(&"{}{}"[1], &"{}{}"[4], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, char[7], int>>({&"{}{}"[0], 4}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:62:22: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{}{}"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{}{}");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+   62 |   fmt::format_to(it, FMT_STRING("{}{}"), ERROR_STR, error_code);
+      |                      ^~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/bundled_fmtlib_format.cpp:11:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:1382:35: error: call to consteval function 'fmt::basic_format_string<char, unsigned int &>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+ 1382 |         out = fmt::format_to(out, FMT_STRING("{:x}"), value);
+      |                                   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{:x}"[2])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2512:15: note: in call to 'handler.on_format_specs(0, &"{:x}"[2], &"{:x}"[4])'
+ 2512 |       begin = handler.on_format_specs(adapter.arg_id, begin + 1, end);
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, unsigned int> &>(&"{:x}"[1], &"{:x}"[4], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, unsigned int>>({&"{:x}"[0], 4}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:1382:35: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{:x}"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{:x}");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+ 1382 |         out = fmt::format_to(out, FMT_STRING("{:x}"), value);
+      |                                   ^~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/bundled_fmtlib_format.cpp:11:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:1386:33: error: call to consteval function 'fmt::basic_format_string<char, unsigned int &>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+ 1386 |       out = fmt::format_to(out, FMT_STRING("{:08x}"), value);
+      |                                 ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{:08x}"[2])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2512:15: note: in call to 'handler.on_format_specs(0, &"{:08x}"[2], &"{:08x}"[6])'
+ 2512 |       begin = handler.on_format_specs(adapter.arg_id, begin + 1, end);
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, unsigned int> &>(&"{:08x}"[1], &"{:08x}"[6], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, unsigned int>>({&"{:08x}"[0], 6}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:1386:33: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{:08x}"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{:08x}");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+ 1386 |       out = fmt::format_to(out, FMT_STRING("{:08x}"), value);
+      |                                 ^~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/bundled_fmtlib_format.cpp:11:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:1389:33: error: call to consteval function 'fmt::basic_format_string<char, int>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+ 1389 |       out = fmt::format_to(out, FMT_STRING("p{}"),
+      |                                 ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"p{}"[2])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"p{}"[2], &"p{}"[2])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"p{}"[2])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, int> &>(&"p{}"[2], &"p{}"[3], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, int>>({&"p{}"[0], 3}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format-inl.h:1389:33: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("p{}"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("p{}");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+ 1389 |       out = fmt::format_to(out, FMT_STRING("p{}"),
+      |                                 ^~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+5 errors generated.
+[34/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/glloader.c.o
+[35/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/writer2.c.o
+[36/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/vk_funcs.c.o
+[37/190] Building CXX object _deps/ktx-build/lib/CMakeFiles/ktx.dir/__/external/etcdec/etcdec.cxx.o
+[38/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/writer1.c.o
+[39/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/scanner.cpp.o
+[40/190] Building C object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/texture1.c.o
+[41/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/stream.cpp.o
+[42/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/tag.cpp.o
+[43/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/scantoken.cpp.o
+[44/190] Building CXX object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/astc_codec.cpp.o
+[45/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/simplekey.cpp.o
+[46/190] Building CXX object _deps/yaml-cpp-build/CMakeFiles/yaml-cpp.dir/src/singledocparser.cpp.o
+[47/190] Building CXX object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/basis_transcode.cpp.o
+[48/190] Building CXX object _deps/spdlog-build/CMakeFiles/spdlog.dir/src/async.cpp.o
+FAILED: [code=1] _deps/spdlog-build/CMakeFiles/spdlog.dir/src/async.cpp.o 
+/usr/bin/clang++ -DSPDLOG_COMPILED_LIB -I/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include -g -gdwarf-4 -O0 -std=c++20 -MD -MT _deps/spdlog-build/CMakeFiles/spdlog.dir/src/async.cpp.o -MF _deps/spdlog-build/CMakeFiles/spdlog.dir/src/async.cpp.o.d -o _deps/spdlog-build/CMakeFiles/spdlog.dir/src/async.cpp.o -c /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/async.cpp
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/async.cpp:9:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/async_logger-inl.h:42:1: error: call to consteval function 'fmt::basic_format_string<char, const char *, const char *const &, const int &>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+   42 | SPDLOG_LOGGER_CATCH(msg.source)
+      | ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{} [{}({})]"[1])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"{} [{}({})]"[1], &"{} [{}({})]"[1])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"{} [{}({})]"[1])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, const char *, const char *, int> &>(&"{} [{}({})]"[1], &"{} [{}({})]"[11], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, const char *, const char *, int>>({&"{} [{}({})]"[0], 11}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/async_logger-inl.h:42:1: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{} [{}({})]"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{} [{}({})]");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+   42 | SPDLOG_LOGGER_CATCH(msg.source)
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/async.cpp:9:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/async_logger-inl.h:56:1: error: call to consteval function 'fmt::basic_format_string<char, const char *, const char *, int>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+   56 | SPDLOG_LOGGER_CATCH(source_loc())
+      | ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{} [{}({})]"[1])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"{} [{}({})]"[1], &"{} [{}({})]"[1])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"{} [{}({})]"[1])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, const char *, const char *, int> &>(&"{} [{}({})]"[1], &"{} [{}({})]"[11], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, const char *, const char *, int>>({&"{} [{}({})]"[0], 11}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/async_logger-inl.h:56:1: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{} [{}({})]"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{} [{}({})]");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+   56 | SPDLOG_LOGGER_CATCH(source_loc())
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/async.cpp:9:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/async_logger-inl.h:66:13: error: call to consteval function 'fmt::basic_format_string<char, const char *, const char *const &, const int &>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+   66 |             SPDLOG_LOGGER_CATCH(msg.source)
+      |             ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{} [{}({})]"[1])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"{} [{}({})]"[1], &"{} [{}({})]"[1])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"{} [{}({})]"[1])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, const char *, const char *, int> &>(&"{} [{}({})]"[1], &"{} [{}({})]"[11], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, const char *, const char *, int>>({&"{} [{}({})]"[0], 11}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/async_logger-inl.h:66:13: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{} [{}({})]"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{} [{}({})]");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+   66 |             SPDLOG_LOGGER_CATCH(msg.source)
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/async.cpp:9:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/async_logger-inl.h:78:9: error: call to consteval function 'fmt::basic_format_string<char, const char *, const char *, int>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+   78 |         SPDLOG_LOGGER_CATCH(source_loc())
+      |         ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{} [{}({})]"[1])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"{} [{}({})]"[1], &"{} [{}({})]"[1])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"{} [{}({})]"[1])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, const char *, const char *, int> &>(&"{} [{}({})]"[1], &"{} [{}({})]"[11], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, const char *, const char *, int>>({&"{} [{}({})]"[0], 11}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/async_logger-inl.h:78:9: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{} [{}({})]"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{} [{}({})]");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+   78 |         SPDLOG_LOGGER_CATCH(source_loc())
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+4 errors generated.
+[49/190] Building CXX object _deps/ktx-build/lib/CMakeFiles/ktx.dir/src/basis_encode.cpp.o
+[50/190] Building CXX object _deps/spdlog-build/CMakeFiles/spdlog.dir/src/spdlog.cpp.o
+FAILED: [code=1] _deps/spdlog-build/CMakeFiles/spdlog.dir/src/spdlog.cpp.o 
+/usr/bin/clang++ -DSPDLOG_COMPILED_LIB -I/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include -g -gdwarf-4 -O0 -std=c++20 -MD -MT _deps/spdlog-build/CMakeFiles/spdlog.dir/src/spdlog.cpp.o -MF _deps/spdlog-build/CMakeFiles/spdlog.dir/src/spdlog.cpp.o.d -o _deps/spdlog-build/CMakeFiles/spdlog.dir/src/spdlog.cpp.o -c /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/spdlog.cpp
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/spdlog.cpp:15:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger-inl.h:139:13: error: call to consteval function 'fmt::basic_format_string<char, const char *, const char *const &, const int &>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+  139 |             SPDLOG_LOGGER_CATCH(msg.source)
+      |             ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{} [{}({})]"[1])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"{} [{}({})]"[1], &"{} [{}({})]"[1])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"{} [{}({})]"[1])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, const char *, const char *, int> &>(&"{} [{}({})]"[1], &"{} [{}({})]"[11], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, const char *, const char *, int>>({&"{} [{}({})]"[0], 11}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger-inl.h:139:13: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{} [{}({})]"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{} [{}({})]");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+  139 |             SPDLOG_LOGGER_CATCH(msg.source)
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/spdlog.cpp:15:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger-inl.h:151:9: error: call to consteval function 'fmt::basic_format_string<char, const char *, const char *, int>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+  151 |         SPDLOG_LOGGER_CATCH(source_loc())
+      |         ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{} [{}({})]"[1])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2677:5: note: in call to 'this->on_format_specs(0, &"{} [{}({})]"[1], &"{} [{}({})]"[1])'
+ 2677 |     on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2502:5: note: in call to 'handler.on_replacement_field(0, &"{} [{}({})]"[1])'
+ 2502 |     handler.on_replacement_field(handler.on_arg_id(), begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, const char *, const char *, int> &>(&"{} [{}({})]"[1], &"{} [{}({})]"[11], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, const char *, const char *, int>>({&"{} [{}({})]"[0], 11}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger-inl.h:151:9: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{} [{}({})]"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{} [{}({})]");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+  151 |         SPDLOG_LOGGER_CATCH(source_loc())
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/logger.h:34:46: note: expanded from macro 'SPDLOG_LOGGER_CATCH'
+   34 |                 err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), \
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/src/spdlog.cpp:16:
+In file included from /home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/pattern_formatter-inl.h:10:
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/details/fmt_helper.h:91:54: error: call to consteval function 'fmt::basic_format_string<char, int &>::basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
+   91 |         fmt_lib::format_to(std::back_inserter(dest), SPDLOG_FMT_STRING("{:02}"), n);
+      |                                                      ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:704:54: note: subexpression not valid in a constant expression
+  704 |     format_str_.remove_prefix(detail::to_unsigned(it - begin()));
+      |                                                   ~~~^~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2682:5: note: in call to 'this->context_.advance_to(&"{:02}"[2])'
+ 2682 |     context_.advance_to(begin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2512:15: note: in call to 'handler.on_format_specs(0, &"{:02}"[2], &"{:02}"[5])'
+ 2512 |       begin = handler.on_format_specs(adapter.arg_id, begin + 1, end);
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2534:21: note: in call to 'parse_replacement_field<char, fmt::detail::format_string_checker<char, int> &>(&"{:02}"[1], &"{:02}"[5], checker(s))'
+ 2534 |         begin = p = parse_replacement_field(p - 1, end, handler);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:2787:7: note: in call to 'parse_format_string<true, char, fmt::detail::format_string_checker<char, int>>({&"{:02}"[0], 5}, checker(s))'
+ 2787 |       detail::parse_format_string<true>(str_, checker(s));
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/details/fmt_helper.h:91:54: note: in call to 'basic_format_string<FMT_COMPILE_STRING, 0>([] {
+    struct __attribute__((visibility("hidden"))) FMT_COMPILE_STRING : fmt::detail::compile_string {
+        using char_type [[maybe_unused]] = fmt::remove_cvref_t<decltype("{:02}"[0])>;
+        [[maybe_unused]] constexpr operator basic_string_view<char_type>() const {
+            return fmt::detail_exported::compile_string_to_view<char_type>("{:02}");
+        }
+    };
+    return FMT_COMPILE_STRING();
+}())'
+   91 |         fmt_lib::format_to(std::back_inserter(dest), SPDLOG_FMT_STRING("{:02}"), n);
+      |                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/common.h:55:46: note: expanded from macro 'SPDLOG_FMT_STRING'
+   55 |     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1848:23: note: expanded from macro 'FMT_STRING'
+ 1848 | #define FMT_STRING(s) FMT_STRING_IMPL(s, fmt::detail::compile_string, )
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dtaunt/dev/iron-cube/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:1825:3: note: expanded from macro 'FMT_STRING_IMPL'
+ 1825 |   [] {                                                                        \
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1826 |     /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1827 |     /* Use a macro-like name to avoid shadowing warnings. */                  \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1828 |     struct FMT_VISIBILITY("hidden") FMT_COMPILE_STRING : base {               \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1829 |       using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1830 |       FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1831 |       operator fmt::basic_string_view<char_type>() const {                    \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1832 |         return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1833 |       }                                                                       \
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1834 |     };                                                                        \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1835 |     return FMT_COMPILE_STRING();                                              \
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1836 |   }()
+      |   ~~~
+3 errors generated.
+ninja: build stopped: subcommand failed.

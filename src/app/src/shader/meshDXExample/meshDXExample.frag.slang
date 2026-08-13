@@ -4,7 +4,7 @@
 [[vk::binding(MeshDXExample::BufferSlots::SCENE)]]
 ConstantBuffer<MeshDXExample::SceneBuffer> scene;
 
-[[vk::binding(MeshDXExample::BufferSlots::DEBUG)]]
+[[vk::binding(MeshDXExample::BufferSlots::DEBUGDATA)]]
 RWStructuredBuffer<MeshDXExample::DebugDataBuffer> debugData;
 
 [[vk::binding(MeshDXExample::BufferSlots::TEXTURE)]]

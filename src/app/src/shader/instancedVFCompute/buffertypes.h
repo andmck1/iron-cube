@@ -11,7 +11,7 @@ namespace InstancedVFCompute
         MVP,
         SCENE,
         ANIMATION,
-        DEBUG,
+        DEBUGDATA,
         INSTANCES,
         CALCULATED_INSTANCES,
         REORDERED_INSTANCES,

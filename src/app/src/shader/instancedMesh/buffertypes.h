@@ -13,7 +13,7 @@ namespace InstancedMesh
     {
         SCENE,
         ANIMATION,
-        DEBUG,
+        DEBUGDATA,
         MODEL_VERTICES,
         MESHLETS,
         VERTEX_INDICES,

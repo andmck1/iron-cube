@@ -1,5 +1,6 @@
 #include "application.h"
 #include "core_actor/sceneactor.h"
+#include "core_common/types.h"
 #include "core_ecs/component/transform.h"
 #include "core_ecs/component/mesh.h"
 #include "core_render/ishaderpipelinemanager.h"
@@ -20,6 +21,7 @@
 #include "shaderpipeline/instancedMesh.h"
 #include "shaderpipeline/instancedMeshWithCompute.h"
 #include "shaderpipeline/meshDXExample.h"
+#include "shaderpipeline/skybox.h"
 
 #include <cmath>
 #include <format>
@@ -250,6 +252,9 @@ bool Application::initialiseShaders()
         "meshDXExampleFragment"
     );
 
+    initialiseShader("build/shader/skybox/skybox.vert.spv", "skyboxVertex");
+    initialiseShader("build/shader/skybox/skybox.frag.spv", "skyboxFragment");
+
     spdlog::debug("Finished initialising shaders");
     return true;
 }
@@ -331,7 +336,76 @@ bool Application::initialiseEntities(Scene *scene)
         initialiseGeometry(scene, name, transform);
     }
 
+    {
+        // skybox
+        std::string name = "skybox";
+        Geometry geometry = ResourceManager::generateProceduralCube();
+        resourceManager_.loadGeometry(name, geometry);
+
+        Cubemap cubemap =
+            ResourceManager::loadCubemapTexture("assets/skybox/cubemap.ktx");
+        resourceManager_.loadCubemap("skybox", cubemap);
+        initialiseSkybox(scene);
+    }
+
     spdlog::info("Finished initilising entities");
+    return true;
+}
+
+bool Application::initialiseSkybox(Scene *scene)
+{
+    spdlog::debug("Initialising skybox");
+
+    // entity
+    std::unique_ptr<SceneActor> actor = std::make_unique<SceneActor>("skybox");
+    scene->addEntity(std::move(actor));
+    SceneActor *actorPtr =
+        dynamic_cast<SceneActor *>(scene->getEntities().back().get());
+
+    // mesh
+    Mesh actorMesh = Mesh();
+    actorMesh.setGeometry("skybox");
+    Mesh *registeredMesh =
+        meshManager_.registerMesh("skybox", std::move(actorMesh));
+    initialiseEntities();
+
+    // transform component
+    Transform transform =
+        Transform{.position = {0.f, 0.f, 0.f}, .scale = {1.f, 1.f, 1.f}};
+    TransformComponent *transformComponent =
+        actorPtr->getComponent<TransformComponent>();
+    transformComponent->setTransform(transform);
+
+    // mesh component
+    MeshComponent *meshComponent = actorPtr->getComponent<MeshComponent>();
+    meshComponent->setMesh(registeredMesh);
+
+    // TODO - generalise
+    {
+        // vertex shader pipeline
+        std::unique_ptr<SkyboxShaderPipelineUpdateData> updateData =
+            std::make_unique<SkyboxShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->cubemap = resourceManager_.getCubemap("skybox");
+        updateData->directionalLight = &directionalLight_;
+
+        std::unique_ptr<SkyboxVulkanShaderPipeline> actorShaderPipeline =
+            std::make_unique<SkyboxVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("Skybox"), std::move(actorShaderPipeline),
+                std::move(updateData)
+            );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+    }
+    meshComponent->setShaderPipeline(
+        shaderPipelineManager_.getShaderPipeline("Skybox")
+    );
+
     return true;
 }
 
@@ -596,7 +670,9 @@ bool Application::initialiseCamera(Scene *scene)
     // transform component
     TransformComponent *transformComponent =
         camera->getComponent<TransformComponent>();
-    transformComponent->moveTo(0.f, 0.f, -3.f);
+    transformComponent->moveTo(
+        cameraPosition_.x, cameraPosition_.y, cameraPosition_.z
+    );
     transformComponent->rotateBy(0.f, 0.f, 0.f);
 
     scene->addEntity(std::move(camera));

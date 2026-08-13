@@ -161,12 +161,6 @@ Geometry ResourceManager::generateProceduralCube()
         {glm::vec4(-0.5f, 0.5f, 0.5f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
          glm::vec4(0.0f, 0.0f, 1.0f, 1.f)}
     );
-    geometry.indices.push_back(0);
-    geometry.indices.push_back(1);
-    geometry.indices.push_back(2);
-    geometry.indices.push_back(0);
-    geometry.indices.push_back(2);
-    geometry.indices.push_back(3);
 
     // Back face (z = -0.5) — vertices 4-7
     geometry.vertices.push_back(
@@ -185,12 +179,6 @@ Geometry ResourceManager::generateProceduralCube()
         {glm::vec4(0.5f, 0.5f, -0.5f, 1.f), glm::vec4(0.0f, 1.0f, 0.f, 0.f),
          glm::vec4(0.0f, 0.0f, -1.0f, 1.f)}
     );
-    geometry.indices.push_back(4);
-    geometry.indices.push_back(5);
-    geometry.indices.push_back(6);
-    geometry.indices.push_back(4);
-    geometry.indices.push_back(6);
-    geometry.indices.push_back(7);
 
     // Top face (y = +0.5) — vertices 8-11
     geometry.vertices.push_back(
@@ -209,12 +197,6 @@ Geometry ResourceManager::generateProceduralCube()
         {glm::vec4(0.5f, 0.5f, -0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
          glm::vec4(0.0f, 1.0f, 0.0f, 1.f)}
     );
-    geometry.indices.push_back(8);
-    geometry.indices.push_back(9);
-    geometry.indices.push_back(10);
-    geometry.indices.push_back(8);
-    geometry.indices.push_back(10);
-    geometry.indices.push_back(11);
 
     // Bottom face (y = -0.5) — vertices 12-15
     geometry.vertices.push_back(
@@ -233,12 +215,6 @@ Geometry ResourceManager::generateProceduralCube()
         {glm::vec4(-0.5f, -0.5f, 0.5f, 1.f), glm::vec4(0.0f, 0.0f, 0.f, 0.f),
          glm::vec4(0.0f, -1.0f, 0.0f, 1.f)}
     );
-    geometry.indices.push_back(12);
-    geometry.indices.push_back(13);
-    geometry.indices.push_back(14);
-    geometry.indices.push_back(12);
-    geometry.indices.push_back(14);
-    geometry.indices.push_back(15);
 
     // Right face (x = +0.5) — vertices 16-19
     geometry.vertices.push_back(
@@ -257,12 +233,6 @@ Geometry ResourceManager::generateProceduralCube()
         {glm::vec4(0.5f, -0.5f, -0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
          glm::vec4(1.0f, 0.0f, 0.0f, 1.f)}
     );
-    geometry.indices.push_back(16);
-    geometry.indices.push_back(18);
-    geometry.indices.push_back(17);
-    geometry.indices.push_back(16);
-    geometry.indices.push_back(19);
-    geometry.indices.push_back(18);
 
     // Left face (x = -0.5) — vertices 20-23
     geometry.vertices.push_back(
@@ -281,6 +251,48 @@ Geometry ResourceManager::generateProceduralCube()
         {glm::vec4(-0.5f, -0.5f, 0.5f, 1.f), glm::vec4(1.0f, 0.0f, 0.f, 0.f),
          glm::vec4(-1.0f, 0.0f, 0.0f, 1.f)}
     );
+
+    // Front face (+Z)
+    geometry.indices.push_back(0);
+    geometry.indices.push_back(1);
+    geometry.indices.push_back(2);
+    geometry.indices.push_back(0);
+    geometry.indices.push_back(2);
+    geometry.indices.push_back(3);
+
+    // Back face (-Z)
+    geometry.indices.push_back(4);
+    geometry.indices.push_back(5);
+    geometry.indices.push_back(6);
+    geometry.indices.push_back(4);
+    geometry.indices.push_back(6);
+    geometry.indices.push_back(7);
+
+    // Top face (+Y)
+    geometry.indices.push_back(8);
+    geometry.indices.push_back(9);
+    geometry.indices.push_back(10);
+    geometry.indices.push_back(8);
+    geometry.indices.push_back(10);
+    geometry.indices.push_back(11);
+
+    // Bottom face (-Y)
+    geometry.indices.push_back(12);
+    geometry.indices.push_back(13);
+    geometry.indices.push_back(14);
+    geometry.indices.push_back(12);
+    geometry.indices.push_back(14);
+    geometry.indices.push_back(15);
+
+    // Right face (+X)
+    geometry.indices.push_back(16);
+    geometry.indices.push_back(17);
+    geometry.indices.push_back(18);
+    geometry.indices.push_back(16);
+    geometry.indices.push_back(18);
+    geometry.indices.push_back(19);
+
+    // Left face (-X)
     geometry.indices.push_back(20);
     geometry.indices.push_back(22);
     geometry.indices.push_back(21);
@@ -603,4 +615,78 @@ Texture ResourceManager::loadImage(std::string filepath)
         filepath
     );
     return texture;
+}
+
+// TODO - review!
+Cubemap ResourceManager::loadCubemapTexture(std::string filepath)
+{
+    Cubemap cubemap;
+    cubemap.format = vk::Format::eR8G8B8A8Srgb;
+
+    ktxTexture *ktxTex = nullptr;
+    KTX_error_code result = ktxTexture_CreateFromNamedFile(
+        filepath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTex
+    );
+
+    if (result != KTX_SUCCESS)
+    {
+        spdlog::error(
+            "Failed to load cubemap from '{}': {}", filepath,
+            ktxErrorString(result)
+        );
+        return cubemap;
+    }
+
+    if (ktxTex->numFaces != 6)
+    {
+        spdlog::error(
+            "'{}' is not a cubemap: expected 6 faces, got {}", filepath,
+            ktxTex->numFaces
+        );
+        ktxTexture_Destroy(ktxTex);
+        return cubemap;
+    }
+
+    cubemap.width = ktxTex->baseWidth;
+    cubemap.height = ktxTex->baseHeight;
+    cubemap.mipLevels = ktxTex->numLevels;
+    cubemap.texture = ktxTex;
+
+    spdlog::info(
+        "Loaded cubemap '{}': {}x{}, {} mip levels", filepath, cubemap.width,
+        cubemap.height, cubemap.mipLevels
+    );
+
+    return cubemap;
+}
+
+void ResourceManager::loadCubemap(const std::string &name, Cubemap cubemap)
+{
+    spdlog::debug("Loading cubemap '{}'", name);
+    cubemaps_[name] = std::move(cubemap);
+    spdlog::info("Loaded cubemap '{}'", name);
+}
+
+Cubemap *ResourceManager::getCubemap(const std::string &name)
+{
+    spdlog::debug("Requesting cubemap: {}", name);
+    auto it = cubemaps_.find(name);
+    if (it != cubemaps_.end())
+    {
+        spdlog::debug("Found geometry: {}", name);
+        return &(it->second);
+    }
+    spdlog::error("Geometry not found: {}", name);
+    return nullptr;
+}
+
+void ResourceManager::unloadCubemap(const std::string &name)
+{
+    auto it = cubemaps_.find(name);
+    if (it != cubemaps_.end())
+    {
+        cubemaps_.erase(it);
+        spdlog::info("Unloaded cubemap '{}'", name);
+    }
+    spdlog::error("Cannot unload cubemap '{}': not found", name);
 }

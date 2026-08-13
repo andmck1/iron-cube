@@ -60,5 +60,6 @@ target_link_libraries(
         meshoptimizer
         Vulkan::Vulkan
         yaml-cpp
+        ktx
         NVML::NVML
 )

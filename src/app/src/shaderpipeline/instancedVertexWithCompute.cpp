@@ -101,7 +101,7 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
     );
 
     resourceDescriptions_.push_back(
-        StorageReadWrite.setBufferSlot(InstancedVFCompute::BufferSlots::DEBUG)
+        StorageReadWrite.setBufferSlot(InstancedVFCompute::BufferSlots::DEBUGDATA)
             .setBufferSize(sizeof(InstancedVFCompute::DebugDataBuffer))
             .setData(debugDataBufferData_.data())
             .setStageFlags(
@@ -526,7 +526,7 @@ void InstancedVertexComputeVulkanShaderPipeline::updateDebugData()
         debugDataBufferData_.size();
     debugDataBufferData_ = {InstancedVFCompute::DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    resources_[InstancedVFCompute::BufferSlots::DEBUG].update(
+    resources_[InstancedVFCompute::BufferSlots::DEBUGDATA].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 }
@@ -712,7 +712,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::postRender()
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    resources_[InstancedVFCompute::BufferSlots::DEBUG]
+    resources_[InstancedVFCompute::BufferSlots::DEBUGDATA]
         .asBuffer()
         ->copyToStaging(
             debugDataBufferSize,
@@ -738,7 +738,7 @@ bool InstancedVertexComputeVulkanShaderPipeline::updatePipelineStatistics()
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedVFCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    resources_[InstancedVFCompute::BufferSlots::DEBUG].asBuffer()->readData(
+    resources_[InstancedVFCompute::BufferSlots::DEBUGDATA].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 

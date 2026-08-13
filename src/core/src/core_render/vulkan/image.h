@@ -23,6 +23,11 @@ struct ImageDescription
     bool createSampler = true;
     vk::Filter filter = vk::Filter::eLinear;
     vk::SamplerAddressMode addressMode = vk::SamplerAddressMode::eRepeat;
+    uint32_t arrayLayers = 1;
+    uint32_t mipLevels = 1;
+    vk::ImageCreateFlags flags = {};
+    vk::ImageViewType viewType = vk::ImageViewType::e2D;
+    std::vector<vk::BufferImageCopy> copyRegions;
 
     ImageDescription &setBufferSlot(uint slot)
     {
@@ -87,6 +92,31 @@ struct ImageDescription
     ImageDescription &setAddressMode(vk::SamplerAddressMode m)
     {
         addressMode = m;
+        return *this;
+    }
+    ImageDescription &setArrayLayers(uint32_t layers)
+    {
+        arrayLayers = layers;
+        return *this;
+    }
+    ImageDescription &setMipLevels(uint32_t levels)
+    {
+        mipLevels = levels;
+        return *this;
+    }
+    ImageDescription &setFlags(vk::ImageCreateFlags f)
+    {
+        flags = f;
+        return *this;
+    }
+    ImageDescription &setViewType(vk::ImageViewType t)
+    {
+        viewType = t;
+        return *this;
+    }
+    ImageDescription &setCopyRegions(std::vector<vk::BufferImageCopy> regions)
+    {
+        copyRegions = std::move(regions);
         return *this;
     }
 };

@@ -69,17 +69,22 @@ class VulkanRenderer : public IRenderer
     std::pair<vk::raii::Image, vk::raii::DeviceMemory> createImage(
         uint32_t width, uint32_t height, vk::Format format,
         vk::ImageTiling tiling, vk::ImageUsageFlags usage,
-        vk::MemoryPropertyFlags properties
+        vk::MemoryPropertyFlags properties, uint32_t arrayLayers = 1,
+        uint32_t mipLevels = 1, vk::ImageCreateFlags flags = {}
     );
+
     vk::raii::ImageView createImageView(
         vk::Image const &image, vk::Format format,
-        vk::ImageAspectFlags aspectFlags
+        vk::ImageAspectFlags aspectFlags,
+        vk::ImageViewType viewType = vk::ImageViewType::e2D,
+        uint32_t layerCount = 1, uint32_t levelCount = 1
     );
+
     vk::raii::Sampler
     createSampler(vk::Filter filter, vk::SamplerAddressMode addressMode);
-    
+
     // TODO - getter/setter
-    bool enableValidationLayers_ = false;
+    bool enableValidationLayers_ = true;
 
     private:
     bool initialisePipeline();

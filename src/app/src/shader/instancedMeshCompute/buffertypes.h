@@ -14,7 +14,7 @@ namespace InstancedMeshCompute
     {
         SCENE,
         ANIMATION,
-        DEBUG,
+        DEBUGDATA,
         MODEL_VERTICES,
         MESHLETS,
         VERTEX_INDICES,

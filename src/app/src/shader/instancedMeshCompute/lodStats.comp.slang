@@ -5,7 +5,7 @@
 [[vk::binding(InstancedMeshCompute::BufferSlots::SCENE)]]
 ConstantBuffer<InstancedMeshCompute::SceneBuffer> scene;
 
-[[vk::binding(InstancedMeshCompute::BufferSlots::DEBUG)]]
+[[vk::binding(InstancedMeshCompute::BufferSlots::DEBUGDATA)]]
 RWStructuredBuffer<InstancedMeshCompute::DebugDataBuffer> debugData;
 
 [[vk::binding(InstancedMeshCompute::BufferSlots::INSTANCES)]]

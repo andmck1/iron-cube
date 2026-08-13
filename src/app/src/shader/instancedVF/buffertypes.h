@@ -8,7 +8,7 @@ namespace InstancedVF
     {
         MVP,
         ANIMATION,
-        DEBUG,
+        DEBUGDATA,
         TEXTURE,
         LAST
     };

@@ -268,7 +268,7 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
             )
     );
     resourceDescriptions_.push_back(
-        StorageReadWrite.setBufferSlot(InstancedMeshCompute::BufferSlots::DEBUG)
+        StorageReadWrite.setBufferSlot(InstancedMeshCompute::BufferSlots::DEBUGDATA)
             .setBufferSize(sizeof(InstancedMeshCompute::DebugDataBuffer))
             .setData(debugDataBufferData_.data())
             .setStageFlags(
@@ -511,7 +511,7 @@ void InstancedMeshComputeVulkanShaderPipeline::updateDebugData()
         debugDataBufferData_.size();
     debugDataBufferData_ = {InstancedMeshCompute::DebugDataBuffer()};
     debugDataBufferData_[0].isDebugQueryOn = isDebugQuery_;
-    resources_[InstancedMeshCompute::BufferSlots::DEBUG].update(
+    resources_[InstancedMeshCompute::BufferSlots::DEBUGDATA].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 }
@@ -696,7 +696,7 @@ bool InstancedMeshComputeVulkanShaderPipeline::postRender()
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedMeshCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    resources_[InstancedMeshCompute::BufferSlots::DEBUG]
+    resources_[InstancedMeshCompute::BufferSlots::DEBUGDATA]
         .asBuffer()
         ->copyToStaging(
             debugDataBufferSize,
@@ -723,7 +723,7 @@ bool InstancedMeshComputeVulkanShaderPipeline::updatePipelineStatistics()
     vk::DeviceSize debugDataBufferSize =
         sizeof(InstancedMeshCompute::DebugDataBuffer) *
         debugDataBufferData_.size();
-    resources_[InstancedMeshCompute::BufferSlots::DEBUG].asBuffer()->readData(
+    resources_[InstancedMeshCompute::BufferSlots::DEBUGDATA].asBuffer()->readData(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 

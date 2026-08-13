@@ -1,0 +1,343 @@
+#include "shaderpipeline/skybox.h"
+#include "core_render/ishadermanager.h"
+#include "core_render/vulkan/renderer.h"
+#include "core_render/vulkan/shader.h"
+#include "core_service/servicelocator.h"
+#include "shader/skybox/buffertypes.h"
+
+#include <ktx.h>
+
+bool SkyboxVulkanShaderPipeline::init(
+    Geometry *geometry, ShaderPipelineUpdateData *updateData
+)
+{
+    renderer_ = dynamic_cast<VulkanRenderer *>(
+        ServiceLocator::instance().get<IRenderer>()
+    );
+    updateData_ = dynamic_cast<SkyboxShaderPipelineUpdateData *>(updateData);
+    geometry_ = geometry;
+    return true;
+}
+
+// TODO - you can have the vertex and index buffers in one buffer and use
+// offsets (see tutorial on index buffer)
+// TODO - you can have a separate command pool for transfer instructions (see
+// same tutorial)
+//
+bool SkyboxVulkanShaderPipeline::initPipeline()
+{
+    initBuffers();
+    if (!initDescriptorLayout())
+        return false;
+    if (!initDescriptorSets())
+        return false;
+    if (!initGraphicsPipeline())
+        return false;
+    ktxTexture_Destroy(updateData_->cubemap->texture);
+    return true;
+}
+
+bool SkyboxVulkanShaderPipeline::recreateGraphicsPipeline()
+{
+    spdlog::debug("Recreating graphics pipeline");
+    renderer_->waitAllFramesComplete();
+    graphicsPipeline_ = nullptr;
+    return initGraphicsPipeline();
+}
+
+bool SkyboxVulkanShaderPipeline::shutdown()
+{
+    spdlog::debug("Shutting down default vulkan pipeline");
+    descriptorSetLayout_ = nullptr;
+    descriptorSets_ = nullptr;
+    descriptorPool_ = nullptr;
+    pipelineLayout_ = nullptr;
+    graphicsPipeline_ = nullptr;
+    shutdownBuffers();
+    spdlog::debug("Shutdown complete for default vulkan pipeline");
+    return true;
+}
+
+#include <ktx.h>
+
+void SkyboxVulkanShaderPipeline::initBufferDescriptions()
+{
+    resourceDescriptions_.push_back(
+        UniformBuffer.setBufferSlot(SkyboxBufferTypes::BufferSlots::MVP)
+            .setBufferSize(sizeof(SkyboxBufferTypes::MVPBuffer))
+            .setData(static_cast<SkyboxBufferTypes::MVPBuffer *>(nullptr))
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eVertex |
+                vk::ShaderStageFlagBits::eFragment
+            )
+    );
+
+    Cubemap *cubemap = updateData_->cubemap;
+    ktxTexture *ktxTex = cubemap->texture;
+
+    std::vector<vk::BufferImageCopy> copyRegions;
+    for (uint32_t face = 0; face < 6; face++)
+    {
+        for (uint32_t level = 0; level < cubemap->mipLevels; level++)
+        {
+            ktx_size_t offset;
+            ktxTexture_GetImageOffset(ktxTex, level, 0, face, &offset);
+
+            copyRegions.push_back(
+                vk::BufferImageCopy{
+                    offset,
+                    0,
+                    0,
+                    vk::ImageSubresourceLayers{
+                        vk::ImageAspectFlagBits::eColor, level, face, 1
+                    },
+                    {0, 0, 0},
+                    {cubemap->width >> level, cubemap->height >> level, 1}
+                }
+            );
+        }
+    }
+
+    resourceDescriptions_.push_back(
+        ImageDescription()
+            .setBufferSlot(SkyboxBufferTypes::BufferSlots::TEXTURE)
+            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+            .setExtent(vk::Extent3D(cubemap->width, cubemap->height, 1))
+            .setFormat(cubemap->format)
+            .setArrayLayers(6)
+            .setMipLevels(cubemap->mipLevels)
+            .setFlags(vk::ImageCreateFlagBits::eCubeCompatible)
+            .setViewType(vk::ImageViewType::eCube)
+            .setAddressMode(vk::SamplerAddressMode::eClampToEdge)
+            .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+            .setData(ktxTexture_GetData(ktxTex))
+            .setDataSize(ktxTexture_GetDataSize(ktxTex))
+            .setCopyRegions(copyRegions)
+    );
+}
+
+// TODO - rename buffer -> resource
+void SkyboxVulkanShaderPipeline::initBuffers()
+{
+    initBufferDescriptions();
+
+    for (auto resourceDescription : resourceDescriptions_)
+        addResource(resourceDescription);
+
+    BufferDescription vertexDesc = VertexBuffer;
+    vertexDesc.bufferSize =
+        sizeof(VertexInputType) * geometry_->vertices.size();
+    vertexDesc.data = geometry_->vertices.data();
+    vertexBuffer_.init(vertexDesc);
+
+    BufferDescription indexDesc = IndexBuffer;
+    indexDesc.bufferSize = sizeof(uint32_t) * geometry_->indices.size();
+    indexDesc.data = geometry_->indices.data();
+    indexBuffer_.init(indexDesc);
+}
+
+bool SkyboxVulkanShaderPipeline::initGraphicsPipeline()
+{
+
+    IShaderManager *shaderManager =
+        ServiceLocator::instance().get<IShaderManager>();
+    VulkanShader *vertexShader =
+        dynamic_cast<VulkanShader *>(shaderManager->getShader("skyboxVertex"));
+    VulkanShader *fragmentShader = dynamic_cast<VulkanShader *>(
+        shaderManager->getShader("skyboxFragment")
+    );
+
+    vk::PipelineShaderStageCreateInfo vertexShaderStageInfo =
+        vk::PipelineShaderStageCreateInfo{}
+            .setStage(vk::ShaderStageFlagBits::eVertex)
+            .setModule(vertexShader->getShaderModule())
+            .setPName("main");
+
+    vk::PipelineShaderStageCreateInfo fragShaderStageInfo =
+        vk::PipelineShaderStageCreateInfo{}
+            .setStage(vk::ShaderStageFlagBits::eFragment)
+            .setModule(fragmentShader->getShaderModule())
+            .setPName("main");
+
+    vk::VertexInputBindingDescription bindingDescription = {
+        0, sizeof(VertexInputType), vk::VertexInputRate::eVertex
+    };
+    std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions = {
+        {{0, 0, vk::Format::eR32G32B32Sfloat,
+          offsetof(VertexInputType, position)},
+         {1, 0, vk::Format::eR32G32Sfloat, offsetof(VertexInputType, tex)},
+         {2, 0, vk::Format::eR32G32B32Sfloat,
+          offsetof(VertexInputType, normal)}}
+    };
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo =
+        vk::PipelineVertexInputStateCreateInfo{}
+            .setVertexBindingDescriptionCount(1)
+            .setPVertexBindingDescriptions(&bindingDescription)
+            .setVertexAttributeDescriptionCount(
+                static_cast<uint32_t>(attributeDescriptions.size())
+            )
+            .setPVertexAttributeDescriptions(attributeDescriptions.data());
+
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly =
+        renderer_->getInputAssembly();
+
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStages = {
+        vertexShaderStageInfo, fragShaderStageInfo
+    };
+
+    std::vector<vk::DynamicState> dynamicStates = {
+        vk::DynamicState::eViewport, vk::DynamicState::eScissor
+    };
+
+    vk::PipelineDynamicStateCreateInfo dynamicState =
+        vk::PipelineDynamicStateCreateInfo{}
+            .setDynamicStateCount(static_cast<uint32_t>(dynamicStates.size()))
+            .setPDynamicStates(dynamicStates.data());
+
+    vk::PipelineViewportStateCreateInfo viewportState =
+        vk::PipelineViewportStateCreateInfo{}
+            .setViewportCount(1)
+            .setScissorCount(1);
+
+    vk::PipelineRasterizationStateCreateInfo rasteriser =
+        renderer_->getRasteriser();
+    rasteriser.setCullMode(vk::CullModeFlagBits::eNone);
+
+    vk::PipelineMultisampleStateCreateInfo multisampling =
+        renderer_->getMultisampling();
+
+    vk::PipelineColorBlendAttachmentState colourBlendAttachment =
+        renderer_->getColourBlendAttachment();
+
+    vk::PipelineColorBlendStateCreateInfo colourBlending =
+        vk::PipelineColorBlendStateCreateInfo{}
+            .setLogicOpEnable(vk::False)
+            .setLogicOp(vk::LogicOp::eCopy)
+            .setAttachmentCount(1)
+            .setPAttachments(&colourBlendAttachment);
+
+    vk::PipelineDepthStencilStateCreateInfo depthStencil =
+        vk::PipelineDepthStencilStateCreateInfo{}
+            .setDepthTestEnable(vk::True)
+            .setDepthWriteEnable(vk::False)
+            .setDepthCompareOp(vk::CompareOp::eLessOrEqual)
+            .setDepthBoundsTestEnable(vk::False)
+            .setStencilTestEnable(vk::False);
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutInfo =
+        vk::PipelineLayoutCreateInfo{}.setSetLayoutCount(1).setPSetLayouts(
+            &*descriptorSetLayout_
+        );
+
+    pipelineLayout_ =
+        vk::raii::PipelineLayout(renderer_->getDevice(), pipelineLayoutInfo);
+
+    vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo =
+        vk::GraphicsPipelineCreateInfo{}
+            .setStageCount(shaderStages.size())
+            .setPStages(shaderStages.data())
+            .setPVertexInputState(&vertexInputInfo)
+            .setPInputAssemblyState(&inputAssembly)
+            .setPViewportState(&viewportState)
+            .setPRasterizationState(&rasteriser)
+            .setPMultisampleState(&multisampling)
+            .setPColorBlendState(&colourBlending)
+            .setPDepthStencilState(&depthStencil)
+            .setPDynamicState(&dynamicState)
+            .setLayout(pipelineLayout_)
+            .setRenderPass(nullptr);
+
+    vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo =
+        renderer_->getPipelineRendereringCreateInfo();
+
+    vk::StructureChain<
+        vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo>
+        pipelineCreateInfoChain = {
+            graphicsPipelineCreateInfo, pipelineRenderingCreateInfo
+        };
+
+    graphicsPipeline_ = vk::raii::Pipeline(
+        renderer_->getDevice(), nullptr,
+        pipelineCreateInfoChain.get<vk::GraphicsPipelineCreateInfo>()
+    );
+    return true;
+}
+
+bool SkyboxVulkanShaderPipeline::bind()
+{
+    spdlog::debug("Binding shader pipeline");
+
+    vk::raii::CommandBuffer &commandBuffer = renderer_->getCommandBuffer();
+    vk::Extent2D &swapChainExtent = renderer_->getSwapChainExtent();
+
+    commandBuffer.bindPipeline(
+        vk::PipelineBindPoint::eGraphics, *getGraphicsPipeline()
+    );
+    uint32_t frameIndex = renderer_->getCurrentFrameIndex();
+    commandBuffer.bindVertexBuffers(
+        0, **vertexBuffer_.getBuffer(frameIndex), {0}
+    );
+    commandBuffer.bindIndexBuffer(
+        **indexBuffer_.getBuffer(frameIndex), 0, vk::IndexType::eUint32
+    );
+    commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics, pipelineLayout_, 0,
+        *descriptorSets_[renderer_->getCurrentFrameIndex()], nullptr
+    );
+    commandBuffer.setViewport(0, renderer_->getViewport());
+    commandBuffer.setScissor(
+        0, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent)
+    );
+    spdlog::debug("Finished binding shader pipeline");
+
+    return true;
+}
+
+bool SkyboxVulkanShaderPipeline::update()
+{
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
+    // MVP uniform buffer (slot 0)
+    SkyboxBufferTypes::MVPBuffer mvp{};
+    mvp.model = *updateData_->actor->getComponent<TransformComponent>()
+                     ->getTransformMatrixRef();
+    mvp.view = *updateData_->camera->getViewMatrixRef();
+    mvp.projection = *updateData_->camera->getProjectionMatrixRef();
+    resources_[SkyboxBufferTypes::BufferSlots::MVP].update(sizeof(mvp), &mvp);
+
+    updateTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
+
+    return true;
+}
+
+bool SkyboxVulkanShaderPipeline::draw()
+{
+    std::chrono::time_point now = std::chrono::steady_clock::now();
+
+    uint32_t nIndices = geometry_->indices.size();
+    renderer_->getCommandBuffer().drawIndexed(
+        static_cast<uint32_t>(nIndices), 1, 0, 0, 0
+    );
+    drawTime =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - now)
+            .count();
+
+    return true;
+}
+
+bool SkyboxVulkanShaderPipeline::postRender()
+{
+    return true;
+}
+
+PipelineStatistics SkyboxVulkanShaderPipeline::getPipelineStatistics()
+{
+    return {};
+}
+
+bool SkyboxVulkanShaderPipeline::updatePipelineStatistics()
+{
+    return true;
+}

@@ -8,7 +8,7 @@ namespace SimpleVF
     {
         MVP,
         ANIMATION,
-        DEBUG,
+        DEBUGDATA,
         TEXTURE,
         LAST
     };

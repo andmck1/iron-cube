@@ -455,20 +455,21 @@ bool VulkanRenderer::createImageViews()
 }
 
 vk::raii::ImageView VulkanRenderer::createImageView(
-    vk::Image const &image, vk::Format format, vk::ImageAspectFlags aspectFlags
+    vk::Image const &image, vk::Format format, vk::ImageAspectFlags aspectFlags,
+    vk::ImageViewType viewType, uint32_t layerCount, uint32_t levelCount
 )
 {
     vk::ImageViewCreateInfo viewInfo = vk::ImageViewCreateInfo{}
                                            .setImage(image)
-                                           .setViewType(vk::ImageViewType::e2D)
+                                           .setViewType(viewType)
                                            .setFormat(format)
                                            .setSubresourceRange(
                                                vk::ImageSubresourceRange{}
                                                    .setAspectMask(aspectFlags)
                                                    .setBaseMipLevel(0)
-                                                   .setLevelCount(1)
+                                                   .setLevelCount(levelCount)
                                                    .setBaseArrayLayer(0)
-                                                   .setLayerCount(1)
+                                                   .setLayerCount(layerCount)
                                            );
     return vk::raii::ImageView(device_, viewInfo);
 }
@@ -1190,23 +1191,23 @@ vk::Format VulkanRenderer::findDepthFormat()
 
 std::pair<vk::raii::Image, vk::raii::DeviceMemory> VulkanRenderer::createImage(
     uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
-    vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties
+    vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties,
+    uint32_t arrayLayers, uint32_t mipLevels, vk::ImageCreateFlags flags
 )
 {
     vk::ImageCreateInfo imageInfo =
         vk::ImageCreateInfo{}
+            .setFlags(flags)
             .setImageType(vk::ImageType::e2D)
             .setFormat(format)
             .setExtent({width, height, 1})
-            .setMipLevels(1)
-            .setArrayLayers(1)
+            .setMipLevels(mipLevels)
+            .setArrayLayers(arrayLayers)
             .setSamples(vk::SampleCountFlagBits::e1)
             .setTiling(tiling)
             .setUsage(usage)
             .setSharingMode(vk::SharingMode::eExclusive);
-
     vk::raii::Image image = vk::raii::Image(device_, imageInfo);
-
     vk::MemoryRequirements memRequirements = image.getMemoryRequirements();
     vk::MemoryAllocateInfo allocInfo =
         vk::MemoryAllocateInfo{}
@@ -1217,7 +1218,6 @@ std::pair<vk::raii::Image, vk::raii::DeviceMemory> VulkanRenderer::createImage(
     vk::raii::DeviceMemory imageMemory =
         vk::raii::DeviceMemory(device_, allocInfo);
     image.bindMemory(imageMemory, 0);
-
     return {std::move(image), std::move(imageMemory)};
 }
 

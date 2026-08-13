@@ -1,6 +1,6 @@
 #include "buffertypes.h"
 
-[[vk::binding(InstancedVF::BufferSlots::DEBUG)]]
+[[vk::binding(InstancedVF::BufferSlots::DEBUGDATA)]]
 RWStructuredBuffer<InstancedVF::DebugDataBuffer> debugData;
 
 [[vk::binding(InstancedVF::BufferSlots::TEXTURE)]]

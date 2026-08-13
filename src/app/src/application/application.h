@@ -48,6 +48,8 @@ class Application
     bool initialiseEntities(Scene *scene);
     bool
     initialiseGeometry(Scene *scene, std::string name, Transform transform);
+    bool
+    initialiseSkybox(Scene *scene);
     bool initialiseCamera(Scene *scene);
     void handleInput();
     // TODO - should this go somewhere else?
@@ -83,12 +85,14 @@ class Application
     float timeSinceGPUStatsQuery_ = 0.f;
     VisibilityFunc visibilityFunction_ =
         VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE;
-    bool isAnimationOn_ = false;
+    bool isAnimationOn_ = true;
+
+    float3 cameraPosition_ = {0.f, 0.f, -900.f};
 
     int nInstances_ = 1000000;
     float discOuterRadius_ = 18000.f;
-    float discInnerRadius_ = 10.f;
-    float discHeight_ = 300.f;
+    float discInnerRadius_ = 300.f;
+    float discHeight_ = 70.f;
 
     int currentNInstances_ = nInstances_;
     float currentDiscOuterRadius_ = discOuterRadius_;

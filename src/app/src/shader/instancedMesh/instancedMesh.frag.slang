@@ -4,7 +4,7 @@
 [[vk::binding(InstancedMesh::BufferSlots::SCENE)]]
 ConstantBuffer<InstancedMesh::SceneBuffer> scene;
 
-[[vk::binding(InstancedMesh::BufferSlots::DEBUG)]]
+[[vk::binding(InstancedMesh::BufferSlots::DEBUGDATA)]]
 RWStructuredBuffer<InstancedMesh::DebugDataBuffer> debugData;
 
 [[vk::binding(InstancedMesh::BufferSlots::TEXTURE)]]

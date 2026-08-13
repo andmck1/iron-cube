@@ -75,7 +75,7 @@ void StandardVulkanShaderPipeline::initBufferDescriptions()
     );
 
     resourceDescriptions_.push_back(
-        StorageReadWrite.setBufferSlot(SimpleVF::BufferSlots::DEBUG)
+        StorageReadWrite.setBufferSlot(SimpleVF::BufferSlots::DEBUGDATA)
             .setBufferSize(sizeof(SimpleVF::DebugDataBuffer))
             .setData(debugDataBufferData_.data())
             .setStageFlags(
@@ -320,7 +320,7 @@ bool StandardVulkanShaderPipeline::update()
     vk::DeviceSize debugDataBufferSize = sizeof(SimpleVF::DebugDataBuffer);
     debugDataBufferData_ = {SimpleVF::DebugDataBuffer()};
     debugDataBufferData_.front().isDebugQueryOn = isDebugQuery_;
-    resources_[SimpleVF::BufferSlots::DEBUG].update(
+    resources_[SimpleVF::BufferSlots::DEBUGDATA].update(
         debugDataBufferSize, debugDataBufferData_.data()
     );
 
@@ -368,7 +368,7 @@ bool StandardVulkanShaderPipeline::postRender()
     vk::DeviceSize debugDataBufferSize =
         sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
 
-    if (auto *buffer = resources_[SimpleVF::BufferSlots::DEBUG].asBuffer())
+    if (auto *buffer = resources_[SimpleVF::BufferSlots::DEBUGDATA].asBuffer())
     {
         buffer->copyToStaging(
             debugDataBufferSize,
@@ -394,7 +394,7 @@ bool StandardVulkanShaderPipeline::updatePipelineStatistics()
     vk::DeviceSize debugDataBufferSize =
         sizeof(SimpleVF::DebugDataBuffer) * debugDataBufferData_.size();
 
-    if (auto *buffer = resources_[SimpleVF::BufferSlots::DEBUG].asBuffer())
+    if (auto *buffer = resources_[SimpleVF::BufferSlots::DEBUGDATA].asBuffer())
     {
         buffer->readData(debugDataBufferSize, debugDataBufferData_.data());
         pipelineStatistics_.stats = {

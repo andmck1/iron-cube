@@ -7,7 +7,7 @@ ConstantBuffer<SimpleVF::MVPBuffer> mvp;
 [[vk::binding(SimpleVF::BufferSlots::ANIMATION)]]
 ConstantBuffer<SimpleVF::AnimationBuffer> animation;
 
-[[vk::binding(SimpleVF::BufferSlots::DEBUG)]]
+[[vk::binding(SimpleVF::BufferSlots::DEBUGDATA)]]
 RWStructuredBuffer<SimpleVF::DebugDataBuffer> debugData;
 
 [[vk_push_constant]]

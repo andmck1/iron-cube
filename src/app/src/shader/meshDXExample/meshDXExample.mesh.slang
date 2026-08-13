@@ -7,7 +7,7 @@ ConstantBuffer<MeshDXExample::SceneBuffer> scene;
 [[vk::binding(MeshDXExample::BufferSlots::ANIMATION)]]
 ConstantBuffer<MeshDXExample::AnimationBuffer> animation;
 
-[[vk::binding(MeshDXExample::BufferSlots::DEBUG)]]
+[[vk::binding(MeshDXExample::BufferSlots::DEBUGDATA)]]
 RWStructuredBuffer<MeshDXExample::DebugDataBuffer> debugData;
 
 [[vk::binding(MeshDXExample::BufferSlots::MODEL_VERTICES)]]

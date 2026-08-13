@@ -3,6 +3,7 @@
 #include "core_resource/iresourcemanager.h"
 #include <spdlog/spdlog.h>
 #include <string>
+#include <vulkan/vulkan_raii.hpp>
 
 class ResourceManager : public IResourceManager
 {
@@ -15,12 +16,17 @@ class ResourceManager : public IResourceManager
     Texture *getTexture(const std::string &name) override;
     void unloadTexture(const std::string &name) override;
 
+    void loadCubemap(const std::string &name, Cubemap cubemap);
+    Cubemap *getCubemap(const std::string &name);
+    void unloadCubemap(const std::string &name);
+
     static Geometry generateProceduralTriangle();
     static Geometry generateProceduralRectangle();
     static Geometry generateProceduralCube();
     static Geometry
     loadObj(std::vector<std::string> objFilePaths, std::string objBaseDir);
     static Texture loadImage(std::string filepath);
+    static Cubemap loadCubemapTexture(std::string filepath);
 
     private:
     static void processMeshlets(Geometry *geometry);
@@ -29,4 +35,5 @@ class ResourceManager : public IResourceManager
 
     std::unordered_map<std::string, Geometry> geometries_;
     std::unordered_map<std::string, Texture> textures_;
+    std::unordered_map<std::string, Cubemap> cubemaps_;
 };

@@ -39,7 +39,8 @@ foreach(SHADER_FILE ${ALL_SHADERS})
         OUTPUT ${SPIRV_FILE}
         COMMAND
             ${SLANGC_EXECUTABLE} -target spirv -entry main -stage ${STAGE} -I
-            ${CMAKE_CURRENT_SOURCE_DIR}/src -I ${SHADER_BASE_DIR} -I ${SHADER_DIR} -o ${SPIRV_FILE} ${SHADER_FILE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/src -I ${SHADER_BASE_DIR} -I
+            ${SHADER_DIR} -o ${SPIRV_FILE} ${SHADER_FILE}
         DEPENDS ${SHADER_DEPENDENCIES}
         COMMENT "Compiling ${SHADER_FILE} -> ${SPIRV_FILE}"
     )
@@ -64,6 +65,7 @@ add_executable(
     src/shaderpipeline/instancedMesh.cpp
     src/shaderpipeline/instancedMeshWithCompute.cpp
     src/shaderpipeline/meshDXExample.cpp
+    src/shaderpipeline/skybox.cpp
 )
 
 target_link_libraries(iron-cube PRIVATE iron-core CLI11)
