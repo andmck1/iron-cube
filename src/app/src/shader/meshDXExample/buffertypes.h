@@ -108,17 +108,10 @@ namespace MeshDXExample
 
     struct Payload
     {
-        uint instanceCounts[MAX_LOD_COUNT];   // The instance count for each LOD
-                                              // level.
-        uint groupOffsets[MAX_LOD_COUNT + 1]; // The offset in threadgroups for
-                                              // each LOD level.
-        // The list of instance indices after culling. Ordered as:
-        // (list of LOD 0 instance indices), (list of LOD 1 instance indices),
-        // ... (list of LOD MAX_LOD_COUNT-1 instance indices)
+        uint instanceCounts[MAX_LOD_COUNT];
+        uint groupOffsets[MAX_LOD_COUNT + 1];
         uint instanceList[TS_GROUP_SIZE];
-        uint instanceOffsets[MAX_LOD_COUNT + 1]; // The offset into the
-                                                 // Instance List at which each
-                                                 // LOD level begins.
+        uint instanceOffsets[MAX_LOD_COUNT + 1];
     };
 
     struct DebugDataBuffer

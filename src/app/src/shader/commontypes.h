@@ -25,7 +25,7 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 #define SEMANTIC(x)
-
+using uint = unsigned int;
 using float2 = glm::vec2;
 using float3 = glm::vec3;
 using float4 = glm::vec4;

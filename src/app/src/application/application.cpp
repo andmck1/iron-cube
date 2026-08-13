@@ -308,24 +308,6 @@ bool Application::initialiseEntities(Scene *scene)
     initialiseCamera(scene);
 
     {
-        // horsie
-        std::string name = "horsie";
-        Geometry geometry = ResourceManager::loadObj(
-            {"assets/horse_statue_lod/horse_statue_01_4k_LOD_0.obj",
-             "assets/horse_statue_lod/horse_statue_01_4k_LOD_1.obj",
-             "assets/horse_statue_lod/horse_statue_01_4k_LOD_2.obj",
-             "assets/horse_statue_lod/horse_statue_01_4k_LOD_3.obj",
-             "assets/horse_statue_lod/horse_statue_01_4k_LOD_4.obj"},
-            "./assets/horse_statue_lod"
-        );
-        resourceManager_.loadGeometry(name, geometry);
-        // Transform transform = Transform{
-        //     .position = {0.f, -1.f, 0.f}, .scale = {10.f, 10.f, 10.f}
-        // };
-        // initialiseGeometry(scene, name, transform);
-    }
-
-    {
         // asteroid
         std::string name = "asteroid";
         Geometry geometry = ResourceManager::loadObj(
