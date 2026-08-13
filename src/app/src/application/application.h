@@ -110,7 +110,7 @@ class Application
         .specularColour = {1.f, 1.f, 1.f},
         .specularPower = 10.f
     };
-    AmbientLight ambientLight_ = {.colour = {1.f, 1.f, 1.f}};
+    AmbientLight ambientLight_ = {.colour = {1.f, 1.f, 1.f}, .intensity = 0.f};
 
     std::string shaderPipelineName_ = "asteroidMeshDXExample";
     bool isWriteDebugDataEnabled_ = false;

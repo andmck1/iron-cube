@@ -1,3 +1,5 @@
+#include "glm/ext/vector_float3.hpp"
+#include "glm/trigonometric.hpp"
 #include "helpers/globals.h"
 #include "layer/debug.h"
 #include "core_ecs/component/mesh.h"
@@ -288,25 +290,34 @@ bool DebugLayer::frame()
     {
         ImGui::SeparatorText("Ambient Light");
         ImGui::SliderFloat3(
-            "Ambient Light: Colour", glm::value_ptr(ambientLight->colour), 0.f,
-            1.f
+            "Ambient Light: Colour",
+            glm::value_ptr(debugData_->ambientLight->colour), 0.f, 1.f
         );
+        ImGui::DragFloat(
+            "Ambient Light: Intensity", &debugData_->ambientLight->intensity,
+            0.1f, 0.f, 10.f
+        );
+
         ImGui::SeparatorText("Directional Light");
+
         ImGui::SliderFloat3(
             "Directional Light: Direction",
-            glm::value_ptr(directionalLight->directionVector), -1.f, 1.f
+            glm::value_ptr(debugData_->directionalLight->directionVector),
+            -1.f, 1.f
         );
         ImGui::SliderFloat3(
             "Directional Light: Diffuse Colour",
-            glm::value_ptr(directionalLight->diffuseColour), 0.f, 1.f
+            glm::value_ptr(debugData_->directionalLight->diffuseColour), 0.f,
+            1.f
         );
         ImGui::SliderFloat3(
             "Directional Light: Specular Colour",
-            glm::value_ptr(directionalLight->specularColour), 0.f, 1.f
+            glm::value_ptr(debugData_->directionalLight->specularColour), 0.f,
+            1.f
         );
         ImGui::DragFloat(
             "Directional Light: Specular Power",
-            &directionalLight->specularPower, 0.1f, 10000.f
+            &debugData_->directionalLight->specularPower, 0.1f, 0.1f, 10000.f
         );
     }
 

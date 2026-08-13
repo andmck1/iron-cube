@@ -125,7 +125,7 @@ struct DirectionalLight
 struct AmbientLight
 {
     float3 colour;
-    uint _pad0;
+    float intensity;
 };
 
 #endif

@@ -30,13 +30,14 @@ float4 main(MeshDXExample::VertexOutputType inVert) : SV_Target
 
         textureColour = sampler.Sample(inVert.uv);
 
-        lightColour.xyz += scene.ambientLight.colour;
+        lightColour.xyz +=
+            scene.ambientLight.colour * scene.ambientLight.intensity;
 
-        lightColour = calculateDirectionalLighting(
-                          scene.directionalLight, inVert.positionWS.xyz,
-                          inVert.normalWS.xyz, scene.eyePosition.xyz
+        lightColour += calculateDirectionalLighting(
+                           scene.directionalLight, inVert.positionWS.xyz,
+                           inVert.normalWS.xyz, scene.eyePosition.xyz
         )
-                          .rgbb;
+                           .rgbb;
         lightColour[3] = 1.f;
         colour = textureColour * lightColour;
         break;
