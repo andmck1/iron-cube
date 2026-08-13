@@ -483,6 +483,8 @@ bool Application::initialiseGeometry(
         updateData->discInnerRadius = &discInnerRadius_;
         updateData->discOuterRadius = &discOuterRadius_;
         updateData->discHeight = &discHeight_;
+        updateData->ambientLight = &ambientLight_;
+        updateData->directionalLight = &directionalLight_;
 
         std::unique_ptr<InstancedMeshVulkanShaderPipeline>
             actorMeshShaderPipeline =

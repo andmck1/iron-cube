@@ -82,7 +82,10 @@ void InstancedVertexComputeVulkanShaderPipeline::initBufferDescriptions()
         UniformBuffer.setBufferSlot(InstancedVFCompute::BufferSlots::SCENE)
             .setBufferSize(sizeof(InstancedVFCompute::SceneBuffer))
             .setData(static_cast<InstancedVFCompute::SceneBuffer *>(nullptr))
-            .setStageFlags(vk::ShaderStageFlagBits::eCompute)
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eCompute |
+                vk::ShaderStageFlagBits::eFragment
+            )
     );
 
     resourceDescriptions_.push_back(
@@ -470,6 +473,8 @@ void InstancedVertexComputeVulkanShaderPipeline::updateSceneData()
     sceneData.visibilityFunc = {
         static_cast<uint32_t>(*updateData_->visibilityFunc), 0, 0, 0
     };
+    sceneData.ambientLight = *updateData_->ambientLight;
+    sceneData.directionalLight = *updateData_->directionalLight;
 
     resources_[InstancedVFCompute::BufferSlots::SCENE].update(
         sizeof(sceneData), &sceneData

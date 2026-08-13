@@ -33,7 +33,10 @@ main(VertexInputType input, uint instanceID: SV_InstanceID)
     uint instanceIndex = instanceID + lodStats[constants.currentLOD].offset;
     float4x4 worldMatrix = reorderedInstances[instanceIndex].worldMatrix;
     float4x4 mvpMatrix = mul(mvp.projection, mul(mvp.view, worldMatrix));
-    output.position = mul(mvpMatrix, input.position);
+    output.positionWS = mul(worldMatrix, input.position);
+    output.positionCS = mul(mvpMatrix, input.position);
+    float3 normalWS = normalize(mul(float3x3(worldMatrix), input.normal.xyz));
+    output.normalWS = {normalWS.xyz, 0.f};
     output.uv = input.tex.xy;
 
     switch ((FragmentColourType) constants.fragmentColourType)

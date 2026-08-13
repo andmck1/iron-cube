@@ -250,7 +250,8 @@ void InstancedMeshComputeVulkanShaderPipeline::initBufferDescriptions()
             .setStageFlags(
                 vk::ShaderStageFlagBits::eTaskEXT |
                 vk::ShaderStageFlagBits::eMeshEXT |
-                vk::ShaderStageFlagBits::eCompute
+                vk::ShaderStageFlagBits::eCompute |
+                vk::ShaderStageFlagBits::eFragment
             )
     );
     resourceDescriptions_.push_back(
@@ -466,6 +467,9 @@ void InstancedMeshComputeVulkanShaderPipeline::updateSceneData()
     sceneData.frustum.cone.angle = frustumCone.angle;
     sceneData.visibilityFunc =
         static_cast<uint32_t>(*updateData_->visibilityFunc);
+
+    sceneData.ambientLight = *updateData_->ambientLight;
+    sceneData.directionalLight = *updateData_->directionalLight;
 
     resources_[InstancedMeshCompute::BufferSlots::SCENE].update(
         sizeof(sceneData), &sceneData

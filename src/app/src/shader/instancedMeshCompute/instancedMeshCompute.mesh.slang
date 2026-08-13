@@ -78,15 +78,21 @@ void main(
     {
         uint vertexIndex = m.vertexOffset + gtid;
         vertexIndex = vertexIndices[vertexIndex];
+        VertexInputType vertex = modelVertices[vertexIndex];
 
         float4x4 mvpMatrix =
             mul(scene.projection, mul(scene.view, worldMatrix));
 
-        vertices[gtid].position =
-            mul(mvpMatrix, modelVertices[vertexIndex].position);
-        vertices[gtid].uv = modelVertices[vertexIndex].tex.xy;
+        float4 positionWS = mul(worldMatrix, vertex.position);
+        float3 normalWS =
+            normalize(mul(float3x3(worldMatrix), vertex.normal.xyz));
+        float4 positionCS = mul(mvpMatrix, vertex.position);
 
-        float4 normal = modelVertices[vertexIndex].normal;
+        vertices[gtid].positionCS = positionCS;
+        vertices[gtid].positionWS = positionWS;
+        vertices[gtid].normalWS = { normalWS, 0.f };
+        vertices[gtid].colour = float4(1.f, 1.f, 1.f, 1.f);
+        vertices[gtid].uv = vertex.tex.xy;
 
         switch ((FragmentColourType) constants.fragmentColourType)
         {
@@ -101,7 +107,7 @@ void main(
         }
         case FragmentColourType::NORMALS:
         {
-            vertices[gtid].colour = (normal + 1.f) / 2.f;
+            vertices[gtid].colour = (normalWS.xyzz + 1.f) / 2.f;
             vertices[gtid].colour.w = 1.f;
             break;
         }

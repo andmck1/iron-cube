@@ -30,7 +30,9 @@ namespace InstancedMeshCompute
 
     struct VertexOutputType
     {
-        float4 position SEMANTIC(SV_Position);
+        float4 positionCS SEMANTIC(SV_Position);
+        float4 positionWS;
+        float4 normalWS;
         float4 colour;
         float2 uv;
     };
@@ -108,6 +110,8 @@ namespace InstancedMeshCompute
         uint32_t pad1;
         uint32_t pad2;
         uint32_t pad3;
+        AmbientLight ambientLight;
+        DirectionalLight directionalLight;
     };
 
     struct Payload
