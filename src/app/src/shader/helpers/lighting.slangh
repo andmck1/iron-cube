@@ -45,4 +45,3 @@ float3 calculateDirectionalLighting(
     directionalLighting = diffuse + specular;
     return directionalLighting;
 }
-

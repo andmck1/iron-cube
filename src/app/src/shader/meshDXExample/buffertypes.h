@@ -106,6 +106,8 @@ namespace MeshDXExample
         uint32_t pad1;
         uint32_t pad2;
         uint32_t pad3;
+        AmbientLight ambientLight;
+        DirectionalLight directionalLight;
     };
 
     struct Payload

@@ -57,7 +57,7 @@ class Application
 
     void checkForPipelineUpdates();
     void checkForEntitiyUpdates();
-    
+
     void initDebugDataFile();
     void closeDebugDataFile();
     void writeDebugData();
@@ -83,7 +83,7 @@ class Application
     float timeSinceGPUStatsQuery_ = 0.f;
     VisibilityFunc visibilityFunction_ =
         VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE;
-    bool isAnimationOn_ = true;
+    bool isAnimationOn_ = false;
 
     int nInstances_ = 1000000;
     float discOuterRadius_ = 18000.f;
@@ -104,6 +104,13 @@ class Application
     uint32_t nFramesSinceStart_ = 0;
     float rotationFrequency_ = 0.01f;
     FragmentColourType fragmentColourType = FragmentColourType::LIGHTING;
+    DirectionalLight directionalLight_ = {
+        .directionVector = {1.f, 1.f, 1.f, 0.f},
+        .diffuseColour = {1.f, 1.f, 1.f},
+        .specularColour = {1.f, 1.f, 1.f},
+        .specularPower = 10.f
+    };
+    AmbientLight ambientLight_ = {.colour = {1.f, 1.f, 1.f}};
 
     std::string shaderPipelineName_ = "asteroidMeshDXExample";
     bool isWriteDebugDataEnabled_ = false;

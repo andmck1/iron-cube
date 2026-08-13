@@ -274,6 +274,9 @@ void Application::initialiseDebugLayerData(Scene *scene)
     debugLayerData_.lodExponent = &lodExponent_;
     debugLayerData_.isLODOn = &isLODOn_;
     debugLayerData_.fragmentColourType = &fragmentColourType;
+
+    debugLayerData_.ambientLight = &ambientLight_;
+    debugLayerData_.directionalLight = &directionalLight_;
 }
 
 bool Application::createAndInitialiseLayers()
@@ -376,6 +379,8 @@ bool Application::initialiseGeometry(
         updateData->texture = resourceManager_.getTexture(name);
         updateData->fragmentColourType = &fragmentColourType;
         updateData->isLODOn = &isLODOn_;
+        updateData->ambientLight = &ambientLight_;
+        updateData->directionalLight = &directionalLight_;
 
         std::unique_ptr<StandardVulkanShaderPipeline> actorShaderPipeline =
             std::make_unique<StandardVulkanShaderPipeline>();
@@ -406,6 +411,8 @@ bool Application::initialiseGeometry(
         updateData->maxLODDistance = &maxLODDistance_;
         updateData->lodExponent = &lodExponent_;
         updateData->visibilityFunc = &visibilityFunction_;
+        updateData->ambientLight = &ambientLight_;
+        updateData->directionalLight = &directionalLight_;
 
         std::unique_ptr<InstancedVertexVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -441,6 +448,8 @@ bool Application::initialiseGeometry(
         updateData->discInnerRadius = &discInnerRadius_;
         updateData->discOuterRadius = &discOuterRadius_;
         updateData->discHeight = &discHeight_;
+        updateData->ambientLight = &ambientLight_;
+        updateData->directionalLight = &directionalLight_;
 
         std::unique_ptr<InstancedVertexComputeVulkanShaderPipeline>
             actorInstancedShaderPipeline =
@@ -511,6 +520,8 @@ bool Application::initialiseGeometry(
         updateData->discInnerRadius = &discInnerRadius_;
         updateData->discOuterRadius = &discOuterRadius_;
         updateData->discHeight = &discHeight_;
+        updateData->ambientLight = &ambientLight_;
+        updateData->directionalLight = &directionalLight_;
 
         std::unique_ptr<InstancedMeshComputeVulkanShaderPipeline>
             actorMeshShaderPipeline =
@@ -547,6 +558,8 @@ bool Application::initialiseGeometry(
         updateData->discInnerRadius = &discInnerRadius_;
         updateData->discOuterRadius = &discOuterRadius_;
         updateData->discHeight = &discHeight_;
+        updateData->ambientLight = &ambientLight_;
+        updateData->directionalLight = &directionalLight_;
 
         std::unique_ptr<MeshDXExampleVulkanShaderPipeline>
             actorMeshShaderPipeline =

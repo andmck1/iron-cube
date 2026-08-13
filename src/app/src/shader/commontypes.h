@@ -117,7 +117,7 @@ struct DirectionalLight
 {
     float4 directionVector;
     float3 diffuseColour;
-    uint isEnabled;
+    uint _pad0;
     float3 specularColour;
     float specularPower;
 };
@@ -125,7 +125,7 @@ struct DirectionalLight
 struct AmbientLight
 {
     float3 colour;
-    uint isEnabled;
+    uint _pad0;
 };
 
 #endif

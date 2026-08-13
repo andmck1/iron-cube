@@ -21,6 +21,8 @@ class DefaultShaderPipelineUpdateData : public ShaderPipelineUpdateData
     Texture *texture = nullptr;
     FragmentColourType *fragmentColourType = nullptr;
     bool *isLODOn = nullptr;
+    AmbientLight *ambientLight = nullptr;
+    DirectionalLight *directionalLight = nullptr;
 };
 
 class StandardVulkanShaderPipeline : public VulkanShaderPipeline

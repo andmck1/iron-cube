@@ -26,6 +26,8 @@ class MeshDXExampleShaderPipelineUpdateData : public ShaderPipelineUpdateData
     float *discOuterRadius = nullptr;
     float *discInnerRadius = nullptr;
     float *discHeight = nullptr;
+    AmbientLight *ambientLight = nullptr;
+    DirectionalLight *directionalLight = nullptr;
 };
 
 class MeshDXExampleVulkanShaderPipeline : public VulkanShaderPipeline

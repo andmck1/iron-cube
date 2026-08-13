@@ -29,31 +29,15 @@ float4 main(MeshDXExample::VertexOutputType inVert) : SV_Target
         float2 projectedTextureCoordinate;
 
         textureColour = sampler.Sample(inVert.uv);
-        DirectionalLight directionalLight;
-        directionalLight.isEnabled = 1;
-        directionalLight.diffuseColour = { 1.f, 1.f, 1.f };
-        directionalLight.specularColour = { 1.f, 1.f, 1.f };
-        directionalLight.specularPower = 10.f;
-        directionalLight.directionVector = { 1.f, 0.f, 0.f, 0.f };
 
-        AmbientLight ambientLight;
-        ambientLight.isEnabled = 1;
-        ambientLight.colour = { 1.f, 1.f, 1.f };
+        lightColour.xyz += scene.ambientLight.colour;
 
-        if (ambientLight.isEnabled > 0)
-        {
-            lightColour.xyz += ambientLight.colour;
-        }
-
-        if (directionalLight.isEnabled > 0)
-        {
-            lightColour = calculateDirectionalLighting(
-                              directionalLight, inVert.positionWS.xyz,
-                              inVert.normalWS.xyz, scene.eyePosition.xyz
-            )
-                              .rgbb;
-            lightColour[3] = 1.f;
-        }
+        lightColour = calculateDirectionalLighting(
+                          scene.directionalLight, inVert.positionWS.xyz,
+                          inVert.normalWS.xyz, scene.eyePosition.xyz
+        )
+                          .rgbb;
+        lightColour[3] = 1.f;
         colour = textureColour * lightColour;
         break;
     }

@@ -357,6 +357,8 @@ bool MeshDXExampleVulkanShaderPipeline::update()
     sceneData.frustum.cone.angle = frustumCone.angle;
     sceneData.visibilityFunc =
         static_cast<uint32_t>(*updateData_->visibilityFunc);
+    sceneData.ambientLight = *updateData_->ambientLight;
+    sceneData.directionalLight = *updateData_->directionalLight;
 
     resources_[MeshDXExample::BufferSlots::SCENE].update(
         sizeof(sceneData), &sceneData

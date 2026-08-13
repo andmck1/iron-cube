@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commontypes.h"
 #include "core_render/irenderer.h"
 #include "layer/debuglayerdata.h"
 #include "core_layer/ilayer.h"
@@ -30,4 +31,6 @@ class DebugLayer : public ILayer
     float averageFrameTime_ = 0.f;
     float stdFrameTime_ = 0.f;
     float maxFrameTime_ = 10.f;
+    AmbientLight *ambientLight;
+    DirectionalLight *directionalLight;
 };

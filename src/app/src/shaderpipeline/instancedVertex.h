@@ -24,6 +24,8 @@ class InstancedVertexShaderPipelineUpdateData : public ShaderPipelineUpdateData
     float *maxLODDistance = nullptr;
     float *lodExponent = nullptr;
     VisibilityFunc *visibilityFunc = nullptr;
+    AmbientLight *ambientLight = nullptr;
+    DirectionalLight *directionalLight = nullptr;
 };
 
 class InstancedVertexVulkanShaderPipeline : public VulkanShaderPipeline

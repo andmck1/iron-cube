@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <vector>
+#include <glm/gtc/type_ptr.hpp>
 
 void DebugLayer::setDebugData(DebugLayerData *debugData)
 {
@@ -279,6 +280,33 @@ bool DebugLayer::frame()
             "Culling Function",
             reinterpret_cast<int *>(debugData_->visibilityFunc),
             cullingFunctions.data(), cullingFunctions.size()
+        );
+    }
+
+    // Lighting
+    if (ImGui::CollapsingHeader("Lighting Options"))
+    {
+        ImGui::SeparatorText("Ambient Light");
+        ImGui::SliderFloat3(
+            "Ambient Light: Colour", glm::value_ptr(ambientLight->colour), 0.f,
+            1.f
+        );
+        ImGui::SeparatorText("Directional Light");
+        ImGui::SliderFloat3(
+            "Directional Light: Direction",
+            glm::value_ptr(directionalLight->directionVector), -1.f, 1.f
+        );
+        ImGui::SliderFloat3(
+            "Directional Light: Diffuse Colour",
+            glm::value_ptr(directionalLight->diffuseColour), 0.f, 1.f
+        );
+        ImGui::SliderFloat3(
+            "Directional Light: Specular Colour",
+            glm::value_ptr(directionalLight->specularColour), 0.f, 1.f
+        );
+        ImGui::DragFloat(
+            "Directional Light: Specular Power",
+            &directionalLight->specularPower, 0.1f, 10000.f
         );
     }
 

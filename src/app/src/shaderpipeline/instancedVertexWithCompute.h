@@ -28,6 +28,8 @@ class InstancedVertexComputeShaderPipelineUpdateData
     float *discOuterRadius = nullptr;
     float *discInnerRadius = nullptr;
     float *discHeight = nullptr;
+    AmbientLight *ambientLight = nullptr;
+    DirectionalLight *directionalLight = nullptr;
 };
 
 class InstancedVertexComputeVulkanShaderPipeline : public VulkanShaderPipeline

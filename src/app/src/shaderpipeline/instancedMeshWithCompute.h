@@ -27,6 +27,8 @@ class InstancedMeshComputeShaderPipelineUpdateData
     float *discOuterRadius = nullptr;
     float *discInnerRadius = nullptr;
     float *discHeight = nullptr;
+    AmbientLight *ambientLight = nullptr;
+    DirectionalLight *directionalLight = nullptr;
 };
 
 class InstancedMeshComputeVulkanShaderPipeline : public VulkanShaderPipeline

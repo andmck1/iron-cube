@@ -55,4 +55,7 @@ class DebugLayerData
     bool *isLODOn;
     std::vector<PipelineTimeHistory> timeHistories;
     FragmentColourType *fragmentColourType;
+
+    AmbientLight *ambientLight;
+    DirectionalLight *directionalLight;
 };
