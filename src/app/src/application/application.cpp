@@ -22,6 +22,7 @@
 #include "shaderpipeline/instancedMeshWithCompute.h"
 #include "shaderpipeline/meshDXExample.h"
 #include "shaderpipeline/skybox.h"
+#include "shaderpipeline/planet.h"
 
 #include <cmath>
 #include <format>
@@ -255,6 +256,9 @@ bool Application::initialiseShaders()
     initialiseShader("build/shader/skybox/skybox.vert.spv", "skyboxVertex");
     initialiseShader("build/shader/skybox/skybox.frag.spv", "skyboxFragment");
 
+    initialiseShader("build/shader/planet/planet.vert.spv", "planetVertex");
+    initialiseShader("build/shader/planet/planet.frag.spv", "planetFragment");
+
     spdlog::debug("Finished initialising shaders");
     return true;
 }
@@ -348,6 +352,14 @@ bool Application::initialiseEntities(Scene *scene)
         initialiseSkybox(scene);
     }
 
+    {
+        // planet billboard
+        std::string name = "planet";
+        Geometry geometry = ResourceManager::generateProceduralRectangle();
+        resourceManager_.loadGeometry(name, geometry);
+        initialisePlanet(scene);
+    }
+
     spdlog::info("Finished initilising entities");
     return true;
 }
@@ -404,6 +416,64 @@ bool Application::initialiseSkybox(Scene *scene)
     }
     meshComponent->setShaderPipeline(
         shaderPipelineManager_.getShaderPipeline("Skybox")
+    );
+
+    return true;
+}
+
+bool Application::initialisePlanet(Scene *scene)
+{
+    spdlog::debug("Initialising planet billboard");
+
+    // entity
+    std::unique_ptr<SceneActor> actor = std::make_unique<SceneActor>("planet");
+    scene->addEntity(std::move(actor));
+    SceneActor *actorPtr =
+        dynamic_cast<SceneActor *>(scene->getEntities().back().get());
+
+    // mesh
+    Mesh actorMesh = Mesh();
+    actorMesh.setGeometry("planet");
+    Mesh *registeredMesh =
+        meshManager_.registerMesh("planet", std::move(actorMesh));
+    initialiseEntities();
+
+    // transform component
+    Transform transform = Transform{
+        .position = {0.f, 0.f, 0.f}, .scale = {1000.f, 1000.f, 1000.f}
+    };
+    TransformComponent *transformComponent =
+        actorPtr->getComponent<TransformComponent>();
+    transformComponent->setTransform(transform);
+
+    // mesh component
+    MeshComponent *meshComponent = actorPtr->getComponent<MeshComponent>();
+    meshComponent->setMesh(registeredMesh);
+
+    // TODO - generalise
+    {
+        // vertex shader pipeline
+        std::unique_ptr<PlanetShaderPipelineUpdateData> updateData =
+            std::make_unique<PlanetShaderPipelineUpdateData>();
+        updateData->actor = actorPtr;
+        updateData->camera = camera_;
+        updateData->texture = resourceManager_.getTexture("asteroid");
+        updateData->directionalLight = &directionalLight_;
+
+        std::unique_ptr<PlanetVulkanShaderPipeline> actorShaderPipeline =
+            std::make_unique<PlanetVulkanShaderPipeline>();
+        auto [registeredShaderPipeline, registeredShaderPipelineUpdateData] =
+            shaderPipelineManager_.registerShaderPipeline(
+                std::format("Planet"), std::move(actorShaderPipeline),
+                std::move(updateData)
+            );
+
+        registeredShaderPipeline->init(
+            registeredMesh->getGeometry(), registeredShaderPipelineUpdateData
+        );
+    }
+    meshComponent->setShaderPipeline(
+        shaderPipelineManager_.getShaderPipeline("Planet")
     );
 
     return true;

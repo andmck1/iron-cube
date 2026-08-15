@@ -66,6 +66,7 @@ add_executable(
     src/shaderpipeline/instancedMeshWithCompute.cpp
     src/shaderpipeline/meshDXExample.cpp
     src/shaderpipeline/skybox.cpp
+    src/shaderpipeline/planet.cpp
 )
 
 target_link_libraries(iron-cube PRIVATE iron-core CLI11)

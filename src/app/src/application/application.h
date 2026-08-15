@@ -50,6 +50,8 @@ class Application
     initialiseGeometry(Scene *scene, std::string name, Transform transform);
     bool
     initialiseSkybox(Scene *scene);
+    bool
+    initialisePlanet(Scene *scene);
     bool initialiseCamera(Scene *scene);
     void handleInput();
     // TODO - should this go somewhere else?
