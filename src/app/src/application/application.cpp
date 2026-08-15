@@ -356,6 +356,9 @@ bool Application::initialiseEntities(Scene *scene)
         // planet billboard
         std::string name = "planet";
         Geometry geometry = ResourceManager::generateProceduralRectangle();
+        Texture texture =
+            ResourceManager::loadImage("assets/saturn/saturn.jpg");
+        resourceManager_.loadTexture("saturn", texture);
         resourceManager_.loadGeometry(name, geometry);
         initialisePlanet(scene);
     }
@@ -440,7 +443,7 @@ bool Application::initialisePlanet(Scene *scene)
 
     // transform component
     Transform transform = Transform{
-        .position = {0.f, 0.f, 0.f}, .scale = {1000.f, 1000.f, 1000.f}
+        .position = {0.f, 0.f, 0.f}, .scale = {400.f, 400.f, 400.f}
     };
     TransformComponent *transformComponent =
         actorPtr->getComponent<TransformComponent>();
@@ -457,7 +460,7 @@ bool Application::initialisePlanet(Scene *scene)
             std::make_unique<PlanetShaderPipelineUpdateData>();
         updateData->actor = actorPtr;
         updateData->camera = camera_;
-        updateData->texture = resourceManager_.getTexture("asteroid");
+        updateData->texture = resourceManager_.getTexture("saturn");
         updateData->directionalLight = &directionalLight_;
 
         std::unique_ptr<PlanetVulkanShaderPipeline> actorShaderPipeline =

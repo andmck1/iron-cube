@@ -330,7 +330,7 @@ bool DebugLayer::frame()
             "N Instances", debugData_->nInstances, 1, MAX_N_INSTANCES
         );
         ImGui::SliderFloat(
-            "Disc Outer Radius", debugData_->discOuterRadius, 10.f, 100000.f
+            "Disc Outer Radius", debugData_->discOuterRadius, 10.f, 10000.f
         );
         ImGui::SliderFloat(
             "Disc Inner Radius", debugData_->discInnerRadius, 1.f, 1000.f

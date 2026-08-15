@@ -22,7 +22,7 @@
 #include <fstream>
 
 static constexpr float MOUSE_SENSITIVITY = 0.0015f;
-static constexpr float MOVEMENT_SENSITIVITY = 5.f;
+static constexpr float MOVEMENT_SENSITIVITY = 500.f;
 static constexpr float GPU_STATS_QUERY_FREQUENCY = 1.f;
 static constexpr float EPS = 1e-6f;
 static constexpr float INSTANCE_SCALE_LOWER = 0.6;
@@ -89,11 +89,11 @@ class Application
         VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE;
     bool isAnimationOn_ = true;
 
-    float3 cameraPosition_ = {0.f, 0.f, -900.f};
+    float3 cameraPosition_ = {0.f, 200.f, -1800.f};
 
     int nInstances_ = 1000000;
-    float discOuterRadius_ = 18000.f;
-    float discInnerRadius_ = 300.f;
+    float discOuterRadius_ = 2000.f;
+    float discInnerRadius_ = 1000.f;
     float discHeight_ = 70.f;
 
     int currentNInstances_ = nInstances_;

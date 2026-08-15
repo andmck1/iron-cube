@@ -7,21 +7,21 @@ ConstantBuffer<PlanetBufferTypes::SceneBuffer> scene;
 [[vk::binding(PlanetBufferTypes::BufferSlots::MVP)]]
 ConstantBuffer<PlanetBufferTypes::MVPBuffer> mvp;
 
+// TODO - review!!
 [shader("vertex")]
 PlanetBufferTypes::VertexOutputType main(VertexInputType input)
 {
     PlanetBufferTypes::VertexOutputType output;
 
-    float3 centre = mvp.model[3].xyz;
     float radius = length(mvp.model[0].xyz); // uniform scale assumption
-
-    float3 camRight = float3(mvp.view[0].x, mvp.view[1].x, mvp.view[2].x);
-    float3 camUp = float3(mvp.view[0].y, mvp.view[1].y, mvp.view[2].y);
+    float3 centre = float3(mvp.model[0].w, mvp.model[1].w, mvp.model[2].w);
+    float3 camRight = mvp.view[0].xyz;
+    float3 camUp = mvp.view[1].xyz;
 
     float2 localOffset = input.position.xy;
 
     // pad slightly so the sphere silhouette isn't clipped by quad edges
-    const float pad = 1.05;
+    const float pad = 10.0;
     float3 worldPos = centre + camRight * localOffset.x * radius * pad +
                       camUp * localOffset.y * radius * pad;
 
