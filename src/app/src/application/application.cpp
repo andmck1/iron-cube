@@ -346,8 +346,9 @@ bool Application::initialiseEntities(Scene *scene)
         Geometry geometry = ResourceManager::generateProceduralCube();
         resourceManager_.loadGeometry(name, geometry);
 
-        Cubemap cubemap =
-            ResourceManager::loadCubemapTexture("assets/skybox/cubemap.ktx");
+        Cubemap cubemap = ResourceManager::loadCubemapTexture(
+            "assets/skybox/highresnasa/cubemap.ktx"
+        );
         resourceManager_.loadCubemap("skybox", cubemap);
         initialiseSkybox(scene);
     }
@@ -442,9 +443,8 @@ bool Application::initialisePlanet(Scene *scene)
     initialiseEntities();
 
     // transform component
-    Transform transform = Transform{
-        .position = {0.f, 0.f, 0.f}, .scale = {400.f, 400.f, 400.f}
-    };
+    Transform transform =
+        Transform{.position = {0.f, 0.f, 0.f}, .scale = {400.f, 400.f, 400.f}};
     TransformComponent *transformComponent =
         actorPtr->getComponent<TransformComponent>();
     transformComponent->setTransform(transform);
