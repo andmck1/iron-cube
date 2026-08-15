@@ -68,7 +68,7 @@ main(PlanetBufferTypes::VertexOutputType inVert)
 
     float3 albedo = sampler.Sample(uv).rgb;
 
-    float3 lightDir = -normalize(scene.directionalLight.directionVector.xyz);
+    float3 lightDir = normalize(-scene.directionalLight.directionVector.xyz);
     float ndotl = max(dot(normal, lightDir), 0.0);
 
     output.colour = float4(albedo * ndotl, 1.0);
