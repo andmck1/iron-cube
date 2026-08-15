@@ -323,11 +323,11 @@ bool Application::initialiseEntities(Scene *scene)
         // asteroid
         std::string name = "asteroid";
         Geometry geometry = ResourceManager::loadObj(
-            {"assets/asteroid_lod/asteroid_LOD_10.obj",
+            {"assets/asteroid_lod/asteroid_LOD_6.obj",
+             "assets/asteroid_lod/asteroid_LOD_10.obj",
              "assets/asteroid_lod/asteroid_LOD_11.obj",
              "assets/asteroid_lod/asteroid_LOD_12.obj",
-             "assets/asteroid_lod/asteroid_LOD_13.obj",
-             "assets/asteroid_lod/asteroid_LOD_14.obj"},
+             "assets/asteroid_lod/asteroid_LOD_19.obj"},
             "./assets/asteroid_lod"
         );
         resourceManager_.loadGeometry(name, geometry);
@@ -443,8 +443,9 @@ bool Application::initialisePlanet(Scene *scene)
     initialiseEntities();
 
     // transform component
-    Transform transform =
-        Transform{.position = {0.f, 0.f, 0.f}, .scale = {400.f, 400.f, 400.f}};
+    Transform transform = Transform{
+        .position = {0.f, 0.f, 0.f}, .scale = {4000.f, 4000.f, 4000.f}
+    };
     TransformComponent *transformComponent =
         actorPtr->getComponent<TransformComponent>();
     transformComponent->setTransform(transform);
@@ -1002,10 +1003,8 @@ void Application::initialiseEntities()
 
         float scaleX =
             random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
-        float scaleY =
-            random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
-        float scaleZ =
-            random.randomFloat(INSTANCE_SCALE_LOWER, INSTANCE_SCALE_UPPER);
+        float scaleY = random.randomFloat(scaleX / 2, scaleX * 2);
+        float scaleZ = random.randomFloat(scaleX / 2, scaleX * 2);
 
         float x = radius * std::sin(theta);
         float y = height;

@@ -25,8 +25,8 @@ static constexpr float MOUSE_SENSITIVITY = 0.0015f;
 static constexpr float MOVEMENT_SENSITIVITY = 500.f;
 static constexpr float GPU_STATS_QUERY_FREQUENCY = 1.f;
 static constexpr float EPS = 1e-6f;
-static constexpr float INSTANCE_SCALE_LOWER = 0.6;
-static constexpr float INSTANCE_SCALE_UPPER = 1.4;
+static constexpr float INSTANCE_SCALE_LOWER = 0.01;
+static constexpr float INSTANCE_SCALE_UPPER = 10.0;
 
 class Application
 {
@@ -48,10 +48,8 @@ class Application
     bool initialiseEntities(Scene *scene);
     bool
     initialiseGeometry(Scene *scene, std::string name, Transform transform);
-    bool
-    initialiseSkybox(Scene *scene);
-    bool
-    initialisePlanet(Scene *scene);
+    bool initialiseSkybox(Scene *scene);
+    bool initialisePlanet(Scene *scene);
     bool initialiseCamera(Scene *scene);
     void handleInput();
     // TODO - should this go somewhere else?
@@ -89,12 +87,12 @@ class Application
         VisibilityFunc::VISIBILITY_FUNC_CONE_AND_NEAR_PLANE;
     bool isAnimationOn_ = true;
 
-    float3 cameraPosition_ = {0.f, 200.f, -1800.f};
+    float3 cameraPosition_ = {0.f, 200.f, -18000.f};
 
-    int nInstances_ = 1000000;
-    float discOuterRadius_ = 2000.f;
-    float discInnerRadius_ = 1000.f;
-    float discHeight_ = 70.f;
+    int nInstances_ = 1500000;
+    float discOuterRadius_ = 30000.f;
+    float discInnerRadius_ = 11000.f;
+    float discHeight_ = 275.f;
 
     int currentNInstances_ = nInstances_;
     float currentDiscOuterRadius_ = discOuterRadius_;
@@ -104,14 +102,14 @@ class Application
     bool isDebugQueryOn_ = false;
     std::vector<GPUStats> gpuStats_ = {};
     uint32_t lodIndex_ = 0;
-    float maxLODDistance_ = 100.f;
-    float lodExponent_ = 5.f;
+    float maxLODDistance_ = 3500.f;
+    float lodExponent_ = 0.75f;
     bool isLODOn_ = true;
     uint32_t nFramesSinceStart_ = 0;
     float rotationFrequency_ = 0.01f;
     FragmentColourType fragmentColourType = FragmentColourType::LIGHTING;
     DirectionalLight directionalLight_ = {
-        .directionVector = {1.f, 1.f, 1.f, 0.f},
+        .directionVector = {0.5f, 0.f, -0.25f, 0.f},
         .diffuseColour = {1.f, 1.f, 1.f},
         .specularColour = {1.f, 1.f, 1.f},
         .specularPower = 10.f

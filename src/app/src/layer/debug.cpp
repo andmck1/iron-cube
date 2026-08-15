@@ -302,8 +302,8 @@ bool DebugLayer::frame()
 
         ImGui::SliderFloat3(
             "Directional Light: Direction",
-            glm::value_ptr(debugData_->directionalLight->directionVector),
-            -1.f, 1.f
+            glm::value_ptr(debugData_->directionalLight->directionVector), -1.f,
+            1.f
         );
         ImGui::SliderFloat3(
             "Directional Light: Diffuse Colour",
@@ -330,10 +330,10 @@ bool DebugLayer::frame()
             "N Instances", debugData_->nInstances, 1, MAX_N_INSTANCES
         );
         ImGui::SliderFloat(
-            "Disc Outer Radius", debugData_->discOuterRadius, 10.f, 10000.f
+            "Disc Outer Radius", debugData_->discOuterRadius, 10.f, 100000.f
         );
         ImGui::SliderFloat(
-            "Disc Inner Radius", debugData_->discInnerRadius, 1.f, 1000.f
+            "Disc Inner Radius", debugData_->discInnerRadius, 1.f, 100000.f
         );
         ImGui::SliderFloat("Disc Height", debugData_->discHeight, 1.f, 1000.f);
 
@@ -351,11 +351,12 @@ bool DebugLayer::frame()
         if (*debugData_->isLODOn)
         {
             ImGui::SliderInt("LOD Index", (int *) debugData_->lodIndex, 0, 4);
-            ImGui::SliderFloat(
-                "Max LOD Distance", debugData_->maxLODDistance, 1.f, 100.f
+            ImGui::DragFloat(
+                "Max LOD Distance", debugData_->maxLODDistance, 1.f, 1.f,
+                10000.f
             );
-            ImGui::SliderFloat(
-                "LOD Exponent", debugData_->lodExponent, 0.1f, 5.f
+            ImGui::DragFloat(
+                "LOD Exponent", debugData_->lodExponent, 0.01f, 0.01f, 50.f
             );
         }
     }
