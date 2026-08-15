@@ -63,6 +63,15 @@ bool SkyboxVulkanShaderPipeline::shutdown()
 void SkyboxVulkanShaderPipeline::initBufferDescriptions()
 {
     resourceDescriptions_.push_back(
+        UniformBuffer.setBufferSlot(SkyboxBufferTypes::BufferSlots::SCENE)
+            .setBufferSize(sizeof(SkyboxBufferTypes::SceneBuffer))
+            .setData(static_cast<SkyboxBufferTypes::SceneBuffer *>(nullptr))
+            .setStageFlags(
+                vk::ShaderStageFlagBits::eVertex |
+                vk::ShaderStageFlagBits::eFragment
+            )
+    );
+    resourceDescriptions_.push_back(
         UniformBuffer.setBufferSlot(SkyboxBufferTypes::BufferSlots::MVP)
             .setBufferSize(sizeof(SkyboxBufferTypes::MVPBuffer))
             .setData(static_cast<SkyboxBufferTypes::MVPBuffer *>(nullptr))
@@ -297,7 +306,18 @@ bool SkyboxVulkanShaderPipeline::update()
 {
     std::chrono::time_point now = std::chrono::steady_clock::now();
 
-    // MVP uniform buffer (slot 0)
+    // Scene
+    SkyboxBufferTypes::SceneBuffer scene{};
+    scene.eyePosition = {
+        updateData_->camera->getComponent<TransformComponent>()->getPosition(),
+        1.0f
+    };
+    scene.directionalLight = *updateData_->directionalLight;
+    resources_[SkyboxBufferTypes::BufferSlots::SCENE].update(
+        sizeof(scene), &scene
+    );
+
+    // MVP
     SkyboxBufferTypes::MVPBuffer mvp{};
     mvp.model = *updateData_->actor->getComponent<TransformComponent>()
                      ->getTransformMatrixRef();

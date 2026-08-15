@@ -1,57 +1,33 @@
 #include "buffertypes.h"
 
+[[vk::binding(SkyboxBufferTypes::BufferSlots::SCENE)]]
+ConstantBuffer<SkyboxBufferTypes::SceneBuffer> scene;
+
 [[vk::binding(SkyboxBufferTypes::BufferSlots::TEXTURE)]]
 SamplerCube sampler;
 
+// TODO - review!
 [shader("fragment")]
 float4 main(SkyboxBufferTypes::VertexOutputType inVert) : SV_Target
 {
     float3 direction = normalize(inVert.direction);
 
-    // ------------------------------------------------------------
-    // Skybox
-    // ------------------------------------------------------------
-
+    // skybox
     float3 colour = sampler.Sample(direction).rgb;
 
-    // ------------------------------------------------------------
-    // Sun
-    // ------------------------------------------------------------
-
-    // Direction from the scene towards the sun.
-    // Change this to move the sun around the sky.
-    float3 sunDirection = normalize(float3(0.4, 0.25, -0.85));
-
+    // sun
+    float3 sunDirection =
+        normalize(-scene.directionalLight.directionVector.xyz);
     float3 sunColour = float3(1.0, 0.82, 0.55);
-
     float cosAngle = dot(direction, sunDirection);
 
-    // ------------------------------------------------------------
-    // Sun disc
-    // ------------------------------------------------------------
-
-    // Real sun is approximately 0.27 degrees across.
-    // This is deliberately exaggerated slightly.
     float sunRadius = radians(0.5);
-
     float cosRadius = cos(sunRadius);
     float cosInner = cos(sunRadius * 0.7);
-
     float sunDisc = smoothstep(cosRadius, cosInner, cosAngle);
 
-    // ------------------------------------------------------------
-    // Sun glow
-    // ------------------------------------------------------------
-
-    // Wide, subtle glow.
     float broadGlow = pow(max(cosAngle, 0.0), 32.0);
-
-    // Tight glow immediately around the sun.
     float tightGlow = pow(max(cosAngle, 0.0), 256.0);
-
-    // ------------------------------------------------------------
-    // HDR emission
-    // ------------------------------------------------------------
 
     float3 sunEmission =
         sunColour * (sunDisc * 25.0 + broadGlow * 0.15 + tightGlow * 8.0);

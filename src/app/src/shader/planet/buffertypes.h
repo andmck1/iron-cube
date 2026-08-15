@@ -34,6 +34,7 @@ namespace PlanetBufferTypes
         float4x4 view;
         float4x4 projection;
     };
+
     struct SceneBuffer
     {
         float4 eyePosition;
