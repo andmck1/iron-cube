@@ -25,16 +25,19 @@ cmake --build build
 
 ## Running
 
+Two builds have been provided, one for Linux and one for Windows. These
+have been zipped so must be unzipped before running.
+
 To run the application on Linux:
 
 ```bash
-./build/bin/iron-cube
+./build/linux/bin/iron-cube
 ```
 
 And on Windows:
 
 ```pwsh
-.\build\bin\iron-cube.exe
+.\build\windows\bin\iron-cube.exe
 ```
 
 To see available CLI commands pass `--help`:

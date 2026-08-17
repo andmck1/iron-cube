@@ -15,6 +15,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -32,7 +35,7 @@ FetchContent_MakeAvailable(imgui)
 FetchContent_Declare(
   spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG v1.14.1)
+  GIT_TAG v1.17.0)
 FetchContent_MakeAvailable(spdlog)
 
 FetchContent_Declare(
@@ -74,7 +77,7 @@ FetchContent_MakeAvailable(cli11)
 FetchContent_Declare(
   yaml-cpp
   GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-  GIT_TAG origin/master)
+  GIT_TAG yaml-cpp-0.9.0)
 FetchContent_MakeAvailable(yaml-cpp)
 
 if(WIN32)

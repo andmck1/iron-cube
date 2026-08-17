@@ -10,7 +10,7 @@
 struct PipelineStatistics
 {
     public:
-    std::vector<std::pair<std::string, long>> stats;
+    std::vector<std::pair<std::string, long long>> stats;
 };
 
 class IRenderer
