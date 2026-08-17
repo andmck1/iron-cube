@@ -23,18 +23,35 @@ cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 ```
 
+Note, when building on Windows I sometimes had to run:
+
+```pwsh
+cmake -S . -B build -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+cmake --build build
+```
+
 ## Running
+
+Two builds have been provided, one for Linux and one for Windows. These
+have been zipped so must be unzipped before running.
+
+A bug was noted on windows where the application did not choose the high-
+performing NVIDIA GPU when running. To resolve:
+
+* Settings -> System -> Display -> Graphics
+* Add the iron-cube exe to the custom apps list
+* In options choose High performance (eg. NVIDIA)
 
 To run the application on Linux:
 
 ```bash
-./build/bin/iron-cube
+./build/linux/bin/iron-cube
 ```
 
 And on Windows:
 
 ```pwsh
-.\build\bin\iron-cube.exe
+.\build\windows\bin\Debug\iron-cube.exe
 ```
 
 To see available CLI commands pass `--help`:
@@ -61,3 +78,4 @@ has been appropriately labelled in the code.
 
 ## Honourable mentions
 - The [Vulkan docs](https://docs.vulkan.org/tutorial/latest/00_Introduction.html)
+

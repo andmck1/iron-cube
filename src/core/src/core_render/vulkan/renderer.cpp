@@ -278,6 +278,11 @@ bool VulkanRenderer::pickPhysicalDevice()
     std::vector<vk::raii::PhysicalDevice> physicalDevices =
         instance_.enumeratePhysicalDevices();
 
+    for (auto &physicalDevice : physicalDevices)
+    {
+        spdlog::info((char *) physicalDevice.getProperties().deviceName);
+    }
+
     if (physicalDevices.empty())
     {
         throw std::runtime_error("failed to find GPUs with Vulkan support!");
@@ -291,6 +296,7 @@ bool VulkanRenderer::pickPhysicalDevice()
         throw std::runtime_error("failed to find a suitable GPU!");
     }
     physicalDevice_ = *physicalDeviceIterator;
+    spdlog::info((char *) physicalDevice_.getProperties().deviceName);
 
     spdlog::debug("Finished selecting physical device");
     return true;
