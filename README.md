@@ -1,10 +1,10 @@
 # Iron Cube
-
 A Vulkan-based rendering engine built with modern C++ practices.
 
 This application was built as part of my Masters research project into the 
-comparative benefit of mesh shaders compared to traditional techniques on the
-Compute Games Technology MSc at the University of Abertay.
+comparative benefit of mesh shaders compared to traditional techniques.
+
+![Demo](assets/showcase.gif)
 
 ## Prerequisites
 
@@ -60,10 +60,9 @@ To see available CLI commands pass `--help`:
 ./build/bin/iron-cube --help
 ```
 
-## Contributors
-- Alastair Hamilton
-- - Email: alastair.amhamilton@icloud.com
-- - Student contact: s2503450@abertay.ac.uk
+# Author
+[Alastair Hamilton](alastair-hamilton.dev), alastair.amhamilton@icloud.com
+
 
 ## AI Disclaimer
 AI was used actively in this repo only for the renderer using 
